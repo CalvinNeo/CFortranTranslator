@@ -1,0 +1,1 @@
+flex++.exe -C ../../../grammar/for90.tok
