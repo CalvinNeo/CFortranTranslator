@@ -8,3 +8,5 @@ Term make_term(const TokenMeta & token, string w) {
 Term make_term(const TokenMeta & token, const char * w) {
 	return Term{ token, string(w) };
 }
+
+

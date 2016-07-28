@@ -118,3 +118,16 @@ struct Term {
 
 Term make_term(const TokenMeta & token, std::string w);
 Term make_term(const TokenMeta & token, const char * w);
+
+// flex part code
+// implement in for90.l
+int make_term_flex(const TokenMeta & token, const char * w);
+struct FlexState {
+	Term CurrentTerm;
+	int parse_pos;
+	int parse_line;
+	int parse_len;
+	bool isnull = false;
+};
+int yylex(void);
+FlexState next_token(std::string in_str, int start = 0);
