@@ -5,17 +5,47 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="grammar">
+      <UniqueIdentifier>{4961f411-a40a-475f-9cc2-c8f6e0be01ee}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="NuclearLang">
+      <UniqueIdentifier>{b5f09d8e-4162-45ce-8c59-d676a1c7e730}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\tokenizer.cpp" />
     <ClCompile Include="..\..\main.cpp" />
-    <ClCompile Include="..\..\scanner.cpp" />
-    <ClCompile Include="..\..\grammar\for90.flex.cpp" />
+    <ClCompile Include="..\..\grammar\for90.flex.cpp">
+      <Filter>grammar</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\scanner.cpp">
+      <Filter>grammar</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tokenizer.cpp">
+      <Filter>grammar</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\grammar\for90.tab.cpp">
+      <Filter>grammar</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\tokenizer.h" />
+    <ClInclude Include="..\..\tokenizer.h">
+      <Filter>grammar</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\grammar\for90.tab.h">
+      <Filter>grammar</Filter>
+    </ClInclude>
+    <ClInclude Include="Intent.h">
+      <Filter>NuclearLang</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <Flex Include="..\..\grammar\for90.l" />
+    <Flex Include="..\..\grammar\for90.l">
+      <Filter>grammar</Filter>
+    </Flex>
+  </ItemGroup>
+  <ItemGroup>
+    <Bison Include="..\..\grammar\for90.y">
+      <Filter>grammar</Filter>
+    </Bison>
   </ItemGroup>
 </Project>

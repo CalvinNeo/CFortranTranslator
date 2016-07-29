@@ -2,6 +2,7 @@
 #include <string>
 
 enum TokenMeta {
+//Operators or idents with priorities
 	TypeCast = 162,
 
 	PostInc = 140,//++ i
@@ -10,8 +11,8 @@ enum TokenMeta {
 	Dec = 143,
 
 	Not = 130,
-	Neg = 131,
-	ShortWave = 134,//~
+	Neg = 131, // -
+	ShortWave = 134, //~
 
 	Power = 100,
 
@@ -36,22 +37,25 @@ enum TokenMeta {
 	AndAnd = 30,
 	OrOr = 20,
 
-	Nop = 0, 
+	Nop = 0,
 
 	LB = -1,//(
 	RB = -2,//)
 	SLB = -3,//[
 	SRB = -4,//]
-	Dot = -5,
+	Dot = -5, // .
 	DoubleColon = -6,//::
 	Comma = -7,//,
 	Colon = -8,//:
 
-							//Generic
-	Word = -10,
-	Numeric = -11,
-	Str = -12,
-	Character = -13,
+	//Generic
+	META_WORD = -10,
+	META_INTEGER = -11,
+	META_STRING = -12,
+	META_CHARACTER = -13,
+	META_FLOAT = -14,
+	META_OPERATOR = -15,
+	META_ILLEGAL = -16,
 
 
 	LBrace = -23,//{
@@ -77,10 +81,10 @@ enum TokenMeta {
 
 //Build-in Type decl
 
-	Int = -82,
+	Int = META_INTEGER,
 	Char = -83,//type
-	String = -84,
-	Double = -85,
+	String = META_STRING,
+	Double = META_FLOAT,
 	Bool = -87,
 	Complex = -88,
 
@@ -111,23 +115,33 @@ enum TokenMeta {
 };
 
 struct Term {
-	TokenMeta meta;
+	TokenMeta token;
 	std::string what;
 };
 
 
+#define USE_YACC
+
 Term make_term(const TokenMeta & token, std::string w);
 Term make_term(const TokenMeta & token, const char * w);
 
-// flex part code
-// implement in for90.l
-int make_term_flex(const TokenMeta & token, const char * w);
+#ifdef USE_YACC
+#else
+//// flex part code
+//// implement in for90.l
+//int make_term_flex(const TokenMeta & token, const char * w);
+#endif
 struct FlexState {
 	Term CurrentTerm;
 	int parse_pos;
 	int parse_line;
 	int parse_len;
+	int line_pos;
 	bool isnull = false;
 };
-int yylex(void);
-FlexState next_token(std::string in_str, int start = 0);
+FlexState next_token(std::string in_str, int start = 0); 
+FlexState iter_token(std::string in_str, int start);
+
+// yacc part code
+// implement in for90.y
+int parse(std::string code);

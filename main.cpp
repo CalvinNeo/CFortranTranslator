@@ -18,16 +18,17 @@ int main()
 	//cout << LB << endl;
 	//cout << TokenMeta::LB << endl;
 
-	int i = 0;
-	//string s = "    \t\t ww075w +++";
-	string s = "s w";
-	FlexState st;
-	while (!st.isnull) {
-		st = next_token(s, i);
-		if(!st.isnull)
-			cout << st.CurrentTerm.what << endl;
-		i = st.parse_pos + st.parse_len + 1;
-	}
+	//int i = 0;
+	//string s = ",    \t\t ww075w ++ + +";
+	//s = ", www ,www";
+	//FlexState st;
+	//while (!st.isnull) {
+	//	st = next_token(s, i);
+	//	if (!st.isnull) {
+	//		cout << st.CurrentTerm.what << " ----- " << st.parse_len<< endl;
+	//	}
+	//	i = st.parse_pos;
+	//}
 
 	//string s = "+ +";
 	//FlexState st = next_token(s);

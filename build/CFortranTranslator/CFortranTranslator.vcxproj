@@ -20,15 +20,21 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\grammar\for90.flex.cpp" />
+    <ClCompile Include="..\..\grammar\for90.tab.cpp" />
     <ClCompile Include="..\..\main.cpp" />
     <ClCompile Include="..\..\scanner.cpp" />
     <ClCompile Include="..\..\tokenizer.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\grammar\for90.tab.h" />
     <ClInclude Include="..\..\tokenizer.h" />
+    <ClInclude Include="Intent.h" />
   </ItemGroup>
   <ItemGroup>
     <Flex Include="..\..\grammar\for90.l" />
+  </ItemGroup>
+  <ItemGroup>
+    <Bison Include="..\..\grammar\for90.y" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{EEFFE8C1-37FF-4F41-9113-5996FEA58436}</ProjectGuid>
