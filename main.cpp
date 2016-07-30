@@ -30,6 +30,7 @@ int main()
 	//	i = st.parse_pos;
 	//}
 
+
 	//string s = "+ +";
 	//FlexState st = next_token(s);
 	//cout << st.isnull << endl;
@@ -43,6 +44,15 @@ int main()
 	//cout << s.size() << endl;
 	//cout << strlen(chs) << endl;
 
+	string s = "if 1 then 2 else 2 end if";
+	s = "\"ab\\\"c\"";
+	//string s = "(1.2)";
+
+	parse(s);
+	char errlog[128];
+	while (fscanf(stderr, "%s", errlog) != EOF) {
+		printf("%s", errlog);
+	}
 	system("pause");
 	return 0;
 }

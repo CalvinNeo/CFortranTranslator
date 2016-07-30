@@ -3,9 +3,11 @@
 #include <string>
 #include <iostream>
 #include "../tokenizer.h"
+#include "for90.flex.h"
 #ifdef USE_YACC
 #include "for90.tab.h"
 //#define YY_DECL extern "C" int yylex()
+//#define YYSTYPE FlexState
 #else
 int make_term_flex(const TokenMeta & token, const char * w);
 #endif
@@ -24,16 +26,16 @@ int make_term_flex(const TokenMeta & token, const char * w);
 
 // yacc
 // USE WHTN USE YACC EITHER
-#define YYRTN(TOK) flex_state.parse_pos+=yyleng; flex_state.line_pos+=yyleng; return YY_ILLEGAL; 
-#define YYRTOP(TOK) flex_state.parse_pos+=yyleng; flex_state.line_pos+=yyleng; return YY_OPERATOR; 
+#define YYRTN(TOK) yylval.parse_pos+=yyleng; yylval.line_pos+=yyleng; return YY_ILLEGAL; 
+#define YYRTOP(TOK) yylval.parse_pos+=yyleng; yylval.line_pos+=yyleng; return YY_OPERATOR; 
 // include literal const such as pi, true, false, etc.
-#define YYRTWORD(TOK) flex_state.parse_pos+=yyleng; flex_state.line_pos+=yyleng; return YY_WORD; 
-#define YYRTINT(TOK) flex_state.parse_pos+=yyleng; flex_state.line_pos+=yyleng; return YY_INTEGER; 
-#define YYRTFLOAT(TOK) flex_state.parse_pos+=yyleng; flex_state.line_pos+=yyleng; return YY_FLOAT; 
-#define YYRTSTRING(TOK) flex_state.parse_pos+=yyleng; flex_state.line_pos+=yyleng; return YY_STRING; 
-#define YYRTILLEGAL(TOK) flex_state.parse_pos+=1; flex_state.line_pos+=1; return YY_ILLEGAL; 
-#define YYRTCRLF(TOK) flex_state.parse_line++; flex_state.parse_pos = 0; flex_state.line_pos = 0;
-#define YYRTNOP(TOK) flex_state.parse_pos += yyleng; flex_state.line_pos += yyleng;
+#define YYRTWORD(TOK) yylval.parse_pos+=yyleng; yylval.line_pos+=yyleng; return YY_WORD; 
+#define YYRTINT(TOK) yylval.parse_pos+=yyleng; yylval.line_pos+=yyleng; return YY_INTEGER; 
+#define YYRTFLOAT(TOK) yylval.parse_pos+=yyleng; yylval.line_pos+=yyleng; return YY_FLOAT; 
+#define YYRTSTRING(TOK) yylval.parse_pos+=yyleng; yylval.line_pos+=yyleng; return YY_STRING; 
+#define YYRTILLEGAL(TOK) yylval.parse_pos+=1; yylval.line_pos+=1; return yytext[0]; 
+#define YYRTCRLF(TOK) yylval.parse_line++; yylval.parse_pos = 0; yylval.line_pos = 0;
+#define YYRTNOP(TOK) yylval.parse_pos += yyleng; yylval.line_pos += yyleng;
 
 #ifdef USE_YACC
 #define RTN(TOK) YYRTN(TOK)
@@ -58,17 +60,20 @@ int make_term_flex(const TokenMeta & token, const char * w);
 #endif // USE_YACC
 
 
-static FlexState flex_state;
+FlexState flex_state;
 #ifdef USE_YACC
-//static int parse_pos = 0;
-//static int line_pos = 0;
-//static int parse_line = 0;
+int parse_pos;
+int parse_line;
+int parse_len;
+int line_pos;
 #else
+
 #endif
 %}
 delim   [ \t]
 ws      {delim}+
 newline [\r\n]
+
 %%
 {newline} {RTCRLF(void) }
 {ws} {RTNOP(void) }
@@ -77,8 +82,6 @@ newline [\r\n]
 [a-zA-Z_][a-zA-Z0-9]* { RTWORD(TokenMeta::META_WORD) }
 .true. {RTN(TokenMeta::True) }
 .false. {RTN(TokenMeta::False) }
-"(" {RTOP(TokenMeta::LB) }
-")" {RTOP(TokenMeta::RB) }
 "**" {RTOP(TokenMeta::Power) }
 "*" {RTOP(TokenMeta::Multiply) }
 "/" {RTOP(TokenMeta::Divide) }
@@ -101,39 +104,57 @@ newline [\r\n]
 . {/* can be parsed, including some operators not listed */ RTILLEGAL(TokenMeta::META_ILLEGAL) }
 %%
 
-//#undef YY_INPUT
-//#define YY_INPUT(buf) (input_flex(buf))
-//char * my_buf;
-//void input_flex(char *buf)
-//{
-//	strcpy(buf, my_buf);
-//} 
-
 int yywrap() 
 { 
    return(1); 
 }
 #ifdef USE_YACC
+char * iter_buff = nullptr;
+YY_BUFFER_STATE yy_buffer = nullptr;
+void set_buff(const std::string & code) {
+	using namespace std;
+	int slen = code.size();
+	flex_state.parse_line = 0;
+	flex_state.parse_pos = 0;
+	flex_state.parse_len = 0;
+	flex_state.line_pos = 0;
+	if (iter_buff != 0) {
+		free(iter_buff); iter_buff = nullptr;
+	}
+	iter_buff = (char *)malloc(slen + 2);
+	// 要以两个'\0'结束
+	memset(iter_buff, 0, slen + 2);
+	strcpy(iter_buff, code.c_str());
+	yy_buffer = yy_scan_buffer(iter_buff, slen + 2);
+	//int token = yyparse();
+	//if (token == 0) {
+	//	flex_state.isnull = true;
+	//}
+	//else {
+	//	flex_state.isnull = false;
+	//}
+	//flex_state.parse_len = yyleng;
+}
+void release_buff() {
+	yy_delete_buffer(yy_buffer);
+	free(iter_buff);iter_buff = nullptr;
+}
 #else
 int make_term_flex(const TokenMeta & token, const char * w) {
 	flex_state.CurrentTerm = Term{ token, std::string(w) };
 	return token;
 }
-FlexState next_token(std::string in_str, int start){
+FlexState next_token(const std::string & in_str, int start){
 	using namespace std;
 	int slen = in_str.size() - start;
-	if (slen <= 0) {
-		flex_state.parse_line = 0;
-		flex_state.parse_pos = start;
-		flex_state.parse_len = 0;
-		flex_state.line_pos = start;
-		flex_state.isnull = true;
-		return flex_state;
-	}
 	flex_state.parse_line = 0;
 	flex_state.parse_pos = start;
 	flex_state.parse_len = 0;
 	flex_state.line_pos = start;
+	if (slen <= 0) {
+		flex_state.isnull = true;
+		return flex_state;
+	}
 	char * buff = (char *)malloc(slen + 2);
 	// 要以两个'\0'结束
 	memset(buff, 0, slen + 2);
@@ -159,21 +180,17 @@ FlexState next_token(std::string in_str, int start){
 }
 
 char * iter_buff = nullptr;
-FlexState iter_token(std::string in_str, int start) {
+FlexState iter_token(const std::string & in_str, int start) {
 	using namespace std;
 	int slen = in_str.size();
-	if (start >= slen) {
-		flex_state.parse_line = 0;
-		flex_state.parse_pos = start;
-		flex_state.parse_len = 0;
-		flex_state.line_pos = start;
-		flex_state.isnull = true;
-		return flex_state;
-	}
 	flex_state.parse_line = 0;
 	flex_state.parse_pos = start;
 	flex_state.parse_len = 0;
 	flex_state.line_pos = start;
+	if (start >= slen) {
+		flex_state.isnull = true;
+		return flex_state;
+	}
 	if (iter_buff == 0) {
 		iter_buff = (char *)malloc(slen + 2);
 		// 要以两个'\0'结束

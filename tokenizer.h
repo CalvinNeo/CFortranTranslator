@@ -139,9 +139,10 @@ struct FlexState {
 	int line_pos;
 	bool isnull = false;
 };
-FlexState next_token(std::string in_str, int start = 0); 
-FlexState iter_token(std::string in_str, int start);
+FlexState next_token(const std::string & in_str, int start = 0); 
+FlexState iter_token(const std::string & in_str, int start);
 
 // yacc part code
 // implement in for90.y
+#define YYSTYPE FlexState
 int parse(std::string code);

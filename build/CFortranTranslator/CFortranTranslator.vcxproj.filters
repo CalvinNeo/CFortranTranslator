@@ -34,8 +34,11 @@
     <ClInclude Include="..\..\grammar\for90.tab.h">
       <Filter>grammar</Filter>
     </ClInclude>
-    <ClInclude Include="Intent.h">
+    <ClInclude Include="..\..\Intent.h">
       <Filter>NuclearLang</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\grammar\for90.flex.h">
+      <Filter>grammar</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -26,9 +26,10 @@
     <ClCompile Include="..\..\tokenizer.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\grammar\for90.flex.h" />
     <ClInclude Include="..\..\grammar\for90.tab.h" />
+    <ClInclude Include="..\..\Intent.h" />
     <ClInclude Include="..\..\tokenizer.h" />
-    <ClInclude Include="Intent.h" />
   </ItemGroup>
   <ItemGroup>
     <Flex Include="..\..\grammar\for90.l" />
