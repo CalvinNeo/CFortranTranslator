@@ -11,6 +11,9 @@
     <Filter Include="NuclearLang">
       <UniqueIdentifier>{b5f09d8e-4162-45ce-8c59-d676a1c7e730}</UniqueIdentifier>
     </Filter>
+    <Filter Include="NuclearLangVM">
+      <UniqueIdentifier>{39772ae8-a7f7-4308-8103-2091915938f1}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\main.cpp" />
@@ -39,6 +42,9 @@
     </ClInclude>
     <ClInclude Include="..\..\grammar\for90.flex.h">
       <Filter>grammar</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\VariablePanel.h">
+      <Filter>NuclearLang</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

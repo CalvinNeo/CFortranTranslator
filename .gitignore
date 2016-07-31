@@ -39,3 +39,4 @@ build/Debug/
 build/Release/
 *.opendb
 *.db
+*.lnk

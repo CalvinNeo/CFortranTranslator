@@ -30,6 +30,7 @@
     <ClInclude Include="..\..\grammar\for90.tab.h" />
     <ClInclude Include="..\..\Intent.h" />
     <ClInclude Include="..\..\tokenizer.h" />
+    <ClInclude Include="..\..\VariablePanel.h" />
   </ItemGroup>
   <ItemGroup>
     <Flex Include="..\..\grammar\for90.l" />

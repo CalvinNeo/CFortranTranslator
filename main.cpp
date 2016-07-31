@@ -45,7 +45,7 @@ int main()
 	//cout << strlen(chs) << endl;
 
 	string s = "if 1 then 2 else 2 end if";
-	s = "\"ab\\\"c\"";
+	//s = "\"ab\\\"c\"";
 	//string s = "(1.2)";
 
 	parse(s);

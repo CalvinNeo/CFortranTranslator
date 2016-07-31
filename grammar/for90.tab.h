@@ -34,7 +34,7 @@
 # define YY_YY_FOR90_TAB_H_INCLUDED
 /* Enabling traces.  */
 #ifndef YYDEBUG
-# define YYDEBUG 0
+# define YYDEBUG 1
 #endif
 #if YYDEBUG
 extern int yydebug;
@@ -46,12 +46,56 @@ extern int yydebug;
    /* Put the tokens into the symbol table, so that GDB and other debuggers
       know about them.  */
    enum yytokentype {
-     YY_INTEGER = 258,
-     YY_FLOAT = 259,
-     YY_WORD = 260,
-     YY_OPERATOR = 261,
-     YY_STRING = 262,
-     YY_ILLEGAL = 263
+     YY_GT = 258,
+     YY_GE = 259,
+     YY_EQ = 260,
+     YY_LE = 261,
+     YY_LT = 262,
+     YY_NEQ = 263,
+     YY_NEQV = 264,
+     YY_EQV = 265,
+     YY_ANDAND = 266,
+     YY_OROR = 267,
+     YY_NOT = 268,
+     YY_POWER = 269,
+     YY_DOUBLECOLON = 270,
+     YY_NEG = 271,
+     YY_INTEGER = 272,
+     YY_FLOAT = 273,
+     YY_WORD = 274,
+     YY_OPERATOR = 275,
+     YY_STRING = 276,
+     YY_ILLEGAL = 277,
+     YY_COMPLEX = 278,
+     YY_TRUE = 279,
+     YY_FALSE = 280,
+     YY_IF = 281,
+     YY_THEN = 282,
+     YY_ELSE = 283,
+     YY_END = 284,
+     YY_DO = 285,
+     YY_CONTINUE = 286,
+     YY_WHILE = 287,
+     YY_WHERE = 288,
+     YY_CASE = 289,
+     YY_PROGRAM = 290,
+     YY_FUNCTION = 291,
+     YY_RECURSIVE = 292,
+     YY_RESULT = 293,
+     YY_SUBROUTINE = 294,
+     YY_MODULE = 295,
+     YY_BLOCK = 296,
+     YY_IMPLICIT = 297,
+     YY_NONE = 298,
+     YY_USE = 299,
+     YY_PARAMETER = 300,
+     YY_FORMAT = 301,
+     YY_ENTRY = 302,
+     YY_INTEGER_T = 303,
+     YY_FLOAT_T = 304,
+     YY_STRING_T = 305,
+     YY_COMPLEX_T = 306,
+     YY_BOOL_T = 307
    };
 #endif
 
