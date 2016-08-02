@@ -19,6 +19,7 @@ struct Term {
 //int make_term_flex(const TokenMeta & token, const char * w);
 #endif
 struct FlexState {
+	// ´Ê·¨·ÖÎö
 	Term CurrentTerm;
 	int parse_pos;
 	int parse_line;
@@ -26,10 +27,10 @@ struct FlexState {
 	int line_pos;
 	bool isnull = false;
 };
+extern const KeywordMeta keywords[44];
+
+// flex part code
 FlexState next_token(const std::string & in_str, int start = 0); 
 FlexState iter_token(const std::string & in_str, int start);
 
-// yacc part code
-// implement in for90.y
-#define YYSTYPE FlexState
-int parse(std::string code);
+

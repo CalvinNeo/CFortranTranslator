@@ -1,6 +1,6 @@
 #include <iostream>  
 #include <sstream>  
-#include "tokenizer.h"
+#include "parser.h"
 #include <stdio.h>
 
 using namespace std;
@@ -44,15 +44,16 @@ int main()
 	//cout << s.size() << endl;
 	//cout << strlen(chs) << endl;
 
-	string s = "if 1 then 2 else 2 end if";
+	string s = "program if 1 then 2 else 2 end if end program";
 	//s = "\"ab\\\"c\"";
 	//string s = "(1.2)";
 
 	parse(s);
 	char errlog[128];
 	while (fscanf(stderr, "%s", errlog) != EOF) {
-		printf("%s", errlog);
+		printf("%s\n", errlog);
 	}
+	preoder(&program_tree);
 	system("pause");
 	return 0;
 }

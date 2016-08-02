@@ -490,35 +490,35 @@ char *yytext;
 #include <algorithm>
 #include <cctype>
 #include "../tokenizer.h"
-#include "for90.flex.h"
+#include "../parser.h"
 
 	// 前置声明
 #ifdef USE_YACC
 #include "for90.tab.h"
 //#define YY_DECL extern "C" int yylex()
 //#define YYSTYPE FlexState
-int word_parse(YYSTYPE & fs);
+int word_parse(FlexState & fs);
 #else
 
 #endif
-void update_flex(int len, bool newline = false);
+void update_yylval(int len, Term & current_term, bool newline = false);
 int make_term_flex(const TokenMeta & token, const char * w);
 
 #ifdef USE_YACC
 // yacc
 // USE WHTN USE YACC EITHER
-#define YYRTN(TOK, YYTOK) update_flex(yyleng); yylval = flex_state; yylval.CurrentTerm = Term{TOK, std::string(yytext)}; return YYTOK; 
+#define YYRTN(TOK, YYTOK) update_yylval(yyleng, Term{TOK, std::string(yytext)});	 return YYTOK; 
 // 对于非char运算符要预先解析
-#define YYRTOP(TOK, YYTOK) update_flex(yyleng); yylval = flex_state; yylval.CurrentTerm = Term{TOK, std::string(yytext)}; return YYTOK; 
+#define YYRTOP(TOK, YYTOK) update_yylval(yyleng, Term{TOK, std::string(yytext)});    return YYTOK; 
 // include literal const such as pi, true, false, etc.
-#define YYRTWORD() update_flex(yyleng); yylval = flex_state; yylval.CurrentTerm = Term{TokenMeta::META_ANY, std::string(yytext)}; return word_parse(yylval); 
-#define YYRTINT(TOK) update_flex(yyleng); yylval = flex_state; yylval.CurrentTerm = Term{TOK, std::string(yytext)};  return YY_INTEGER;
-#define YYRTFLOAT(TOK) update_flex(yyleng); yylval = flex_state; yylval.CurrentTerm = Term{TOK, std::string(yytext)}; return YY_FLOAT; 
-#define YYRTSTRING(TOK) update_flex(yyleng); yylval = flex_state; yylval.CurrentTerm = Term{TOK, std::string(yytext)}; return YY_STRING; 
+#define YYRTWORD() update_yylval(yyleng, Term{TokenMeta::META_ANY, std::string(yytext)});  	return word_parse(yylval.fs); 
+#define YYRTINT(TOK) update_yylval(yyleng, Term{TOK, std::string(yytext)});   	return YY_INTEGER;
+#define YYRTFLOAT(TOK) update_yylval(yyleng, Term{TOK, std::string(yytext)});   	return YY_FLOAT; 
+#define YYRTSTRING(TOK) update_yylval(yyleng, Term{TOK, std::string(yytext)});  	return YY_STRING; 
 // 规则中被定义的终结符, **包括ascii表内的单个字符**
-#define YYRTILLEGAL(TOK) update_flex(1); yylval = flex_state; yylval.CurrentTerm = Term{TOK, std::string(yytext)}; return yytext[0]; 
-#define YYRTCRLF(TOK) update_flex(yyleng, true);
-#define YYRTNOP(TOK) update_flex(yyleng);
+#define YYRTILLEGAL(TOK) update_yylval(1, Term{TOK, std::string(yytext)});  	return yytext[0]; 
+#define YYRTCRLF() update_yylval(yyleng, Term{TokenMeta::CRLF, std::string(yytext)}, true);
+#define YYRTNOP() update_yylval(yyleng, Term{TokenMeta::Nop, std::string(yytext)});
 
 #define RTN(TOK, YYTOK) YYRTN(TOK, YYTOK) 
 #define RTOP(TOK, YYTOK) YYRTOP(TOK, YYTOK)
@@ -528,9 +528,9 @@ int make_term_flex(const TokenMeta & token, const char * w);
 #define RTSTRING(TOK) YYRTSTRING(TOK)
 #define RTILLEGAL(TOK) YYRTILLEGAL(TOK)
 // 换行
-#define RTCRLF(TOK) YYRTCRLF(TOK)
+#define RTCRLF() YYRTCRLF()
 // 空格, 制表符等
-#define RTNOP(TOK) YYRTNOP(TOK)
+#define RTNOP() YYRTNOP()
 #else
 // more spectific
 // DO **NOT** USE WHEN USE YACC EITHER
@@ -541,8 +541,8 @@ int make_term_flex(const TokenMeta & token, const char * w);
 #define NYRTFLOAT(TOK) update_flex(yyleng); return make_term_flex(TokenMeta::META_FLOAT, yytext); 
 #define NYRTSTRING(TOK) update_flex(yyleng); return make_term_flex(TokenMeta::META_STRING, yytext); 
 #define NYRTILLEGAL(TOK) update_flex(1); return make_term_flex(TokenMeta::META_ILLEGAL, yytext); 
-#define NYRTCRLF(TOK) update_flex(yyleng, true);  /*DO NOT RETURN, CONTINUE yylex*/
-#define NYRTNOP(TOK) update_flex(yyleng); /*DO NOT RETURN*/
+#define NYRTCRLF() update_flex(yyleng, true);  /*DO NOT RETURN, CONTINUE yylex*/
+#define NYRTNOP() update_flex(yyleng); /*DO NOT RETURN*/
 
 #define RTN(TOK, YYTOK) NYRTN(TOK)
 #define RTOP(TOK, YYTOK) NYRTOP(TOK)
@@ -551,21 +551,18 @@ int make_term_flex(const TokenMeta & token, const char * w);
 #define RTFLOAT(TOK) NYRTFLOAT(TOK)
 #define RTSTRING(TOK) NYRTSTRING(TOK)
 #define RTILLEGAL(TOK) NYRTILLEGAL(TOK)
-#define RTCRLF(TOK) NYRTCRLF(TOK)
-#define RTNOP(TOK) NYRTNOP(TOK)
+#define RTCRLF() NYRTCRLF()
+#define RTNOP() NYRTNOP()
 #endif // USE_YACC
 
 
 FlexState flex_state;
 #ifdef USE_YACC
-int parse_pos;
-int parse_line;
-int parse_len;
-int line_pos;
+
 #else
 
 #endif
-#line 569 "for90.flex.cpp"
+#line 566 "for90.flex.cpp"
 
 #define INITIAL 0
 
@@ -744,9 +741,9 @@ YY_DECL
 	register char *yy_cp, *yy_bp;
 	register int yy_act;
     
-#line 89 "for90.l"
+#line 86 "for90.l"
 
-#line 750 "for90.flex.cpp"
+#line 747 "for90.flex.cpp"
 
 	if ( !(yy_init) )
 		{
@@ -832,92 +829,92 @@ do_action:	/* This label is used only to access EOF actions. */
 case 1:
 /* rule 1 can match eol */
 YY_RULE_SETUP
-#line 90 "for90.l"
-{RTCRLF(void) }
+#line 87 "for90.l"
+{RTCRLF() }
 	YY_BREAK
 case 2:
 YY_RULE_SETUP
-#line 91 "for90.l"
-{RTNOP(void) }
+#line 88 "for90.l"
+{RTNOP() }
 	YY_BREAK
 case 3:
 YY_RULE_SETUP
-#line 92 "for90.l"
+#line 89 "for90.l"
 {RTINT(TokenMeta::META_INTEGER) }
 	YY_BREAK
 case 4:
 YY_RULE_SETUP
-#line 93 "for90.l"
+#line 90 "for90.l"
 {RTFLOAT(TokenMeta::META_FLOAT) }
 	YY_BREAK
 case 5:
 YY_RULE_SETUP
-#line 94 "for90.l"
+#line 91 "for90.l"
 { RTWORD() }
 	YY_BREAK
 case 6:
 YY_RULE_SETUP
-#line 95 "for90.l"
+#line 92 "for90.l"
 {RTOP(TokenMeta::Power, YY_POWER) }
 	YY_BREAK
 case 7:
 YY_RULE_SETUP
-#line 96 "for90.l"
+#line 93 "for90.l"
 {RTOP(TokenMeta::GT, YY_GT) }
 	YY_BREAK
 case 8:
 YY_RULE_SETUP
-#line 97 "for90.l"
+#line 94 "for90.l"
 {RTOP(TokenMeta::GE, YY_GE )}
 	YY_BREAK
 case 9:
 YY_RULE_SETUP
-#line 98 "for90.l"
+#line 95 "for90.l"
 {RTOP(TokenMeta::LT, YY_LT)}
 	YY_BREAK
 case 10:
 YY_RULE_SETUP
-#line 99 "for90.l"
+#line 96 "for90.l"
 {RTOP(TokenMeta::LE, YY_LE)}
 	YY_BREAK
 case 11:
 YY_RULE_SETUP
-#line 100 "for90.l"
+#line 97 "for90.l"
 {RTOP(TokenMeta::EQ, YY_EQ) }
 	YY_BREAK
 case 12:
 YY_RULE_SETUP
-#line 101 "for90.l"
+#line 98 "for90.l"
 {RTOP(TokenMeta::NEQ, YY_NEQ)}
 	YY_BREAK
 case 13:
 YY_RULE_SETUP
-#line 102 "for90.l"
+#line 99 "for90.l"
 { RTWORD() }
 	YY_BREAK
 case 14:
 YY_RULE_SETUP
-#line 103 "for90.l"
+#line 100 "for90.l"
 {RTOP(TokenMeta::DoubleColon, YY_DOUBLECOLON)}
 	YY_BREAK
 case 15:
 /* rule 15 can match eol */
 YY_RULE_SETUP
-#line 104 "for90.l"
+#line 101 "for90.l"
 {RTSTRING(TokenMeta::META_STRING) 
 /* The delimiting quotes are escaped because they are Flex meta-characters. */}
 	YY_BREAK
 case 16:
 YY_RULE_SETUP
-#line 106 "for90.l"
+#line 103 "for90.l"
 {/* can be parsed, including some operators not listed */ RTILLEGAL(TokenMeta::META_ILLEGAL) }
 	YY_BREAK
 case 17:
 YY_RULE_SETUP
-#line 108 "for90.l"
+#line 105 "for90.l"
 ECHO;
 	YY_BREAK
-#line 921 "for90.flex.cpp"
+#line 918 "for90.flex.cpp"
 case YY_STATE_EOF(INITIAL):
 	yyterminate();
 
@@ -1911,7 +1908,7 @@ void yyfree (void * ptr )
 
 #define YYTABLES_NAME "yytables"
 
-#line 107 "for90.l"
+#line 104 "for90.l"
 
 
 
@@ -1919,161 +1916,32 @@ int yywrap()
 { 
    return(1); 
 }
-void update_flex(int len, bool newline){
+void update_yylval(int len, Term & current_term, bool newline){
 	if(newline){
-		flex_state.parse_line++; flex_state.line_pos = 0; flex_state.parse_pos = 0;
+		flex_state.parse_line++; flex_state.line_pos = 0; flex_state.parse_pos = 0; flex_state.parse_len = 0;
 	}else{
-		flex_state.parse_pos += len; flex_state.line_pos += len;
+		flex_state.parse_pos += flex_state.parse_len; flex_state.line_pos += flex_state.parse_len; flex_state.parse_len = yyleng;
 	}
+	yylval.fs = flex_state;
+	yylval.fs.CurrentTerm = current_term;
 }
 int make_term_flex(const TokenMeta & token, const char * w) {
 	flex_state.CurrentTerm = Term{ token, std::string(w) };
 	return token;
 }
 #ifdef USE_YACC
-int word_parse(YYSTYPE & fs) {
+int word_parse(FlexState & fs) {
 	using namespace std;
 	transform(fs.CurrentTerm.what.begin(), fs.CurrentTerm.what.end(), fs.CurrentTerm.what.begin(), tolower);
 	const string & s = fs.CurrentTerm.what;
-	if (s == "if") {
-		yylval.CurrentTerm = Term{ TokenMeta::If, std::string(yytext) };
-		return YY_IF;
+	for (int i = 0; i < sizeof(keywords) / sizeof(KeywordMeta); i++)
+	{
+		if (keywords[i].what == s) {
+			fs.CurrentTerm = Term{ keywords[i].token , std::string(yytext) };
+			return keywords[i].yytoken;
+		}
 	}
-	else if (s == "then") {
-		yylval.CurrentTerm = Term{ TokenMeta::META_ANY, std::string(yytext) };
-		return YY_THEN;
-	}
-	else if (s == "else") {
-		yylval.CurrentTerm = Term{ TokenMeta::Else, std::string(yytext) };
-		return YY_ELSE;
-	}
-	else if (s == "end") {
-		yylval.CurrentTerm = Term{ TokenMeta::META_ANY, std::string(yytext) };
-		return YY_END;
-	}
-	else if (s == "do") {
-		yylval.CurrentTerm = Term{ TokenMeta::Do, std::string(yytext) };
-		return YY_DO;
-	}
-	else if (s == "continue") {
-		yylval.CurrentTerm = Term{ TokenMeta::Continue, std::string(yytext) };
-		return YY_CONTINUE;
-	}
-	else if (s == "while") {
-		yylval.CurrentTerm = Term{ TokenMeta::While, std::string(yytext) };
-		return YY_WHILE;
-	}
-	else if (s == "where") {
-		yylval.CurrentTerm = Term{ TokenMeta::META_ANY, std::string(yytext) };
-		return YY_WHERE;
-	}
-	else if (s == "case") {
-		yylval.CurrentTerm = Term{ TokenMeta::Case, std::string(yytext) };
-		return YY_CASE;
-	}
-	else if (s == "program") {
-		yylval.CurrentTerm = Term{ TokenMeta::META_ANY, std::string(yytext) };
-		return YY_PROGRAM;
-	}
-	else if (s == "function") {
-		yylval.CurrentTerm = Term{ TokenMeta::META_ANY, std::string(yytext) };
-		return YY_FUNCTION;
-	}
-	else if (s == "recursive") {
-		yylval.CurrentTerm = Term{ TokenMeta::META_ANY, std::string(yytext) };
-		return YY_RECURSIVE;
-	}
-	else if (s == "result") {
-		yylval.CurrentTerm = Term{ TokenMeta::META_ANY, std::string(yytext) };
-		return YY_RESULT;
-	}
-	else if (s == "subroutine") {
-		yylval.CurrentTerm = Term{ TokenMeta::META_ANY, std::string(yytext) };
-		return YY_SUBROUTINE;
-	}
-	else if (s == "module") {
-		yylval.CurrentTerm = Term{ TokenMeta::META_ANY, std::string(yytext) };
-		return YY_MODULE;
-	}
-	else if (s == "block") {
-		yylval.CurrentTerm = Term{ TokenMeta::META_ANY, std::string(yytext) };
-		return YY_BLOCK;
-	}
-	else if (s == "implicit") {
-		yylval.CurrentTerm = Term{ TokenMeta::META_ANY, std::string(yytext) };
-		return YY_IMPLICIT;
-	}
-	else if (s == "none") {
-		yylval.CurrentTerm = Term{ TokenMeta::META_ANY, std::string(yytext) };
-		return YY_NONE;
-	}
-	else if (s == "use") {
-		yylval.CurrentTerm = Term{ TokenMeta::META_ANY, std::string(yytext) };
-		return YY_USE;
-	}
-	else if (s == "parameter") {
-		yylval.CurrentTerm = Term{ TokenMeta::META_ANY, std::string(yytext) };
-		return YY_PARAMETER;
-	}
-	else if (s == "format") {
-		yylval.CurrentTerm = Term{ TokenMeta::META_ANY, std::string(yytext) };
-		return YY_FORMAT;
-	}
-	else if (s == ".and.") {
-		yylval.CurrentTerm = Term{ TokenMeta::AndAnd, std::string(yytext) };
-		return YY_ANDAND;
-	}
-	else if (s == ".or.") {
-		yylval.CurrentTerm = Term{ TokenMeta::OrOr, std::string(yytext) };
-		return YY_OROR;
-	}
-	else if (s == ".not.") {
-		yylval.CurrentTerm = Term{ TokenMeta::Not, std::string(yytext) };
-		return YY_NOT;
-	}
-	else if (s == ".eqv.") {
-		yylval.CurrentTerm = Term{ TokenMeta::META_ANY, std::string(yytext) };
-		return YY_EQV;
-	}
-	else if (s == ".neqv") {
-		yylval.CurrentTerm = Term{ TokenMeta::META_ANY, std::string(yytext) };
-		return YY_NEQV;
-	}
-	else if (s == ".true.") {
-		yylval.CurrentTerm = Term{ TokenMeta::True, std::string(yytext) };
-		return YY_TRUE;
-	}
-	else if (s == ".false.") {
-		yylval.CurrentTerm = Term{ TokenMeta::False, std::string(yytext) };
-		return YY_FALSE;
-	}
-	else if (s == ".gt.") {
-		yylval.CurrentTerm = Term{ TokenMeta::GT, std::string(yytext) };
-		return YY_GT;
-	}
-	else if (s == ".ge.") {
-		yylval.CurrentTerm = Term{ TokenMeta::GE, std::string(yytext) };
-		return YY_GE;
-	}
-	else if (s == ".lt.") {
-		yylval.CurrentTerm = Term{ TokenMeta::LT, std::string(yytext) };
-		return YY_LT;
-	}
-	else if (s == ".le.") {
-		yylval.CurrentTerm = Term{ TokenMeta::LE, std::string(yytext) };
-		return YY_LE;
-	}
-	else if (s == ".eq.") {
-		yylval.CurrentTerm = Term{ TokenMeta::EQ, std::string(yytext) };
-		return YY_EQ;
-	}
-	else if (s == ".neq.") {
-		yylval.CurrentTerm = Term{ TokenMeta::NEQ, std::string(yytext) };
-		return YY_NEQ;
-	}
-	else {
-		return YY_WORD;
-	}
+	return YY_WORD;
 }
 char * iter_buff = nullptr;
 YY_BUFFER_STATE yy_buffer = nullptr;

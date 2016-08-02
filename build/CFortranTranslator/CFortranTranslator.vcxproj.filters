@@ -1,10 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="资源文件">
-      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
-      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
-    </Filter>
     <Filter Include="grammar">
       <UniqueIdentifier>{4961f411-a40a-475f-9cc2-c8f6e0be01ee}</UniqueIdentifier>
     </Filter>
@@ -14,26 +10,32 @@
     <Filter Include="NuclearLangVM">
       <UniqueIdentifier>{39772ae8-a7f7-4308-8103-2091915938f1}</UniqueIdentifier>
     </Filter>
+    <Filter Include="target">
+      <UniqueIdentifier>{9da2175c-f44d-4aed-849b-93c43f413c0c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="parser">
+      <UniqueIdentifier>{607de490-a2ce-4aee-abdf-12b812fc8080}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\main.cpp" />
     <ClCompile Include="..\..\grammar\for90.flex.cpp">
       <Filter>grammar</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\scanner.cpp">
-      <Filter>grammar</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\tokenizer.cpp">
-      <Filter>grammar</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\grammar\for90.tab.cpp">
       <Filter>grammar</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\parser.cpp">
+      <Filter>parser</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tokenizer.cpp">
+      <Filter>parser</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\scanner.cpp">
+      <Filter>parser</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\tokenizer.h">
-      <Filter>grammar</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\grammar\for90.tab.h">
       <Filter>grammar</Filter>
     </ClInclude>
@@ -45,6 +47,12 @@
     </ClInclude>
     <ClInclude Include="..\..\VariablePanel.h">
       <Filter>NuclearLang</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\parser.h">
+      <Filter>parser</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\tokenizer.h">
+      <Filter>parser</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

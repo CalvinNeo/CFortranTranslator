@@ -3,6 +3,7 @@
 #include <string>
 #include <iostream>
 #include "../tokenizer.h"
+#include "../parser.h"
 // 前置声明, 不然编译不过
 void yyerror(const char* s); 
 extern int yylex();
@@ -10,6 +11,8 @@ extern void set_buff(const std::string & code);
 extern void release_buff();
 #define YYDEBUG 1
 #define YYERROR_VERBOSE
+
+#define ADDNODE(ND) curnode->child.push_back(new ParseNode(ND))
 %}
 
 %debug
@@ -20,14 +23,7 @@ extern void release_buff();
 %token YY_PROGRAM YY_FUNCTION YY_RECURSIVE YY_RESULT YY_SUBROUTINE YY_MODULE YY_BLOCK
 %token YY_IMPLICIT YY_NONE YY_USE YY_PARAMETER YY_FORMAT YY_ENTRY
 %token YY_INTEGER_T YY_FLOAT_T YY_STRING_T YY_COMPLEX_T YY_BOOL_T
-
-%type <fs> YY_INTEGER
-%type <fs> YY_FLOAT
-%type <fs> YY_WORD
-%type <fs> YY_OPERATOR
-%type <fs> YY_STRING
-%type <fs> YY_ILLEGAL
-%type <fs> YY_COMPLEX
+%token YY_WRITE YY_READ YY_PRINT YY_OPEN YY_CLOSE
 
 
 %left '='
@@ -40,13 +36,15 @@ extern void release_buff();
 %left YY_POWER
 %right YY_NEG YY_NOT
 
-%start stmt
+%start program
 
-%%	
+%%
+    dummy_function : YY_RECURSIVE
+	
 	literal : YY_FLOAT
 			{printf("float "); }
 		| YY_INTEGER
-			{printf("int "); }
+			{  }
 		| YY_STRING
 			{printf("string "); }
 		| YY_WORD
@@ -70,9 +68,19 @@ extern void release_buff();
             { printf("neg "); }
 		| literal
             { printf("literal ");}
+        | YY_WORD
+            { printf("word ");}
 
 	stmt : exp
         | compound_stmt
+        | output_stmt
+
+    output_stmt : write
+
+    write : '(' YY_INTEGER ',' YY_STRING ')' argtable
+        | '(' '*' ',' YY_STRING ')' argtable
+        | '(' '*' ',' '*' ')' argtable
+        | '*' ',' argtable
 
     type_spec : YY_INTEGER_T
         | YY_FLOAT_T
@@ -80,31 +88,89 @@ extern void release_buff();
         | YY_COMPLEX_T
         | YY_BOOL_T
 
-    var_def : type_spec YY_DOUBLECOLON argtable
+    var_def : type_spec YY_DOUBLECOLON paramtable
 
-    argtable : YY_WORD
+    paramtable : YY_WORD
         | YY_WORD '=' exp
         | YY_WORD ',' argtable        
         | YY_WORD '=' exp
         | YY_WORD '=' exp ',' argtable
 
+    argtable : exp
+        | exp , argtable
+
     compound_stmt : if_stmt
 
 	if_stmt : YY_IF exp YY_THEN stmt YY_END YY_IF
-			{printf("if .. end if"); }
+			{
+				ParseNode * newnode = new ParseNode();
+				newnode->fs.CurrentTerm = Term{ TokenMeta::If, "" };
+				newnode->child.push_back(new ParseNode($2)); // exp
+				newnode->child.push_back(new ParseNode($4)); // stmt
+				$$ = *newnode;
+			}
 		| YY_IF exp YY_THEN stmt YY_ELSE stmt YY_END YY_IF
-			{printf("if .. else .. end if"); }
+			{
+				ParseNode * newnode = new ParseNode();
+				newnode->fs.CurrentTerm = Term{ TokenMeta::If, "" };
+				newnode->child.push_back(new ParseNode($2)); // exp
+				newnode->child.push_back(new ParseNode($4)); // stmt
+				newnode->child.push_back(new ParseNode($6)); // else-stmt
+				$$ = *newnode;
+			}
 		| YY_IF exp YY_THEN stmt elseif_stmt YY_END YY_IF
-			{printf("if .. else if ... end if "); }
+			{
+				ParseNode * newnode = new ParseNode();
+				newnode->fs.CurrentTerm = Term{ TokenMeta::If, "" };
+				newnode->child.push_back(new ParseNode($2)); // exp
+				newnode->child.push_back(new ParseNode($4)); // stmt
+				newnode->child.push_back(new ParseNode($5)); // elseif-stmt
+				$$ = *newnode;
+			}
 		| YY_IF exp YY_THEN stmt elseif_stmt YY_ELSE stmt YY_END YY_IF
-			{printf("if .. else if .. else end if"); }
+			{
+				ParseNode * newnode = new ParseNode();
+				newnode->fs.CurrentTerm = Term{ TokenMeta::If, "" };
+				newnode->child.push_back(new ParseNode($2)); // exp
+				newnode->child.push_back(new ParseNode($4)); // stmt
+				newnode->child.push_back(new ParseNode($5)); // elseif-stmt
+				newnode->child.push_back(new ParseNode($7)); // else-stmt
+				$$ = *newnode;
+			}
 	elseif_stmt : YY_ELSE YY_IF exp YY_THEN stmt
+			{
+				ParseNode * newnode = new ParseNode();
+				newnode->fs.CurrentTerm = Term{ TokenMeta::ElseIf, "" };
+				newnode->child.push_back(new ParseNode($3)); // exp
+				newnode->child.push_back(new ParseNode($5)); // stmt
+				$$ = *newnode;
+			}
+
 		| YY_ELSE YY_IF exp YY_THEN stmt elseif_stmt
+			{
+				ParseNode * newnode = new ParseNode();
+				newnode->fs.CurrentTerm = Term{ TokenMeta::ElseIf, "" };
+				newnode->child.push_back(new ParseNode($3)); // exp
+				newnode->child.push_back(new ParseNode($5)); // stmt
+				newnode->child.push_back(new ParseNode($6)); // another elseif-stmt
+				$$ = *newnode;
+			}
 
     stmts : stmt
         | stmt stmts
 
     program : YY_PROGRAM YY_WORD stmts YY_END YY_PROGRAM YY_WORD
+			{ 
+				ParseNode * newnode = new ParseNode();
+				newnode->child.push_back(new ParseNode($3));
+				program_tree = *newnode;
+			}
+        | YY_PROGRAM stmts YY_END YY_PROGRAM 
+			{
+				ParseNode * newnode = new ParseNode();
+				newnode->child.push_back(new ParseNode($2));
+				program_tree = *newnode;
+			}
 
 %%
 //extern "C" int yylex();

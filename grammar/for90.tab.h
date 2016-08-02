@@ -95,13 +95,19 @@ extern int yydebug;
      YY_FLOAT_T = 304,
      YY_STRING_T = 305,
      YY_COMPLEX_T = 306,
-     YY_BOOL_T = 307
+     YY_BOOL_T = 307,
+     YY_WRITE = 308,
+     YY_READ = 309,
+     YY_PRINT = 310,
+     YY_OPEN = 311,
+     YY_CLOSE = 312
    };
 #endif
 
 
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
-
+typedef int YYSTYPE;
+# define YYSTYPE_IS_TRIVIAL 1
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
 # define YYSTYPE_IS_DECLARED 1
 #endif

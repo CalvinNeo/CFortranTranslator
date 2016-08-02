@@ -22,6 +22,7 @@
     <ClCompile Include="..\..\grammar\for90.flex.cpp" />
     <ClCompile Include="..\..\grammar\for90.tab.cpp" />
     <ClCompile Include="..\..\main.cpp" />
+    <ClCompile Include="..\..\parser.cpp" />
     <ClCompile Include="..\..\scanner.cpp" />
     <ClCompile Include="..\..\tokenizer.cpp" />
   </ItemGroup>
@@ -29,6 +30,7 @@
     <ClInclude Include="..\..\grammar\for90.flex.h" />
     <ClInclude Include="..\..\grammar\for90.tab.h" />
     <ClInclude Include="..\..\Intent.h" />
+    <ClInclude Include="..\..\parser.h" />
     <ClInclude Include="..\..\tokenizer.h" />
     <ClInclude Include="..\..\VariablePanel.h" />
   </ItemGroup>
