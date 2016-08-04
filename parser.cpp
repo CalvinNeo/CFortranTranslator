@@ -4,13 +4,52 @@
 #include <iostream>
 #include <cstdio>
 #include <map>
+#include <boost/algorithm/string.hpp>
 
 ParseNode::~ParseNode()
 {
+	//delete attr;
 	for (int i = 0; i < child.size(); i++)
 	{
 		delete child[i];
 	}
+}
+ParseNode::ParseNode(const ParseNode & pn)
+{
+	this->fs = pn.fs;
+	this->father = pn.father;
+	for (int i = 0; i < pn.child.size(); i++)
+	{
+		this->addchild( new ParseNode(*pn.child[i]) );
+	}
+}
+
+ParseNode & ParseNode::operator= (const ParseNode & pn) {
+	if (this == &pn) {
+		return *this;
+	}
+	else {
+		//delete attr;
+		for (int i = 0; i < child.size(); i++)
+		{
+			delete child[i];
+		}
+		child.clear();
+
+		this->fs = pn.fs;
+		this->father = pn.father;
+		for (int i = 0; i < pn.child.size(); i++)
+		{
+			this->addchild(new ParseNode(*pn.child[i]));
+		}
+
+		return *this;
+	}
+}
+
+void ParseNode::addchild(ParseNode * ptrn) {
+	this->child.push_back(ptrn);
+	ptrn -> father = this;
 }
 
 ParseNode program_tree;
@@ -33,4 +72,11 @@ void preoder(ParseNode * ptree) {
 			s.push(make_pair(p->child[i], deep + 1));
 		}
 	}
+}
+
+void VariableAttr::parse() {
+
+}
+void TypeAttr::parse() {
+
 }

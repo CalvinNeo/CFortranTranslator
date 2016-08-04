@@ -23,19 +23,63 @@ const vector<KeywordMeta> keywords = {
 		, TokenMeta::ElseLast
 		, YY_ELSE
 	}
-	, KeywordMeta{"else if"
+	, KeywordMeta{"elseif"
 		, TokenMeta::ElseIf
 		, YY_ELSEIF
 	}
 	, KeywordMeta{"end"
-		, TokenMeta::META_ANY
+		, TokenMeta::RBrace
 		, YY_END
+	}
+	, KeywordMeta{"endif"
+		, TokenMeta::RBrace
+		, YY_ENDIF
+	}
+	, KeywordMeta{"endprogram"
+		, TokenMeta::RBrace
+		, YY_ENDPROGRAM
+	}
+	, KeywordMeta{"enddo"
+		, TokenMeta::RBrace
+		, YY_ENDDO
+	}
+	, KeywordMeta{"endwhere"
+		, TokenMeta::RBrace
+		, YY_ENDWHERE
+	}
+	, KeywordMeta{"endwhile"
+		, TokenMeta::RBrace
+		, YY_ENDWHILE
+	}
+	, KeywordMeta{"endfunction"
+		, TokenMeta::RBrace
+		, YY_ENDFUNCTION
+	}
+	, KeywordMeta{"endblock"
+		, TokenMeta::RBrace
+		, YY_ENDBLOCK
+	}
+	, KeywordMeta{"endcase"
+		, TokenMeta::RBrace
+		, YY_ENDCASE
+	}
+	, KeywordMeta{"endsubroutine"
+		, TokenMeta::RBrace
+		, YY_ENDSUBROUTINE
+	}
+	, KeywordMeta{"endmodule"
+		, TokenMeta::RBrace
+		, YY_ENDMODULE
 	}
 	, KeywordMeta{"do"
 		, TokenMeta::Do
 		, YY_DO
 	}
-	, KeywordMeta{"continue"
+	, KeywordMeta{"exit"
+		, TokenMeta::Break
+		, YY_BREAK
+	}
+	, KeywordMeta{"cycle"
 		, TokenMeta::Continue
 		, YY_CONTINUE
 	}

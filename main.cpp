@@ -5,6 +5,8 @@
 
 using namespace std;
 
+string global_code;
+char errlog[128];
 int main()
 {
 	//istringstream istr;
@@ -44,14 +46,17 @@ int main()
 	//cout << s.size() << endl;
 	//cout << strlen(chs) << endl;
 
-	string s = "program if 1 then 2 else if 3 then 4 end if end program";
-	//s = "\"ab\\\"c\"";
-	//s = "program 1.3 + 2 * 3 - .true. end program";
-	s = "program 1.3 + 2 * 3 - .true. end program";
-	s = "program if 1 then 2 else if 3 then 4 end if end program";
+	global_code = "program if 1 then 2 else if 3 then 4 end if end program";
+	//global_code = "\"ab\\\"c\"";
+	//global_code = "program 1.3 + 2 * 3 - .true. end program";
+	global_code = "program 1.3 + 2 * 3 - .true. end program";
+	global_code = "program if 1 then 2 else if 3 then 4 end if end program";
+	//global_code = "program if end else";
+	//global_code = "~~~~~";
 
-	parse(s);
-	char errlog[128];
+	//next_token(global_code, 0);
+
+	parse(global_code);
 	while (fscanf(stderr, "%s", errlog) != EOF) {
 		printf("%s\n", errlog);
 	}
