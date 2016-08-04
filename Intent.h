@@ -142,7 +142,7 @@
 		Abstract = -217,
 
 		//Build-in Type
-		// META Type
+		// META Type(for parse)
 		META_WORD = -301,
 		META_INTEGER = -302,
 		META_STRING = -303,
@@ -151,8 +151,9 @@
 		META_OPERATOR = -306,
 		META_ILLEGAL = -307,
 		META_ANY = -308, // 尚未解析的Intent
+		META_REQ_MORE = -309, // 词法分析器需要更多信息(Look Ahead)
 
-		// 标注变量类型
+		// 标注变量类型(变量表)
 		Void = -320,
 		Obj = -321,
 		Int = META_INTEGER,
@@ -162,7 +163,7 @@
 		Dynamic = -326,
 		Bool = -327,
 		Pointer = -328, // 声明指针类型
-		Float = -329,
+		Float = META_FLOAT,
 		Long = -330,
 		Complex = -331,
 		Short = -332,

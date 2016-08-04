@@ -356,7 +356,8 @@ static void yy_fatal_error (yyconst char msg[]  );
  */
 #define YY_DO_BEFORE_ACTION \
 	(yytext_ptr) = yy_bp; \
-	yyleng = (size_t) (yy_cp - yy_bp); \
+	(yytext_ptr) -= (yy_more_len); \
+	yyleng = (size_t) (yy_cp - (yytext_ptr)); \
 	(yy_hold_char) = *yy_cp; \
 	*yy_cp = '\0'; \
 	(yy_c_buf_p) = yy_cp;
@@ -477,8 +478,10 @@ int yy_flex_debug = 0;
  * any uses of REJECT which flex missed.
  */
 #define REJECT reject_used_but_not_detected
-#define yymore() yymore_used_but_not_detected
-#define YY_MORE_ADJ 0
+static int yy_more_flag = 0;
+static int yy_more_len = 0;
+#define yymore() ((yy_more_flag) = 1)
+#define YY_MORE_ADJ (yy_more_len)
 #define YY_RESTORE_YY_MORE_OFFSET
 char *yytext;
 #line 1 "for90.l"
@@ -489,40 +492,42 @@ char *yytext;
 #include <functional>
 #include <algorithm>
 #include <cctype>
+#include <map>
 #include "../tokenizer.h"
 #include "../parser.h"
 
 	// 前置声明
 #ifdef USE_YACC
 #include "for90.tab.h"
-//#define YY_DECL extern "C" int yylex()
-//#define YYSTYPE FlexState
-int word_parse(FlexState & fs);
+int word_parse();
 #else
 
 #endif
-void update_yylval(int len, Term & current_term, bool newline = false);
+void update_yylval(int len, Term & current_term, bool newline = false, bool empty = false);
 int make_term_flex(const TokenMeta & token, const char * w);
+
+int code_pos = 0;
 
 #ifdef USE_YACC
 // yacc
 // USE WHTN USE YACC EITHER
-#define YYRTN(TOK, YYTOK) update_yylval(yyleng, Term{TOK, std::string(yytext)});	 return YYTOK; 
+#define YYRTN(TOK, YYTOK) code_pos += yyleng; update_yylval(yyleng, Term{TOK, std::string(yytext)});	 return YYTOK; 
 // 对于非char运算符要预先解析
-#define YYRTOP(TOK, YYTOK) update_yylval(yyleng, Term{TOK, std::string(yytext)});    return YYTOK; 
+#define YYRTOP(TOK, YYTOK) code_pos += yyleng; update_yylval(yyleng, Term{TOK, std::string(yytext)});    return YYTOK; 
 // include literal const such as pi, true, false, etc.
-#define YYRTWORD() update_yylval(yyleng, Term{TokenMeta::META_ANY, std::string(yytext)});  	return word_parse(yylval.fs); 
-#define YYRTINT(TOK) update_yylval(yyleng, Term{TOK, std::string(yytext)});   	return YY_INTEGER;
-#define YYRTFLOAT(TOK) update_yylval(yyleng, Term{TOK, std::string(yytext)});   	return YY_FLOAT; 
-#define YYRTSTRING(TOK) update_yylval(yyleng, Term{TOK, std::string(yytext)});  	return YY_STRING; 
+#define YYRTWORD() { code_pos += yyleng; /*do not update yylval because some tokens need to be looked ahead, such as `else if` */ int p = word_parse(); if (p != YY_REQ_MORE) { return p; } }
+
+#define YYRTINT(TOK) code_pos += yyleng; update_yylval(yyleng, Term{TOK, std::string(yytext)});   	return YY_INTEGER;
+#define YYRTFLOAT(TOK) code_pos += yyleng; update_yylval(yyleng, Term{TOK, std::string(yytext)});   	return YY_FLOAT; 
+#define YYRTSTRING(TOK) code_pos += yyleng; update_yylval(yyleng, Term{TOK, std::string(yytext)});  	return YY_STRING; 
 // 规则中被定义的终结符, **包括ascii表内的单个字符**
-#define YYRTILLEGAL(TOK) update_yylval(1, Term{TOK, std::string(yytext)});  	return yytext[0]; 
-#define YYRTCRLF() update_yylval(yyleng, Term{TokenMeta::CRLF, std::string(yytext)}, true);
-#define YYRTNOP() update_yylval(yyleng, Term{TokenMeta::Nop, std::string(yytext)});
+#define YYRTILLEGAL(TOK) code_pos += 1; update_yylval(1, Term{TOK, std::string(yytext)});  	return yytext[0]; 
+#define YYRTCRLF() code_pos += yyleng; update_yylval(yyleng, Term{TokenMeta::CRLF, std::string(yytext)}, true);
+#define YYRTNOP() code_pos += yyleng; update_yylval(yyleng, Term{TokenMeta::Nop, std::string(yytext)}, false, true);
 
 #define RTN(TOK, YYTOK) YYRTN(TOK, YYTOK) 
 #define RTOP(TOK, YYTOK) YYRTOP(TOK, YYTOK)
-#define RTWORD(TOK) YYRTWORD(TOK)
+#define RTWORD() YYRTWORD();
 #define RTINT(TOK) YYRTINT(TOK)
 #define RTFLOAT(TOK) YYRTFLOAT(TOK)
 #define RTSTRING(TOK) YYRTSTRING(TOK)
@@ -562,7 +567,7 @@ FlexState flex_state;
 #else
 
 #endif
-#line 566 "for90.flex.cpp"
+#line 571 "for90.flex.cpp"
 
 #define INITIAL 0
 
@@ -741,9 +746,9 @@ YY_DECL
 	register char *yy_cp, *yy_bp;
 	register int yy_act;
     
-#line 86 "for90.l"
+#line 91 "for90.l"
 
-#line 747 "for90.flex.cpp"
+#line 752 "for90.flex.cpp"
 
 	if ( !(yy_init) )
 		{
@@ -773,6 +778,12 @@ YY_DECL
 
 	while ( 1 )		/* loops until end-of-file is reached */
 		{
+		(yy_more_len) = 0;
+		if ( (yy_more_flag) )
+			{
+			(yy_more_len) = (yy_c_buf_p) - (yytext_ptr);
+			(yy_more_flag) = 0;
+			}
 		yy_cp = (yy_c_buf_p);
 
 		/* Support of yytext. */
@@ -829,92 +840,92 @@ do_action:	/* This label is used only to access EOF actions. */
 case 1:
 /* rule 1 can match eol */
 YY_RULE_SETUP
-#line 87 "for90.l"
+#line 92 "for90.l"
 {RTCRLF() }
 	YY_BREAK
 case 2:
 YY_RULE_SETUP
-#line 88 "for90.l"
+#line 93 "for90.l"
 {RTNOP() }
 	YY_BREAK
 case 3:
 YY_RULE_SETUP
-#line 89 "for90.l"
+#line 94 "for90.l"
 {RTINT(TokenMeta::META_INTEGER) }
 	YY_BREAK
 case 4:
 YY_RULE_SETUP
-#line 90 "for90.l"
+#line 95 "for90.l"
 {RTFLOAT(TokenMeta::META_FLOAT) }
 	YY_BREAK
 case 5:
 YY_RULE_SETUP
-#line 91 "for90.l"
+#line 96 "for90.l"
 { RTWORD() }
 	YY_BREAK
 case 6:
 YY_RULE_SETUP
-#line 92 "for90.l"
+#line 97 "for90.l"
 {RTOP(TokenMeta::Power, YY_POWER) }
 	YY_BREAK
 case 7:
 YY_RULE_SETUP
-#line 93 "for90.l"
+#line 98 "for90.l"
 {RTOP(TokenMeta::GT, YY_GT) }
 	YY_BREAK
 case 8:
 YY_RULE_SETUP
-#line 94 "for90.l"
+#line 99 "for90.l"
 {RTOP(TokenMeta::GE, YY_GE )}
 	YY_BREAK
 case 9:
 YY_RULE_SETUP
-#line 95 "for90.l"
+#line 100 "for90.l"
 {RTOP(TokenMeta::LT, YY_LT)}
 	YY_BREAK
 case 10:
 YY_RULE_SETUP
-#line 96 "for90.l"
+#line 101 "for90.l"
 {RTOP(TokenMeta::LE, YY_LE)}
 	YY_BREAK
 case 11:
 YY_RULE_SETUP
-#line 97 "for90.l"
+#line 102 "for90.l"
 {RTOP(TokenMeta::EQ, YY_EQ) }
 	YY_BREAK
 case 12:
 YY_RULE_SETUP
-#line 98 "for90.l"
+#line 103 "for90.l"
 {RTOP(TokenMeta::NEQ, YY_NEQ)}
 	YY_BREAK
 case 13:
 YY_RULE_SETUP
-#line 99 "for90.l"
+#line 104 "for90.l"
 { RTWORD() }
 	YY_BREAK
 case 14:
 YY_RULE_SETUP
-#line 100 "for90.l"
+#line 105 "for90.l"
 {RTOP(TokenMeta::DoubleColon, YY_DOUBLECOLON)}
 	YY_BREAK
 case 15:
 /* rule 15 can match eol */
 YY_RULE_SETUP
-#line 101 "for90.l"
+#line 106 "for90.l"
 {RTSTRING(TokenMeta::META_STRING) 
 /* The delimiting quotes are escaped because they are Flex meta-characters. */}
 	YY_BREAK
 case 16:
 YY_RULE_SETUP
-#line 103 "for90.l"
+#line 108 "for90.l"
 {/* can be parsed, including some operators not listed */ RTILLEGAL(TokenMeta::META_ILLEGAL) }
 	YY_BREAK
 case 17:
 YY_RULE_SETUP
-#line 105 "for90.l"
+#line 110 "for90.l"
 ECHO;
 	YY_BREAK
-#line 918 "for90.flex.cpp"
+#line 929 "for90.flex.cpp"
 case YY_STATE_EOF(INITIAL):
 	yyterminate();
 
@@ -1908,7 +1919,7 @@ void yyfree (void * ptr )
 
 #define YYTABLES_NAME "yytables"
 
-#line 104 "for90.l"
+#line 109 "for90.l"
 
 
 
@@ -1916,34 +1927,65 @@ int yywrap()
 { 
    return(1); 
 }
-void update_yylval(int len, Term & current_term, bool newline){
+
+void update_yylval(int len, Term & current_term, bool newline, bool empty){
+	// YYRTWORD 不会调用该函数
 	if(newline){
 		flex_state.parse_line++; flex_state.line_pos = 0; flex_state.parse_pos = 0; flex_state.parse_len = 0;
-	}else{
-		flex_state.parse_pos += flex_state.parse_len; flex_state.line_pos += flex_state.parse_len; flex_state.parse_len = yyleng;
 	}
-	yylval.fs = flex_state;
-	yylval.fs.CurrentTerm = current_term;
+	else if (empty) {
+		// 空格字符等
+	}
+	else {
+		//flex_state.parse_pos += flex_state.parse_len; flex_state.line_pos += flex_state.parse_len; flex_state.parse_len = yyleng;
+		flex_state.parse_pos += code_pos; flex_state.line_pos += flex_state.parse_len; flex_state.parse_len = yyleng;
+		flex_state.CurrentTerm = current_term;
+		yylval.fs = flex_state;
+	}
 }
 int make_term_flex(const TokenMeta & token, const char * w) {
 	flex_state.CurrentTerm = Term{ token, std::string(w) };
 	return token;
 }
 #ifdef USE_YACC
-int word_parse(FlexState & fs) {
+int word_parse() {
 	using namespace std;
-	transform(fs.CurrentTerm.what.begin(), fs.CurrentTerm.what.end(), fs.CurrentTerm.what.begin(), tolower);
-	const string & s = fs.CurrentTerm.what;
-	for (int i = 0; i < sizeof(keywords) / sizeof(KeywordMeta); i++)
+	FlexState & fs = yylval.fs;
+	string yytextstr = string(yytext);
+	transform(yytextstr.begin(), yytextstr.end(), yytextstr.begin(), tolower);
+	for (int i = 0; i < keywords.size(); i++)
 	{
-		if (keywords[i].what == s) {
-			fs.CurrentTerm = Term{ keywords[i].token , std::string(yytext) };
-			return keywords[i].yytoken;
+		if (keywords[i].what == yytextstr) {
+		//	// 
+		//	map<string, vector<string>>::iterator mapf = forward1.find(flex_state.CurrentTerm.what);
+		//	map<string, vector<string>>::iterator mapself = forward1.find(yytextstr);
+		//	if (mapf != forward1.end()) {
+		//		// 如果yytextstr前面是forward1里面的key, 例如if, 此时flex_state(等于else) 比 fs(等于if) 要提前一个token
+		//		if (find(mapf->second.begin(), mapf->second.end(), yytextstr) != mapf->second.end()) {
+		//			// 构成归约
+		//		}
+		//		else {
+		//			// 不构成归约
+		//		}
+		//	}
+		//	else if (mapself != forward1.end()) {
+		//		// do not update yylval because need to look ahead
+		//		// e.g else | if
+		//		update_yylval(yyleng, Term{ keywords[i].token , std::string(yytextstr) });
+		//		return YY_REQ_MORE;
+		//	}
+		//	else {
+				update_yylval(yyleng, Term{ keywords[i].token , std::string(yytextstr) });
+				return keywords[i].yytoken;
+			//}
 		}
 	}
 	return YY_WORD;
 }
 char * iter_buff = nullptr;
+/*
+	遇到空格或者回车等无效字符时, code_pos会自增, 但是flex_state不会改变
+*/
 YY_BUFFER_STATE yy_buffer = nullptr;
 void set_buff(const std::string & code) {
 	using namespace std;
@@ -1951,7 +1993,8 @@ void set_buff(const std::string & code) {
 	flex_state.parse_line = 0;
 	flex_state.parse_pos = 0;
 	flex_state.parse_len = 0;
-	flex_state.line_pos = 0;
+	flex_state.line_pos = 0; 
+	code_pos = 0;
 	if (iter_buff != 0) {
 		free(iter_buff); iter_buff = nullptr;
 	}

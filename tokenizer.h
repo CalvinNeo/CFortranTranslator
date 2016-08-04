@@ -1,5 +1,7 @@
 #pragma once
 #include <string>
+#include <map>
+#include <vector>
 #include "intent.h"
 
 typedef IntentMeta TokenMeta;
@@ -27,7 +29,8 @@ struct FlexState {
 	int line_pos;
 	bool isnull = false;
 };
-extern const KeywordMeta keywords[44];
+extern const std::vector<KeywordMeta> keywords;
+extern const std::map<std::string, std::vector<std::string> > forward1;
 
 // flex part code
 FlexState next_token(const std::string & in_str, int start = 0); 

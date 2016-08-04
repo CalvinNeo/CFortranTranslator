@@ -1,10 +1,12 @@
 #include "tokenizer.h"
 #include "grammar\for90.tab.h"
 #include <string>
+#include <vector>
+#include <map>
 
 using namespace std;
 
-const KeywordMeta keywords[] = {
+const vector<KeywordMeta> keywords = {
 	// .what keyword
 	// .token keyword as intent
 	// .yytoken yacc terminal
@@ -18,8 +20,12 @@ const KeywordMeta keywords[] = {
 		, YY_THEN
 	}
 	, KeywordMeta{"else"
-		, TokenMeta::Else
+		, TokenMeta::ElseLast
 		, YY_ELSE
+	}
+	, KeywordMeta{"else if"
+		, TokenMeta::ElseIf
+		, YY_ELSEIF
 	}
 	, KeywordMeta{"end"
 		, TokenMeta::META_ANY
@@ -189,3 +195,7 @@ const KeywordMeta keywords[] = {
 	}
 };
 
+
+const std::map<std::string, std::vector<std::string> > forward1 = {
+	{"else", {"if"}}
+};

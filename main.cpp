@@ -44,9 +44,11 @@ int main()
 	//cout << s.size() << endl;
 	//cout << strlen(chs) << endl;
 
-	string s = "program if 1 then 2 else 2 end if end program";
+	string s = "program if 1 then 2 else if 3 then 4 end if end program";
 	//s = "\"ab\\\"c\"";
-	//string s = "(1.2)";
+	//s = "program 1.3 + 2 * 3 - .true. end program";
+	s = "program 1.3 + 2 * 3 - .true. end program";
+	s = "program if 1 then 2 else if 3 then 4 end if end program";
 
 	parse(s);
 	char errlog[128];

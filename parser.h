@@ -23,5 +23,5 @@ void preoder(ParseNode * ptree);
 
 // yacc part code
 // implement in for90.y
-typedef ParseNode  yystype_t;
+typedef ParseNode yystype_t;
 #define YYSTYPE ParseNode

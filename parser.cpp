@@ -3,6 +3,7 @@
 #include <stack>
 #include <iostream>
 #include <cstdio>
+#include <map>
 
 ParseNode::~ParseNode()
 {
@@ -18,16 +19,18 @@ ParseNode * curnode;
 void preoder(ParseNode * ptree) {
 	using namespace std;
 	ParseNode * p = nullptr;
-	stack<ParseNode *> s;
-	s.push(ptree);
+	stack< pair< ParseNode * , int> > s;
+
+	s.push(make_pair(ptree, 0));
 	while (!s.empty())
 	{
-		p = s.top();
+		p = s.top().first;
+		int deep = s.top().second;
 		s.pop();
-		cout << p->fs.CurrentTerm.what << "	" << p->fs.CurrentTerm.token << endl;
+		cout << string(deep * 2, ' ') << p->fs.CurrentTerm.token << "," << p->fs.CurrentTerm.what << endl;
 		for (int i = p->child.size() - 1; i >= 0; i--)
 		{
-			s.push(p->child[i]);
+			s.push(make_pair(p->child[i], deep + 1));
 		}
 	}
 }
