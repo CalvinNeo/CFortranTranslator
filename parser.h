@@ -1,6 +1,7 @@
 #pragma once
 #include <string>
 #include <vector>
+#include <iostream>
 #include <boost/shared_ptr.hpp>
 #include "tokenizer.h"
 
@@ -18,24 +19,28 @@ struct ParseNode {
 
 	ParseNode(const ParseNode &);
 	ParseNode & operator= (const ParseNode &) ;
-	ParseNode() = default;
-	~ParseNode();
+	ParseNode() : father(nullptr), attr(nullptr) {}
+	virtual ~ParseNode();
 };
 
 //  Ù–‘Œƒ∑®
 struct ParseAttr {
 	ParseNode * parsenode; // observer ptr
-	virtual void parse() = 0; // parse according to parsenode
 
 	ParseAttr() = default;
 	ParseAttr(ParseNode * parsenode) : parsenode(parsenode) {}
 	ParseAttr(const ParseAttr & pa) = default;
+	virtual ParseAttr * clone() = 0;
+
+	virtual void parse() = 0; // parse according to parsenode
 };
+
 struct TypeAttr : public ParseAttr {
 	std::string name;
 
 	TypeAttr(ParseNode * parsenode) : ParseAttr(parsenode) {}
 	TypeAttr(const TypeAttr & ta) = default;
+	ParseAttr * clone() { return new TypeAttr(*this); }
 
 	void parse();
 };
@@ -46,6 +51,7 @@ struct VariableAttr : public ParseAttr {
 
 	VariableAttr(ParseNode * parsenode) : ParseAttr(parsenode) {}
 	VariableAttr(const VariableAttr & va) = default;
+	ParseAttr * clone() { return new VariableAttr(*this); }
 
 	void parse();
 };
