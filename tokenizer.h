@@ -23,10 +23,10 @@ struct Term {
 struct FlexState {
 	// ´Ê·¨·ÖÎö
 	Term CurrentTerm;
-	int parse_pos;
-	int parse_line;
-	int parse_len;
-	int line_pos;
+	int parse_pos = 0;
+	int parse_line = 0;
+	int parse_len = 0;
+	int line_pos = 0;
 	bool isnull = false;
 };
 extern const std::vector<KeywordMeta> keywords;

@@ -93,17 +93,17 @@ newline [\r\n]
 %%
 
 {newline} {RTCRLF() }
-{ws} {RTNOP() }
-[-+]?[0-9]+ {RTINT(TokenMeta::META_INTEGER) }
-[-+]?[0-9\.]+([eE][0-9\.]+)? {RTFLOAT(TokenMeta::META_FLOAT) }
-:: {RTOP(TokenMeta::DoubleColon, YY_DOUBLECOLON)}
-"**" {RTOP(TokenMeta::Power, YY_POWER) }
-">" {RTOP(TokenMeta::GT, YY_GT) }
-">=" {RTOP(TokenMeta::GE, YY_GE)}
-"<" {RTOP(TokenMeta::LT, YY_LT)}
-"<=" {RTOP(TokenMeta::LE, YY_LE)}
-"==" {RTOP(TokenMeta::EQ, YY_EQ) }
-"/=" {RTOP(TokenMeta::NEQ, YY_NEQ)}
+{ws} { RTNOP() }
+[-+]?[0-9]+ { RTINT(TokenMeta::META_INTEGER) }
+[-+]?[0-9\.]+([eE][0-9\.]+)? { RTFLOAT(TokenMeta::META_FLOAT) }
+:: { RTOP(TokenMeta::DoubleColon, YY_DOUBLECOLON) }
+"**" { RTOP(TokenMeta::Power, YY_POWER) }
+">" { RTOP(TokenMeta::GT, YY_GT) }
+">=" { RTOP(TokenMeta::GE, YY_GE) }
+"<" { RTOP(TokenMeta::LT, YY_LT) }
+"<=" { RTOP(TokenMeta::LE, YY_LE) }
+"==" { RTOP(TokenMeta::EQ, YY_EQ) }
+"/=" { RTOP(TokenMeta::NEQ, YY_NEQ)}
 "~" {yymore(); ECHO; putchar('\n'); }
 [Ee][Ll][Ss][Ee]{ws}[Ii][Ff] {RTWORD()}
 [a-zA-Z_][a-zA-Z0-9]* { RTWORD() }

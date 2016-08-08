@@ -855,57 +855,57 @@ YY_RULE_SETUP
 case 2:
 YY_RULE_SETUP
 #line 96 "for90.l"
-{RTNOP() }
+{ RTNOP() }
 	YY_BREAK
 case 3:
 YY_RULE_SETUP
 #line 97 "for90.l"
-{RTINT(TokenMeta::META_INTEGER) }
+{ RTINT(TokenMeta::META_INTEGER) }
 	YY_BREAK
 case 4:
 YY_RULE_SETUP
 #line 98 "for90.l"
-{RTFLOAT(TokenMeta::META_FLOAT) }
+{ RTFLOAT(TokenMeta::META_FLOAT) }
 	YY_BREAK
 case 5:
 YY_RULE_SETUP
 #line 99 "for90.l"
-{RTOP(TokenMeta::DoubleColon, YY_DOUBLECOLON)}
+{ RTOP(TokenMeta::DoubleColon, YY_DOUBLECOLON) }
 	YY_BREAK
 case 6:
 YY_RULE_SETUP
 #line 100 "for90.l"
-{RTOP(TokenMeta::Power, YY_POWER) }
+{ RTOP(TokenMeta::Power, YY_POWER) }
 	YY_BREAK
 case 7:
 YY_RULE_SETUP
 #line 101 "for90.l"
-{RTOP(TokenMeta::GT, YY_GT) }
+{ RTOP(TokenMeta::GT, YY_GT) }
 	YY_BREAK
 case 8:
 YY_RULE_SETUP
 #line 102 "for90.l"
-{RTOP(TokenMeta::GE, YY_GE)}
+{ RTOP(TokenMeta::GE, YY_GE) }
 	YY_BREAK
 case 9:
 YY_RULE_SETUP
 #line 103 "for90.l"
-{RTOP(TokenMeta::LT, YY_LT)}
+{ RTOP(TokenMeta::LT, YY_LT) }
 	YY_BREAK
 case 10:
 YY_RULE_SETUP
 #line 104 "for90.l"
-{RTOP(TokenMeta::LE, YY_LE)}
+{ RTOP(TokenMeta::LE, YY_LE) }
 	YY_BREAK
 case 11:
 YY_RULE_SETUP
 #line 105 "for90.l"
-{RTOP(TokenMeta::EQ, YY_EQ) }
+{ RTOP(TokenMeta::EQ, YY_EQ) }
 	YY_BREAK
 case 12:
 YY_RULE_SETUP
 #line 106 "for90.l"
-{RTOP(TokenMeta::NEQ, YY_NEQ)}
+{ RTOP(TokenMeta::NEQ, YY_NEQ)}
 	YY_BREAK
 case 13:
 YY_RULE_SETUP

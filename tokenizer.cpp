@@ -237,6 +237,10 @@ const vector<KeywordMeta> keywords = {
 		, TokenMeta::META_ANY
 		, YY_CLOSE
 	}
+	, KeywordMeta{ "dimension"
+		, TokenMeta::META_ANY
+		, YY_DIMENSION
+	}
 };
 
 

@@ -1,5 +1,6 @@
 #include "parser.h"
 #include "tokenizer.h"
+#include "cgen.h"
 #include <stack>
 #include <iostream>
 #include <cstdio>
@@ -41,22 +42,29 @@ ParseNode & ParseNode::operator= (const ParseNode & pn) {
 		this->father = pn.father;
 		for (int i = 0; i < pn.child.size(); i++)
 		{
-			this->addchild(new ParseNode(*pn.child[i]));
+			this->addchild( new ParseNode(*pn.child[i]) );
 		}
 
 		return *this;
 	}
 }
 
-void ParseNode::addchild(ParseNode * ptrn) {
-	this->child.push_back(ptrn);
-	ptrn -> father = this;
+void ParseNode::addchild(ParseNode * ptrn, bool add_back) {
+	if (ptrn != nullptr) {
+		ptrn->father = this;
+	}
+	if (add_back) {
+		this->child.push_back(ptrn);
+	}
+	else {
+		this->child.insert(this->child.begin(), ptrn);
+	}
 }
 
 ParseNode program_tree;
 ParseNode * curnode;
 
-void preoder(ParseNode * ptree) {
+void preorder(ParseNode * ptree) {
 	using namespace std;
 	ParseNode * p = nullptr;
 	stack< pair< ParseNode * , int> > s;
@@ -67,10 +75,15 @@ void preoder(ParseNode * ptree) {
 		p = s.top().first;
 		int deep = s.top().second;
 		s.pop();
-		cout << string(deep * 2, ' ') << p->fs.CurrentTerm.token << "," << p->fs.CurrentTerm.what << endl;
-		for (int i = p->child.size() - 1; i >= 0; i--)
-		{
-			s.push(make_pair(p->child[i], deep + 1));
+		if (p->child.size()==0) {
+			cout << string(deep * 2, ' ') << p->fs.CurrentTerm.token << ", " << "TERMINAL " << p->fs.CurrentTerm.what << endl;
+		}
+		else {
+			cout << string(deep * 2, ' ') << p->fs.CurrentTerm.token << ", " << p->fs.CurrentTerm.what << endl;
+			for (int i = p->child.size() - 1; i >= 0; i--)
+			{
+				s.push(make_pair(p->child[i], deep + 1));
+			}
 		}
 	}
 }

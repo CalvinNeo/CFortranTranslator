@@ -25,14 +25,17 @@
     <ClCompile Include="..\..\parser.cpp" />
     <ClCompile Include="..\..\scanner.cpp" />
     <ClCompile Include="..\..\tokenizer.cpp" />
+    <ClCompile Include="..\..\Variable.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\cgen.h" />
+    <ClInclude Include="..\..\for90std.h" />
     <ClInclude Include="..\..\grammar\for90.flex.h" />
     <ClInclude Include="..\..\grammar\for90.tab.h" />
     <ClInclude Include="..\..\Intent.h" />
     <ClInclude Include="..\..\parser.h" />
     <ClInclude Include="..\..\tokenizer.h" />
-    <ClInclude Include="..\..\VariablePanel.h" />
+    <ClInclude Include="..\..\Variable.h" />
   </ItemGroup>
   <ItemGroup>
     <Flex Include="..\..\grammar\for90.l" />
