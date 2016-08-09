@@ -8,9 +8,9 @@ A translator between C++ and Fortran90.
 
 ## fortran grammar restrictions and translate rules
 refer to for90.y for all accepted grammar
-### keywords
+### dumb keywords
 
-1. no word after `END [DO|IF|CASE|...]` term
+1. NO named `DO|IF|CASE|...` term
 
 ### types
 1. type mapping
@@ -19,11 +19,20 @@ refer to for90.y for all accepted grammar
 |:-:|:-:|
 |INTEGER(all kind)|int|
 |REAL(all kind)|double|
-|LOGICAL|bool
+|LOGICAL|bool|
 |COMPLEX|struct for_complex|
 |CHARACTER|std::string|
+|array(1d)|forarray|
 
 ### variables
 1. all variables must be **explicitly** declared
 
-### array
+### functions and subroutines
+1. 
+
+### IO
+|for90|c++|
+|:-:|:-:|
+|*,*|cout|
+|*,formatter|printf|
+

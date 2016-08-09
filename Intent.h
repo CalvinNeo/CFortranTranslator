@@ -101,7 +101,7 @@
 		PushExtern = -123, // 在闭包函数中 StaticBind 变量
 		SystemFunction = -124, // 调用系统内置函数
 		DynamicVariable = -125, //Heap中的指针
-		UnknownVariant = -125, //尚未定位符号表的变量
+		UnknownVariant = -126, //尚未定位符号表的变量
 
 		New = -131,
 		Delete = -132,
@@ -153,7 +153,7 @@
 		META_ILLEGAL = -307,
 		META_ANY = -308, // 尚未解析的Intent
 		META_REQ_MORE = -309, // 词法分析器需要更多信息(Look Ahead)
-		META_NONTERMINAL = -310, // 非终结符
+		META_NONTERMINAL = -310, // 非终结符, 由NT_细化
 
 		// 标注变量类型(变量表)
 		Void = -320,
@@ -220,6 +220,11 @@
 		Include = -1011,
 
 		NT_PARAMTABLE = -2001,
+		NT_FORMATTER = -2002,
+		NT_AUTOFORMATTER = -2003, 
+		NT_ARGTABLE = -2004,
+		NT_FUNCTIONDECLARE = -2004,
+		NT_VARIABLEDEFINE = -2004,
 	};
 //}
 
