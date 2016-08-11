@@ -223,9 +223,17 @@
 		NT_FORMATTER = -2002,
 		NT_AUTOFORMATTER = -2003, 
 		NT_ARGTABLE = -2004,
-		NT_FUNCTIONDECLARE = -2004,
-		NT_VARIABLEDEFINE = -2004,
-	};
+		NT_FUNCTIONDECLARE = -2005,
+		NT_VARIABLEDEFINE = -2006,  /* int a = 2, b, c */
+		NT_STATEMENT = -2007,
+		NT_EXPRESSION = -2008,
+		NT_IF = -2009,
+		NT_ELSEIF = -2010,
+		NT_DO = -2011,
+		NT_VARIABLEINITIAL = -2012, /* (varname, initial_value) */
+		NT_DECLAREDVARIABLE = -2013, /* in programming languages such as fortran, function's paramtable declares the name but the type of parameters, the definition of parameters is placed in main structure of function */
+		/* 在fortran类语言中, 函数的参数表不包含变量的类型, 参数的实际定义在函数体内, 所以翻译成C时, 需要将这部分定义外提到参数表中, 此时置源语句的函数定义不是NT_VARIABLEINITIAL而是NT_DECLAREDVARIABLE */	
+};
 //}
 
 

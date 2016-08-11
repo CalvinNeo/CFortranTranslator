@@ -57,7 +57,7 @@ int main()
 	//global_code = "program write *,* a, b \n  end program";
 	//global_code = "program integer::A, B \n  end program";
 	//global_code = "program integer::a = 1 + 2 \n  end program";
-	global_code = "program recursive function main(A,B) result(C) end function end program";
+	global_code = "program recursive function main(A,B) result(C) \n integer::a = 1 + 2, b = 2, c = 3 \n end function end program";
 
 	//global_code = "~~~~~";
 

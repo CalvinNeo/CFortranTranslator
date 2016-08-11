@@ -187,9 +187,15 @@ ParseNode * flattern_bin(ParseNode *); // eliminate right recursion of an binary
 
 	stmt : exp
 			{
+				// TODO IMPORTANT
+				/*
+					一般来说, 可以不单独建立stmt的ParseNode, 再添加唯一的child(exp, var_def, compound_stmt等).
+					但是考虑到在cpp等语言中可能出现使用,分隔多个语句的情况(这种情况是有作用的, 表明编译器可以按照自己的顺序求值)
+					所以单独建立stmt节点兵添加$1位stmt节点的唯一的儿子
+				*/
 				ParseNode * newnode = new ParseNode();
 				sprintf(codegen_buf, "%s ;\n", $1.fs.CurrentTerm.what.c_str());
-				newnode->fs.CurrentTerm = Term{ TokenMeta::META_NONTERMINAL, string(codegen_buf) };
+				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_STATEMENT, string(codegen_buf) };
 				newnode->addchild(new ParseNode($1)); // exp
 				$$ = *newnode;
 			}
@@ -197,7 +203,7 @@ ParseNode * flattern_bin(ParseNode *); // eliminate right recursion of an binary
 			{
 				ParseNode * newnode = new ParseNode();
 				sprintf(codegen_buf, "%s ;\n", $1.fs.CurrentTerm.what.c_str());
-				newnode->fs.CurrentTerm = Term{ TokenMeta::META_NONTERMINAL, string(codegen_buf) };
+				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_STATEMENT, string(codegen_buf) };
 				newnode->addchild(new ParseNode($1)); // var_def
 				$$ = *newnode;
 			}
@@ -386,7 +392,7 @@ ParseNode * flattern_bin(ParseNode *); // eliminate right recursion of an binary
 				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_PARAMTABLE, string(codegen_buf) };
 					ParseNode * variablenode = new ParseNode();
 					sprintf(codegen_buf, "%s", $1.fs.CurrentTerm.what.c_str());
-					variablenode->fs.CurrentTerm = Term{ TokenMeta::META_NONTERMINAL, string(codegen_buf) };
+					variablenode->fs.CurrentTerm = Term{ TokenMeta::NT_VARIABLEINITIAL, string(codegen_buf) };
 					variablenode->addchild( new ParseNode($1) ); // type
 					FlexState fs; fs.CurrentTerm = Term{ TokenMeta::META_NONTERMINAL, string("void") };
 					variablenode->addchild( new ParseNode(fs, newnode) ); // void is dummy initial
@@ -401,7 +407,7 @@ ParseNode * flattern_bin(ParseNode *); // eliminate right recursion of an binary
 				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_PARAMTABLE, string(codegen_buf) };
 					ParseNode * variablenode = new ParseNode();
 					sprintf(codegen_buf, "%s = %s", $1.fs.CurrentTerm.what.c_str(), $3.fs.CurrentTerm.what.c_str());
-					variablenode->fs.CurrentTerm = Term{ TokenMeta::META_NONTERMINAL, string(codegen_buf) };
+					variablenode->fs.CurrentTerm = Term{ TokenMeta::NT_VARIABLEINITIAL, string(codegen_buf) };
 					variablenode->addchild(new ParseNode($1)); // type
 					variablenode->addchild(new ParseNode($3)); // initial
 					newnode->addchild(variablenode);
@@ -415,7 +421,7 @@ ParseNode * flattern_bin(ParseNode *); // eliminate right recursion of an binary
 				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_PARAMTABLE, string(codegen_buf) };
 					ParseNode * variablenode = new ParseNode();
 					sprintf(codegen_buf, "%s", $1.fs.CurrentTerm.what.c_str());
-					variablenode->fs.CurrentTerm = Term{ TokenMeta::META_NONTERMINAL, string(codegen_buf) };
+					variablenode->fs.CurrentTerm = Term{ TokenMeta::NT_VARIABLEINITIAL, string(codegen_buf) };
 					variablenode->addchild(new ParseNode($1)); // type
 					FlexState fs; fs.CurrentTerm = Term{ TokenMeta::META_NONTERMINAL, string("void") };
 					variablenode->addchild(new ParseNode(fs, newnode)); // void is dummy initial
@@ -431,7 +437,7 @@ ParseNode * flattern_bin(ParseNode *); // eliminate right recursion of an binary
 				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_PARAMTABLE, string(codegen_buf) };
 					ParseNode * variablenode = new ParseNode();
 					sprintf(codegen_buf, "%s", $1.fs.CurrentTerm.what.c_str());
-					variablenode->fs.CurrentTerm = Term{ TokenMeta::META_NONTERMINAL, string(codegen_buf) };
+					variablenode->fs.CurrentTerm = Term{ TokenMeta::NT_VARIABLEINITIAL, string(codegen_buf) };
 					variablenode->addchild(new ParseNode($1)); // type
 					variablenode->addchild(new ParseNode($3)); // initial
 					newnode->addchild(variablenode);
@@ -463,8 +469,9 @@ ParseNode * flattern_bin(ParseNode *); // eliminate right recursion of an binary
 	if_stmt : YY_IF exp YY_THEN crlf suite YY_END YY_IF crlf
 			{
 				ParseNode * newnode = new ParseNode();
-				sprintf(codegen_buf, "if (%s) {\n%s}", $2.fs.CurrentTerm.what.c_str(), tabber($5.fs.CurrentTerm.what).c_str());
-				newnode->fs.CurrentTerm = Term{ TokenMeta::META_NONTERMINAL, string(codegen_buf) };
+				$5.fs.CurrentTerm.what = tabber($5.fs.CurrentTerm.what);
+				sprintf(codegen_buf, "if (%s) {\n%s}", $2.fs.CurrentTerm.what.c_str(), $5.fs.CurrentTerm.what.c_str());
+				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_IF, string(codegen_buf) };
 				newnode->addchild(new ParseNode($1)); // if
 				newnode->addchild(new ParseNode($2)); // exp
 				newnode->addchild(new ParseNode($5)); // suite
@@ -473,8 +480,9 @@ ParseNode * flattern_bin(ParseNode *); // eliminate right recursion of an binary
 		| YY_IF exp YY_THEN crlf suite YY_ELSE crlf suite YY_END YY_IF crlf
 			{
 				ParseNode * newnode = new ParseNode();
-				sprintf(codegen_buf, "if (%s) {\n%s}\nelse {\n %s}", $2.fs.CurrentTerm.what.c_str(), tabber($5.fs.CurrentTerm.what).c_str(), tabber($8.fs.CurrentTerm.what).c_str());
-				newnode->fs.CurrentTerm = Term{ TokenMeta::META_NONTERMINAL, string(codegen_buf) };
+				$5.fs.CurrentTerm.what = tabber($5.fs.CurrentTerm.what); $8.fs.CurrentTerm.what = tabber($8.fs.CurrentTerm.what);
+				sprintf(codegen_buf, "if (%s) {\n%s}\nelse {\n %s}", $2.fs.CurrentTerm.what.c_str(), $5.fs.CurrentTerm.what.c_str(), $8.fs.CurrentTerm.what.c_str());
+				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_IF, string(codegen_buf) };
 				newnode->addchild(new ParseNode($1)); // if
 				newnode->addchild(new ParseNode($2)); // exp
 				newnode->addchild(new ParseNode($5)); // suite
@@ -485,8 +493,9 @@ ParseNode * flattern_bin(ParseNode *); // eliminate right recursion of an binary
 		| YY_IF exp YY_THEN crlf suite elseif_stmt YY_END YY_IF crlf
 			{
 				ParseNode * newnode = new ParseNode();
-				sprintf(codegen_buf, "if (%s) {\n%s}\n%s", $2.fs.CurrentTerm.what.c_str(), tabber($5.fs.CurrentTerm.what).c_str(), $6.fs.CurrentTerm.what.c_str());
-				newnode->fs.CurrentTerm = Term{ TokenMeta::META_NONTERMINAL, string(codegen_buf) };
+				$5.fs.CurrentTerm.what = tabber($5.fs.CurrentTerm.what); $6.fs.CurrentTerm.what = tabber($6.fs.CurrentTerm.what);
+				sprintf(codegen_buf, "if (%s) {\n%s}\n%s", $2.fs.CurrentTerm.what.c_str(), $5.fs.CurrentTerm.what.c_str(), $6.fs.CurrentTerm.what.c_str());
+				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_IF, string(codegen_buf) };
 				newnode->addchild(new ParseNode($1)); // if
 				newnode->addchild(new ParseNode($2)); // exp
 				newnode->addchild(new ParseNode($5)); // suite
@@ -496,8 +505,9 @@ ParseNode * flattern_bin(ParseNode *); // eliminate right recursion of an binary
 		| YY_IF exp YY_THEN crlf suite elseif_stmt YY_ELSE crlf suite YY_END YY_IF
 			{
 				ParseNode * newnode = new ParseNode();
-				sprintf(codegen_buf, "if (%s) {\n%s}\nelse {\n%s}%s", $1.fs.CurrentTerm.what.c_str(), tabber($3.fs.CurrentTerm.what).c_str(), tabber($6.fs.CurrentTerm.what).c_str(), $9.fs.CurrentTerm.what.c_str());
-				newnode->fs.CurrentTerm = Term{ TokenMeta::META_NONTERMINAL, string(codegen_buf) };
+				$3.fs.CurrentTerm.what = tabber($3.fs.CurrentTerm.what); $6.fs.CurrentTerm.what = tabber($6.fs.CurrentTerm.what);
+				sprintf(codegen_buf, "if (%s) {\n%s}\nelse {\n%s}%s", $1.fs.CurrentTerm.what.c_str(), $3.fs.CurrentTerm.what.c_str(), $6.fs.CurrentTerm.what.c_str(), $9.fs.CurrentTerm.what.c_str());
+				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_IF, string(codegen_buf) };
 				newnode->addchild(new ParseNode($1)); // if
 				newnode->addchild(new ParseNode($2)); // exp
 				newnode->addchild(new ParseNode($5)); // suite
@@ -508,8 +518,9 @@ ParseNode * flattern_bin(ParseNode *); // eliminate right recursion of an binary
 	elseif_stmt : YY_ELSEIF exp YY_THEN crlf suite
 			{
 				ParseNode * newnode = new ParseNode();
-				sprintf(codegen_buf, "else if(%s) {\n%s}", $2.fs.CurrentTerm.what.c_str(), tabber($5.fs.CurrentTerm.what).c_str());
-				newnode->fs.CurrentTerm = Term{ TokenMeta::META_NONTERMINAL, string(codegen_buf) };
+				$5.fs.CurrentTerm.what = tabber($5.fs.CurrentTerm.what);
+				sprintf(codegen_buf, "else if(%s) {\n%s}", $2.fs.CurrentTerm.what.c_str(), $5.fs.CurrentTerm.what.c_str());
+				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_ELSEIF, string(codegen_buf) };
 				newnode->addchild(new ParseNode($1)); // elseif
 				newnode->addchild(new ParseNode($2)); // exp
 				newnode->addchild(new ParseNode($5)); // suite
@@ -519,8 +530,9 @@ ParseNode * flattern_bin(ParseNode *); // eliminate right recursion of an binary
 		| YY_ELSEIF exp YY_THEN crlf suite elseif_stmt
 			{
 				ParseNode * newnode = new ParseNode();
-				sprintf(codegen_buf, "else if{\n%s}\n%s", $2.fs.CurrentTerm.what.c_str(), tabber($5.fs.CurrentTerm.what).c_str(), $6.fs.CurrentTerm.what.c_str());
-				newnode->fs.CurrentTerm = Term{ TokenMeta::META_NONTERMINAL, string(codegen_buf) };
+				$5.fs.CurrentTerm.what = tabber($5.fs.CurrentTerm.what);
+				sprintf(codegen_buf, "else if{\n%s}\n%s", $2.fs.CurrentTerm.what.c_str(), $5.fs.CurrentTerm.what.c_str(), $6.fs.CurrentTerm.what.c_str());
+				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_ELSEIF, string(codegen_buf) };
 				newnode->addchild(new ParseNode($1)); // elseif
 				newnode->addchild(new ParseNode($2)); // exp
 				newnode->addchild(new ParseNode($5)); // suite
@@ -529,9 +541,10 @@ ParseNode * flattern_bin(ParseNode *); // eliminate right recursion of an binary
 			}
 	do_stmt : YY_DO crlf suite YY_END YY_DO crlf
 			{
-				ParseNode * newnode = new ParseNode();
-				sprintf(codegen_buf, "do{\n%s}", tabber($3.fs.CurrentTerm.what).c_str());
-				newnode->fs.CurrentTerm = Term{ TokenMeta::META_NONTERMINAL, string(codegen_buf) };
+				ParseNode * newnode = new ParseNode(); 
+				$3.fs.CurrentTerm.what = tabber($3.fs.CurrentTerm.what);
+				sprintf(codegen_buf, "do{\n%s}", $3.fs.CurrentTerm.what.c_str());
+				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_DO, string(codegen_buf) };
 				newnode->addchild(new ParseNode($1)); // do
 				newnode->addchild(new ParseNode($3)); // suite
 				$$ = *newnode;
@@ -539,8 +552,9 @@ ParseNode * flattern_bin(ParseNode *); // eliminate right recursion of an binary
 		| YY_DO variable '=' exp ',' exp crlf suite YY_END YY_DO
 			{
 				ParseNode * newnode = new ParseNode();
-				sprintf(codegen_buf, "for(%s = %s; %s < %s; %s++){\n%s}", $2.fs.CurrentTerm.what.c_str(), $4.fs.CurrentTerm.what.c_str(), $2.fs.CurrentTerm.what.c_str(), $6.fs.CurrentTerm.what.c_str(), $2.fs.CurrentTerm.what.c_str(), tabber($8.fs.CurrentTerm.what).c_str());
-				newnode->fs.CurrentTerm = Term{ TokenMeta::META_NONTERMINAL, string(codegen_buf) };
+				$8.fs.CurrentTerm.what = tabber($8.fs.CurrentTerm.what); 
+				sprintf(codegen_buf, "for(%s = %s; %s < %s; %s++){\n%s}", $2.fs.CurrentTerm.what.c_str(), $4.fs.CurrentTerm.what.c_str(), $2.fs.CurrentTerm.what.c_str(), $6.fs.CurrentTerm.what.c_str(), $2.fs.CurrentTerm.what.c_str(), $8.fs.CurrentTerm.what.c_str());
+				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_DO, string(codegen_buf) };
 				newnode->addchild(new ParseNode($1)); // do
 				newnode->addchild(new ParseNode($2)); // varname
 				newnode->addchild(new ParseNode($4)); // begin
@@ -551,8 +565,9 @@ ParseNode * flattern_bin(ParseNode *); // eliminate right recursion of an binary
 		| YY_DO variable '=' exp ',' exp ',' exp crlf suite YY_END YY_DO
 			{
 				ParseNode * newnode = new ParseNode();
-				sprintf(codegen_buf, "for(%s = %s; %s < %s; %s+=%s){\n%s}", $2.fs.CurrentTerm.what.c_str(), $4.fs.CurrentTerm.what.c_str(), $2.fs.CurrentTerm.what.c_str(), $6.fs.CurrentTerm.what.c_str(), $2.fs.CurrentTerm.what.c_str(), $8.fs.CurrentTerm.what.c_str(), tabber($9.fs.CurrentTerm.what).c_str());
-				newnode->fs.CurrentTerm = Term{ TokenMeta::META_NONTERMINAL, string(codegen_buf) };
+				$9.fs.CurrentTerm.what = tabber($9.fs.CurrentTerm.what);
+				sprintf(codegen_buf, "for(%s = %s; %s < %s; %s+=%s){\n%s}", $2.fs.CurrentTerm.what.c_str(), $4.fs.CurrentTerm.what.c_str(), $2.fs.CurrentTerm.what.c_str(), $6.fs.CurrentTerm.what.c_str(), $2.fs.CurrentTerm.what.c_str(), $8.fs.CurrentTerm.what.c_str(), $9.fs.CurrentTerm.what.c_str());
+				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_DO, string(codegen_buf) };
 				newnode->addchild(new ParseNode($1)); // do
 				newnode->addchild(new ParseNode($2)); // varname
 				newnode->addchild(new ParseNode($4)); // begin
@@ -566,10 +581,8 @@ ParseNode * flattern_bin(ParseNode *); // eliminate right recursion of an binary
 			{
 				/* fortran90 does not declare type of arguments in function declaration statement*/
 				ParseNode * newnode = new ParseNode();
-				sprintf(codegen_buf, "%s %s(%s){\n%s\n}");
-				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_FUNCTIONDECLARE, string(codegen_buf) };
-				vector<string> param_name; // all params in paramtable of function declare
-
+				vector<pair<string, string>> param_name_typename; // all params in paramtable of function declare
+				vector<ParseNode *> param_definition;
 				/* enumerate paramtable */
 				ParseNode * prmtbl = &$5;
 				do {
@@ -577,15 +590,128 @@ ParseNode * flattern_bin(ParseNode *); // eliminate right recursion of an binary
 					for (int i = 0; i < prmtbl->child.size(); i++)
 					{
 						// for each variable in flatterned paramtable
-						param_name.push_back(prmtbl->fs.CurrentTerm.what);
+						param_name_typename.push_back(make_pair(prmtbl->child[i]->fs.CurrentTerm.what, "void")); // refer to function suite and determine type of params
 					}
 					prmtbl = prmtbl->child[1];
 				} while (prmtbl->child.size() == 2 && prmtbl->child[1]->fs.CurrentTerm.token == TokenMeta::NT_PARAMTABLE);
+				/* result variable */
+				param_name_typename.push_back(make_pair($9.fs.CurrentTerm.what, "void"));
+				/* find out all var_def nodes */
+				for (int i = 0; i < $12.child.size(); i++)
+				{
+					if ($12.child[i]->fs.CurrentTerm.token == TokenMeta::NT_VARIABLEDEFINE) {
+						/* $12 => stmt */ /*  REF stmt for why stmt is a node */
+						/* $12.child[i].child[0] => var_def */
+						/* from $12.child[i].child[1] is variable of this type */
+						ParseNode * pn = $12.child[i]->child[1];
+						do {
+							// for all non-flatterned paramtable
+							for (int i = 0; i < pn->child.size(); i++)
+							{
+								// for each variable in flatterned paramtable
+								/* pn->child[i] is varname with initial value */
+								/* pn->child[i]->child[0] is varname string */
+								param_definition.push_back(pn->child[i]->child[0]);
+							}
+							pn = pn->child[1];
+						} while (pn->child.size() == 2 && pn->child[1]->fs.CurrentTerm.token == TokenMeta::NT_PARAMTABLE);
+					}
+				}
+
+				/* set type to all param_name_typename */
+				for (int i = 0; i < param_name_typename.size(); i++)
+				{
+					string varname = param_name_typename[i].first;
+					for (int j = 0; j < param_definition.size(); j++)
+					{
+						ParseNode * varname_node = param_definition[j];
+						if (varname_node->fs.CurrentTerm.what == varname) {
+							//	father		NT_VARIABLEINITIAL (variable_name, variable_initial_value)
+							//	father * 2	NT_PARAMTABLE
+							//	father * 3	NT_VARIABLEDEFINE
+							param_name_typename[i].second = varname_node->father->father->father->child[0]->fs.CurrentTerm.what;
+							/* `delete` ParseNode except return value */
+							if (i != param_name_typename.size() - 1) {
+								varname_node->father->fs.CurrentTerm.token = TokenMeta::NT_DECLAREDVARIABLE;
+							}
+						}
+					}
+				}
+
+				string argtblstr;
+				for (int i = 0; i < param_name_typename.size() - 1 /* exclude YY_RESULT(return value) */; i++)
+				{
+					if(i != 0)
+						argtblstr += ",";
+					argtblstr += param_name_typename[i].second;
+					argtblstr += " ";
+					argtblstr += param_name_typename[i].first;
+				}
+
+				/* generate new paramtable with type */
+				ParseNode * newpt; // $5 is raw for90 paramtable without type
+				// TODO This is optional so i decide not to implement currently
+				/* generate new return with type */
+				ParseNode * newrt; // $9 is raw for90 return without type
+				// TODO This is optional so i decide not to implement currently
+				
+				/* re-generated codes of suite */
+				string newsuitestr; // $12 is raw for90 suite without type
+				ParseNode * oldsuite = & $12;
+				for (int i = 0; i < oldsuite->child.size(); i++)
+				{
+					if (oldsuite->child[i]->fs.CurrentTerm.token == TokenMeta::NT_VARIABLEDEFINE)
+					{
+						// this code is similar to `find out all var_def nodes` code
+						ParseNode * pn = $12.child[0]->child[1];
+						do {
+							// for all non-flatterned paramtable
+							for (int j = 0; j < pn->child.size(); j++)
+							{
+								// for each variable in flatterned paramtable
+								/* pn->child[i] is varname with initial value */
+								/* pn->child[i]->child[0] is varname string */
+								if (pn->child[j]->fs.CurrentTerm.token == TokenMeta::NT_VARIABLEINITIAL) {
+									newsuitestr += oldsuite->child[i]->child[0]->fs.CurrentTerm.what;
+									newsuitestr += " ";
+									newsuitestr += pn->child[j]->fs.CurrentTerm.what;
+									newsuitestr += " ;\n";
+								}
+							}
+							pn = pn->child[1];
+						} while (pn->child.size() == 2 && pn->child[1]->fs.CurrentTerm.token == TokenMeta::NT_PARAMTABLE);
+					}
+					else {
+						newsuitestr += oldsuite->child[i]->fs.CurrentTerm.what;
+					}
+				}
+				oldsuite->fs.CurrentTerm.what = tabber(newsuitestr);
+				/* generate function ParseTree */
+				newnode->addchild(new ParseNode($2)); // function
+				newnode->addchild(new ParseNode($3)); // function name
+				// argtable
+				// return value
+				newnode->addchild(new ParseNode($12)); // trimed suite
+
+				sprintf(codegen_buf, "%s %s(%s){\n%s\n}"
+					, param_name_typename[param_name_typename.size()-1].second.c_str() // return value type
+					, $3.fs.CurrentTerm.what.c_str() // function name
+					, argtblstr.c_str()
+					, $12.fs.CurrentTerm.what.c_str()
+				);
+				/* generate function code */
+				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_FUNCTIONDECLARE, string(codegen_buf) };
 				$$ = *newnode;
 			}
 	
 	wrapper : suite
+			{
+				$$ = $1;
+			}
 		| function_decl
+			{
+				$$ = $1;
+			}
 
     program : YY_PROGRAM YY_WORD crlf wrapper YY_END YY_PROGRAM YY_WORD crlf
 			{ 
