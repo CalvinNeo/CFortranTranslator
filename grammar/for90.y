@@ -209,13 +209,38 @@ ParseNode * flattern_bin(ParseNode *); // eliminate right recursion of an binary
 			}
         | compound_stmt
         | output_stmt
+		| dummy_stmt
 
     output_stmt : write
 
 	compound_stmt : if_stmt | do_stmt
 
+	dummy_stmt : YY_IMPLICIT YY_NONE
+			{
+				ParseNode * newnode = new ParseNode();
+				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_STATEMENT, "" };
+				// dummy stmt
+				$$ = *newnode;
+			}
+
 	suite : stmt
+			{
+				ParseNode * newnode = new ParseNode();
+				sprintf(codegen_buf, "%s \n", $1.fs.CurrentTerm.what.c_str());
+				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_SUITE, string(codegen_buf) };
+				newnode->addchild(new ParseNode($1)); // stmt
+				$$ = *newnode;
+			}
 		| stmt suite
+			{
+				ParseNode * newnode = new ParseNode();
+				sprintf(codegen_buf, "%s \n %s \n", $1.fs.CurrentTerm.what.c_str(), $2.fs.CurrentTerm.what.c_str());
+				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_SUITE, string(codegen_buf) };
+				newnode->addchild(new ParseNode($1)); // stmt
+				newnode->addchild(new ParseNode($2)); // suite
+				newnode = flattern_bin(newnode);
+				$$ = *newnode;
+			}
 		|
 			{
 				/* suite can be empty but stmt can not */
@@ -599,11 +624,13 @@ ParseNode * flattern_bin(ParseNode *); // eliminate right recursion of an binary
 				/* find out all var_def nodes */
 				for (int i = 0; i < $12.child.size(); i++)
 				{
-					if ($12.child[i]->fs.CurrentTerm.token == TokenMeta::NT_VARIABLEDEFINE) {
-						/* $12 => stmt */ /*  REF stmt for why stmt is a node */
-						/* $12.child[i].child[0] => var_def */
-						/* from $12.child[i].child[1] is variable of this type */
-						ParseNode * pn = $12.child[i]->child[1];
+					ParseNode * stmti = $12.child[i];
+					/* $12 => suite */
+					/* $12.child[i] => stmt */ /*  REF stmt for why stmt is a node always with 1 child(except for dummy stmt) */
+					if (stmti->child.size() == 1 && stmti->child[0]->fs.CurrentTerm.token == TokenMeta::NT_VARIABLEDEFINE) {
+						/* stmti->child[0] => var_def */
+						/* from stmti->child[0].child[1] is variable of this type */
+						ParseNode * pn = stmti->child[0]->child[1];
 						do {
 							// for all non-flatterned paramtable
 							for (int i = 0; i < pn->child.size(); i++)

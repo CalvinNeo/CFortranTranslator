@@ -19,6 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\cgen.cpp" />
     <ClCompile Include="..\..\grammar\for90.flex.cpp" />
     <ClCompile Include="..\..\grammar\for90.tab.cpp" />
     <ClCompile Include="..\..\main.cpp" />

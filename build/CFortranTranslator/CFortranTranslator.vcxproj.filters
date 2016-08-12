@@ -37,6 +37,9 @@
     <ClCompile Include="..\..\Variable.cpp">
       <Filter>NuclearLang</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\cgen.cpp">
+      <Filter>target</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\grammar\for90.tab.h">

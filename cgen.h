@@ -11,3 +11,7 @@ const std::map<std::string, std::string> typename_map{
 	,{"character", "string"}
 	,{ "real", "double" }
 };
+
+const std::string cpp_header = "#include\"for90std.h\"";
+
+std::string for2cpp(std::string for_code); 
