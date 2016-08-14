@@ -10,7 +10,6 @@ struct VariablePanel
 	Variable * HolderVariable;
 	VariablePanel * Upper;//…œ“ªº∂
 
-
 };
 
 struct Variable

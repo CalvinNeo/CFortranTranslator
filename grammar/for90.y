@@ -15,9 +15,10 @@ extern void set_buff(const std::string & code);
 extern void release_buff();
 #define YYDEBUG 1
 #define YYERROR_VERBOSE
-char codegen_buf[65535];
+#define MAX_CODE_LENGTH 65535
+char codegen_buf[MAX_CODE_LENGTH];
 using namespace std;
-string tabber(string &);
+string tabber(string &); // add tab(`\t`) into the front of each line
 ParseNode * flattern_bin(ParseNode *); // eliminate right recursion of an binary tree
 %}
 
@@ -172,6 +173,16 @@ ParseNode * flattern_bin(ParseNode *); // eliminate right recursion of an binary
 				newnode->addchild(new ParseNode($1)); // left operand exp
 				newnode->addchild(new ParseNode($2)); // =
 				newnode->addchild(new ParseNode($3)); // right operand exp
+				$$ = *newnode;
+			}
+		| variable '(' argtable ')'
+			{
+				/* function call OR array index */
+				ParseNode * newnode = new ParseNode();
+				sprintf(codegen_buf, "%s(%s)", $1.fs.CurrentTerm.what.c_str(), $3.fs.CurrentTerm.what.c_str());
+				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_FUCNTIONARGTABLE, string(codegen_buf) };
+				newnode->addchild(new ParseNode($1)); // function/array name
+				newnode->addchild(new ParseNode($3)); // argtable
 				$$ = *newnode;
 			}
 		| literal crlf
@@ -669,7 +680,7 @@ ParseNode * flattern_bin(ParseNode *); // eliminate right recursion of an binary
 				for (int i = 0; i < param_name_typename.size() - 1 /* exclude YY_RESULT(return value) */; i++)
 				{
 					if(i != 0)
-						argtblstr += ",";
+						argtblstr += ", ";
 					argtblstr += param_name_typename[i].second;
 					argtblstr += " ";
 					argtblstr += param_name_typename[i].first;
@@ -795,6 +806,29 @@ ParseNode * flattern_bin(ParseNode * pn) {
 		return pn;
 	}
 }
+void update_pos(YYSTYPE & current_node) {
+	if (current_node.child.size() == 0) {
+		/* do nothing */
+	}
+	else if (current_node.child.size() == 1) {
+		current_node.fs.parse_pos = current_node.child[0]->fs.parse_pos;
+		current_node.fs.parse_line = current_node.child[0]->fs.parse_line;
+		current_node.fs.parse_len = current_node.child[0]->fs.parse_len;
+		current_node.fs.line_pos = current_node.child[0]->fs.line_pos;
+	}
+	else {
+		int tot_len = 0;
+		for (int i = 0; i < current_node.child.size(); i++)
+		{
+			tot_len += current_node.child[i]->fs.parse_len;
+		}
+		current_node.fs.parse_pos = current_node.child[0]->fs.parse_pos;
+		current_node.fs.parse_line = current_node.child[0]->fs.parse_line;
+		current_node.fs.parse_len = tot_len;
+		current_node.fs.parse_len = current_node.child[0]->fs.line_pos;
+	}
+}
+
 int parse(std::string code) {
 #ifdef USE_YACC
 	set_buff(code);

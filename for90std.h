@@ -7,6 +7,7 @@ struct forarray {
 	forarray slice(int fr, int to, int step = 1);
 	char * c_array();
 	std::vector<T> c_vector();
+	T & operator(int i);
 
 	forarray(int l, int u) lb(l), ub(u){}
 protected:
@@ -16,7 +17,7 @@ protected:
 
 struct forcomplex {
 	
-	forcomplex operator+(const forcomplex & rhs);
+	const forcomplex operator+(const forcomplex & rhs);
 
 	forcomplex(double real, double imagine) : m_real(real), m_imagine(imagine) {}
 protected:

@@ -66,13 +66,16 @@ struct VariableAttr : public ParseAttr {
 // struct ArrayAttr FormatterAttr
 
 extern ParseNode program_tree;
-extern ParseNode * curnode;
 
 void preorder(ParseNode * ptree);
-
+/* generate codes instead of in .y files */
+std::string lazy_gen(ParseNode * ptree);
 
 
 // yacc part code
 // implement in for90.y
 typedef ParseNode yystype_t;
 #define YYSTYPE ParseNode
+
+/* update pos os non-terminal tokens(terminal tokens have pos updated in flex using update_flex and update_yylval) */
+void update_pos(YYSTYPE &);
