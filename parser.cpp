@@ -142,7 +142,7 @@ std::string lazy_gen(ParseNode * ptree) {
 				break;
 			case TokenMeta::NT_SUITE:
 				break;
-			case TokenMeta::NT_FUCNTIONARGTABLE:
+			case TokenMeta::NT_FUCNTIONARRAY:
 				break;
 			default:
 				break;

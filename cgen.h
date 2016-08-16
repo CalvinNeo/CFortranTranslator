@@ -12,6 +12,11 @@ const std::map<std::string, std::string> typename_map{
 	,{ "real", "double" }
 };
 
+/* NOTICE: `typename_map` has already do some job for `funcname_map` */
+const std::map<std::string, std::string> funcname_map{
+	{ "real", "int" }
+};
+
 const std::string cpp_header = "#include\"for90std.h\"";
 
 std::string for2cpp(std::string for_code); 

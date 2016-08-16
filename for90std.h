@@ -1,5 +1,6 @@
 #pragma once
 #include <vector>
+#include <cmath>
 
 template<T>
 struct forarray {
@@ -24,3 +25,6 @@ protected:
 	double m_real;
 	double m_imagine;
 };
+
+int test() {
+}

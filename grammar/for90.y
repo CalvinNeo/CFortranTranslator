@@ -98,19 +98,49 @@ ParseNode * flattern_bin(ParseNode *); // eliminate right recursion of an binary
 				$$ = *newnode;
 			}
 
-	exp : '(' exp ')' crlf
+	callable : variable | type_spec
 			{
+				/* array index and function name and type cast */
+				string x = $1.fs.CurrentTerm.what;
+				$$ = $1;
+			}
+	
+	function_array : callable '(' argtable ')' crlf
+			{
+				/* function call OR array index */
+				ParseNode * newnode = new ParseNode();
+				sprintf(codegen_buf, "%s(%s)", $1.fs.CurrentTerm.what.c_str(), $3.fs.CurrentTerm.what.c_str());
+				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_FUCNTIONARRAY, string(codegen_buf) };
+				newnode->addchild(new ParseNode($1)); // function/array name
+				newnode->addchild(new ParseNode($3)); // argtable
+				$$ = *newnode;
+				update_pos($$);
+			}
+
+	exp : function_array
+			{
+				/* function call OR array index */
+				ParseNode * newnode = new ParseNode();
+				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_EXPRESSION, $1.fs.CurrentTerm.what };
+				newnode->addchild(new ParseNode($1)); // function_array
+				$$ = *newnode;
+				update_pos($$);
+			}
+		| '(' exp ')' crlf
+			{
+				/* `callable '(' argtable ')'` rule has priority over this rule  */
 				ParseNode * newnode = new ParseNode();
 				sprintf(codegen_buf, "( %s )", $2.fs.CurrentTerm.what.c_str());
-				newnode->fs.CurrentTerm = Term{ TokenMeta::META_NONTERMINAL, string(codegen_buf) };
+				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_EXPRESSION, string(codegen_buf) };
 				newnode->addchild(new ParseNode($2)); 
 				$$ = *newnode;
+				update_pos($$);
 			}
 		| exp '+' exp crlf
 			{
 				ParseNode * newnode = new ParseNode();
 				sprintf(codegen_buf, "%s + %s", $1.fs.CurrentTerm.what.c_str(), $3.fs.CurrentTerm.what.c_str());
-				newnode->fs.CurrentTerm = Term{ TokenMeta::META_NONTERMINAL, string(codegen_buf) };
+				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_EXPRESSION, string(codegen_buf) };
 				newnode->addchild(new ParseNode($1)); // left operand exp
 				newnode->addchild(new ParseNode($2)); // +
 				newnode->addchild(new ParseNode($3)); // tight operand exp
@@ -120,7 +150,7 @@ ParseNode * flattern_bin(ParseNode *); // eliminate right recursion of an binary
 			{
 				ParseNode * newnode = new ParseNode();
 				sprintf(codegen_buf, "%s - %s", $1.fs.CurrentTerm.what.c_str(), $3.fs.CurrentTerm.what.c_str());
-				newnode->fs.CurrentTerm = Term{ TokenMeta::META_NONTERMINAL, string(codegen_buf) };
+				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_EXPRESSION, string(codegen_buf) };
 				newnode->addchild(new ParseNode($1)); // left operand exp
 				newnode->addchild(new ParseNode($2)); // -
 				newnode->addchild(new ParseNode($3)); // right operand exp
@@ -130,7 +160,7 @@ ParseNode * flattern_bin(ParseNode *); // eliminate right recursion of an binary
 			{
 				ParseNode * newnode = new ParseNode();
 				sprintf(codegen_buf, "%s * %s", $1.fs.CurrentTerm.what.c_str(), $3.fs.CurrentTerm.what.c_str());
-				newnode->fs.CurrentTerm = Term{ TokenMeta::META_NONTERMINAL, string(codegen_buf) };
+				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_EXPRESSION, string(codegen_buf) };
 				newnode->addchild(new ParseNode($1)); // left operand exp
 				newnode->addchild(new ParseNode($2)); // *
 				newnode->addchild(new ParseNode($3)); // right operand exp
@@ -140,7 +170,7 @@ ParseNode * flattern_bin(ParseNode *); // eliminate right recursion of an binary
 			{
 				ParseNode * newnode = new ParseNode();
 				sprintf(codegen_buf, "%s / %s", $1.fs.CurrentTerm.what.c_str(), $3.fs.CurrentTerm.what.c_str());
-				newnode->fs.CurrentTerm = Term{ TokenMeta::META_NONTERMINAL, string(codegen_buf) };
+				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_EXPRESSION, string(codegen_buf) };
 				newnode->addchild(new ParseNode($1)); // left operand exp
 				newnode->addchild(new ParseNode($2)); // /
 				newnode->addchild(new ParseNode($3)); // right operand exp
@@ -150,7 +180,7 @@ ParseNode * flattern_bin(ParseNode *); // eliminate right recursion of an binary
 			{
 				ParseNode * newnode = new ParseNode();
 				sprintf(codegen_buf, "power(%s, %s)", $1.fs.CurrentTerm.what.c_str(), $3.fs.CurrentTerm.what.c_str());
-				newnode->fs.CurrentTerm = Term{ TokenMeta::META_NONTERMINAL, string(codegen_buf) };
+				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_EXPRESSION, string(codegen_buf) };
 				newnode->addchild(new ParseNode($1)); // left operand exp
 				newnode->addchild(new ParseNode($2)); // **
 				newnode->addchild(new ParseNode($3)); // right operand exp
@@ -160,42 +190,44 @@ ParseNode * flattern_bin(ParseNode *); // eliminate right recursion of an binary
 			{
 				ParseNode * newnode = new ParseNode();
 				sprintf(codegen_buf, "(-%s)", $1.fs.CurrentTerm.what.c_str(), $3.fs.CurrentTerm.what.c_str());
-				newnode->fs.CurrentTerm = Term{ TokenMeta::META_NONTERMINAL, string(codegen_buf) };
+				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_EXPRESSION, string(codegen_buf) };
 				newnode->addchild(new ParseNode($1)); // (-)
 				newnode->addchild(new ParseNode($2)); // only right operand exp
 				$$ = *newnode;
-			}
-		| exp '=' exp
-			{
-				ParseNode * newnode = new ParseNode();
-				sprintf(codegen_buf, "%s = %s", $1.fs.CurrentTerm.what.c_str(), $3.fs.CurrentTerm.what.c_str());
-				newnode->fs.CurrentTerm = Term{ TokenMeta::META_NONTERMINAL, string(codegen_buf) };
-				newnode->addchild(new ParseNode($1)); // left operand exp
-				newnode->addchild(new ParseNode($2)); // =
-				newnode->addchild(new ParseNode($3)); // right operand exp
-				$$ = *newnode;
-			}
-		| variable '(' argtable ')'
-			{
-				/* function call OR array index */
-				ParseNode * newnode = new ParseNode();
-				sprintf(codegen_buf, "%s(%s)", $1.fs.CurrentTerm.what.c_str(), $3.fs.CurrentTerm.what.c_str());
-				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_FUCNTIONARGTABLE, string(codegen_buf) };
-				newnode->addchild(new ParseNode($1)); // function/array name
-				newnode->addchild(new ParseNode($3)); // argtable
-				$$ = *newnode;
+				update_pos($$);
 			}
 		| literal crlf
             { 
 				// 
 				$$ = $1;
 			}
-		| variable crlf
+		| callable crlf
 			{
-				// 
+				// may cause reduction-reduction conflict when use `variable` instead of `callable`
 				$$ = $1;
 			}
 
+    argtable : exp
+			{
+				/* argtable is used in function call */
+				ParseNode * newnode = new ParseNode();
+				sprintf(codegen_buf, "%s", $1.fs.CurrentTerm.what.c_str());
+				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_ARGTABLE, string(codegen_buf) };
+				newnode->addchild(new ParseNode($1)); // exp
+				$$ = *newnode;
+				update_pos($$);
+			}
+        | exp ',' argtable
+			{
+				ParseNode * newnode = new ParseNode();
+				sprintf(codegen_buf, "%s, %s", $1.fs.CurrentTerm.what.c_str(), $3.fs.CurrentTerm.what.c_str());
+				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_ARGTABLE, string(codegen_buf) };
+				newnode->addchild(new ParseNode($1)); // exp
+				newnode->addchild(new ParseNode($3)); // argtable
+				newnode = flattern_bin(newnode);
+				$$ = *newnode;
+				update_pos($$);
+			}
 	stmt : exp
 			{
 				// TODO IMPORTANT
@@ -209,6 +241,7 @@ ParseNode * flattern_bin(ParseNode *); // eliminate right recursion of an binary
 				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_STATEMENT, string(codegen_buf) };
 				newnode->addchild(new ParseNode($1)); // exp
 				$$ = *newnode;
+				update_pos($$);
 			}
 		| var_def
 			{
@@ -217,14 +250,28 @@ ParseNode * flattern_bin(ParseNode *); // eliminate right recursion of an binary
 				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_STATEMENT, string(codegen_buf) };
 				newnode->addchild(new ParseNode($1)); // var_def
 				$$ = *newnode;
+				update_pos($$);
 			}
         | compound_stmt
         | output_stmt
 		| dummy_stmt
+		| let_stmt
 
     output_stmt : write
 
 	compound_stmt : if_stmt | do_stmt
+
+	let_stmt : exp '=' exp
+			{
+				ParseNode * newnode = new ParseNode();
+				sprintf(codegen_buf, "%s = %s", $1.fs.CurrentTerm.what.c_str(), $3.fs.CurrentTerm.what.c_str());
+				newnode->fs.CurrentTerm = Term{ TokenMeta::META_NONTERMINAL, string(codegen_buf) };
+				newnode->addchild(new ParseNode($1)); // left operand exp
+				newnode->addchild(new ParseNode($2)); // =
+				newnode->addchild(new ParseNode($3)); // right operand exp
+				$$ = *newnode;
+				update_pos($$);
+			}
 
 	dummy_stmt : YY_IMPLICIT YY_NONE
 			{
@@ -232,6 +279,7 @@ ParseNode * flattern_bin(ParseNode *); // eliminate right recursion of an binary
 				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_STATEMENT, "" };
 				// dummy stmt
 				$$ = *newnode;
+				update_pos($$);
 			}
 
 	suite : stmt
@@ -241,6 +289,7 @@ ParseNode * flattern_bin(ParseNode *); // eliminate right recursion of an binary
 				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_SUITE, string(codegen_buf) };
 				newnode->addchild(new ParseNode($1)); // stmt
 				$$ = *newnode;
+				update_pos($$);
 			}
 		| stmt suite
 			{
@@ -251,6 +300,7 @@ ParseNode * flattern_bin(ParseNode *); // eliminate right recursion of an binary
 				newnode->addchild(new ParseNode($2)); // suite
 				newnode = flattern_bin(newnode);
 				$$ = *newnode;
+				update_pos($$);
 			}
 		|
 			{
@@ -264,18 +314,22 @@ ParseNode * flattern_bin(ParseNode *); // eliminate right recursion of an binary
 	_optional_device : '*'
 			{
 				$$.fs.CurrentTerm = Term{ TokenMeta::META_NONTERMINAL, "" };
+				update_pos($$);
 			}
 		| YY_INTEGER
 			{
 				$$.fs.CurrentTerm = Term{ TokenMeta::META_NONTERMINAL, $1.fs.CurrentTerm.what };
+				update_pos($$);
 			}
 	_optional_formatter : '*'
 			{
 				$$.fs.CurrentTerm = Term{ TokenMeta::NT_AUTOFORMATTER, "" };
+				update_pos($$);
 			}
 		| YY_STRING
 			{
 				$$.fs.CurrentTerm = Term{ TokenMeta::NT_FORMATTER, $1.fs.CurrentTerm.what };
+				update_pos($$);
 			}
 
 	io_info : _optional_device ',' _optional_formatter
@@ -286,6 +340,7 @@ ParseNode * flattern_bin(ParseNode *); // eliminate right recursion of an binary
 				newnode->addchild(new ParseNode($1)); // formatter
 				newnode->addchild(new ParseNode($3)); // argtable
 				$$ = *newnode;
+				update_pos($$);
 			}
 
     write : YY_WRITE _optional_lbrace io_info _optional_rbrace argtable
@@ -318,6 +373,7 @@ ParseNode * flattern_bin(ParseNode *); // eliminate right recursion of an binary
 					newnode->fs.CurrentTerm = Term{ TokenMeta::META_NONTERMINAL, coutcode };
 				}
 				$$ = *newnode;
+				update_pos($$);
 			}
 
 	read: YY_READ _optional_lbrace io_info _optional_rbrace argtable
@@ -328,26 +384,31 @@ ParseNode * flattern_bin(ParseNode *); // eliminate right recursion of an binary
 			{
 				$1.fs.CurrentTerm.what = typename_map.at($1.fs.CurrentTerm.what);
 				$$ = $1;
+				update_pos($$);
 			}
         | YY_FLOAT_T
 			{
 				$1.fs.CurrentTerm.what = typename_map.at($1.fs.CurrentTerm.what);
 				$$ = $1;
+				update_pos($$);
 			}
         | YY_STRING_T
 			{
 				$1.fs.CurrentTerm.what = typename_map.at($1.fs.CurrentTerm.what);
 				$$ = $1;
+				update_pos($$);
 			}
         | YY_COMPLEX_T
 			{
 				$1.fs.CurrentTerm.what = typename_map.at($1.fs.CurrentTerm.what);
 				$$ = $1;
+				update_pos($$);
 			}
         | YY_BOOL_T
 			{
 				$1.fs.CurrentTerm.what = typename_map.at($1.fs.CurrentTerm.what);
 				$$ = $1;
+				update_pos($$);
 			}
 
 	slice : exp ':' exp
@@ -359,6 +420,7 @@ ParseNode * flattern_bin(ParseNode *); // eliminate right recursion of an binary
 				newnode->addchild(new ParseNode($1)); // lower bound
 				newnode->addchild(new ParseNode($3)); // upper bound
 				$$ = *newnode;
+				update_pos($$);
 			}
 		| exp ':' exp ':' exp
 			{
@@ -370,6 +432,7 @@ ParseNode * flattern_bin(ParseNode *); // eliminate right recursion of an binary
 				newnode->addchild(new ParseNode($3)); // upper bound
 				newnode->addchild(new ParseNode($5)); // step
 				$$ = *newnode;
+				update_pos($$);
 			}
 	def_slice : '(' exp ',' exp ')'
 			{
@@ -380,6 +443,7 @@ ParseNode * flattern_bin(ParseNode *); // eliminate right recursion of an binary
 				newnode->addchild(new ParseNode($2)); // lower bound
 				newnode->addchild(new ParseNode($4)); // upper bound
 				$$ = *newnode;
+				update_pos($$);
 			}
 
     var_def : type_spec YY_DOUBLECOLON paramtable
@@ -391,6 +455,7 @@ ParseNode * flattern_bin(ParseNode *); // eliminate right recursion of an binary
 				newnode->addchild(new ParseNode($1)); // type
 				newnode->addchild(new ParseNode($3)); // paramtable
 				$$ = *newnode;
+				update_pos($$);
 			}
 		| type_spec ',' YY_DIMENSION  def_slice  YY_DOUBLECOLON paramtable
 			{
@@ -417,6 +482,7 @@ ParseNode * flattern_bin(ParseNode *); // eliminate right recursion of an binary
 				} while (pn->child.size() == 2 && pn->child[1]->fs.CurrentTerm.token == TokenMeta::NT_PARAMTABLE);
 				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_VARIABLEDEFINE, arr_decl };
 				$$ = *newnode;
+				update_pos($$);
 			}
 
     paramtable : variable
@@ -434,6 +500,7 @@ ParseNode * flattern_bin(ParseNode *); // eliminate right recursion of an binary
 					variablenode->addchild( new ParseNode(fs, newnode) ); // void is dummy initial
 					newnode->addchild(variablenode);
 				$$ = *newnode;
+				update_pos($$);
 			}
         | variable '=' exp
 			{
@@ -449,6 +516,7 @@ ParseNode * flattern_bin(ParseNode *); // eliminate right recursion of an binary
 					newnode->addchild(variablenode);
 				newnode = flattern_bin(newnode);
 				$$ = *newnode;
+				update_pos($$);
 			}
         | variable ',' paramtable
 			{
@@ -465,6 +533,7 @@ ParseNode * flattern_bin(ParseNode *); // eliminate right recursion of an binary
 				newnode->addchild(new ParseNode($3)); // paramtable
 				newnode = flattern_bin(newnode);
 				$$ = *newnode;
+				update_pos($$);
 			}
         | variable '=' exp ',' paramtable
 			{
@@ -480,27 +549,9 @@ ParseNode * flattern_bin(ParseNode *); // eliminate right recursion of an binary
 				newnode->addchild(new ParseNode($5)); // paramtable
 				newnode = flattern_bin(newnode);
 				$$ = *newnode;
+				update_pos($$);
 			}
 
-    argtable : exp
-			{
-				/* argtable is used in function call */
-				ParseNode * newnode = new ParseNode();
-				sprintf(codegen_buf, "%s", $1.fs.CurrentTerm.what.c_str());
-				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_ARGTABLE, string(codegen_buf) };
-				newnode->addchild(new ParseNode($1)); // exp
-				$$ = *newnode;
-			}
-        | exp ',' argtable
-			{
-				ParseNode * newnode = new ParseNode();
-				sprintf(codegen_buf, "%s, %s", $1.fs.CurrentTerm.what.c_str(), $3.fs.CurrentTerm.what.c_str());
-				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_ARGTABLE, string(codegen_buf) };
-				newnode->addchild(new ParseNode($1)); // exp
-				newnode->addchild(new ParseNode($3)); // argtable
-				newnode = flattern_bin(newnode);
-				$$ = *newnode;
-			}
 
 	if_stmt : YY_IF exp YY_THEN crlf suite YY_END YY_IF crlf
 			{
@@ -512,6 +563,7 @@ ParseNode * flattern_bin(ParseNode *); // eliminate right recursion of an binary
 				newnode->addchild(new ParseNode($2)); // exp
 				newnode->addchild(new ParseNode($5)); // suite
 				$$ = *newnode;
+				update_pos($$);
 			}
 		| YY_IF exp YY_THEN crlf suite YY_ELSE crlf suite YY_END YY_IF crlf
 			{
@@ -525,6 +577,7 @@ ParseNode * flattern_bin(ParseNode *); // eliminate right recursion of an binary
 				newnode->addchild(new ParseNode($6)); // else
 				newnode->addchild(new ParseNode($8)); // else-stmt
 				$$ = *newnode;
+				update_pos($$);
 			}
 		| YY_IF exp YY_THEN crlf suite elseif_stmt YY_END YY_IF crlf
 			{
@@ -537,6 +590,7 @@ ParseNode * flattern_bin(ParseNode *); // eliminate right recursion of an binary
 				newnode->addchild(new ParseNode($5)); // suite
 				newnode->addchild(new ParseNode($6)); // recursive elseif-stmt
 				$$ = *newnode;
+				update_pos($$);
 			}
 		| YY_IF exp YY_THEN crlf suite elseif_stmt YY_ELSE crlf suite YY_END YY_IF
 			{
@@ -550,6 +604,7 @@ ParseNode * flattern_bin(ParseNode *); // eliminate right recursion of an binary
 				newnode->addchild(new ParseNode($6)); // recursive elseif-stmt
 				newnode->addchild(new ParseNode($9)); // else-stmt
 				$$ = *newnode;
+				update_pos($$);
 			}
 	elseif_stmt : YY_ELSEIF exp YY_THEN crlf suite
 			{
@@ -561,6 +616,7 @@ ParseNode * flattern_bin(ParseNode *); // eliminate right recursion of an binary
 				newnode->addchild(new ParseNode($2)); // exp
 				newnode->addchild(new ParseNode($5)); // suite
 				$$ = *newnode;
+				update_pos($$);
 			}
 
 		| YY_ELSEIF exp YY_THEN crlf suite elseif_stmt
@@ -574,6 +630,7 @@ ParseNode * flattern_bin(ParseNode *); // eliminate right recursion of an binary
 				newnode->addchild(new ParseNode($5)); // suite
 				newnode->addchild(new ParseNode($6)); // another elseif-stmt
 				$$ = *newnode;
+				update_pos($$);
 			}
 	do_stmt : YY_DO crlf suite YY_END YY_DO crlf
 			{
@@ -584,6 +641,7 @@ ParseNode * flattern_bin(ParseNode *); // eliminate right recursion of an binary
 				newnode->addchild(new ParseNode($1)); // do
 				newnode->addchild(new ParseNode($3)); // suite
 				$$ = *newnode;
+				update_pos($$);
 			}
 		| YY_DO variable '=' exp ',' exp crlf suite YY_END YY_DO
 			{
@@ -597,6 +655,7 @@ ParseNode * flattern_bin(ParseNode *); // eliminate right recursion of an binary
 				newnode->addchild(new ParseNode($6)); // end
 				newnode->addchild(new ParseNode($8)); // suite
 				$$ = *newnode;
+				update_pos($$);
 			}
 		| YY_DO variable '=' exp ',' exp ',' exp crlf suite YY_END YY_DO
 			{
@@ -611,6 +670,7 @@ ParseNode * flattern_bin(ParseNode *); // eliminate right recursion of an binary
 				newnode->addchild(new ParseNode($8)); // step
 				newnode->addchild(new ParseNode($9)); // suite
 				$$ = *newnode;
+				update_pos($$);
 			}
 
 	function_decl : dummy_function_iden YY_FUNCTION variable '(' paramtable ')' YY_RESULT '(' variable ')' crlf suite YY_END YY_FUNCTION
@@ -740,15 +800,18 @@ ParseNode * flattern_bin(ParseNode *); // eliminate right recursion of an binary
 				/* generate function code */
 				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_FUNCTIONDECLARE, string(codegen_buf) };
 				$$ = *newnode;
+				update_pos($$);
 			}
 	
 	wrapper : suite
 			{
 				$$ = $1;
+				update_pos($$);
 			}
 		| function_decl
 			{
 				$$ = $1;
+				update_pos($$);
 			}
 
     program : YY_PROGRAM YY_WORD crlf wrapper YY_END YY_PROGRAM YY_WORD crlf

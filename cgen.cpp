@@ -1,4 +1,3 @@
-
 #include "cgen.h"
 
 std::string for2cpp(std::string for_code) {
