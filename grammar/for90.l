@@ -35,6 +35,7 @@ int make_term_flex(const TokenMeta & token, const char * w);
 #define YYRTINT(TOK) YYRTN(TOK, YY_INTEGER) 
 #define YYRTFLOAT(TOK) YYRTN(TOK, YY_FLOAT) 
 #define YYRTSTRING(TOK) YYRTN(TOK, YY_STRING) 
+#define YYRTCOMPLEX(TOK) YYRTN(TOK, YY_COMPLEX) 
 // 规则中被定义的终结符, **包括ascii表内的单个字符**
 #define YYRTILLEGAL(TOK) update_yylval( Term{TOK, std::string(yytext)});  	 update_flex(1);	return yytext[0]; 
 #define YYRTCRLF()  update_yylval( Term{TokenMeta::CRLF, std::string(yytext)}); update_flex(yyleng);
@@ -46,6 +47,7 @@ int make_term_flex(const TokenMeta & token, const char * w);
 #define RTINT(TOK) YYRTINT(TOK)
 #define RTFLOAT(TOK) YYRTFLOAT(TOK)
 #define RTSTRING(TOK) YYRTSTRING(TOK)
+#define RTCOMPLEX(TOK) YYRTCOMPLEX(TOK)
 #define RTILLEGAL(TOK) YYRTILLEGAL(TOK)
 // 换行
 #define RTCRLF() YYRTCRLF()
@@ -96,6 +98,7 @@ newline [\r\n]
 {ws} { RTNOP() }
 [-+]?[0-9]+ { RTINT(TokenMeta::META_INTEGER) }
 [-+]?[0-9\.]+([eE][0-9\.]+)? { RTFLOAT(TokenMeta::META_FLOAT) }
+[-+]?[0-9\.]+([eE][0-9\.]+)?_[-+]?[0-9\.]+([eE][0-9\.]+)? { RTCOMPLEX(TokenMeta::META_COMPLEX) }
 :: { RTOP(TokenMeta::DoubleColon, YY_DOUBLECOLON) }
 "**" { RTOP(TokenMeta::Power, YY_POWER) }
 ">" { RTOP(TokenMeta::GT, YY_GT) }

@@ -36,3 +36,12 @@ refer to for90.y for all accepted grammar
 |*,*|cout|
 |*,formatter|printf|
 
+## extend grammar
+1. declare new %token in .y
+2. add pattern of this %token in .l
+3. add rules related to the %token in .y
+4. update bytecodes and grammar tokens in Intent.h
+5. register keyword in tokenizer.cpp(if this token is keyword)
+6. update translation rules in cgen.h
+
+

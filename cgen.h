@@ -10,11 +10,13 @@ const std::map<std::string, std::string> typename_map{
 	,{"logical", "bool"}
 	,{"character", "string"}
 	,{ "real", "double" }
+	,{ "complex", "forcomplex" }
 };
 
 /* NOTICE: `typename_map` has already do some job for `funcname_map` */
 const std::map<std::string, std::string> funcname_map{
-	{ "real", "int" }
+	{ "min", "min_n" }
+	, { "max", "max_n" }
 };
 
 const std::string cpp_header = "#include\"for90std.h\"";

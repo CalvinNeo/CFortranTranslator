@@ -58,10 +58,10 @@ int main()
 	global_code = "program integer::A, B \n  end program";
 	global_code = "program integer::a = 1 + 2 \n  end program";
 	global_code = "program recursive function main(A,B) result(C) \n implicit none \n integer::a = 1 + 2, b = 2, c = 3 \n end function end program";
-	// below wrong
-	//global_code = "program recursive function main(A,B) result(C) \n a = abs(c) \n end function end program";
+	global_code = "program recursive function main(A,B) result(C) \n a = abs(c) \n end function end program";
 	/* '(' exp ')' ∫Õ callableπÈ‘º≥ÂÕª */
-	//global_code = "program recursive function main(A,B) result(C) \n a = abs(real(c)) \n end function end program";
+	global_code = "program recursive function main(A,B) result(C) \n a = abs(real(c)) \n end function end program";
+	global_code = "program recursive function main() result(C) \n complex::C = 1_2 \n end function end program";
 
 	//global_code = "program integer::a = 1 + 2 \n logical::b = .false. \n a = 3 \n end program";
 

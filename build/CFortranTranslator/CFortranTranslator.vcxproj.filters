@@ -40,6 +40,9 @@
     <ClCompile Include="..\..\cgen.cpp">
       <Filter>target</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\for90std.cpp">
+      <Filter>target</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\grammar\for90.tab.h">

@@ -3,6 +3,7 @@
 #include <vector>
 #include <iostream>
 #include <boost/shared_ptr.hpp>
+#include <boost/algorithm/string.hpp>
 #include "tokenizer.h"
 #include "Variable.h"
 
@@ -79,3 +80,5 @@ typedef ParseNode yystype_t;
 
 /* update pos os non-terminal tokens(terminal tokens have pos updated in flex using update_flex and update_yylval) */
 void update_pos(YYSTYPE &);
+string tabber(string &); // add tab(`\t`) into the front of each line
+ParseNode * flattern_bin(ParseNode *); // eliminate right recursion of an binary tree
