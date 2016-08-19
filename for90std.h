@@ -4,7 +4,6 @@
 
 template<class T>
 struct forarray {
-	int lb, ub;
 	forarray slice(int fr, int to, int step = 1) {
 		std::vector<T> nvec;
 		if (step == 1) {
@@ -24,15 +23,38 @@ struct forarray {
 		return m_arr;
 	}
 	T & operator()(int i) {
-		return m_arr[i - lb];
+		if (i - lb >= m_arr.size()) {
+			m_arr.resize(i - lb);
+			return m_arr[i - lb];
+		}
+		else {
+			return m_arr[i - lb];
+		}
 	};
 
+	template<class ... Args>
+	void addrange(T x, Args ... args) {
+		add(x);
+		addrange(args);
+	}
+	void add(T x) {
+		m_arr.push_back(x)
+	}
+	template<class ... Args>
+	void init(T x, Args ... args) {
+		m_arr.clear.clear();
+		m_arr.push_back(x);
+		init(args);
+	}
+
+
 	forarray(int l, int u) : lb(l), ub(u){
-		m_arr.resize(u - l);
+
 	};
 protected:
 	std::vector<T> m_arr;
 	T * carr;
+	int lb, ub;
 };
 
 struct forcomplex {

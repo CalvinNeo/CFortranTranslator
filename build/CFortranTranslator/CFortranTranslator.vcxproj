@@ -23,6 +23,7 @@
     <ClCompile Include="..\..\for90std.cpp" />
     <ClCompile Include="..\..\grammar\for90.flex.cpp" />
     <ClCompile Include="..\..\grammar\for90.tab.cpp" />
+    <ClCompile Include="..\..\lazygen.cpp" />
     <ClCompile Include="..\..\main.cpp" />
     <ClCompile Include="..\..\parser.cpp" />
     <ClCompile Include="..\..\scanner.cpp" />

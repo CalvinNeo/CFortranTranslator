@@ -27,7 +27,7 @@ using namespace std;
 %token YY_INTEGER YY_FLOAT YY_WORD YY_OPERATOR YY_STRING YY_ILLEGAL YY_COMPLEX YY_TRUE YY_FALSE
 %token YY_END YY_IF YY_THEN YY_ELSE YY_ELSEIF YY_ENDIF YY_DO YY_ENDDO YY_CONTINUE YY_BREAK YY_WHILE YY_ENDWHILE YY_WHERE YY_ENDWHERE YY_CASE YY_ENDCASE
 %token YY_PROGRAM YY_ENDPROGRAM YY_FUNCTION YY_ENDFUNCTION YY_RECURSIVE YY_RESULT YY_SUBROUTINE YY_ENDSUBROUTINE YY_MODULE YY_ENDMODULE YY_BLOCK YY_ENDBLOCK
-%token YY_IMPLICIT YY_NONE YY_USE YY_PARAMETER YY_FORMAT YY_ENTRY YY_DIMENSION
+%token YY_IMPLICIT YY_NONE YY_USE YY_PARAMETER YY_FORMAT YY_ENTRY YY_DIMENSION YY_ARRAYINITIAL_START YY_ARRAYINITIAL_END
 %token YY_INTEGER_T YY_FLOAT_T YY_STRING_T YY_COMPLEX_T YY_BOOL_T
 %token YY_WRITE YY_READ YY_PRINT YY_OPEN YY_CLOSE
 
@@ -264,7 +264,8 @@ using namespace std;
 		| var_def
 			{
 				ParseNode * newnode = new ParseNode();
-				sprintf(codegen_buf, "%s ;\n", $1.fs.CurrentTerm.what.c_str());
+				/* 因为var_def本身可能生成多行代码, 因此此处生成代码不应当带分号`;` */
+				sprintf(codegen_buf, "%s \n", $1.fs.CurrentTerm.what.c_str());
 				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_STATEMENT, string(codegen_buf) };
 				newnode->addchild(new ParseNode($1)); // var_def
 				$$ = *newnode;
@@ -452,51 +453,65 @@ using namespace std;
 				$$ = *newnode;
 				update_pos($$);
 			}
-	def_slice : '(' exp ',' exp ')'
+	def_slice : slice 
 			{
+				/* 1d array */
 				/* arr[from : to] */
 				ParseNode * newnode = new ParseNode();
 				/* target code of slice depend on context */
 				newnode->fs.CurrentTerm = Term{ TokenMeta::META_NONTERMINAL, "" };
-				newnode->addchild(new ParseNode($2)); // lower bound
-				newnode->addchild(new ParseNode($4)); // upper bound
+				newnode->addchild(new ParseNode($1)); // only 1 slice
 				$$ = *newnode;
 				update_pos($$);
+			}
+		| slice ',' slice
+			{
+				/* multi dimension array */
 			}
 
     var_def : type_spec YY_DOUBLECOLON paramtable
 			{
 				/*  */
 				ParseNode * newnode = new ParseNode();
-				sprintf(codegen_buf, "%s %s", $1.fs.CurrentTerm.what.c_str(), $3.fs.CurrentTerm.what.c_str());
+				sprintf(codegen_buf, "%s %s;", $1.fs.CurrentTerm.what.c_str(), $3.fs.CurrentTerm.what.c_str());
 				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_VARIABLEDEFINE, string(codegen_buf) };
 				newnode->addchild(new ParseNode($1)); // type
 				newnode->addchild(new ParseNode($3)); // paramtable
 				$$ = *newnode;
 				update_pos($$);
 			}
-		| type_spec ',' YY_DIMENSION  def_slice  YY_DOUBLECOLON paramtable
+		| type_spec ',' YY_DIMENSION '(' def_slice ')' YY_DOUBLECOLON paramtable
 			{
 				/* array decl */
 				ParseNode * newnode = new ParseNode();
 				string arr_decl = "";
 				newnode->addchild(new ParseNode($1)); // type
-				newnode->addchild(new ParseNode($4)); // slice
-				ParseNode * pn = new ParseNode($6); //paramtable
+				newnode->addchild(new ParseNode($5)); // def slice
+				ParseNode * pn = new ParseNode($8); //paramtable
 				newnode->addchild(pn); // paramtable
 
-				/* in cpp code, definition of an array is inherit attribute grammar */
+				/* in cpp code, definition of an array is inherit attribute(继承属性) grammar */
 				/* enumerate paramtable */
 				do {
 					// for all non-flatterned paramtable
 					for (int i = 0; i < pn->child.size(); i++)
 					{
 						// for each variable in flatterned paramtable
-						sprintf(codegen_buf, "forarr<%s> %s(%s, %s);", $1.fs.CurrentTerm.what.c_str(), pn->child[i]->child[0]->fs.CurrentTerm.what.c_str(), $4.child[0]->fs.CurrentTerm.what.c_str(), $4.child[1]->fs.CurrentTerm.what.c_str());
+						int sliceid = 0;
+						sprintf(codegen_buf, "forarr<%s> %s(%s, %s);\n", $1.fs.CurrentTerm.what.c_str(), pn->child[i]->child[0]->fs.CurrentTerm.what.c_str()
+							/* from, to */
+							, $5.child[sliceid]->child[0]->fs.CurrentTerm.what.c_str(), $5.child[sliceid]->child[1]->fs.CurrentTerm.what.c_str());
 						arr_decl += codegen_buf;
-						arr_decl += '\n';
+						/* set initial value */
+						sprintf(codegen_buf, "%s.init%s;\n", pn->child[i]->child[0]->fs.CurrentTerm.what.c_str(), pn->child[i]->child[1]->fs.CurrentTerm.what.c_str());
+						arr_decl += codegen_buf;
 					}
-					pn = pn->child[1];
+					if (pn->child.size() >= 2)
+					{
+						/* if pn->child.size() == 0, this is an empty paramtable(this function takes no arguments) */
+						/* if the paramtable is not flatterned pn->child[1] is a right-recursive paramtable node */
+						pn = pn->child[1];
+					}
 				} while (pn->child.size() == 2 && pn->child[1]->fs.CurrentTerm.token == TokenMeta::NT_PARAMTABLE);
 				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_VARIABLEDEFINE, arr_decl };
 				$$ = *newnode;
@@ -523,15 +538,34 @@ using namespace std;
         | variable '=' exp
 			{
 				/* initial value is required in parse tree because it can be an non-terminal `exp` */
+				/* non-array initial values */
 				ParseNode * newnode = new ParseNode();
 				sprintf(codegen_buf, "%s = %s", $1.fs.CurrentTerm.what.c_str(), $3.fs.CurrentTerm.what.c_str());
 				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_PARAMTABLE, string(codegen_buf) };
 					ParseNode * variablenode = new ParseNode();
-					sprintf(codegen_buf, "%s = %s", $1.fs.CurrentTerm.what.c_str(), $3.fs.CurrentTerm.what.c_str());
+					sprintf(codegen_buf, "%s" , $1.fs.CurrentTerm.what.c_str(), $3.fs.CurrentTerm.what.c_str());
 					variablenode->fs.CurrentTerm = Term{ TokenMeta::NT_VARIABLEINITIAL, string(codegen_buf) };
 					variablenode->addchild(new ParseNode($1)); // type
 					variablenode->addchild(new ParseNode($3)); // initial
 					newnode->addchild(variablenode);
+				newnode = flattern_bin(newnode);
+				$$ = *newnode;
+				update_pos($$);
+			}
+		| variable '=' array_builder
+			{
+				/* initial value is required in parse tree because it can be an non-terminal `exp` */
+				/* array initial values */
+				ParseNode * newnode = new ParseNode();
+				/* 因为使用forarray作为数组, 故需要知道类型信息, 不在此处赋值, 在上层的var_def赋初值 */
+				sprintf(codegen_buf, "should be %s.init(%s)", $1.fs.CurrentTerm.what.c_str(), $3.fs.CurrentTerm.what.c_str());
+				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_PARAMTABLE, string(codegen_buf) };
+					ParseNode * variablenode = new ParseNode();
+					sprintf(codegen_buf, "should be %s.init(%s)", $1.fs.CurrentTerm.what.c_str(), $3.fs.CurrentTerm.what.c_str());
+					variablenode->fs.CurrentTerm = Term{ TokenMeta::NT_VARIABLEINITIAL, string(codegen_buf) };
+					variablenode->addchild(new ParseNode($1)); // type
+					variablenode->addchild(new ParseNode($3)); // initial(array_builder)
+				newnode->addchild(variablenode);
 				newnode = flattern_bin(newnode);
 				$$ = *newnode;
 				update_pos($$);
@@ -577,20 +611,41 @@ using namespace std;
 				$$ = *newnode;
 				update_pos($$);
 			}
-	array_builder : '(' '/' argtable '/' ')'
+	array_builder : YY_ARRAYINITIAL_START argtable YY_ARRAYINITIAL_END
 			{
+				/* give initial value */
+				ParseNode * newnode = new ParseNode();
+				sprintf(codegen_buf, "(%s)", $2.fs.CurrentTerm.what.c_str());
+				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_IF, string(codegen_buf) };
+				newnode->addchild(new ParseNode($2)); // argtable
+				$$ = *newnode;
+				update_pos($$);
 			}
-		| '(' '/' '(' exp ')' ',' variable '=' exp ',' exp '/' ')'
+		| YY_ARRAYINITIAL_START '(' exp ')' ',' variable '=' exp ',' exp YY_ARRAYINITIAL_END
 			{
+				/* give initial value */
+				ParseNode * newnode = new ParseNode();
+				sprintf(codegen_buf, "for(int %s = exp; %s < exp; %s++){\n%s\n}", $6.fs.CurrentTerm.what.c_str(), $8.fs.CurrentTerm.what.c_str()
+					, $6.fs.CurrentTerm.what.c_str(), $10.fs.CurrentTerm.what.c_str(), tabber($3.fs.CurrentTerm.what).c_str());
+				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_IF, string(codegen_buf) };
+				newnode->addchild(new ParseNode($3)); // exp
+				newnode->addchild(new ParseNode($6)); // variable
+				newnode->addchild(new ParseNode($8)); // exp_from
+				newnode->addchild(new ParseNode($10)); // exp_to
+				$$ = *newnode;
+				update_pos($$);
 			}
-		| '(' '/' variable '(' slice ')' '/' ')'
+		| YY_ARRAYINITIAL_START variable '(' slice ')' YY_ARRAYINITIAL_END
 
 	if_stmt : YY_IF exp YY_THEN crlf suite YY_END YY_IF crlf
 			{
 				ParseNode * newnode = new ParseNode();
 				$5.fs.CurrentTerm.what = tabber($5.fs.CurrentTerm.what);
+#ifndef LAZY_GEN
 				sprintf(codegen_buf, "if (%s) {\n%s}", $2.fs.CurrentTerm.what.c_str(), $5.fs.CurrentTerm.what.c_str());
 				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_IF, string(codegen_buf) };
+#endif // !LAZY_GEN
+
 				newnode->addchild(new ParseNode($1)); // if
 				newnode->addchild(new ParseNode($2)); // exp
 				newnode->addchild(new ParseNode($5)); // suite
@@ -601,8 +656,11 @@ using namespace std;
 			{
 				ParseNode * newnode = new ParseNode();
 				$5.fs.CurrentTerm.what = tabber($5.fs.CurrentTerm.what); $8.fs.CurrentTerm.what = tabber($8.fs.CurrentTerm.what);
+#ifndef LAZY_GEN
 				sprintf(codegen_buf, "if (%s) {\n%s}\nelse {\n %s}", $2.fs.CurrentTerm.what.c_str(), $5.fs.CurrentTerm.what.c_str(), $8.fs.CurrentTerm.what.c_str());
 				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_IF, string(codegen_buf) };
+#endif // !LAZY_GEN
+
 				newnode->addchild(new ParseNode($1)); // if
 				newnode->addchild(new ParseNode($2)); // exp
 				newnode->addchild(new ParseNode($5)); // suite
@@ -615,8 +673,11 @@ using namespace std;
 			{
 				ParseNode * newnode = new ParseNode();
 				$5.fs.CurrentTerm.what = tabber($5.fs.CurrentTerm.what); $6.fs.CurrentTerm.what = tabber($6.fs.CurrentTerm.what);
+#ifndef LAZY_GEN
 				sprintf(codegen_buf, "if (%s) {\n%s}\n%s", $2.fs.CurrentTerm.what.c_str(), $5.fs.CurrentTerm.what.c_str(), $6.fs.CurrentTerm.what.c_str());
 				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_IF, string(codegen_buf) };
+#endif // !LAZY_GEN
+
 				newnode->addchild(new ParseNode($1)); // if
 				newnode->addchild(new ParseNode($2)); // exp
 				newnode->addchild(new ParseNode($5)); // suite
@@ -628,8 +689,11 @@ using namespace std;
 			{
 				ParseNode * newnode = new ParseNode();
 				$3.fs.CurrentTerm.what = tabber($3.fs.CurrentTerm.what); $6.fs.CurrentTerm.what = tabber($6.fs.CurrentTerm.what);
+#ifndef LAZY_GEN
 				sprintf(codegen_buf, "if (%s) {\n%s}\nelse {\n%s}%s", $1.fs.CurrentTerm.what.c_str(), $3.fs.CurrentTerm.what.c_str(), $6.fs.CurrentTerm.what.c_str(), $9.fs.CurrentTerm.what.c_str());
 				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_IF, string(codegen_buf) };
+#endif // !LAZY_GEN
+
 				newnode->addchild(new ParseNode($1)); // if
 				newnode->addchild(new ParseNode($2)); // exp
 				newnode->addchild(new ParseNode($5)); // suite
@@ -642,8 +706,11 @@ using namespace std;
 			{
 				ParseNode * newnode = new ParseNode();
 				$5.fs.CurrentTerm.what = tabber($5.fs.CurrentTerm.what);
+#ifndef LAZY_GEN
 				sprintf(codegen_buf, "else if(%s) {\n%s}", $2.fs.CurrentTerm.what.c_str(), $5.fs.CurrentTerm.what.c_str());
 				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_ELSEIF, string(codegen_buf) };
+#endif // !LAZY_GEN
+
 				newnode->addchild(new ParseNode($1)); // elseif
 				newnode->addchild(new ParseNode($2)); // exp
 				newnode->addchild(new ParseNode($5)); // suite
@@ -655,8 +722,11 @@ using namespace std;
 			{
 				ParseNode * newnode = new ParseNode();
 				$5.fs.CurrentTerm.what = tabber($5.fs.CurrentTerm.what);
+#ifndef LAZY_GEN
 				sprintf(codegen_buf, "else if{\n%s}\n%s", $2.fs.CurrentTerm.what.c_str(), $5.fs.CurrentTerm.what.c_str(), $6.fs.CurrentTerm.what.c_str());
 				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_ELSEIF, string(codegen_buf) };
+#endif // !LAZY_GEN
+
 				newnode->addchild(new ParseNode($1)); // elseif
 				newnode->addchild(new ParseNode($2)); // exp
 				newnode->addchild(new ParseNode($5)); // suite
@@ -667,8 +737,11 @@ using namespace std;
 	do_stmt : YY_DO crlf suite YY_END YY_DO crlf
 			{
 				ParseNode * newnode = new ParseNode(); 
-				$3.fs.CurrentTerm.what = tabber($3.fs.CurrentTerm.what);
-				sprintf(codegen_buf, "do{\n%s}", $3.fs.CurrentTerm.what.c_str());
+#ifndef LAZY_GEN
+			$3.fs.CurrentTerm.what = tabber($3.fs.CurrentTerm.what);
+			sprintf(codegen_buf, "do{\n%s}", $3.fs.CurrentTerm.what.c_str());
+#endif // !LAZY_GEN
+
 				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_DO, string(codegen_buf) };
 				newnode->addchild(new ParseNode($1)); // do
 				newnode->addchild(new ParseNode($3)); // suite
@@ -679,8 +752,11 @@ using namespace std;
 			{
 				ParseNode * newnode = new ParseNode();
 				$8.fs.CurrentTerm.what = tabber($8.fs.CurrentTerm.what); 
+#ifndef LAZY_GEN
 				sprintf(codegen_buf, "for(%s = %s; %s < %s; %s++){\n%s}", $2.fs.CurrentTerm.what.c_str(), $4.fs.CurrentTerm.what.c_str(), $2.fs.CurrentTerm.what.c_str(), $6.fs.CurrentTerm.what.c_str(), $2.fs.CurrentTerm.what.c_str(), $8.fs.CurrentTerm.what.c_str());
 				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_DO, string(codegen_buf) };
+#endif // !LAZY_GEN
+
 				newnode->addchild(new ParseNode($1)); // do
 				newnode->addchild(new ParseNode($2)); // varname
 				newnode->addchild(new ParseNode($4)); // begin
@@ -693,8 +769,11 @@ using namespace std;
 			{
 				ParseNode * newnode = new ParseNode();
 				$9.fs.CurrentTerm.what = tabber($9.fs.CurrentTerm.what);
+#ifndef LAZY_GEN
 				sprintf(codegen_buf, "for(%s = %s; %s < %s; %s+=%s){\n%s}", $2.fs.CurrentTerm.what.c_str(), $4.fs.CurrentTerm.what.c_str(), $2.fs.CurrentTerm.what.c_str(), $6.fs.CurrentTerm.what.c_str(), $2.fs.CurrentTerm.what.c_str(), $8.fs.CurrentTerm.what.c_str(), $9.fs.CurrentTerm.what.c_str());
 				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_DO, string(codegen_buf) };
+#endif // !LAZY_GEN
+
 				newnode->addchild(new ParseNode($1)); // do
 				newnode->addchild(new ParseNode($2)); // varname
 				newnode->addchild(new ParseNode($4)); // begin

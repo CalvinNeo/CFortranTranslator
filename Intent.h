@@ -131,14 +131,7 @@
 		Final = -213,
 		Readonly = -214,
 		Region = -215,
-		/*
-		readonly is dynamic but can not change its value
-		const is static
-		readonly is not used,as it is replaced by final
-		readonly是运行时动态分配的量,其值不可改变
-		const是静态分配的量,其值不可改变
-		readonly不再使用,因为被final代替
-		*/
+		/* readonly is dynamic but can not change its value, it is not used, as it is replaced by final. const is static  */
 		Enum = -216,
 		Abstract = -217,
 

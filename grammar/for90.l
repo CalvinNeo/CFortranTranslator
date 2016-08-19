@@ -99,6 +99,8 @@ newline [\r\n]
 [-+]?[0-9]+ { RTINT(TokenMeta::META_INTEGER) }
 [-+]?[0-9\.]+([eE][0-9\.]+)? { RTFLOAT(TokenMeta::META_FLOAT) }
 [-+]?[0-9\.]+([eE][0-9\.]+)?_[-+]?[0-9\.]+([eE][0-9\.]+)? { RTCOMPLEX(TokenMeta::META_COMPLEX) }
+\(\/ {RTOP(TokenMeta::META_ANY, YY_ARRAYINITIAL_START) }
+\/\) {RTOP(TokenMeta::META_ANY, YY_ARRAYINITIAL_END) }
 :: { RTOP(TokenMeta::DoubleColon, YY_DOUBLECOLON) }
 "**" { RTOP(TokenMeta::Power, YY_POWER) }
 ">" { RTOP(TokenMeta::GT, YY_GT) }

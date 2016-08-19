@@ -53,7 +53,6 @@ int main()
 	//global_code = "program 1.3 + 2 * 3 - .true. end program";
 	global_code = "program integer::a \n if 1 then 2 else if 3 then 4 end if end program";
 	global_code = "program integer::a = 1 + 2, b = 2, c = 3 \n  end program";
-	global_code = "program integer,dimension(5,7)::A,B \n  end program";
 	global_code = "program write *,* a, b \n  end program";
 	global_code = "program integer::A, B \n  end program";
 	global_code = "program integer::a = 1 + 2 \n  end program";
@@ -62,6 +61,7 @@ int main()
 	/* '(' exp ')' ∫Õ callableπÈ‘º≥ÂÕª */
 	global_code = "program recursive function main(A,B) result(C) \n a = abs(real(c)) \n end function end program";
 	global_code = "program recursive function main() result(C) \n complex::C = 1_2 \n end function end program";
+	global_code = "program integer,dimension(5:7)::A=(/1, 2/) \n  end program";
 
 	//global_code = "program integer::a = 1 + 2 \n logical::b = .false. \n a = 3 \n end program";
 

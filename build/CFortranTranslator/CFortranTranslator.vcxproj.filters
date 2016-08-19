@@ -43,6 +43,9 @@
     <ClCompile Include="..\..\for90std.cpp">
       <Filter>target</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\lazygen.cpp">
+      <Filter>parser</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\grammar\for90.tab.h">

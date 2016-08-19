@@ -106,16 +106,18 @@ extern int yydebug;
      YY_FORMAT = 315,
      YY_ENTRY = 316,
      YY_DIMENSION = 317,
-     YY_INTEGER_T = 318,
-     YY_FLOAT_T = 319,
-     YY_STRING_T = 320,
-     YY_COMPLEX_T = 321,
-     YY_BOOL_T = 322,
-     YY_WRITE = 323,
-     YY_READ = 324,
-     YY_PRINT = 325,
-     YY_OPEN = 326,
-     YY_CLOSE = 327
+     YY_ARRAYINITIAL_START = 318,
+     YY_ARRAYINITIAL_END = 319,
+     YY_INTEGER_T = 320,
+     YY_FLOAT_T = 321,
+     YY_STRING_T = 322,
+     YY_COMPLEX_T = 323,
+     YY_BOOL_T = 324,
+     YY_WRITE = 325,
+     YY_READ = 326,
+     YY_PRINT = 327,
+     YY_OPEN = 328,
+     YY_CLOSE = 329
    };
 #endif
 
