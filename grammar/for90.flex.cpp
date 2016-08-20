@@ -527,12 +527,14 @@ int make_term_flex(const TokenMeta & token, const char * w);
 #ifdef USE_YACC
 // yacc
 // USE WHTN USE YACC EITHER
-#define YYRTN(TOK, YYTOK)  update_yylval(Term{TOK, std::string(yytext)});	update_flex(yyleng);  return YYTOK; 
+#define YYRTN(TOK, YYTOK)  update_yylval(Term{TOK, std::string(yytext)});  update_flex(yyleng);  return YYTOK; 
 // 对于非char运算符要预先解析
 #define YYRTOP(TOK, YYTOK) update_yylval(Term{TOK, std::string(yytext)});  update_flex(yyleng);  return YYTOK; 
 // include literal const such as pi, true, false, etc.
-#define YYRTWORD() {  /*do not update yylval because some tokens need to be looked ahead, such as `else if` */ int p = word_parse(); if (p != YY_REQ_MORE) \
-	{ update_flex(yyleng);  return p;  } else{  /* ?? */ update_flex(yyleng); } }
+#define YYRTWORD() {  /*do not update yylval because some tokens need to be looked ahead, such as `else if` */ int p = word_parse(); \
+	if (p != YY_REQ_MORE) \
+	{ update_flex(yyleng);  return p;  } \
+	else{  /* ?? */ update_flex(yyleng); } }
 
 #define YYRTINT(TOK) YYRTN(TOK, YY_INTEGER) 
 #define YYRTFLOAT(TOK) YYRTN(TOK, YY_FLOAT) 
@@ -586,7 +588,7 @@ FlexState flex_state;
 #else
 
 #endif
-#line 590 "for90.flex.cpp"
+#line 592 "for90.flex.cpp"
 
 #define INITIAL 0
 
@@ -765,10 +767,10 @@ YY_DECL
 	register char *yy_cp, *yy_bp;
 	register int yy_act;
     
-#line 95 "for90.l"
+#line 97 "for90.l"
 
 
-#line 772 "for90.flex.cpp"
+#line 774 "for90.flex.cpp"
 
 	if ( !(yy_init) )
 		{
@@ -860,117 +862,117 @@ do_action:	/* This label is used only to access EOF actions. */
 case 1:
 /* rule 1 can match eol */
 YY_RULE_SETUP
-#line 97 "for90.l"
+#line 99 "for90.l"
 {RTCRLF() }
 	YY_BREAK
 case 2:
 YY_RULE_SETUP
-#line 98 "for90.l"
+#line 100 "for90.l"
 { RTNOP() }
 	YY_BREAK
 case 3:
 YY_RULE_SETUP
-#line 99 "for90.l"
+#line 101 "for90.l"
 { RTINT(TokenMeta::META_INTEGER) }
 	YY_BREAK
 case 4:
 YY_RULE_SETUP
-#line 100 "for90.l"
+#line 102 "for90.l"
 { RTFLOAT(TokenMeta::META_FLOAT) }
 	YY_BREAK
 case 5:
 YY_RULE_SETUP
-#line 101 "for90.l"
+#line 103 "for90.l"
 { RTCOMPLEX(TokenMeta::META_COMPLEX) }
 	YY_BREAK
 case 6:
 YY_RULE_SETUP
-#line 102 "for90.l"
+#line 104 "for90.l"
 {RTOP(TokenMeta::META_ANY, YY_ARRAYINITIAL_START) }
 	YY_BREAK
 case 7:
 YY_RULE_SETUP
-#line 103 "for90.l"
+#line 105 "for90.l"
 {RTOP(TokenMeta::META_ANY, YY_ARRAYINITIAL_END) }
 	YY_BREAK
 case 8:
 YY_RULE_SETUP
-#line 104 "for90.l"
+#line 106 "for90.l"
 { RTOP(TokenMeta::DoubleColon, YY_DOUBLECOLON) }
 	YY_BREAK
 case 9:
 YY_RULE_SETUP
-#line 105 "for90.l"
+#line 107 "for90.l"
 { RTOP(TokenMeta::Power, YY_POWER) }
 	YY_BREAK
 case 10:
 YY_RULE_SETUP
-#line 106 "for90.l"
+#line 108 "for90.l"
 { RTOP(TokenMeta::GT, YY_GT) }
 	YY_BREAK
 case 11:
 YY_RULE_SETUP
-#line 107 "for90.l"
+#line 109 "for90.l"
 { RTOP(TokenMeta::GE, YY_GE) }
 	YY_BREAK
 case 12:
 YY_RULE_SETUP
-#line 108 "for90.l"
+#line 110 "for90.l"
 { RTOP(TokenMeta::LT, YY_LT) }
 	YY_BREAK
 case 13:
 YY_RULE_SETUP
-#line 109 "for90.l"
+#line 111 "for90.l"
 { RTOP(TokenMeta::LE, YY_LE) }
 	YY_BREAK
 case 14:
 YY_RULE_SETUP
-#line 110 "for90.l"
+#line 112 "for90.l"
 { RTOP(TokenMeta::EQ, YY_EQ) }
 	YY_BREAK
 case 15:
 YY_RULE_SETUP
-#line 111 "for90.l"
+#line 113 "for90.l"
 { RTOP(TokenMeta::NEQ, YY_NEQ)}
 	YY_BREAK
 case 16:
 YY_RULE_SETUP
-#line 112 "for90.l"
+#line 114 "for90.l"
 {yymore(); ECHO; putchar('\n'); }
 	YY_BREAK
 case 17:
 YY_RULE_SETUP
-#line 113 "for90.l"
+#line 115 "for90.l"
 {RTWORD()}
 	YY_BREAK
 case 18:
 YY_RULE_SETUP
-#line 114 "for90.l"
+#line 116 "for90.l"
 { RTWORD() }
 	YY_BREAK
 case 19:
 YY_RULE_SETUP
-#line 115 "for90.l"
+#line 117 "for90.l"
 { RTWORD() }
 	YY_BREAK
 case 20:
 /* rule 20 can match eol */
 YY_RULE_SETUP
-#line 116 "for90.l"
+#line 118 "for90.l"
 {RTSTRING(TokenMeta::META_STRING) 
 /* The delimiting quotes are escaped because they are Flex meta-characters. */}
 	YY_BREAK
 case 21:
 YY_RULE_SETUP
-#line 118 "for90.l"
+#line 120 "for90.l"
 {/* can be parsed, including some operators not listed */ RTILLEGAL(TokenMeta::META_ILLEGAL) }
 	YY_BREAK
 case 22:
 YY_RULE_SETUP
-#line 120 "for90.l"
+#line 122 "for90.l"
 ECHO;
 	YY_BREAK
-#line 974 "for90.flex.cpp"
+#line 976 "for90.flex.cpp"
 case YY_STATE_EOF(INITIAL):
 	yyterminate();
 
@@ -1964,7 +1966,7 @@ void yyfree (void * ptr )
 
 #define YYTABLES_NAME "yytables"
 
-#line 119 "for90.l"
+#line 121 "for90.l"
 
 
 
@@ -1997,6 +1999,8 @@ void update_yylval(Term & current_term, bool empty) {
 		yylval.fs.CurrentTerm = current_term;
 		//yylval.fs.CurrentTerm = Term{current_term.token, global_code.substr(flex_state.parse_pos, yyleng) };
 		//std::cout << global_code.substr(flex_state.parse_pos, yyleng) << std::endl;
+		int a = 0;
+		a++;
 	}
 }
 int word_parse() {

@@ -215,7 +215,7 @@
 
 		NT_PARAMTABLE = -2001,
 		NT_FORMATTER = -2002,
-		NT_AUTOFORMATTER = -2003, 
+		NT_AUTOFORMATTER = -2003, /* the second `*` sign of write (*,*), xxx */
 		NT_ARGTABLE = -2004,
 		NT_FUNCTIONDECLARE = -2005,
 		NT_VARIABLEDEFINE = -2006,  /* int a = 2, b, c */
@@ -229,6 +229,10 @@
 		/* 在fortran类语言中, 函数的参数表不包含变量的类型, 参数的实际定义在函数体内, 所以翻译成C时, 需要将这部分定义外提到参数表中, 此时置源语句的函数定义不是NT_VARIABLEINITIAL而是NT_DECLAREDVARIABLE */	
 		NT_SUITE = -2014,
 		NT_FUCNTIONARRAY = -2015,
+		NT_ARRAYBUILDER_VALUE = -2016, /* 使用初始化列表初始化数组 */
+		NT_ARRAYBUILDER_EXP = -2017, /* 使用产生式初始化数组 */
+		NT_DIMEN_SLICE = -2018, /* 1:2, 3:4 */
+		/* NT_ARGTABLE 和 NT_DIMEN_SLICE 都应当看作函数的参数表 */
 };
 //}
 

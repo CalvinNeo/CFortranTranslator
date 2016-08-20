@@ -62,6 +62,9 @@ int main()
 	global_code = "program recursive function main(A,B) result(C) \n a = abs(real(c)) \n end function end program";
 	global_code = "program recursive function main() result(C) \n complex::C = 1_2 \n end function end program";
 	global_code = "program integer,dimension(5:7)::A=(/1, 2/) \n  end program";
+	global_code = "program integer,dimension(5:7)::A=(/ int(i) + 1, i=1,4/) \n  end program";
+	//global_code = "program integer,dimension(5:7)::A=(/ B(1:2:3) /) \n  end program";
+	//global_code = "program \n recursive function main() result(A) \n int(a) \n end function \n end program";
 
 	//global_code = "program integer::a = 1 + 2 \n logical::b = .false. \n a = 3 \n end program";
 

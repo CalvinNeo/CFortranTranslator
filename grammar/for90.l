@@ -25,12 +25,14 @@ int make_term_flex(const TokenMeta & token, const char * w);
 #ifdef USE_YACC
 // yacc
 // USE WHTN USE YACC EITHER
-#define YYRTN(TOK, YYTOK)  update_yylval(Term{TOK, std::string(yytext)});	update_flex(yyleng);  return YYTOK; 
+#define YYRTN(TOK, YYTOK)  update_yylval(Term{TOK, std::string(yytext)});  update_flex(yyleng);  return YYTOK; 
 // 对于非char运算符要预先解析
 #define YYRTOP(TOK, YYTOK) update_yylval(Term{TOK, std::string(yytext)});  update_flex(yyleng);  return YYTOK; 
 // include literal const such as pi, true, false, etc.
-#define YYRTWORD() {  /*do not update yylval because some tokens need to be looked ahead, such as `else if` */ int p = word_parse(); if (p != YY_REQ_MORE) \
-	{ update_flex(yyleng);  return p;  } else{  /* ?? */ update_flex(yyleng); } }
+#define YYRTWORD() {  /*do not update yylval because some tokens need to be looked ahead, such as `else if` */ int p = word_parse(); \
+	if (p != YY_REQ_MORE) \
+	{ update_flex(yyleng);  return p;  } \
+	else{  /* ?? */ update_flex(yyleng); } }
 
 #define YYRTINT(TOK) YYRTN(TOK, YY_INTEGER) 
 #define YYRTFLOAT(TOK) YYRTN(TOK, YY_FLOAT) 
@@ -148,6 +150,8 @@ void update_yylval(Term & current_term, bool empty) {
 		yylval.fs.CurrentTerm = current_term;
 		//yylval.fs.CurrentTerm = Term{current_term.token, global_code.substr(flex_state.parse_pos, yyleng) };
 		//std::cout << global_code.substr(flex_state.parse_pos, yyleng) << std::endl;
+		int a = 0;
+		a++;
 	}
 }
 int word_parse() {
