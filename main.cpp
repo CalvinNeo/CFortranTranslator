@@ -21,32 +21,6 @@ int main()
 	//cout << LB << endl;
 	//cout << TokenMeta::LB << endl;
 
-	//int i = 0;
-	//string s = ",    \t\t ww075w ++ + +";
-	//s = ", www ,www";
-	//FlexState st;
-	//while (!st.isnull) {
-	//	st = next_token(s, i);
-	//	if (!st.isnull) {
-	//		cout << st.CurrentTerm.what << " ----- " << st.parse_len<< endl;
-	//	}
-	//	i = st.parse_pos;
-	//}
-
-
-	//string s = "+ +";
-	//FlexState st = next_token(s);
-	//cout << st.isnull << endl;
-	//cout << st.CurrentTerm.what << endl;
-	//cout << st.CurrentTerm.meta << endl;
-	//cout << st.parse_pos << " " << st.parse_len << endl;
-
-	//char chs[20];
-	//memset(chs, 0, sizeof(chs));
-	//strcpy(chs, s.c_str());
-	//cout << s.size() << endl;
-	//cout << strlen(chs) << endl;
-
 	global_code = "program if 1 then 2 else if 3 then 4 end if end program";
 	//global_code = "\"ab\\\"c\"";
 	//global_code = "program 1.3 + 2 * 3 - .true. end program";
@@ -63,8 +37,7 @@ int main()
 	global_code = "program recursive function main() result(C) \n complex::C = 1_2 \n end function end program";
 	global_code = "program integer,dimension(5:7)::A=(/1, 2/) \n  end program";
 	global_code = "program integer,dimension(5:7)::A=(/ int(i) + 1, i=1,4/) \n  end program";
-	//global_code = "program integer,dimension(5:7)::A=(/ B(1:2:3) /) \n  end program";
-	//global_code = "program \n recursive function main() result(A) \n int(a) \n end function \n end program";
+	global_code = "program integer,dimension(5:7)::A=(/ B(1:2:3) /) \n  end program";
 
 	//global_code = "program integer::a = 1 + 2 \n logical::b = .false. \n a = 3 \n end program";
 

@@ -231,8 +231,10 @@
 		NT_FUCNTIONARRAY = -2015,
 		NT_ARRAYBUILDER_VALUE = -2016, /* 使用初始化列表初始化数组 */
 		NT_ARRAYBUILDER_EXP = -2017, /* 使用产生式初始化数组 */
-		NT_DIMEN_SLICE = -2018, /* 1:2, 3:4 */
-		/* NT_ARGTABLE 和 NT_DIMEN_SLICE 都应当看作函数的参数表 */
+		NT_DIMENSLICE = -2018, /* 1:2, 3:4 */
+		NT_ARGTABLE_DIMENSLICE = -2019, /* 1:2, 3:4 */
+		NT_SLICE = -2020,
+		/* NT_ARGTABLE 和 NT_ARGTABLE_DIMENSLICE 都应当看作函数的参数表 */
 };
 //}
 

@@ -45,7 +45,7 @@ refer to for90.y for all accepted grammar
 6. update translation rules in cgen.h
 
 ## todolist
-lazygen(partial complete)
-function-array reduction-reduction conflict
-multi-dimension forarray
-for90std functions(partial complete)
+- lazygen(partial complete)
+- function-array reduction-reduction conflict
+- multi-dimension forarray
+- for90std functions(partial complete)

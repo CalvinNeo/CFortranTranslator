@@ -16,6 +16,8 @@ struct forarray {
 			}
 		}
 	};
+	int lower_bound() { return lb; };
+	int upper_bound() { return ub; };
 	T * c_array() {
 
 	};
@@ -42,11 +44,19 @@ struct forarray {
 	}
 	template<class ... Args>
 	void init(T x, Args ... args) {
-		m_arr.clear.clear();
+		m_arr.clear();
 		m_arr.push_back(x);
 		init(args);
 	}
-
+	void init(const forarray<T> & x) {
+		m_arr.clear();
+		this.lb = x.lower_bound();
+		this.ub = x.upper_bound();
+		for (int i = lb; i < ub; i++)
+		{
+			m_arr.push_back(x(i));
+		}
+	}
 
 	forarray(int l, int u) : lb(l), ub(u){
 
