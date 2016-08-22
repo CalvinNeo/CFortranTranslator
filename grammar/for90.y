@@ -5,6 +5,7 @@
 #include <iostream>
 #include <stdarg.h>
 #include "../tokenizer.h"
+#include "../attribute.h"
 #include "../parser.h"
 #include "../cgen.h"
 
@@ -26,8 +27,8 @@ using namespace std;
 %token _YY_OP YY_GT YY_GE YY_EQ YY_LE YY_LT YY_NEQ YY_NEQV YY_EQV YY_ANDAND YY_OROR YY_NOT YY_POWER YY_DOUBLECOLON YY_NEG
 %token _YY_TYPE YY_INTEGER YY_FLOAT YY_WORD YY_OPERATOR YY_STRING YY_ILLEGAL YY_COMPLEX YY_TRUE YY_FALSE
 %token _YY_CONTROL YY_END YY_IF YY_THEN YY_ELSE YY_ELSEIF YY_ENDIF YY_DO YY_ENDDO YY_CONTINUE YY_BREAK YY_WHILE YY_ENDWHILE YY_WHERE YY_ENDWHERE YY_CASE YY_ENDCASE
-%token _YY_DESCRIBER YY_PROGRAM YY_ENDPROGRAM YY_FUNCTION YY_ENDFUNCTION YY_RECURSIVE YY_RESULT YY_SUBROUTINE YY_ENDSUBROUTINE YY_MODULE YY_ENDMODULE YY_BLOCK YY_ENDBLOCK
-%token YY_IMPLICIT YY_NONE YY_USE YY_PARAMETER YY_FORMAT YY_ENTRY YY_DIMENSION YY_ARRAYINITIAL_START YY_ARRAYINITIAL_END
+%token _YY_DELIM YY_PROGRAM YY_ENDPROGRAM YY_FUNCTION YY_ENDFUNCTION YY_RECURSIVE YY_RESULT YY_SUBROUTINE YY_ENDSUBROUTINE YY_MODULE YY_ENDMODULE YY_BLOCK YY_ENDBLOCK
+%token _YY_DESCRIBER YY_IMPLICIT YY_NONE YY_USE YY_PARAMETER YY_FORMAT YY_ENTRY YY_DIMENSION YY_ARRAYINITIAL_START YY_ARRAYINITIAL_END YY_INTENT YY_IN YY_OUT YY_INOUT
 %token _YY_TYPEDEF YY_INTEGER_T YY_FLOAT_T YY_STRING_T YY_COMPLEX_T YY_BOOL_T
 %token _YY_COMMAND YY_WRITE YY_READ YY_PRINT YY_OPEN YY_CLOSE YY_CALL
 
@@ -49,7 +50,65 @@ using namespace std;
 		| 
 
 	dummy_function_iden : YY_RECURSIVE
+		| dummy_function_iden
 		|
+
+	dummy_variable_iden_1 : YY_INTENT '(' YY_IN ')'
+			{
+				ParseNode * newnode = new ParseNode();
+				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_VARIABLEDESC, "NT_VARIABLEDESC" }; // intent(in)
+				newnode->attr = new VariableDescAttr(newnode);
+				dynamic_cast<VariableDescAttr *>(newnode->attr)->desc.reference = false;
+				$$ = *newnode;
+				update_pos($$);
+			}
+		| YY_INTENT '(' YY_OUT ')'
+			{
+				ParseNode * newnode = new ParseNode();
+				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_VARIABLEDESC, "NT_VARIABLEDESC" }; // intent(out)
+				newnode->attr = new VariableDescAttr(newnode);
+				dynamic_cast<VariableDescAttr *>(newnode->attr)->desc.reference = true;
+				$$ = *newnode;
+				update_pos($$);
+			}
+
+		| YY_INTENT '(' YY_INOUT ')'
+			{
+				ParseNode * newnode = new ParseNode();
+				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_VARIABLEDESC, "NT_VARIABLEDESC" }; // intent(inout)
+				newnode->attr = new VariableDescAttr(newnode);
+				dynamic_cast<VariableDescAttr *>(newnode->attr)->desc.reference = true;
+				$$ = *newnode;
+				update_pos($$);
+			}
+		| YY_DIMENSION
+			{
+				/* if write `',' YY_DIMENSION` in `var_def` will cause conflict at ',' */
+				/* if is array reduce immediately and goto `var_def` */
+				/* do not parse array slices here because it can be dificult */
+				$$ = $1;
+			}
+				
+	dummy_variable_iden : ',' dummy_variable_iden_1
+			{
+				ParseNode * newnode = new ParseNode($1);
+				$$ = $2;
+				update_pos($$);
+			}
+		| ',' dummy_variable_iden
+			{
+				ParseNode * newnode = new ParseNode($1);
+				$$ = $2;
+				update_pos($$);
+			}
+		|
+			{
+				ParseNode * newnode = new ParseNode();
+				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_VARIABLEDESC, "NT_VARIABLEDESC" }; 
+				newnode->attr = new VariableDescAttr(newnode);
+				$$ = *newnode;
+				update_pos($$);
+			}
 	
 	literal : YY_FLOAT
 			{
@@ -497,25 +556,67 @@ using namespace std;
 			}
 
 
-    var_def : type_spec YY_DOUBLECOLON paramtable
+    var_def : type_spec dummy_variable_iden YY_DOUBLECOLON paramtable
 			{
 				/*  */
 				ParseNode * newnode = new ParseNode();
-				sprintf(codegen_buf, "%s %s;", $1.fs.CurrentTerm.what.c_str(), $3.fs.CurrentTerm.what.c_str());
-				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_VARIABLEDEFINE, string(codegen_buf) };
-				newnode->addchild(new ParseNode($1)); // type
-				newnode->addchild(new ParseNode($3)); // paramtable
+				ParseNode * ty = new ParseNode($1);
+				newnode->addchild(ty); // type
+				ParseNode * pn = new ParseNode($4); // paramtable
+				newnode->addchild(pn); // paramtable
+				ParseNode * iden = &$2;
+				VariableDescAttr * vardescattr = dynamic_cast<VariableDescAttr *>(iden->attr);
+
+				sprintf(codegen_buf, "%s ", ty->fs.CurrentTerm.what.c_str());
+				string var_decl = string(codegen_buf);
+				/* enumerate paramtable */
+				do {
+					// for all non-flatterned paramtable
+					for (int i = 0; i < pn->child.size(); i++)
+					{
+						if (i > 0) {
+							var_decl += ", ";
+						}
+						if (vardescattr->desc.reference) {
+							sprintf(codegen_buf, " & %s", pn->child[i]->child[0]->fs.CurrentTerm.what.c_str());
+						}
+						else {
+							sprintf(codegen_buf, " %s", pn->child[i]->child[0]->fs.CurrentTerm.what.c_str());
+						}
+						var_decl += codegen_buf;
+						/* initial value */
+						if (pn->child[i]->child[1]->fs.CurrentTerm.token != TokenMeta::NT_VARIABLEINITIALDUMMY) {
+							/* if initial value is not dummy but `exp` */
+							var_decl += " = ";
+							var_decl += pn->child[i]->child[1]->fs.CurrentTerm.what;
+						}
+					}
+					if (pn->child.size() >= 2)
+					{
+						/* if pn->child.size() == 0, this is an empty paramtable(this function takes no arguments) */
+						/* if the paramtable is not flatterned pn->child[1] is a right-recursive paramtable node */
+						pn = pn->child[1];
+					}
+				} while (pn->child.size() == 2 && pn->child[1]->fs.CurrentTerm.token == TokenMeta::NT_PARAMTABLE);
+				var_decl += ";";
+#ifndef LAZY_GEN
+				// sprintf(codegen_buf, "%s %s;", $1.fs.CurrentTerm.what.c_str(), $4.fs.CurrentTerm.what.c_str());
+				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_VARIABLEDEFINE, var_decl };
+#endif // !LAZY_GEN
+
 				$$ = *newnode;
 				update_pos($$);
 			}
-		| type_spec ',' YY_DIMENSION '(' dimen_slice ')' YY_DOUBLECOLON paramtable
+		| type_spec dummy_variable_iden '(' dimen_slice ')' YY_DOUBLECOLON paramtable
 			{
 				/* array decl */
 				ParseNode * newnode = new ParseNode();
 				string arr_decl = "";
-				newnode->addchild(new ParseNode($1)); // type
-				newnode->addchild(new ParseNode($5)); // def slice
-				ParseNode * pn = new ParseNode($8); //paramtable
+				ParseNode * ty = new ParseNode($1);
+				newnode->addchild(ty); // type
+				ParseNode * slice = new ParseNode($4);
+				newnode->addchild(slice); // def slice
+				ParseNode * pn = new ParseNode($7); //paramtable
 				newnode->addchild(pn); // paramtable
 
 				/* in cpp code, definition of an array is inherit attribute(继承属性) grammar */
@@ -526,9 +627,9 @@ using namespace std;
 					{
 						// for each variable in flatterned paramtable
 						int sliceid = 0;
-						sprintf(codegen_buf, "forarr<%s> %s(%s, %s);\n", $1.fs.CurrentTerm.what.c_str(), pn->child[i]->child[0]->fs.CurrentTerm.what.c_str()
+						sprintf(codegen_buf, "forarr<%s> %s(%s, %s);\n", ty->fs.CurrentTerm.what.c_str(), pn->child[i]->child[0]->fs.CurrentTerm.what.c_str()
 							/* from, to */
-							, $5.child[sliceid]->child[0]->fs.CurrentTerm.what.c_str(), $5.child[sliceid]->child[1]->fs.CurrentTerm.what.c_str());
+							, slice->child[sliceid]->child[0]->fs.CurrentTerm.what.c_str(), slice->child[sliceid]->child[1]->fs.CurrentTerm.what.c_str());
 						arr_decl += codegen_buf;
 						/* set initial value */
 						if (pn->child[i]->child[1]->fs.CurrentTerm.token == TokenMeta::NT_ARRAYBUILDER_VALUE) {
@@ -563,7 +664,7 @@ using namespace std;
 					sprintf(codegen_buf, "%s", $1.fs.CurrentTerm.what.c_str());
 					variablenode->fs.CurrentTerm = Term{ TokenMeta::NT_VARIABLEINITIAL, string(codegen_buf) };
 					variablenode->addchild( new ParseNode($1) ); // type
-					FlexState fs; fs.CurrentTerm = Term{ TokenMeta::META_NONTERMINAL, string("void") };
+					FlexState fs; fs.CurrentTerm = Term{ TokenMeta::NT_VARIABLEINITIALDUMMY, string("void") };
 					variablenode->addchild( new ParseNode(fs, newnode) ); // void is dummy initial
 					newnode->addchild(variablenode);
 				$$ = *newnode;
@@ -592,10 +693,10 @@ using namespace std;
 				/* array initial values */
 				ParseNode * newnode = new ParseNode();
 				/* 因为使用forarray作为数组, 故需要知道类型信息, 不在此处赋值, 在上层的var_def赋初值 */
-				sprintf(codegen_buf, "should be %s.init(%s)", $1.fs.CurrentTerm.what.c_str(), $3.fs.CurrentTerm.what.c_str());
+				sprintf(codegen_buf, "%s.init(%s)", $1.fs.CurrentTerm.what.c_str(), $3.fs.CurrentTerm.what.c_str());
 				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_PARAMTABLE, string(codegen_buf) };
 					ParseNode * variablenode = new ParseNode();
-					sprintf(codegen_buf, "should be %s.init(%s)", $1.fs.CurrentTerm.what.c_str(), $3.fs.CurrentTerm.what.c_str());
+					sprintf(codegen_buf, "%s.init(%s)", $1.fs.CurrentTerm.what.c_str(), $3.fs.CurrentTerm.what.c_str());
 					variablenode->fs.CurrentTerm = Term{ TokenMeta::NT_VARIABLEINITIAL, string(codegen_buf) };
 					variablenode->addchild(new ParseNode($1)); // type
 					variablenode->addchild(new ParseNode($3)); // initial(array_builder)
@@ -613,7 +714,7 @@ using namespace std;
 					sprintf(codegen_buf, "%s", $1.fs.CurrentTerm.what.c_str());
 					variablenode->fs.CurrentTerm = Term{ TokenMeta::NT_VARIABLEINITIAL, string(codegen_buf) };
 					variablenode->addchild(new ParseNode($1)); // type
-					FlexState fs; fs.CurrentTerm = Term{ TokenMeta::META_NONTERMINAL, string("void") };
+					FlexState fs; fs.CurrentTerm = Term{ TokenMeta::NT_VARIABLEINITIALDUMMY, string("void") };
 					variablenode->addchild(new ParseNode(fs, newnode)); // void is dummy initial
 					newnode->addchild(variablenode);
 				newnode->addchild(new ParseNode($3)); // paramtable
@@ -999,6 +1100,7 @@ using namespace std;
 				newnode->addchild(new ParseNode($2)); // function
 				newnode->addchild(new ParseNode($3)); // function name
 				// argtable
+				// TODO 
 				// return value
 				newnode->addchild(new ParseNode($12)); // trimed suite
 

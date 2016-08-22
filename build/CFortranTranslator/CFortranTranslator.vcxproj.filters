@@ -46,6 +46,9 @@
     <ClCompile Include="..\..\lazygen.cpp">
       <Filter>parser</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\attribute.cpp">
+      <Filter>parser</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\grammar\for90.tab.h">
@@ -71,6 +74,9 @@
     </ClInclude>
     <ClInclude Include="..\..\for90std.h">
       <Filter>target</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\attribute.h">
+      <Filter>parser</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

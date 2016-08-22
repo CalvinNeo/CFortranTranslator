@@ -234,6 +234,8 @@
 		NT_DIMENSLICE = -2018, /* 1:2, 3:4 */
 		NT_ARGTABLE_DIMENSLICE = -2019, /* 1:2, 3:4 */
 		NT_SLICE = -2020,
+		NT_VARIABLEDESC = -2021,
+		NT_VARIABLEINITIALDUMMY = -2022, /* dummy initial_value of (varname, initial_value) ref NT_VARIABLEINITIAL */
 		/* NT_ARGTABLE 和 NT_ARGTABLE_DIMENSLICE 都应当看作函数的参数表 */
 };
 //}

@@ -28,7 +28,9 @@ refer to for90.y for all accepted grammar
 1. all variables must be **explicitly** declared
 
 ### functions and subroutines
-1. 
+1. remove all difinition of local variables which is also in parameter list
+2. remove all interface
+3. intent(out) variables will translate to `T & variable`
 
 ### IO
 |for90|c++|
@@ -46,6 +48,11 @@ refer to for90.y for all accepted grammar
 
 ## todolist
 - lazygen(partial complete)
-- function-array reduction-reduction conflict
+- ~~function-array reduction-reduction conflict~~
 - multi-dimension forarray
 - for90std functions(partial complete)
+- io formatter
+- optional parameters
+- keyword parameter list
+- reference in parameter list
+- rewrite paramtable and var_def(simplify right-recursive rules, move dimension to dummy_variale_iden)

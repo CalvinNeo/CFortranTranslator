@@ -7,9 +7,8 @@
 #include "tokenizer.h"
 #include "Variable.h"
 
-int parse(std::string code);
 
-// 语义
+// 分析树
 struct ParseNode {
 	struct ParseNode * father;
 	
@@ -19,7 +18,7 @@ struct ParseNode {
 	对于终结符: cpp-stylish
 	对于非终结符: 当前非终结符的语法子树的cpp code
 	*/
-	struct ParseAttr * attr;
+	struct ParseAttr * attr = nullptr;
 
 	void addchild(ParseNode * ptrn, bool add_back = true);
 
@@ -30,48 +29,13 @@ struct ParseNode {
 	virtual ~ParseNode();
 };
 
-// 属性文法
-struct ParseAttr {
-	ParseNode * parsenode; // observer ptr
 
-	ParseAttr() = default;
-	ParseAttr(ParseNode * parsenode) : parsenode(parsenode) {}
-	ParseAttr(const ParseAttr & pa) = default;
-	virtual ParseAttr * clone() = 0;
 
-	virtual void parse() = 0; // parse according to parsenode
-};
-
-struct TypeAttr : public ParseAttr {
-	std::string name;
-
-	TypeAttr(ParseNode * parsenode) : ParseAttr(parsenode) {}
-	TypeAttr(const TypeAttr & ta) {
-		clone();
-	}
-	ParseAttr * clone() { return new TypeAttr(*this); }
-
-	void parse();
-};
-struct VariableAttr : public ParseAttr {
-	Variable * variable;
-
-	VariableAttr(ParseNode * parsenode, Variable * v) : ParseAttr(parsenode), variable(v){}
-	VariableAttr(const VariableAttr & va) {
-		clone();
-	}
-	ParseAttr * clone() { return new VariableAttr(*this); }
-
-	void parse();
-};
-// struct ArrayAttr FormatterAttr
-
+int parse(std::string code);
 extern ParseNode program_tree;
-
 void preorder(ParseNode * ptree);
 /* generate codes instead of in .y files */
 std::string lazy_gen(ParseNode * ptree);
-
 
 // yacc part code
 // implement in for90.y
@@ -82,3 +46,5 @@ typedef ParseNode yystype_t;
 void update_pos(YYSTYPE &);
 std::string tabber(std::string &); // add tab(`\t`) into the front of each line
 ParseNode * flattern_bin(ParseNode *); // eliminate right recursion of an binary tree
+
+/* lazygen */

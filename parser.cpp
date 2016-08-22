@@ -1,4 +1,5 @@
 #include "parser.h"
+#include "attribute.h"
 #include "tokenizer.h"
 #include "cgen.h"
 #include <stack>
@@ -40,6 +41,7 @@ ParseNode & ParseNode::operator= (const ParseNode & pn) {
 
 		this->fs = pn.fs;
 		this->father = pn.father;
+		this->attr = pn.attr == nullptr ? nullptr : pn.attr->clone();
 		for (int i = 0; i < pn.child.size(); i++)
 		{
 			this->addchild( new ParseNode(*pn.child[i]) );
@@ -87,11 +89,3 @@ void preorder(ParseNode * ptree) {
 		}
 	}
 }
-
-void VariableAttr::parse() {
-
-}
-void TypeAttr::parse() {
-
-}
-

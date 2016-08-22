@@ -241,6 +241,22 @@ const vector<KeywordMeta> keywords = {
 		, TokenMeta::META_ANY
 		, YY_DIMENSION
 	}
+	, KeywordMeta{ "intent"
+		, TokenMeta::META_ANY
+		, YY_INTENT
+	}
+	, KeywordMeta{ "in"
+		, TokenMeta::META_ANY
+		, YY_IN
+	}
+	, KeywordMeta{ "out"
+		, TokenMeta::META_ANY
+		, YY_OUT
+	}
+	, KeywordMeta{ "inout"
+		, TokenMeta::META_ANY
+		, YY_INOUT
+	}
 };
 
 
