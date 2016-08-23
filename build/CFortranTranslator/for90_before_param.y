@@ -81,24 +81,12 @@ using namespace std;
 				$$ = *newnode;
 				update_pos($$);
 			}
-		| YY_DIMENSION '(' dimen_slice ')'
+		| YY_DIMENSION
 			{
 				/* if write `',' YY_DIMENSION` in `var_def` will cause conflict at ',' */
 				/* if is array reduce immediately and goto `var_def` */
 				/* do not parse array slices here because it can be dificult */
-				ParseNode * newnode = new ParseNode();
-				ParseNode * slice = new ParseNode($3);
-				newnode->addchild(slice); // def slice
-				int sliceid = 0; /* if the array has 2 dimensions, sliceid is 0..1 */
-				sprintf(codegen_buf, "(%s, %s)"
-					/* from, to */
-					, slice->child[sliceid]->child[0]->fs.CurrentTerm.what.c_str()
-					, slice->child[sliceid]->child[1]->fs.CurrentTerm.what.c_str());
-				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_VARIABLEDESC, string(codegen_buf) };
-				newnode->attr = new VariableDescAttr(newnode);
-				dynamic_cast<VariableDescAttr *>(newnode->attr)->desc.slice = slice;
-				$$ = *newnode;
-				update_pos($$);
+				$$ = $1;
 			}
 				
 	dummy_variable_iden : ',' dummy_variable_iden_1
@@ -107,13 +95,9 @@ using namespace std;
 				$$ = $2;
 				update_pos($$);
 			}
-		| ',' dummy_variable_iden_1 dummy_variable_iden
-			{				
-				ParseNode * newnode = new ParseNode();
-				/* target code of slice depend on context */
-				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_VARIABLEDESC, "NT_VARIABLEDESC" };
-				/* merge attrs */
-				// TODO do not add child
+		| ',' dummy_variable_iden
+			{
+				ParseNode * newnode = new ParseNode($1);
 				$$ = $2;
 				update_pos($$);
 			}
@@ -574,89 +558,97 @@ using namespace std;
 
     var_def : type_spec dummy_variable_iden YY_DOUBLECOLON paramtable
 			{
-				/* array decl */
+				/*  */
 				ParseNode * newnode = new ParseNode();
 				ParseNode * ty = new ParseNode($1);
 				newnode->addchild(ty); // type
-				ParseNode * iden = &$2; // dummy_variable_iden
-				VariableDescAttr * vardescattr = dynamic_cast<VariableDescAttr *>(iden->attr);
-				ParseNode * slice = vardescattr->desc.slice;
-				newnode->addchild(slice); // slice == nullptr if this is not array
 				ParseNode * pn = new ParseNode($4); // paramtable
 				newnode->addchild(pn); // paramtable
-				string arr_decl = ""; string var_decl = "";
+				ParseNode * iden = &$2;
+				VariableDescAttr * vardescattr = dynamic_cast<VariableDescAttr *>(iden->attr);
 
-				if (slice != nullptr)
-				{
-					/* in cpp code, definition of an array is inherit attribute(ºÃ≥– Ù–‘) grammar */
-			/* enumerate paramtable */
-					do {
-						// for all non-flatterned paramtable
-						for (int i = 0; i < pn->child.size(); i++)
-						{
-							// for each variable in flatterned paramtable
-							int sliceid = 0;
-							sprintf(codegen_buf, "forarr<%s> %s%s;\n", ty->fs.CurrentTerm.what.c_str(), pn->child[i]->child[0]->fs.CurrentTerm.what.c_str()
-								/* slice from to */, slice->fs.CurrentTerm.what.c_str());
-							arr_decl += codegen_buf;
-							/* set initial value */
-							if (pn->child[i]->child[1]->fs.CurrentTerm.token == TokenMeta::NT_ARRAYBUILDER_VALUE) {
-								sprintf(codegen_buf, "%s.init%s;\n", pn->child[i]->child[0]->fs.CurrentTerm.what.c_str(), pn->child[i]->child[1]->fs.CurrentTerm.what.c_str());
-							}
-							else if (pn->child[i]->child[1]->fs.CurrentTerm.token == TokenMeta::NT_ARRAYBUILDER_EXP) {
-								string formatter = (pn->child[i]->child[1]->fs.CurrentTerm.what + ";\n");
-								sprintf(codegen_buf, formatter.c_str(), pn->child[i]->child[0]->fs.CurrentTerm.what.c_str());
-							}
-							arr_decl += codegen_buf;
+				sprintf(codegen_buf, "%s ", ty->fs.CurrentTerm.what.c_str());
+				string var_decl = string(codegen_buf);
+				/* enumerate paramtable */
+				do {
+					// for all non-flatterned paramtable
+					for (int i = 0; i < pn->child.size(); i++)
+					{
+						if (i > 0) {
+							var_decl += ", ";
 						}
-						if (pn->child.size() >= 2)
-						{
-							/* if pn->child.size() == 0, this is an empty paramtable(this function takes no arguments) */
-							/* if the paramtable is not flatterned pn->child[1] is a right-recursive paramtable node */
-							pn = pn->child[1];
+						if (vardescattr->desc.reference) {
+							sprintf(codegen_buf, " & %s", pn->child[i]->child[0]->fs.CurrentTerm.what.c_str());
 						}
-					} while (pn->child.size() == 2 && pn->child[1]->fs.CurrentTerm.token == TokenMeta::NT_PARAMTABLE);
-					newnode->fs.CurrentTerm = Term{ TokenMeta::NT_VARIABLEDEFINE, arr_decl };
-				}
-				else {
-					sprintf(codegen_buf, "%s ", ty->fs.CurrentTerm.what.c_str());
-					var_decl += string(codegen_buf);
-					/* enumerate paramtable */
-					do {
-						// for all non-flatterned paramtable
-						for (int i = 0; i < pn->child.size(); i++)
-						{
-							if (i > 0) {
-								var_decl += ", ";
-							}
-							if (vardescattr->desc.reference) {
-								sprintf(codegen_buf, " & %s", pn->child[i]->child[0]->fs.CurrentTerm.what.c_str());
-							}
-							else {
-								sprintf(codegen_buf, " %s", pn->child[i]->child[0]->fs.CurrentTerm.what.c_str());
-							}
-							var_decl += codegen_buf;
-							/* initial value */
-							if (pn->child[i]->child[1]->fs.CurrentTerm.token != TokenMeta::NT_VARIABLEINITIALDUMMY) {
-								/* if initial value is not dummy but `exp` */
-								var_decl += " = ";
-								var_decl += pn->child[i]->child[1]->fs.CurrentTerm.what;
-							}
+						else {
+							sprintf(codegen_buf, " %s", pn->child[i]->child[0]->fs.CurrentTerm.what.c_str());
 						}
-						if (pn->child.size() >= 2)
-						{
-							/* if pn->child.size() == 0, this is an empty paramtable(this function takes no arguments) */
-							/* if the paramtable is not flatterned pn->child[1] is a right-recursive paramtable node */
-							pn = pn->child[1];
+						var_decl += codegen_buf;
+						/* initial value */
+						if (pn->child[i]->child[1]->fs.CurrentTerm.token != TokenMeta::NT_VARIABLEINITIALDUMMY) {
+							/* if initial value is not dummy but `exp` */
+							var_decl += " = ";
+							var_decl += pn->child[i]->child[1]->fs.CurrentTerm.what;
 						}
-					} while (pn->child.size() == 2 && pn->child[1]->fs.CurrentTerm.token == TokenMeta::NT_PARAMTABLE);
-					var_decl += ";";
+					}
+					if (pn->child.size() >= 2)
+					{
+						/* if pn->child.size() == 0, this is an empty paramtable(this function takes no arguments) */
+						/* if the paramtable is not flatterned pn->child[1] is a right-recursive paramtable node */
+						pn = pn->child[1];
+					}
+				} while (pn->child.size() == 2 && pn->child[1]->fs.CurrentTerm.token == TokenMeta::NT_PARAMTABLE);
+				var_decl += ";";
 #ifndef LAZY_GEN
-					// sprintf(codegen_buf, "%s %s;", $1.fs.CurrentTerm.what.c_str(), $4.fs.CurrentTerm.what.c_str());
-					newnode->fs.CurrentTerm = Term{ TokenMeta::NT_VARIABLEDEFINE, var_decl };
+				// sprintf(codegen_buf, "%s %s;", $1.fs.CurrentTerm.what.c_str(), $4.fs.CurrentTerm.what.c_str());
+				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_VARIABLEDEFINE, var_decl };
 #endif // !LAZY_GEN
-				}
 
+				$$ = *newnode;
+				update_pos($$);
+			}
+		| type_spec dummy_variable_iden '(' dimen_slice ')' YY_DOUBLECOLON paramtable
+			{
+				/* array decl */
+				ParseNode * newnode = new ParseNode();
+				string arr_decl = "";
+				ParseNode * ty = new ParseNode($1);
+				newnode->addchild(ty); // type
+				ParseNode * slice = new ParseNode($4);
+				newnode->addchild(slice); // def slice
+				ParseNode * pn = new ParseNode($7); //paramtable
+				newnode->addchild(pn); // paramtable
+
+				/* in cpp code, definition of an array is inherit attribute(ºÃ≥– Ù–‘) grammar */
+				/* enumerate paramtable */
+				do {
+					// for all non-flatterned paramtable
+					for (int i = 0; i < pn->child.size(); i++)
+					{
+						// for each variable in flatterned paramtable
+						int sliceid = 0;
+						sprintf(codegen_buf, "forarr<%s> %s(%s, %s);\n", ty->fs.CurrentTerm.what.c_str(), pn->child[i]->child[0]->fs.CurrentTerm.what.c_str()
+							/* from, to */
+							, slice->child[sliceid]->child[0]->fs.CurrentTerm.what.c_str(), slice->child[sliceid]->child[1]->fs.CurrentTerm.what.c_str());
+						arr_decl += codegen_buf;
+						/* set initial value */
+						if (pn->child[i]->child[1]->fs.CurrentTerm.token == TokenMeta::NT_ARRAYBUILDER_VALUE) {
+							sprintf(codegen_buf, "%s.init%s;\n", pn->child[i]->child[0]->fs.CurrentTerm.what.c_str(), pn->child[i]->child[1]->fs.CurrentTerm.what.c_str());
+						}
+						else if(pn->child[i]->child[1]->fs.CurrentTerm.token == TokenMeta::NT_ARRAYBUILDER_EXP){
+							string formatter = (pn->child[i]->child[1]->fs.CurrentTerm.what + ";\n");
+							sprintf(codegen_buf, formatter.c_str(), pn->child[i]->child[0]->fs.CurrentTerm.what.c_str());
+						}
+						arr_decl += codegen_buf;
+					}
+					if (pn->child.size() >= 2)
+					{
+						/* if pn->child.size() == 0, this is an empty paramtable(this function takes no arguments) */
+						/* if the paramtable is not flatterned pn->child[1] is a right-recursive paramtable node */
+						pn = pn->child[1];
+					}
+				} while (pn->child.size() == 2 && pn->child[1]->fs.CurrentTerm.token == TokenMeta::NT_PARAMTABLE);
+				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_VARIABLEDEFINE, arr_decl };
 				$$ = *newnode;
 				update_pos($$);
 			}

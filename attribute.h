@@ -8,6 +8,7 @@ struct FunctionDesc {
 struct VariableDesc {
 	bool reference = false;
 	bool constant = false;
+	struct ParseNode * slice = nullptr;
 };
 
 // ÊôĞÔÎÄ·¨
