@@ -575,21 +575,29 @@ using namespace std;
     var_def : type_spec dummy_variable_iden YY_DOUBLECOLON paramtable
 			{
 				/* array decl */
+				string arr_decl = ""; string var_decl = ""; bool do_arr = false;
 				ParseNode * newnode = new ParseNode();
 				ParseNode * ty = new ParseNode($1);
 				newnode->addchild(ty); // type
 				ParseNode * iden = &$2; // dummy_variable_iden
 				VariableDescAttr * vardescattr = dynamic_cast<VariableDescAttr *>(iden->attr);
 				ParseNode * slice = vardescattr->desc.slice;
-				newnode->addchild(slice); // slice == nullptr if this is not array
+				if (slice == nullptr) {
+					// slice == nullptr if this is not array
+					/* must assure no ParseNode * is nullptr */
+					slice = new ParseNode();
+					newnode->fs.CurrentTerm = Term{ TokenMeta::NT_VOID, "" };
+				}
+				else {
+					do_arr = true;
+				}
+				newnode->addchild(slice); 
 				ParseNode * pn = new ParseNode($4); // paramtable
 				newnode->addchild(pn); // paramtable
-				string arr_decl = ""; string var_decl = "";
-
-				if (slice != nullptr)
+				if (do_arr)
 				{
 					/* in cpp code, definition of an array is inherit attribute(ºÃ≥– Ù–‘) grammar */
-			/* enumerate paramtable */
+					/* enumerate paramtable */
 					do {
 						// for all non-flatterned paramtable
 						for (int i = 0; i < pn->child.size(); i++)
@@ -661,7 +669,7 @@ using namespace std;
 				update_pos($$);
 			}
 
-    paramtable : variable
+    paramtable_1 : variable
 			{
 				/* paramtable is used in function decl */
 				/* this paramtable has only one value */
@@ -713,36 +721,22 @@ using namespace std;
 				$$ = *newnode;
 				update_pos($$);
 			}
-        | variable ',' paramtable
+	paramtable : paramtable_1
 			{
-				ParseNode * newnode = new ParseNode();
-				sprintf(codegen_buf, "%s, %s", $1.fs.CurrentTerm.what.c_str(), $3.fs.CurrentTerm.what.c_str());
-				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_PARAMTABLE, string(codegen_buf) };
-					ParseNode * variablenode = new ParseNode();
-					sprintf(codegen_buf, "%s", $1.fs.CurrentTerm.what.c_str());
-					variablenode->fs.CurrentTerm = Term{ TokenMeta::NT_VARIABLEINITIAL, string(codegen_buf) };
-					variablenode->addchild(new ParseNode($1)); // type
-					FlexState fs; fs.CurrentTerm = Term{ TokenMeta::NT_VARIABLEINITIALDUMMY, string("void") };
-					variablenode->addchild(new ParseNode(fs, newnode)); // void is dummy initial
-					newnode->addchild(variablenode);
-				newnode->addchild(new ParseNode($3)); // paramtable
-				newnode = flattern_bin(newnode);
-				$$ = *newnode;
+				$$ = $1;
 				update_pos($$);
 			}
-        | variable '=' exp ',' paramtable
+		| paramtable_1 ',' paramtable
 			{
-				ParseNode * newnode = new ParseNode();
-				sprintf(codegen_buf, "%s = %s, %s", $1.fs.CurrentTerm.what.c_str(), $3.fs.CurrentTerm.what.c_str(), $5.fs.CurrentTerm.what.c_str());
+				ParseNode * newnode = new ParseNode(); 
+				newnode->addchild($1.child[0]); // paramtable_1
+				sprintf(codegen_buf, "%s, %s", $1.fs.CurrentTerm.what.c_str(), $3.fs.CurrentTerm.what.c_str());
 				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_PARAMTABLE, string(codegen_buf) };
-					ParseNode * variablenode = new ParseNode();
-					sprintf(codegen_buf, "%s", $1.fs.CurrentTerm.what.c_str());
-					variablenode->fs.CurrentTerm = Term{ TokenMeta::NT_VARIABLEINITIAL, string(codegen_buf) };
-					variablenode->addchild(new ParseNode($1)); // type
-					variablenode->addchild(new ParseNode($3)); // initial
-					newnode->addchild(variablenode);
-				newnode->addchild(new ParseNode($5)); // paramtable
-				newnode = flattern_bin(newnode);
+				ParseNode & pn = $3;
+				for (int i = 0; i < pn.child.size(); i++)
+				{
+					newnode->addchild(new ParseNode(*pn.child[i])); // paramtable
+				}
 				$$ = *newnode;
 				update_pos($$);
 			}
@@ -1007,16 +1001,18 @@ using namespace std;
 				/* result variable */
 				param_name_typename.push_back(make_pair($9.fs.CurrentTerm.what, "void"));
 				/* find out all var_def nodes */
-				for (int i = 0; i < $12.child.size(); i++)
+				for (int i = 0; i < $12/*suite*/.child.size(); i++)
 				{
 					ParseNode * stmti = $12.child[i];
 					/* $12 => suite */
-					/* $12.child[i] => stmt */ /*  REF stmt for why stmt is a node always with 1 child(except for dummy stmt) */
+					/* $12.child[i] => stmt */ 
+					/*  REF stmt for why stmt is a node always with 1 child(except for dummy stmt) */
 					if (stmti->child.size() == 1 && stmti->child[0]->fs.CurrentTerm.token == TokenMeta::NT_VARIABLEDEFINE) {
 						/* stmti->child[0] => var_def */
 						/* from pn=stmti->child[0].child[0] is typename */
-						/* from pn=stmti->child[0].child[1] is all variables of this type */
-						ParseNode * pn = stmti->child[0]->child[1];
+						/* from pn=stmti->child[0].child[1] is dimen_slice */
+						/* from pn=stmti->child[0].child[2] is all variables of this type */
+						ParseNode * pn = stmti->child[0]->child[2];
 						do {
 							// for all non-flatterned paramtable
 							for (int i = 0; i < pn->child.size(); i++)
@@ -1046,7 +1042,8 @@ using namespace std;
 						if (varname_node->fs.CurrentTerm.what == varname) {
 							//	father		NT_VARIABLEINITIAL (variable_name, variable_initial_value)
 							//	father * 2	NT_PARAMTABLE
-							//	father * 3	NT_VARIABLEDEFINE
+							//	father * 3	NT_VARIABLEDEFINE var_def
+							//  param_name_typename[i].second type name
 							param_name_typename[i].second = varname_node->father->father->father->child[0]->fs.CurrentTerm.what;
 							/* `delete` ParseNode except return value */
 							if (i != param_name_typename.size() - 1) {
