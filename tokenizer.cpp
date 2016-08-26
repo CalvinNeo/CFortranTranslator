@@ -257,6 +257,10 @@ const vector<KeywordMeta> keywords = {
 		, TokenMeta::META_ANY
 		, YY_INOUT
 	}
+	, KeywordMeta{ "optional"
+		, TokenMeta::META_ANY
+		, YY_OPTIONAL
+	}
 };
 
 

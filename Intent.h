@@ -237,6 +237,7 @@
 		NT_VARIABLEDESC = -2021,
 		NT_VARIABLEINITIALDUMMY = -2022, /* dummy initial_value of (varname, initial_value) ref NT_VARIABLEINITIAL */
 		/* NT_ARGTABLE 和 NT_ARGTABLE_DIMENSLICE 都应当看作函数的参数表 */
+		NT_VOID = -2023, /* this ParseNode do not exist but ParseNode * can not be nullptr so this is placeholder */
 };
 //}
 

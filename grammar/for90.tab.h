@@ -118,19 +118,20 @@ extern int yydebug;
      YY_IN = 327,
      YY_OUT = 328,
      YY_INOUT = 329,
-     _YY_TYPEDEF = 330,
-     YY_INTEGER_T = 331,
-     YY_FLOAT_T = 332,
-     YY_STRING_T = 333,
-     YY_COMPLEX_T = 334,
-     YY_BOOL_T = 335,
-     _YY_COMMAND = 336,
-     YY_WRITE = 337,
-     YY_READ = 338,
-     YY_PRINT = 339,
-     YY_OPEN = 340,
-     YY_CLOSE = 341,
-     YY_CALL = 342
+     YY_OPTIONAL = 330,
+     _YY_TYPEDEF = 331,
+     YY_INTEGER_T = 332,
+     YY_FLOAT_T = 333,
+     YY_STRING_T = 334,
+     YY_COMPLEX_T = 335,
+     YY_BOOL_T = 336,
+     _YY_COMMAND = 337,
+     YY_WRITE = 338,
+     YY_READ = 339,
+     YY_PRINT = 340,
+     YY_OPEN = 341,
+     YY_CLOSE = 342,
+     YY_CALL = 343
    };
 #endif
 

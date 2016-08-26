@@ -3,6 +3,7 @@
 #include "parser.h"
 #include <stdio.h>
 #include "cgen.h"
+#include "for90std.h"
 
 using namespace std;
 
@@ -24,7 +25,6 @@ int main()
 	global_code = "program if 1 then 2 else if 3 then 4 end if end program";
 	//global_code = "\"ab\\\"c\"";
 	//global_code = "program 1.3 + 2 * 3 - .true. end program";
-	//global_code = "program 1.3 + 2 * 3 - .true. end program";
 	global_code = "program integer::a \n if 1 then 2 else if 3 then 4 end if end program";
 	global_code = "program integer::a = 1 + 2, b = 2, c = 3 \n  end program";
 	global_code = "program write *,* a, b \n  end program";
@@ -39,7 +39,9 @@ int main()
 	global_code = "program integer,dimension(5:7)::A=(/ int(i) + 1, i=1,4/) \n  end program";
 	global_code = "program integer,dimension(5:7)::A=(/ B(1:2:3) /) \n  end program";
 	global_code = "program integer,intent(out)::a = 1 + 2, b = 2, c = 3 \n  end program";
-	global_code = "program integer,dimension(5:7)::A=(/1, 2/) \n  end program";
+	global_code = "program integer,dimension(5:7)::A=(/1, 2/) \n  end program"; 
+	global_code = "program recursive function main(A,B) result(C) \n implicit none \n integer::a = 1 + 2, b = 2, c = 3 \n end function end program";
+
 
 	//global_code = "program integer::a = 1 + 2 \n logical::b = .false. \n a = 3 \n end program";
 
@@ -47,11 +49,17 @@ int main()
 
 	//next_token(global_code, 0);
 
-	parse(global_code);
-	while (fscanf(stderr, "%s", errlog) != EOF) {
-		printf("%s\n", errlog);
-	}
-	preorder(&program_tree);
+	cout << parse_ioformatter("\"aaa\"2(f, 2i)") << endl;
+
+	forarray<int> a(1,5);
+	a.init(1, 2, 3, 4);
+	cout << a(1) << endl;
+
+	//parse(global_code);
+	//while (fscanf(stderr, "%s", errlog) != EOF) {
+	//	printf("%s\n", errlog);
+	//}
+	//preorder(&program_tree);
 	//cout << endl << gen_code(&program_tree) << endl;
 	system("pause");
 	return 0;

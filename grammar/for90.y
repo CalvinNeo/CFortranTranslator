@@ -28,7 +28,7 @@ using namespace std;
 %token _YY_TYPE YY_INTEGER YY_FLOAT YY_WORD YY_OPERATOR YY_STRING YY_ILLEGAL YY_COMPLEX YY_TRUE YY_FALSE
 %token _YY_CONTROL YY_END YY_IF YY_THEN YY_ELSE YY_ELSEIF YY_ENDIF YY_DO YY_ENDDO YY_CONTINUE YY_BREAK YY_WHILE YY_ENDWHILE YY_WHERE YY_ENDWHERE YY_CASE YY_ENDCASE
 %token _YY_DELIM YY_PROGRAM YY_ENDPROGRAM YY_FUNCTION YY_ENDFUNCTION YY_RECURSIVE YY_RESULT YY_SUBROUTINE YY_ENDSUBROUTINE YY_MODULE YY_ENDMODULE YY_BLOCK YY_ENDBLOCK
-%token _YY_DESCRIBER YY_IMPLICIT YY_NONE YY_USE YY_PARAMETER YY_FORMAT YY_ENTRY YY_DIMENSION YY_ARRAYINITIAL_START YY_ARRAYINITIAL_END YY_INTENT YY_IN YY_OUT YY_INOUT
+%token _YY_DESCRIBER YY_IMPLICIT YY_NONE YY_USE YY_PARAMETER YY_FORMAT YY_ENTRY YY_DIMENSION YY_ARRAYINITIAL_START YY_ARRAYINITIAL_END YY_INTENT YY_IN YY_OUT YY_INOUT YY_OPTIONAL
 %token _YY_TYPEDEF YY_INTEGER_T YY_FLOAT_T YY_STRING_T YY_COMPLEX_T YY_BOOL_T
 %token _YY_COMMAND YY_WRITE YY_READ YY_PRINT YY_OPEN YY_CLOSE YY_CALL
 
@@ -100,6 +100,11 @@ using namespace std;
 				$$ = *newnode;
 				update_pos($$);
 			}
+		| YY_OPTIONAL
+		| YY_PARAMETER
+			{
+				/* const value */
+			}
 				
 	dummy_variable_iden : ',' dummy_variable_iden_1
 			{
@@ -113,8 +118,10 @@ using namespace std;
 				/* target code of slice depend on context */
 				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_VARIABLEDESC, "NT_VARIABLEDESC" };
 				/* merge attrs */
+				newnode->attr = $2.attr->clone();
+				dynamic_cast<VariableDescAttr *>(newnode->attr)->merge(*dynamic_cast<VariableDescAttr *>($3.attr->clone()));
 				// TODO do not add child
-				$$ = $2;
+				$$ = *newnode;
 				update_pos($$);
 			}
 		|

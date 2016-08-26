@@ -22,7 +22,14 @@ refer to for90.y for all accepted grammar
 |LOGICAL|bool|
 |COMPLEX|struct for_complex|
 |CHARACTER|std::string|
-|array(1d)|forarray|
+|array(1d)|for1array|
+|array(nd)|fornarray|
+|array|forarray|
+|array-cstyle|not implemented|
+
+### array
+1. `DIMENSION(a:b)` -> `forarray<T>(a, b+1)`
+2. forarray default lower bound is **1**
 
 ### variables
 1. all variables must be **explicitly** declared
@@ -47,12 +54,14 @@ refer to for90.y for all accepted grammar
 6. update translation rules in cgen.h
 
 ## todolist
-- lazygen(partial complete)
+- lazygen(partial)
 - ~~function-array reduction-reduction conflict~~
-- multi-dimension forarray
-- for90std functions(partial complete)
-- io formatter
+- multi-dimension forarray(partial)
+- for90std functions(partial)
+- ~~io formatter~~
 - optional parameters
 - keyword parameter list
-- reference in parameter list
-- rewrite paramtable and var_def(simplify right-recursive rules, move dimension to dummy_variale_iden)
+- ~~reference in parameter list~~
+- ~~rewrite paramtable and var_def(simplify right-recursive rules, move dimension to dummy_variale_iden)~~
+- more elegant multi-word keyword handler(currently defined in regular expression)
+- function forward declaration

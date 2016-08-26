@@ -1,14 +1,38 @@
 #pragma once
 #include "parser.h"
 
+//
+template<class T>
+struct dirty{
+	T & operator= (const T & newv) {
+		changed = true;
+		value = newv;
+		return value;
+	}
+	operator T() {
+		return value;
+	}
+	dirty(const T & newv) {
+		changed = false;
+		value = newv;
+	}
+	bool isdirty() const{
+		return changed;
+	}
+private:
+	T value;
+	bool changed = false;
+};
+
 // Parse时候记录性质
 struct FunctionDesc {
 
 };
 struct VariableDesc {
-	bool reference = false;
-	bool constant = false;
-	struct ParseNode * slice = nullptr;
+	dirty<bool> reference = false;
+	dirty<bool> constant = false;
+	dirty<bool> optional = false;
+	dirty<struct ParseNode *> slice = nullptr;
 };
 
 // 属性文法
@@ -54,6 +78,21 @@ struct VariableDescAttr : public ParseAttr {
 		this->desc = va.desc;
 	}
 	ParseAttr * clone() { return new VariableDescAttr(*this); }
+
+	void merge(const VariableDescAttr & x2) {
+		if (!desc.constant.isdirty() && x2.desc.constant.isdirty()) {
+			desc.constant = x2.desc.constant;
+		}
+		if (!desc.reference.isdirty() && x2.desc.reference.isdirty()) {
+			desc.reference = x2.desc.reference;
+		}
+		if (!desc.optional.isdirty() && x2.desc.optional.isdirty()) {
+			desc.optional = x2.desc.optional;
+		}
+		if (!desc.slice.isdirty() && x2.desc.slice.isdirty()) {
+			desc.slice = x2.desc.slice;
+		}
+	}
 };
 
 // struct ArrayAttr FormatterAttr
