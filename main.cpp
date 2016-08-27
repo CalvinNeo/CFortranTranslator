@@ -42,6 +42,7 @@ int main()
 	global_code = "program integer,dimension(5:7)::A=(/1, 2/) \n  end program"; 
 	global_code = "program recursive function main(A,B) result(C) \n implicit none \n integer::a = 1 + 2, b = 2, c = 3 \n end function end program";
 	global_code = "program integer,intent(out),dimension(5:7)::A=(/1, 2/) \n  end program";
+	global_code = "program integer::a \n if 1 then 2 else if 3 then 4 end if end program";
 
 
 	//global_code = "program integer::a = 1 + 2 \n logical::b = .false. \n a = 3 \n end program";

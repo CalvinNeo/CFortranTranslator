@@ -8,9 +8,9 @@ A translator between C++ and Fortran90.
 
 ## grammar restrictions and translate rules
 refer to for90.y for all accepted grammar
-### dumb keywords
+### unsupported keywords
 
-1. NO named `DO|IF|CASE|...` term
+1. NO `DO|IF|CASE|...` with a name after
 
 ### types
 1. type mapping
@@ -61,7 +61,11 @@ refer to for90.y for all accepted grammar
 3. add rules related to the %token in .y
 4. update bytecodes and grammar tokens in Intent.h
 5. register keyword in tokenizer.cpp(if this token is keyword)
-6. update translation rules in cgen.h
+**6**. if this keyword takes more than 1 word and can cause reduction conflicts between itself and its surfix like `else if`, update forward1 in tokenizer.cpp
+7. update translation rules in cgen.h
+
+## Parse Tree
+all parse tree nodes are defined in Intents.h with an `NT_` surfix
 
 ## todolist
 - lazygen(partial)
@@ -73,5 +77,5 @@ refer to for90.y for all accepted grammar
 - keyword parameter list
 - ~~reference in parameter list~~
 - ~~rewrite paramtable and var_def(simplify right-recursive rules, move dimension to dummy_variale_iden)~~
-- more elegant multi-word keyword handler(currently defined in regular expression)
+- ~~more elegant multi-word keyword handler(instead of defined in regular expression)~~
 - function forward declaration

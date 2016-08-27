@@ -2053,7 +2053,7 @@ yyreduce:
 /* Line 1792 of yacc.c  */
 #line 287 "for90.y"
     {
-				/* `callable '(' argtable ')'` rule has priority over this rule  */
+				/* `function_array` rule has priority over this rule  */
 				ParseNode * newnode = new ParseNode();
 #ifndef LAZY_GEN
 				sprintf(codegen_buf, "( %s )", (yyvsp[(2) - (4)]).fs.CurrentTerm.what.c_str());
@@ -2367,8 +2367,8 @@ yyreduce:
 				ParseNode * newnode = new ParseNode();
 				/* target code of io_info depend on context */
 				newnode->fs.CurrentTerm = Term{ TokenMeta::META_NONTERMINAL, "" };
-				newnode->addchild(new ParseNode((yyvsp[(1) - (3)]))); // formatter
-				newnode->addchild(new ParseNode((yyvsp[(3) - (3)]))); // argtable
+				newnode->addchild(new ParseNode((yyvsp[(1) - (3)]))); // _optional_device
+				newnode->addchild(new ParseNode((yyvsp[(3) - (3)]))); // _optional_formatter
 				(yyval) = *newnode;
 				update_pos((yyval));
 			}

@@ -30,9 +30,9 @@ struct ParseNode {
 };
 
 
-
 int parse(std::string code);
 extern ParseNode program_tree;
+extern std::string global_code;
 void preorder(ParseNode * ptree);
 /* generate codes instead of in .y files */
 std::string lazy_gen(ParseNode * ptree);

@@ -17,7 +17,7 @@ ParseNode::~ParseNode()
 	}
 }
 ParseNode::ParseNode(const ParseNode & pn)
-{
+{ 
 	this->fs = pn.fs;
 	this->father = pn.father;
 	this->attr = pn.attr == nullptr? nullptr: pn.attr->clone();

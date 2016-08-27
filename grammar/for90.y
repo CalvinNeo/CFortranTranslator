@@ -285,7 +285,7 @@ using namespace std;
 
 		| '(' exp ')' crlf
 			{
-				/* `callable '(' argtable ')'` rule has priority over this rule  */
+				/* `function_array` rule has priority over this rule  */
 				ParseNode * newnode = new ParseNode();
 #ifndef LAZY_GEN
 				sprintf(codegen_buf, "( %s )", $2.fs.CurrentTerm.what.c_str());
@@ -522,8 +522,8 @@ using namespace std;
 				ParseNode * newnode = new ParseNode();
 				/* target code of io_info depend on context */
 				newnode->fs.CurrentTerm = Term{ TokenMeta::META_NONTERMINAL, "" };
-				newnode->addchild(new ParseNode($1)); // formatter
-				newnode->addchild(new ParseNode($3)); // argtable
+				newnode->addchild(new ParseNode($1)); // _optional_device
+				newnode->addchild(new ParseNode($3)); // _optional_formatter
 				$$ = *newnode;
 				update_pos($$);
 			}

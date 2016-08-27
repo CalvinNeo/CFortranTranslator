@@ -10,7 +10,8 @@
 #include "../tokenizer.h"
 #include "../parser.h"
 
-	// 前置声明
+
+// 前置声明
 #ifdef USE_YACC
 #include "for90.tab.h"
 int word_parse();
@@ -21,6 +22,7 @@ void update_flex(int len, bool newline = false); // do not update CurrentTerm
 void update_yylval(Term & current_term, bool empty = false);
 extern std::string global_code;
 int make_term_flex(const TokenMeta & token, const char * w);
+bool abandon = false;
 
 #ifdef USE_YACC
 // yacc
@@ -32,7 +34,7 @@ int make_term_flex(const TokenMeta & token, const char * w);
 #define YYRTWORD() {  /*do not update yylval because some tokens need to be looked ahead, such as `else if` */ int p = word_parse(); \
 	if (p != YY_REQ_MORE) \
 	{ update_flex(yyleng);  return p;  } \
-	else{  /* ?? */ update_flex(yyleng); } }
+	else{  update_flex(yyleng); } }
 
 #define YYRTINT(TOK) YYRTN(TOK, YY_INTEGER) 
 #define YYRTFLOAT(TOK) YYRTN(TOK, YY_FLOAT) 
@@ -111,8 +113,8 @@ newline [\r\n]
 "<=" { RTOP(TokenMeta::LE, YY_LE) }
 "==" { RTOP(TokenMeta::EQ, YY_EQ) }
 "/=" { RTOP(TokenMeta::NEQ, YY_NEQ)}
-"~" {yymore(); ECHO; putchar('\n'); }
-[Ee][Ll][Ss][Ee]{ws}[Ii][Ff] {RTWORD()}
+"~" { /* [Ee][Ll][Ss][Ee]{ws}[Ii][Ff] {RTWORD()} */ }
+
 [a-zA-Z_][a-zA-Z0-9]* { RTWORD() }
 \.[a-zA-Z_][a-zA-Z0-9]*\. { RTWORD() }
 \"(\\.|[^"])*\" {RTSTRING(TokenMeta::META_STRING) 
@@ -150,23 +152,42 @@ void update_yylval(Term & current_term, bool empty) {
 		yylval.fs.CurrentTerm = current_term;
 		//yylval.fs.CurrentTerm = Term{current_term.token, global_code.substr(flex_state.parse_pos, yyleng) };
 		//std::cout << global_code.substr(flex_state.parse_pos, yyleng) << std::endl;
-		int a = 0;
-		a++;
+
 	}
 }
 int word_parse() {
 	using namespace std;
 	FlexState & fs = flex_state;
+	if (abandon) {
+		abandon = false;
+		return YY_REQ_MORE;
+	}
 	string yytextstr = string(yytext);
-	transform(yytextstr.begin(), yytextstr.end(), yytextstr.begin(), tolower);
-	yytextstr.erase(remove_if(yytextstr.begin(), yytextstr.end(), isspace), yytextstr.end());
-	//yymore();
-	//cout << "yytext : " << yytext << endl;
+	transform(yytextstr.begin(), yytextstr.end(), yytextstr.begin(), tolower); // tolower
+	//yytextstr.erase(remove_if(yytextstr.begin(), yytextstr.end(), isspace), yytextstr.end()); // remove all space
+	FIND_AGAIN:
 	for (int i = 0; i < keywords.size(); i++)
 	{
 		if (keywords[i].what == yytextstr) {
-				update_yylval( Term{ keywords[i].token , std::string(yytextstr) });
-				return keywords[i].yytoken;
+			for (auto iter = forward1.begin(); iter != forward1.end(); iter++)
+			{
+				if (iter->first == yytextstr) {
+					// not a valid yylval
+					std::string next = CutString(global_code.begin() + fs.parse_pos + yyleng /* yyleng != fs.parse_len because RTNWORD do not update_flex before */ , global_code.end(), false);
+					for (int j = 0; j < iter->second.size(); j++)
+					{
+						if (iter->second[j] == next) {
+							yytextstr += next;
+							abandon = true;
+							goto FIND_AGAIN;
+						}
+					}
+				}
+			}
+
+			/* this is a keyword with specialized yytoken */
+			update_yylval( Term{ keywords[i].token , std::string(yytextstr) });
+			return keywords[i].yytoken;
 		}
 	}
 	update_yylval(Term{ TokenMeta::META_WORD , std::string(yytextstr) });
