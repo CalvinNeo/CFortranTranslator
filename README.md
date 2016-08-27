@@ -6,7 +6,7 @@ A translator between C++ and Fortran90.
 2. boost
 3. vs2015
 
-## fortran grammar restrictions and translate rules
+## grammar restrictions and translate rules
 refer to for90.y for all accepted grammar
 ### dumb keywords
 
@@ -29,15 +29,25 @@ refer to for90.y for all accepted grammar
 
 ### array
 1. `DIMENSION(a:b)` -> `forarray<T>(a, b+1)`
-2. forarray default lower bound is **1**
+2. forarray default lower bound is **1**, which is different from cpp
 
 ### variables
 1. all variables must be **explicitly** declared
+2. since variable names in fortran is case-insensitive, all variables will be in lower case in generated cpp code
 
 ### functions and subroutines
 1. remove all difinition of local variables which is also in parameter list
 2. remove all interface
 3. intent(out) variables will translate to `T & variable`
+
+#### inherit function mapping
+|for90|c++|
+|:-:|:-:|
+|INTEGER()|to_int|
+|REAL()|to_double|
+|LOGICAL()|to_bool|
+|COMPLEX()|to_int|
+|CHARACTER()|forcomplex(constructor)|
 
 ### IO
 |for90|c++|

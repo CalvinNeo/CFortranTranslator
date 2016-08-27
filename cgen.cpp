@@ -10,6 +10,7 @@ std::string for2cpp(std::string for_code) {
 
 
 std::string parse_ioformatter(const std::string & src) {
+
 	std::string rt = "";
 	std::string s;
 	std::string mid; 

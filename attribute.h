@@ -16,6 +16,10 @@ struct dirty{
 		changed = false;
 		value = newv;
 	}
+	dirty(const dirty & d) {
+		changed = d->isdirty();
+		value = d->value;
+	}
 	bool isdirty() const{
 		return changed;
 	}

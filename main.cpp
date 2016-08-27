@@ -41,6 +41,7 @@ int main()
 	global_code = "program integer,intent(out)::a = 1 + 2, b = 2, c = 3 \n  end program";
 	global_code = "program integer,dimension(5:7)::A=(/1, 2/) \n  end program"; 
 	global_code = "program recursive function main(A,B) result(C) \n implicit none \n integer::a = 1 + 2, b = 2, c = 3 \n end function end program";
+	global_code = "program integer,intent(out),dimension(5:7)::A=(/1, 2/) \n  end program";
 
 
 	//global_code = "program integer::a = 1 + 2 \n logical::b = .false. \n a = 3 \n end program";
@@ -55,11 +56,11 @@ int main()
 	a.init(1, 2, 3, 4);
 	cout << a(1) << endl;
 
-	//parse(global_code);
-	//while (fscanf(stderr, "%s", errlog) != EOF) {
-	//	printf("%s\n", errlog);
-	//}
-	//preorder(&program_tree);
+	parse(global_code);
+	while (fscanf(stderr, "%s", errlog) != EOF) {
+		printf("%s\n", errlog);
+	}
+	preorder(&program_tree);
 	//cout << endl << gen_code(&program_tree) << endl;
 	system("pause");
 	return 0;
