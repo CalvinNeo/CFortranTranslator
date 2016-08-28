@@ -112,14 +112,13 @@ newline [\r\n]
 "<" { RTOP(TokenMeta::LT, YY_LT) }
 "<=" { RTOP(TokenMeta::LE, YY_LE) }
 "==" { RTOP(TokenMeta::EQ, YY_EQ) }
-"/=" { RTOP(TokenMeta::NEQ, YY_NEQ)}
-"~" { /* [Ee][Ll][Ss][Ee]{ws}[Ii][Ff] {RTWORD()} */ }
+"/=" { RTOP(TokenMeta::NEQ, YY_NEQ) /* [Ee][Ll][Ss][Ee]{ws}[Ii][Ff] {RTWORD()} */ }
 
 [a-zA-Z_][a-zA-Z0-9]* { RTWORD() }
 \.[a-zA-Z_][a-zA-Z0-9]*\. { RTWORD() }
 \"(\\.|[^"])*\" {RTSTRING(TokenMeta::META_STRING) 
 /* The delimiting quotes are escaped because they are Flex meta-characters. */}
-. {/* can be parsed, including some operators not listed */ RTILLEGAL(TokenMeta::META_ILLEGAL) }
+. {/* all other things, including some operators not listed */ RTILLEGAL(TokenMeta::META_ILLEGAL) }
 
 %%
 

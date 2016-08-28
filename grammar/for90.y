@@ -90,11 +90,14 @@ using namespace std;
 				ParseNode * slice = new ParseNode($3);
 				newnode->addchild(slice); // def slice
 				int sliceid = 0; /* if the array has 2 dimensions, sliceid is 0..1 */
-				sprintf(codegen_buf, "(%s, %s)"
-					/* from, to */
-					, slice->child[sliceid]->child[0]->fs.CurrentTerm.what.c_str()
-					, slice->child[sliceid]->child[1]->fs.CurrentTerm.what.c_str());
-				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_VARIABLEDESC, string(codegen_buf) };
+				for (sliceid = 0; sliceid < slice->child.size(); sliceid++)
+				{
+					sprintf(codegen_buf, "(%s, %s)"
+						/* from, to */
+						, slice->child[sliceid]->child[0]->fs.CurrentTerm.what.c_str()
+						, slice->child[sliceid]->child[1]->fs.CurrentTerm.what.c_str());
+					slice->child[sliceid]->fs.CurrentTerm = Term{ TokenMeta::NT_VARIABLEDESC, string(codegen_buf) };
+				}
 				newnode->attr = new VariableDescAttr(newnode);
 				dynamic_cast<VariableDescAttr *>(newnode->attr)->desc.slice = slice;
 				$$ = *newnode;
@@ -234,7 +237,7 @@ using namespace std;
 				$$ = *newnode;
 				update_pos($$);
 			}
-		| slice ',' slice
+		| slice ',' dimen_slice
 			{
 				/* multi dimension array */
 				/* arr[from:to, from:to, ...] */
@@ -243,7 +246,8 @@ using namespace std;
 				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_DIMENSLICE, "" };
 				newnode->addchild(new ParseNode($1)); // 
 				newnode->addchild(new ParseNode($3));
-				newnode = flattern_bin(newnode);
+				// attention flattern_bin
+				 newnode = flattern_bin(newnode);
 				$$ = *newnode;
 				update_pos($$);
 			}
@@ -625,19 +629,45 @@ using namespace std;
 					/* enumerate paramtable */
 					do {
 						// for all non-flatterned paramtable
+#define USE_LOOP
 						for (int i = 0; i < pn->child.size(); i++)
 						{
 							// for each variable in flatterned paramtable
 							int sliceid = 0;
+							sprintf(codegen_buf, "forarray<%s>", ty->fs.CurrentTerm.what.c_str());
+							string type_str(codegen_buf);
+							// init high dimension array
+							/* though using for-loop to init a high-dimension array is verbose comparing to using constructors, i use this form because it is more clear and it can remind users of the cost of using a high dimension array */
+							vector<string> this_major; /* if you want to set value of a(i0)(i1)(i2) then this major is a(i0)(i1) */
+							this_major.push_back(pn->child[i]->child[0]->fs.CurrentTerm.what /* array name */);
+							for (int i = 1; i < slice->child.size(); i++)
+							{
+								sprintf(codegen_buf, "%s(i%d)", this_major.back().c_str(), i - 1);
+								this_major.push_back(string(codegen_buf));
+							}
+							for (sliceid = slice->child.size() - 2; sliceid >= 0 ; sliceid--)
+							{
+								string prev_type_str = type_str;
+								sprintf(codegen_buf, "forarray< %s >", type_str.c_str());
+								type_str = string(codegen_buf);
+								sprintf(codegen_buf, "for(int i%d = %s; i%d < %s; i%d++){\n\t%s(i%d) = %s(%s,%s);\n%s\n}\n"
+									, sliceid, slice->child[sliceid]->child[0]->fs.CurrentTerm.what.c_str(), sliceid, slice->child[sliceid]->child[1]->fs.CurrentTerm.what.c_str(), sliceid
+									, this_major[sliceid].c_str(), sliceid, prev_type_str.c_str(), slice->child[sliceid + 1]->child[0]->fs.CurrentTerm.what.c_str(), slice->child[sliceid + 1]->child[1]->fs.CurrentTerm.what.c_str()
+									, sliceid + 1 == slice->child.size() - 1 ? "" : tabber(slice->child[sliceid + 1]->fs.CurrentTerm.what).c_str());
+								prev_type_str = type_str;
+								slice->child[sliceid]->fs.CurrentTerm.what = string(codegen_buf);
+							}
 							if (vardescattr->desc.reference) {
-								sprintf(codegen_buf, "forarr<%s> & %s%s;\n", ty->fs.CurrentTerm.what.c_str(), pn->child[i]->child[0]->fs.CurrentTerm.what.c_str()
-									/* slice from to */, slice->fs.CurrentTerm.what.c_str());
+								sprintf(codegen_buf, "%s & %s(%s,%s);\n", type_str.c_str(), pn->child[i]->child[0]->fs.CurrentTerm.what.c_str() /* array name */
+									, slice->child[0]->child[0]->fs.CurrentTerm.what.c_str(), slice->child[0]->child[1]->fs.CurrentTerm.what.c_str() /* slice from to */);
 							}
 							else {
-								sprintf(codegen_buf, "forarr<%s> %s%s;\n", ty->fs.CurrentTerm.what.c_str(), pn->child[i]->child[0]->fs.CurrentTerm.what.c_str()
-									/* slice from to */, slice->fs.CurrentTerm.what.c_str());
+								sprintf(codegen_buf, "%s %s(%s,%s);\n", type_str.c_str(), pn->child[i]->child[0]->fs.CurrentTerm.what.c_str() /* array name */
+									, slice->child[0]->child[0]->fs.CurrentTerm.what.c_str(), slice->child[0]->child[1]->fs.CurrentTerm.what.c_str() /* slice from to */);
 							}
 							arr_decl += codegen_buf;
+							// init high dimension array
+							arr_decl += slice->child[0]->fs.CurrentTerm.what.c_str();
 							/* set initial value */
 							if (pn->child[i]->child[1]->fs.CurrentTerm.token == TokenMeta::NT_ARRAYBUILDER_VALUE) {
 								sprintf(codegen_buf, "%s.init%s;\n", pn->child[i]->child[0]->fs.CurrentTerm.what.c_str(), pn->child[i]->child[1]->fs.CurrentTerm.what.c_str());
@@ -795,7 +825,8 @@ using namespace std;
 	array_builder : YY_ARRAYINITIAL_START argtable YY_ARRAYINITIAL_END
 			{
 				/* give initial value */
-				/* NOTE that `B(1:2:3)` can be either a single-element argtable or a exp */
+				/* NOTE that `B(1:2:3)` can be either a single-element argtable or a exp, this can probably lead to reduction conflicts */
+				/* NOTE fortran use a 1d list to initialize a 2d(or higher) array, however, contrary to c++ and most other language does, it store them in a **conlumn - first order**. for a 2d array, it means you a order of a(1)(1)->a(2)(1)->a(lb_1)(1)->a(1)(2) */
 				ParseNode * newnode = new ParseNode();
 				ParseNode & argtable = $2;
 				sprintf(codegen_buf, "(%s)", argtable.fs.CurrentTerm.what.c_str());
@@ -826,9 +857,6 @@ using namespace std;
 				/* rule `YY_ARRAYINITIAL_START variable '(' dimen_slice ')' YY_ARRAYINITIAL_END ` is included in this rule*/
 				/* note that this two rules can not be splitted because `exp` and `variable` + '(' can cause reduction conflict */
 				/* note either that `variable '(' dimen_slice ')'` is an `exp` */
-				/* give initial value */
-
-				// 
 			}
 		| YY_ARRAYINITIAL_START exp YY_ARRAYINITIAL_END
 			{
@@ -1208,7 +1236,8 @@ ParseNode * flattern_bin(ParseNode * pn) {
 		ParseNode * newp = new ParseNode();
 		/* child[0] is the only data node */
 		newp->addchild(new ParseNode(*pn->child[0]));
-		/* pn->child[1] is a list of ALREADY flatterned elements */
+
+		/* pn->child[1] is a **list** of ALREADY flatterned elements */
 		//	e.g
 		//	child[0] is 1 
 		//	child[1] is [2, 3, 4, 5]

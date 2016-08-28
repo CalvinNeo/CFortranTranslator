@@ -132,6 +132,16 @@ struct for1array {
 	for1array(int l, int u) : lb(l), ub(u) {
 
 	};
+	for1array() : lb(0), ub(0) {
+
+	};
+	for1array(int l, int u, T x) : lb(l), ub(u) {
+		m_arr.clear();
+		for (int i = lb; i < ub; i++)
+		{
+			m_arr.push_back(x);
+		}
+	};
 protected:
 	std::vector<T> m_arr;
 	T * carr;
