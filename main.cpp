@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include "cgen.h"
 #include "for90std.h"
+#include <numeric>
 
 using namespace std;
 
@@ -29,7 +30,8 @@ int main()
 	global_code = "program integer::a \n if 1 then 2 else if 3 then 4 end if end program";
 	global_code = "program integer::a = 1 + 2, b = 2, c = 3 \n  end program";
 	global_code = "program write *,* a, b \n  end program";
-	global_code = "program integer::A, B \n  end program";
+	global_code = "program integer::A, B \n  end program"; 
+	global_code = "program integer::a = 1 + 2 \n logical::b = .false. \n a = 3 \n end program";
 	global_code = "program integer::a = 1 + 2 \n  end program";
 	global_code = "program recursive function main(A,B) result(C) \n implicit none \n integer::a = 1 + 2, b = 2, c = 3 \n end function end program";
 	global_code = "program recursive function main(A,B) result(C) \n a = abs(c) \n end function end program";
@@ -43,20 +45,27 @@ int main()
 	global_code = "program integer,dimension(5:7)::A=(/1, 2/) \n  end program"; 
 	global_code = "program recursive function main(A,B) result(C) \n implicit none \n integer::a = 1 + 2, b = 2, c = 3 \n end function end program";
 	global_code = "program integer,intent(out),dimension(5:7)::A=(/1, 2/) \n  end program";
-	global_code = "program integer,dimension(5:7, 6:8, 7:9)::A=(/1, 2/) \n  end program";
+	global_code = "program integer,dimension(5:7, 6:8, 7:9)::A=(/1, 2, 3, 4, 5, 6/) \n  end program";
+	global_code = "program integer,dimension(2)::A \n  end program";
+	global_code = "program recursive function main(A,B) result(C) \n implicit none \n integer::a = 1 + 2, b = 2, c = 3 \n end function end program";
 
 
-	//global_code = "program integer::a = 1 + 2 \n logical::b = .false. \n a = 3 \n end program";
 
-	//global_code = "~~~~~";
+	std::vector<int> accumulated{2, 2, 2};
+	int s = 1;
+	std::transform(accumulated.rbegin() , accumulated.rend(), accumulated.rbegin() , [&s](int x) {int ans = s; s *= x; return ans; });
 
-	//next_token(global_code, 0);
 
+	cout << max_n(1, 2) << endl;
 	cout << parse_ioformatter("\"aaa\"2(f, 2i)") << endl;
 
-	forarray<int> a(1,5);
-	a.init(1, 2, 3, 4);
-	cout << a(1) << endl;
+	forarray<forarray<int>> a(1, 3);
+	for (int i = 1; i < 3; i++)
+	{
+		a(i) = forarray<int>(1, 3);
+	}
+	init_forarray(a, vector<int>{1, 1}, vector<int>{2, 2}, std::vector<int>{1, 2, 3, 4});
+	cout << a(1)(1) << " " << a(1)(2) << endl;
 
 	parse(global_code);
 	while (fscanf(stderr, "%s", errlog) != EOF) {

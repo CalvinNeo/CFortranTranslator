@@ -48,6 +48,9 @@
   <ItemGroup>
     <Bison Include="..\..\grammar\for90.y" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\README.md" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{EEFFE8C1-37FF-4F41-9113-5996FEA58436}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>

@@ -203,20 +203,33 @@ using namespace std;
 				$$ = $1;
 			}
 	
-	slice : exp ':' exp
+	slice : exp
+			{
+				/* arr[to] */
+				ParseNode * newnode = new ParseNode();
+				ParseNode & ub = $1;
+				/* target code of slice depend on context */
+				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_SLICE, "" };
+				newnode->addchild(new ParseNode(ub)); // upper bound
+				$$ = *newnode;
+				update_pos($$);
+			}
+		| exp ':' exp
 			{
 				/* arr[from : to] */
 				ParseNode * newnode = new ParseNode();
+				ParseNode & lb = $1;
+				ParseNode & ub = $3;
 				/* target code of slice depend on context */
 				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_SLICE, "" };
-				newnode->addchild(new ParseNode($1)); // lower bound
-				newnode->addchild(new ParseNode($3)); // upper bound
+				newnode->addchild(new ParseNode(lb)); // lower bound
+				newnode->addchild(new ParseNode(ub)); // upper bound
 				$$ = *newnode;
 				update_pos($$);
 			}
 		| exp ':' exp ':' exp
 			{
-				/* arr[from : to] */
+				/* arr[from : to : step] */
 				ParseNode * newnode = new ParseNode();
 				/* target code of slice depend on context */
 				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_SLICE, "" };
@@ -233,7 +246,15 @@ using namespace std;
 				ParseNode * newnode = new ParseNode();
 				/* target code of slice depend on context */
 				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_DIMENSLICE, "" };
-				newnode->addchild(new ParseNode($1)); // only 1 slice
+				ParseNode & slice = $1;
+				if (slice.child.size() == 1) {
+					slice.child.push_back(nullptr);
+					slice.child[1] = slice.child[0];
+					ParseNode * lb = new ParseNode();
+					lb->fs.CurrentTerm = Term{ TokenMeta::NT_EXPRESSION, "1" };
+					slice.child[0] = lb;
+				}
+				newnode->addchild(new ParseNode(slice)); // only 1 slice
 				$$ = *newnode;
 				update_pos($$);
 			}
@@ -244,8 +265,16 @@ using namespace std;
 				ParseNode * newnode = new ParseNode();
 				/* target code of slice depend on context */
 				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_DIMENSLICE, "" };
-				newnode->addchild(new ParseNode($1)); // 
-				newnode->addchild(new ParseNode($3));
+				ParseNode & slice = $1;
+				if (slice.child.size() == 1) {
+					slice.child.push_back(nullptr);
+					slice.child[1] = slice.child[0];
+					ParseNode * lb = new ParseNode();
+					lb->fs.CurrentTerm = Term{ TokenMeta::NT_EXPRESSION, "1" };
+					slice.child[0] = lb;
+				}
+				newnode->addchild(new ParseNode(slice)); // slice
+				newnode->addchild(new ParseNode($3)); // dimen_slice
 				// attention flattern_bin
 				 newnode = flattern_bin(newnode);
 				$$ = *newnode;
@@ -606,7 +635,7 @@ using namespace std;
 				/* array decl */
 				string arr_decl = ""; string var_decl = ""; bool do_arr = false;
 				ParseNode * newnode = new ParseNode();
-				ParseNode * ty = new ParseNode($1);
+				ParseNode * ty = new ParseNode($1); // type
 				newnode->addchild(ty); // type
 				ParseNode * iden = &$2; // dummy_variable_iden
 				VariableDescAttr * vardescattr = dynamic_cast<VariableDescAttr *>(iden->attr);
@@ -650,7 +679,7 @@ using namespace std;
 								string prev_type_str = type_str;
 								sprintf(codegen_buf, "forarray< %s >", type_str.c_str());
 								type_str = string(codegen_buf);
-								sprintf(codegen_buf, "for(int i%d = %s; i%d < %s; i%d++){\n\t%s(i%d) = %s(%s,%s);\n%s\n}\n"
+								sprintf(codegen_buf, "for(int i%d = %s; i%d < %s; i%d++){\n\t%s(i%d) = %s(%s, %s + 1);\n%s\n}\n" /* NOTE fortran is [lower_bound, upper_bound] cpp is [lower_bound, upper_bound) */
 									, sliceid, slice->child[sliceid]->child[0]->fs.CurrentTerm.what.c_str(), sliceid, slice->child[sliceid]->child[1]->fs.CurrentTerm.what.c_str(), sliceid
 									, this_major[sliceid].c_str(), sliceid, prev_type_str.c_str(), slice->child[sliceid + 1]->child[0]->fs.CurrentTerm.what.c_str(), slice->child[sliceid + 1]->child[1]->fs.CurrentTerm.what.c_str()
 									, sliceid + 1 == slice->child.size() - 1 ? "" : tabber(slice->child[sliceid + 1]->fs.CurrentTerm.what).c_str());
@@ -658,11 +687,11 @@ using namespace std;
 								slice->child[sliceid]->fs.CurrentTerm.what = string(codegen_buf);
 							}
 							if (vardescattr->desc.reference) {
-								sprintf(codegen_buf, "%s & %s(%s,%s);\n", type_str.c_str(), pn->child[i]->child[0]->fs.CurrentTerm.what.c_str() /* array name */
+								sprintf(codegen_buf, "%s & %s(%s, %s + 1);\n", type_str.c_str(), pn->child[i]->child[0]->fs.CurrentTerm.what.c_str() /* array name */
 									, slice->child[0]->child[0]->fs.CurrentTerm.what.c_str(), slice->child[0]->child[1]->fs.CurrentTerm.what.c_str() /* slice from to */);
 							}
 							else {
-								sprintf(codegen_buf, "%s %s(%s,%s);\n", type_str.c_str(), pn->child[i]->child[0]->fs.CurrentTerm.what.c_str() /* array name */
+								sprintf(codegen_buf, "%s %s(%s, %s + 1);\n", type_str.c_str(), pn->child[i]->child[0]->fs.CurrentTerm.what.c_str() /* array name */
 									, slice->child[0]->child[0]->fs.CurrentTerm.what.c_str(), slice->child[0]->child[1]->fs.CurrentTerm.what.c_str() /* slice from to */);
 							}
 							arr_decl += codegen_buf;

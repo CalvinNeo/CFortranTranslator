@@ -22,8 +22,8 @@ refer to for90.y for all accepted grammar
 |LOGICAL|bool|
 |COMPLEX|struct for_complex|
 |CHARACTER|std::string|
-|array(1d)|for1array<T>|
-|array(nd)|for1array<forarray<...forarray<T>>>|
+|array(1d)|for1array&lt;T&gt;|
+|array(nd)|for1array&lt;forarray&lt; ...forarray&lt;T&gt;&gt;&gt;|
 |array(alias)|forarray|
 |array-cstyle|not implemented|
 
@@ -49,6 +49,8 @@ refer to for90.y for all accepted grammar
 |LOGICAL()|to_bool|
 |COMPLEX()|to_int|
 |CHARACTER()|forcomplex(constructor)|
+|min|min_n|
+|max|max_n|
 
 ### IO
 |for90|c++|
@@ -67,11 +69,17 @@ refer to for90.y for all accepted grammar
 
 ## Parse Tree
 all parse tree nodes are defined in Intents.h with an `NT_` prefix
+### Parse Tree Layers
+- NT_DIMENSLICE -> NT_SLICE
+- NT_SUITE -> NT_STATEMENT
+- NT_VARIABLEDEFINE -> (typeinfo, NT_DIMENSLICE || dummy, NT_PARAMTABLE )
+- NT_PARAMTABLE -> NT_VARIABLEINITIAL || NT_DECLAREDVARIABLE -> (NT_DECLAREDVARIABLE -> (UnknownVariant, NT_EXPRESSION as initial value) ) 
 
 ## todolist
 - lazygen(partial)
 - ~~function-array reduction-reduction conflict~~
 - ~~multi-dimension forarray~~
+- ~~multi-dimension forarray array-builder~~
 - for90std functions(partial)
 - ~~io formatter~~
 - optional parameters
@@ -80,4 +88,5 @@ all parse tree nodes are defined in Intents.h with an `NT_` prefix
 - ~~rewrite paramtable and var_def(simplify right-recursive rules, move dimension to dummy_variale_iden)~~
 - ~~more elegant multi-word keyword handler(instead of defined in regular expression)~~
 - function forward declaration
-- bugfix(slice can be a scalar x and equal to (1: x))
+- ~~slice can be a scalar x and equal to (1: x + 1)~~
+

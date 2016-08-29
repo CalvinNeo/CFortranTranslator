@@ -89,4 +89,7 @@
       <Filter>grammar</Filter>
     </Bison>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\README.md" />
+  </ItemGroup>
 </Project>

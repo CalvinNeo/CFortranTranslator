@@ -468,7 +468,7 @@ union yyalloc
 /* YYNNTS -- Number of nonterminals.  */
 #define YYNNTS  37
 /* YYNRULES -- Number of rules.  */
-#define YYNRULES  98
+#define YYNRULES  99
 /* YYNRULES -- Number of states.  */
 #define YYNSTATES  213
 
@@ -526,14 +526,14 @@ static const yytype_uint16 yyprhs[] =
 {
        0,     0,     3,     5,     6,     8,    10,    11,    16,    21,
       26,    31,    33,    35,    38,    42,    43,    45,    47,    49,
-      51,    53,    55,    58,    60,    62,    64,    68,    74,    76,
-      80,    86,    88,    93,    98,   103,   108,   113,   118,   122,
-     125,   128,   130,   134,   136,   137,   139,   141,   143,   145,
-     147,   149,   151,   153,   155,   159,   162,   164,   167,   168,
-     169,   171,   172,   174,   176,   178,   180,   182,   186,   192,
-     194,   196,   198,   200,   202,   207,   209,   213,   217,   219,
-     223,   224,   232,   236,   240,   244,   253,   265,   275,   287,
-     293,   300,   307,   318,   331,   346,   348,   350,   359
+      51,    53,    55,    58,    60,    62,    64,    66,    70,    76,
+      78,    82,    88,    90,    95,   100,   105,   110,   115,   120,
+     124,   127,   130,   132,   136,   138,   139,   141,   143,   145,
+     147,   149,   151,   153,   155,   157,   161,   164,   166,   169,
+     170,   171,   173,   174,   176,   178,   180,   182,   184,   188,
+     194,   196,   198,   200,   202,   204,   209,   211,   215,   219,
+     221,   225,   226,   234,   238,   242,   246,   255,   267,   277,
+     289,   295,   302,   309,   320,   333,   348,   350,   352,   361
 };
 
 /* YYRHS -- A `-1'-separated list of the rules' RHS.  */
@@ -545,37 +545,37 @@ static const yytype_int16 yyrhs[] =
       -1,    75,    -1,    65,    -1,    96,   102,    -1,    96,   102,
      103,    -1,    -1,    23,    -1,    22,    -1,    26,    -1,    29,
       -1,    30,    -1,    28,    -1,     1,    97,    -1,    24,    -1,
-     105,    -1,   124,    -1,   110,    98,   110,    -1,   110,    98,
-     110,    98,   110,    -1,   107,    -1,   107,    96,   108,    -1,
-     106,    94,   111,    95,   100,    -1,   109,    -1,    94,   110,
-      95,   100,    -1,   110,    90,   110,   100,    -1,   110,    91,
-     110,   100,    -1,   110,    92,   110,   100,    -1,   110,    93,
-     110,   100,    -1,   110,    18,   110,   100,    -1,    91,   110,
-     100,    -1,   104,   100,    -1,   106,   100,    -1,   110,    -1,
-     110,    96,   111,    -1,   108,    -1,    -1,   110,    -1,   125,
-      -1,   114,    -1,   113,    -1,   116,    -1,   115,    -1,   123,
-      -1,   130,    -1,   132,    -1,   110,    89,   110,    -1,    62,
-      63,    -1,   112,    -1,   112,   117,    -1,    -1,    -1,    94,
-      -1,    -1,    95,    -1,    92,    -1,    22,    -1,    92,    -1,
-      26,    -1,   120,    96,   121,    -1,    83,   118,   122,   119,
-     111,    -1,    77,    -1,    78,    -1,    79,    -1,    80,    -1,
-      81,    -1,   124,   103,    19,   127,    -1,   105,    -1,   105,
-      89,   110,    -1,   105,    89,   129,    -1,   126,    -1,   126,
-      96,   127,    -1,    -1,   110,    96,   105,    89,   110,    96,
-     110,    -1,    69,   111,    70,    -1,    69,   128,    70,    -1,
-      69,   110,    70,    -1,    33,   110,    34,   100,   117,    32,
-      33,   100,    -1,    33,   110,    34,   100,   117,    35,   100,
+     105,    -1,   124,    -1,   110,    -1,   110,    98,   110,    -1,
+     110,    98,   110,    98,   110,    -1,   107,    -1,   107,    96,
+     108,    -1,   106,    94,   111,    95,   100,    -1,   109,    -1,
+      94,   110,    95,   100,    -1,   110,    90,   110,   100,    -1,
+     110,    91,   110,   100,    -1,   110,    92,   110,   100,    -1,
+     110,    93,   110,   100,    -1,   110,    18,   110,   100,    -1,
+      91,   110,   100,    -1,   104,   100,    -1,   106,   100,    -1,
+     110,    -1,   110,    96,   111,    -1,   108,    -1,    -1,   110,
+      -1,   125,    -1,   114,    -1,   113,    -1,   116,    -1,   115,
+      -1,   123,    -1,   130,    -1,   132,    -1,   110,    89,   110,
+      -1,    62,    63,    -1,   112,    -1,   112,   117,    -1,    -1,
+      -1,    94,    -1,    -1,    95,    -1,    92,    -1,    22,    -1,
+      92,    -1,    26,    -1,   120,    96,   121,    -1,    83,   118,
+     122,   119,   111,    -1,    77,    -1,    78,    -1,    79,    -1,
+      80,    -1,    81,    -1,   124,   103,    19,   127,    -1,   105,
+      -1,   105,    89,   110,    -1,   105,    89,   129,    -1,   126,
+      -1,   126,    96,   127,    -1,    -1,   110,    96,   105,    89,
+     110,    96,   110,    -1,    69,   111,    70,    -1,    69,   128,
+      70,    -1,    69,   110,    70,    -1,    33,   110,    34,   100,
      117,    32,    33,   100,    -1,    33,   110,    34,   100,   117,
-     131,    32,    33,   100,    -1,    33,   110,    34,   100,   117,
-     131,    35,   100,   117,    32,    33,    -1,    36,   110,    34,
-     100,   117,    -1,    36,   110,    34,   100,   117,   131,    -1,
-      38,   100,   117,    32,    38,   100,    -1,    38,   105,    89,
-     110,    96,   110,   100,   117,    32,    38,    -1,    38,   105,
-      89,   110,    96,   110,    96,   110,   100,   117,    32,    38,
-      -1,   101,    51,   105,    94,   127,    95,    54,    94,   105,
-      95,   100,   117,    32,    51,    -1,   117,    -1,   133,    -1,
-      49,    24,   100,   134,    32,    49,    24,   100,    -1,    49,
-     100,   134,    32,    49,   100,    -1
+      35,   100,   117,    32,    33,   100,    -1,    33,   110,    34,
+     100,   117,   131,    32,    33,   100,    -1,    33,   110,    34,
+     100,   117,   131,    35,   100,   117,    32,    33,    -1,    36,
+     110,    34,   100,   117,    -1,    36,   110,    34,   100,   117,
+     131,    -1,    38,   100,   117,    32,    38,   100,    -1,    38,
+     105,    89,   110,    96,   110,   100,   117,    32,    38,    -1,
+      38,   105,    89,   110,    96,   110,    96,   110,   100,   117,
+      32,    38,    -1,   101,    51,   105,    94,   127,    95,    54,
+      94,   105,    95,   100,   117,    32,    51,    -1,   117,    -1,
+     133,    -1,    49,    24,   100,   134,    32,    49,    24,   100,
+      -1,    49,   100,   134,    32,    49,   100,    -1
 };
 
 /* YYRLINE[YYN] -- source line where rule number YYN was defined.  */
@@ -583,14 +583,14 @@ static const yytype_uint16 yyrline[] =
 {
        0,    49,    49,    50,    52,    53,    54,    56,    65,    75,
       84,   106,   115,   120,   126,   142,   150,   157,   163,   169,
-     175,   181,   190,   192,   199,   199,   206,   217,   229,   240,
-     255,   277,   290,   303,   313,   323,   333,   343,   353,   363,
-     368,   376,   388,   401,   413,   417,   432,   444,   445,   446,
-     447,   449,   451,   451,   453,   465,   474,   483,   495,   499,
-     500,   501,   502,   503,   508,   513,   518,   524,   535,   572,
-     578,   584,   590,   596,   604,   732,   749,   766,   784,   789,
-     804,   812,   824,   836,   862,   898,   913,   930,   946,   963,
-     979,   995,  1009,  1026,  1045,  1191,  1196,  1202,  1208
+     175,   181,   190,   192,   199,   199,   206,   217,   230,   242,
+     261,   284,   306,   319,   332,   342,   352,   362,   372,   382,
+     392,   397,   405,   417,   430,   442,   446,   461,   473,   474,
+     475,   476,   478,   480,   480,   482,   494,   503,   512,   524,
+     528,   529,   530,   531,   532,   537,   542,   547,   553,   564,
+     601,   607,   613,   619,   625,   633,   762,   779,   796,   814,
+     819,   834,   842,   854,   867,   890,   926,   941,   958,   974,
+     991,  1007,  1023,  1037,  1054,  1073,  1219,  1224,  1230,  1236
 };
 #endif
 
@@ -652,14 +652,14 @@ static const yytype_uint8 yyr1[] =
 {
        0,    99,   100,   100,   101,   101,   101,   102,   102,   102,
      102,   102,   102,   103,   103,   103,   104,   104,   104,   104,
-     104,   104,   104,   105,   106,   106,   107,   107,   108,   108,
-     109,   110,   110,   110,   110,   110,   110,   110,   110,   110,
-     110,   111,   111,   111,   111,   112,   112,   112,   112,   112,
-     112,   113,   114,   114,   115,   116,   117,   117,   117,   118,
-     118,   119,   119,   120,   120,   121,   121,   122,   123,   124,
-     124,   124,   124,   124,   125,   126,   126,   126,   127,   127,
-     127,   128,   129,   129,   129,   130,   130,   130,   130,   131,
-     131,   132,   132,   132,   133,   134,   134,   135,   135
+     104,   104,   104,   105,   106,   106,   107,   107,   107,   108,
+     108,   109,   110,   110,   110,   110,   110,   110,   110,   110,
+     110,   110,   111,   111,   111,   111,   112,   112,   112,   112,
+     112,   112,   113,   114,   114,   115,   116,   117,   117,   117,
+     118,   118,   119,   119,   120,   120,   121,   121,   122,   123,
+     124,   124,   124,   124,   124,   125,   126,   126,   126,   127,
+     127,   127,   128,   129,   129,   129,   130,   130,   130,   130,
+     131,   131,   132,   132,   132,   133,   134,   134,   135,   135
 };
 
 /* YYR2[YYN] -- Number of symbols composing right hand side of rule YYN.  */
@@ -667,14 +667,14 @@ static const yytype_uint8 yyr2[] =
 {
        0,     2,     1,     0,     1,     1,     0,     4,     4,     4,
        4,     1,     1,     2,     3,     0,     1,     1,     1,     1,
-       1,     1,     2,     1,     1,     1,     3,     5,     1,     3,
-       5,     1,     4,     4,     4,     4,     4,     4,     3,     2,
-       2,     1,     3,     1,     0,     1,     1,     1,     1,     1,
-       1,     1,     1,     1,     3,     2,     1,     2,     0,     0,
-       1,     0,     1,     1,     1,     1,     1,     3,     5,     1,
-       1,     1,     1,     1,     4,     1,     3,     3,     1,     3,
-       0,     7,     3,     3,     3,     8,    11,     9,    11,     5,
-       6,     6,    10,    12,    14,     1,     1,     8,     6
+       1,     1,     2,     1,     1,     1,     1,     3,     5,     1,
+       3,     5,     1,     4,     4,     4,     4,     4,     4,     3,
+       2,     2,     1,     3,     1,     0,     1,     1,     1,     1,
+       1,     1,     1,     1,     1,     3,     2,     1,     2,     0,
+       0,     1,     0,     1,     1,     1,     1,     1,     3,     5,
+       1,     1,     1,     1,     1,     4,     1,     3,     3,     1,
+       3,     0,     7,     3,     3,     3,     8,    11,     9,    11,
+       5,     6,     6,    10,    12,    14,     1,     1,     8,     6
 };
 
 /* YYDEFACT[STATE-NAME] -- Default reduction number in state STATE-NUM.
@@ -684,26 +684,26 @@ static const yytype_uint8 yydefact[] =
 {
        0,     3,     0,     2,     3,     0,     1,     0,     0,    17,
       16,    23,    18,    21,    19,    20,     0,     3,     4,     0,
-      69,    70,    71,    72,    73,    59,     0,     0,     0,     3,
-      24,     3,    31,    45,     0,    48,    47,    50,    49,    95,
-      51,    25,    46,    52,    53,    96,     0,     0,    22,     0,
-      25,     0,     0,    55,    60,     0,     3,     0,     0,    39,
-       0,    40,     0,     0,     0,     0,     0,     0,    57,     0,
-       0,     0,     0,     3,     0,     0,    64,    63,     0,    61,
-      38,     3,     0,    28,    43,    41,     0,     3,    54,     3,
-       3,     3,     3,    12,     0,     0,    11,    13,    80,     3,
-       0,     0,     0,     0,     0,    62,     0,    32,    80,     0,
-       0,     0,     3,    37,    33,    34,    35,    36,     0,     0,
-      14,    75,    78,    74,    98,     3,     0,     3,     0,    66,
-      65,    67,    68,     0,    29,     0,    42,    26,    30,     0,
-       0,     0,     0,     0,    80,    97,     0,     3,     0,     0,
-      91,     3,     0,     0,    10,     7,     8,     9,     0,    76,
-      77,    79,     3,     0,     0,     0,     3,     0,     0,     0,
-      27,     0,     0,     0,    85,     0,     3,     3,     0,     3,
-       0,     0,    84,     0,    82,    83,     0,     0,    87,     0,
-       0,     0,     0,    24,     3,    89,     0,     0,    92,     3,
-       0,    86,    90,    88,     0,     0,     0,    93,     0,     0,
-       0,    81,    94
+      70,    71,    72,    73,    74,    60,     0,     0,     0,     3,
+      24,     3,    32,    46,     0,    49,    48,    51,    50,    96,
+      52,    25,    47,    53,    54,    97,     0,     0,    22,     0,
+      25,     0,     0,    56,    61,     0,     3,     0,     0,    40,
+       0,    41,     0,     0,     0,     0,     0,     0,    58,     0,
+       0,     0,     0,     3,     0,     0,    65,    64,     0,    62,
+      39,     3,     0,    29,    44,    26,     0,     3,    55,     3,
+       3,     3,     3,    12,     0,     0,    11,    13,    81,     3,
+       0,     0,     0,     0,     0,    63,     0,    33,    81,     0,
+       0,     0,     3,    38,    34,    35,    36,    37,     0,     0,
+      14,    76,    79,    75,    99,     3,     0,     3,     0,    67,
+      66,    68,    69,     0,    30,    26,    43,    27,    31,     0,
+       0,     0,     0,     0,    81,    98,     0,     3,     0,     0,
+      92,     3,     0,     0,    10,     7,     8,     9,     0,    77,
+      78,    80,     3,     0,     0,     0,     3,     0,     0,     0,
+      28,     0,     0,     0,    86,     0,     3,     3,     0,     3,
+       0,     0,    85,     0,    83,    84,     0,     0,    88,     0,
+       0,     0,     0,    24,     3,    90,     0,     0,    93,     3,
+       0,    87,    91,    89,     0,     0,     0,    94,     0,     0,
+       0,    82,    95
 };
 
 /* YYDEFGOTO[NTERM-NUM].  */
@@ -756,7 +756,7 @@ static const yytype_int16 yypgoto[] =
 /* YYTABLE[YYPACT[STATE-NUM]].  What to do in state STATE-NUM.  If
    positive, shift that token.  If negative, reduce the rule which
    number is the opposite.  If YYTABLE_NINF, syntax error.  */
-#define YYTABLE_NINF -59
+#define YYTABLE_NINF -60
 static const yytype_int16 yytable[] =
 {
       41,    68,    41,     7,    52,     3,    76,    86,   129,    62,
@@ -783,43 +783,43 @@ static const yytype_int16 yytable[] =
       62,     8,     0,     0,     0,     0,     0,     0,     0,     0,
      159,    64,    65,    66,    67,   164,     0,     0,     0,   153,
      170,     0,     9,    10,    11,   171,    12,    62,    13,    14,
-      15,     8,   -44,   -44,   179,   -44,   -44,     0,   -44,    64,
+      15,     8,   -45,   -45,   179,   -45,   -45,     0,   -45,    64,
       65,    66,    67,    73,     0,   209,    64,    65,    66,    67,
       85,    81,     9,    10,    11,     0,    12,     0,    13,    14,
-      15,     0,   -44,     0,     0,     0,     0,   206,     0,     0,
-     -44,    63,    64,    65,    66,    67,   211,    20,    21,    22,
-      23,    24,     0,   -44,     0,     0,     0,     0,     0,     0,
-       0,    26,     0,     0,    27,   -44,     0,     0,     0,    64,
+      15,     0,   -45,     0,     0,     0,     0,   206,     0,     0,
+     -45,    63,    64,    65,    66,    67,   211,    20,    21,    22,
+      23,    24,     0,   -45,     0,     0,     0,     0,     0,     0,
+       0,    26,     0,     0,    27,   -45,     0,     0,     0,    64,
       65,    66,    67,     0,     0,     8,     0,    20,    21,    22,
       23,    24,     0,     0,     0,     0,     0,     0,     0,    62,
-       0,    26,     0,     0,    27,   -44,     9,    10,    11,     0,
-      12,     8,    13,    14,    15,   176,   -58,    16,     0,     0,
+       0,    26,     0,     0,    27,   -45,     9,    10,    11,     0,
+      12,     8,    13,    14,    15,   176,   -59,    16,     0,     0,
        8,     0,    17,     0,     0,     0,     0,     0,     0,     0,
        0,     0,     9,    10,    11,    -6,    12,    18,    13,    14,
       15,     9,    10,    11,     0,    12,    19,    13,    14,    15,
-       0,   -56,    16,     0,   -56,   -56,     0,    17,     0,    62,
+       0,   -57,    16,     0,   -57,   -57,     0,    17,     0,    62,
        0,    20,    21,    22,    23,    24,     0,    25,     0,     0,
        0,    64,    65,    66,    67,    26,     0,     0,    27,   158,
        0,    19,     0,     0,     0,     0,     0,    20,    21,    22,
       23,    24,     0,     8,     0,     0,    20,    21,    22,    23,
       24,    26,    25,     0,    27,     0,     0,     0,     0,     0,
       26,     0,     0,    27,     9,    10,    11,     0,    12,     0,
-      13,    14,    15,     0,   -58,    16,     0,   -58,   -58,     0,
+      13,    14,    15,     0,   -59,    16,     0,   -59,   -59,     0,
       17,    64,    65,    66,    67,     0,     0,     0,     0,     0,
        0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
        0,     0,     0,     0,    19,     0,     0,     0,     0,     0,
        0,     0,     0,     0,     0,     0,     8,     0,     0,    20,
       21,    22,    23,    24,     0,    25,     0,     0,     0,     0,
        0,     0,     0,    26,     0,     0,    27,     9,    10,    11,
-       0,    12,     8,    13,    14,    15,     0,   -44,   -44,     0,
-     -44,   -44,     0,   -44,     0,     0,     0,     0,     0,     0,
+       0,    12,     8,    13,    14,    15,     0,   -45,   -45,     0,
+     -45,   -45,     0,   -45,     0,     0,     0,     0,     0,     0,
        8,     0,     0,     9,    10,    11,     0,    12,     0,    13,
-      14,    15,     0,   -58,    16,     0,     0,   -44,     0,    17,
+      14,    15,     0,   -59,    16,     0,     0,   -45,     0,    17,
        0,     9,    10,    11,     0,    12,     0,    13,    14,    15,
-       0,     0,    20,    21,    22,    23,    24,     0,   -44,     0,
+       0,     0,    20,    21,    22,    23,    24,     0,   -45,     0,
        0,     0,     0,    19,     0,     0,    26,     0,     0,    27,
        0,     0,     0,     0,     0,     0,     0,     0,    20,    21,
-      22,    23,    24,     0,    25,     0,     0,     0,     0,   -44,
+      22,    23,    24,     0,    25,     0,     0,     0,     0,   -45,
        0,     0,    26,     8,     0,    27,    20,    21,    22,    23,
       24,     0,     0,     0,     0,     0,     0,     0,     0,     0,
       26,     0,     0,    27,     9,    10,    11,     0,    12,     0,
@@ -1952,12 +1952,12 @@ yyreduce:
 /* Line 1792 of yacc.c  */
 #line 207 "for90.y"
     {
-				/* arr[from : to] */
+				/* arr[to] */
 				ParseNode * newnode = new ParseNode();
+				ParseNode & ub = (yyvsp[(1) - (1)]);
 				/* target code of slice depend on context */
 				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_SLICE, "" };
-				newnode->addchild(new ParseNode((yyvsp[(1) - (3)]))); // lower bound
-				newnode->addchild(new ParseNode((yyvsp[(3) - (3)]))); // upper bound
+				newnode->addchild(new ParseNode(ub)); // upper bound
 				(yyval) = *newnode;
 				update_pos((yyval));
 			}
@@ -1969,6 +1969,23 @@ yyreduce:
     {
 				/* arr[from : to] */
 				ParseNode * newnode = new ParseNode();
+				ParseNode & lb = (yyvsp[(1) - (3)]);
+				ParseNode & ub = (yyvsp[(3) - (3)]);
+				/* target code of slice depend on context */
+				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_SLICE, "" };
+				newnode->addchild(new ParseNode(lb)); // lower bound
+				newnode->addchild(new ParseNode(ub)); // upper bound
+				(yyval) = *newnode;
+				update_pos((yyval));
+			}
+    break;
+
+  case 28:
+/* Line 1792 of yacc.c  */
+#line 231 "for90.y"
+    {
+				/* arr[from : to : step] */
+				ParseNode * newnode = new ParseNode();
 				/* target code of slice depend on context */
 				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_SLICE, "" };
 				newnode->addchild(new ParseNode((yyvsp[(1) - (5)]))); // lower bound
@@ -1979,34 +1996,24 @@ yyreduce:
 			}
     break;
 
-  case 28:
+  case 29:
 /* Line 1792 of yacc.c  */
-#line 230 "for90.y"
+#line 243 "for90.y"
     {
 				/* 1d array */
 				/* arr[from : to] */
 				ParseNode * newnode = new ParseNode();
 				/* target code of slice depend on context */
 				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_DIMENSLICE, "" };
-				newnode->addchild(new ParseNode((yyvsp[(1) - (1)]))); // only 1 slice
-				(yyval) = *newnode;
-				update_pos((yyval));
-			}
-    break;
-
-  case 29:
-/* Line 1792 of yacc.c  */
-#line 241 "for90.y"
-    {
-				/* multi dimension array */
-				/* arr[from:to, from:to, ...] */
-				ParseNode * newnode = new ParseNode();
-				/* target code of slice depend on context */
-				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_DIMENSLICE, "" };
-				newnode->addchild(new ParseNode((yyvsp[(1) - (3)]))); // 
-				newnode->addchild(new ParseNode((yyvsp[(3) - (3)])));
-				// attention flattern_bin
-				 newnode = flattern_bin(newnode);
+				ParseNode & slice = (yyvsp[(1) - (1)]);
+				if (slice.child.size() == 1) {
+					slice.child.push_back(nullptr);
+					slice.child[1] = slice.child[0];
+					ParseNode * lb = new ParseNode();
+					lb->fs.CurrentTerm = Term{ TokenMeta::NT_EXPRESSION, "1" };
+					slice.child[0] = lb;
+				}
+				newnode->addchild(new ParseNode(slice)); // only 1 slice
 				(yyval) = *newnode;
 				update_pos((yyval));
 			}
@@ -2014,7 +2021,33 @@ yyreduce:
 
   case 30:
 /* Line 1792 of yacc.c  */
-#line 256 "for90.y"
+#line 262 "for90.y"
+    {
+				/* multi dimension array */
+				/* arr[from:to, from:to, ...] */
+				ParseNode * newnode = new ParseNode();
+				/* target code of slice depend on context */
+				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_DIMENSLICE, "" };
+				ParseNode & slice = (yyvsp[(1) - (3)]);
+				if (slice.child.size() == 1) {
+					slice.child.push_back(nullptr);
+					slice.child[1] = slice.child[0];
+					ParseNode * lb = new ParseNode();
+					lb->fs.CurrentTerm = Term{ TokenMeta::NT_EXPRESSION, "1" };
+					slice.child[0] = lb;
+				}
+				newnode->addchild(new ParseNode(slice)); // slice
+				newnode->addchild(new ParseNode((yyvsp[(3) - (3)]))); // dimen_slice
+				// attention flattern_bin
+				 newnode = flattern_bin(newnode);
+				(yyval) = *newnode;
+				update_pos((yyval));
+			}
+    break;
+
+  case 31:
+/* Line 1792 of yacc.c  */
+#line 285 "for90.y"
     {
 				/* function call OR array index */
 				/* NOTE that array index can be A(1:2, 3:4) */
@@ -2037,9 +2070,9 @@ yyreduce:
 			}
     break;
 
-  case 31:
+  case 32:
 /* Line 1792 of yacc.c  */
-#line 278 "for90.y"
+#line 307 "for90.y"
     {
 				/* function call OR array index */
 				ParseNode * newnode = new ParseNode();
@@ -2053,9 +2086,9 @@ yyreduce:
 			}
     break;
 
-  case 32:
+  case 33:
 /* Line 1792 of yacc.c  */
-#line 291 "for90.y"
+#line 320 "for90.y"
     {
 				/* `function_array` rule has priority over this rule  */
 				ParseNode * newnode = new ParseNode();
@@ -2070,9 +2103,9 @@ yyreduce:
 			}
     break;
 
-  case 33:
+  case 34:
 /* Line 1792 of yacc.c  */
-#line 304 "for90.y"
+#line 333 "for90.y"
     {
 				ParseNode * newnode = new ParseNode();
 				sprintf(codegen_buf, "%s + %s", (yyvsp[(1) - (4)]).fs.CurrentTerm.what.c_str(), (yyvsp[(3) - (4)]).fs.CurrentTerm.what.c_str());
@@ -2084,9 +2117,9 @@ yyreduce:
 			}
     break;
 
-  case 34:
+  case 35:
 /* Line 1792 of yacc.c  */
-#line 314 "for90.y"
+#line 343 "for90.y"
     {
 				ParseNode * newnode = new ParseNode();
 				sprintf(codegen_buf, "%s - %s", (yyvsp[(1) - (4)]).fs.CurrentTerm.what.c_str(), (yyvsp[(3) - (4)]).fs.CurrentTerm.what.c_str());
@@ -2098,9 +2131,9 @@ yyreduce:
 			}
     break;
 
-  case 35:
+  case 36:
 /* Line 1792 of yacc.c  */
-#line 324 "for90.y"
+#line 353 "for90.y"
     {
 				ParseNode * newnode = new ParseNode();
 				sprintf(codegen_buf, "%s * %s", (yyvsp[(1) - (4)]).fs.CurrentTerm.what.c_str(), (yyvsp[(3) - (4)]).fs.CurrentTerm.what.c_str());
@@ -2112,9 +2145,9 @@ yyreduce:
 			}
     break;
 
-  case 36:
+  case 37:
 /* Line 1792 of yacc.c  */
-#line 334 "for90.y"
+#line 363 "for90.y"
     {
 				ParseNode * newnode = new ParseNode();
 				sprintf(codegen_buf, "%s / %s", (yyvsp[(1) - (4)]).fs.CurrentTerm.what.c_str(), (yyvsp[(3) - (4)]).fs.CurrentTerm.what.c_str());
@@ -2126,9 +2159,9 @@ yyreduce:
 			}
     break;
 
-  case 37:
+  case 38:
 /* Line 1792 of yacc.c  */
-#line 344 "for90.y"
+#line 373 "for90.y"
     {
 				ParseNode * newnode = new ParseNode();
 				sprintf(codegen_buf, "power(%s, %s)", (yyvsp[(1) - (4)]).fs.CurrentTerm.what.c_str(), (yyvsp[(3) - (4)]).fs.CurrentTerm.what.c_str());
@@ -2140,9 +2173,9 @@ yyreduce:
 			}
     break;
 
-  case 38:
+  case 39:
 /* Line 1792 of yacc.c  */
-#line 354 "for90.y"
+#line 383 "for90.y"
     {
 				ParseNode * newnode = new ParseNode();
 				sprintf(codegen_buf, "(-%s)", (yyvsp[(1) - (3)]).fs.CurrentTerm.what.c_str(), (yyvsp[(3) - (3)]).fs.CurrentTerm.what.c_str());
@@ -2154,18 +2187,18 @@ yyreduce:
 			}
     break;
 
-  case 39:
+  case 40:
 /* Line 1792 of yacc.c  */
-#line 364 "for90.y"
+#line 393 "for90.y"
     { 
 				// 
 				(yyval) = (yyvsp[(1) - (2)]);
 			}
     break;
 
-  case 40:
+  case 41:
 /* Line 1792 of yacc.c  */
-#line 369 "for90.y"
+#line 398 "for90.y"
     {
 				// may cause reduction-reduction conflict when use `variable` instead of `callable`
 				// TODO : i am a little strange that `integer::a, b, c` works well because i am afraid that callable will reduce to exp from here. however according to LR(1), `::` is not in FOLLOW(exp)
@@ -2174,9 +2207,9 @@ yyreduce:
 			}
     break;
 
-  case 41:
+  case 42:
 /* Line 1792 of yacc.c  */
-#line 377 "for90.y"
+#line 406 "for90.y"
     {
 				/* argtable is used in function call */
 				ParseNode * newnode = new ParseNode();
@@ -2190,9 +2223,9 @@ yyreduce:
 			}
     break;
 
-  case 42:
+  case 43:
 /* Line 1792 of yacc.c  */
-#line 389 "for90.y"
+#line 418 "for90.y"
     {
 				ParseNode * newnode = new ParseNode();
 #ifndef LAZY_GEN
@@ -2207,9 +2240,9 @@ yyreduce:
 			}
     break;
 
-  case 43:
+  case 44:
 /* Line 1792 of yacc.c  */
-#line 402 "for90.y"
+#line 431 "for90.y"
     {
 				ParseNode * newnode = new ParseNode();
 #ifndef LAZY_GEN
@@ -2222,17 +2255,17 @@ yyreduce:
 			}
     break;
 
-  case 44:
+  case 45:
 /* Line 1792 of yacc.c  */
-#line 413 "for90.y"
+#line 442 "for90.y"
     {
 				// TODO : argtable can also be empty
 			}
     break;
 
-  case 45:
+  case 46:
 /* Line 1792 of yacc.c  */
-#line 418 "for90.y"
+#line 447 "for90.y"
     {
 				// TODO IMPORTANT
 				/*
@@ -2249,9 +2282,9 @@ yyreduce:
 			}
     break;
 
-  case 46:
+  case 47:
 /* Line 1792 of yacc.c  */
-#line 433 "for90.y"
+#line 462 "for90.y"
     {
 				ParseNode * newnode = new ParseNode();
 				/* 因为var_def本身可能生成多行代码, 因此此处生成代码不应当带分号`;` */
@@ -2265,9 +2298,9 @@ yyreduce:
 			}
     break;
 
-  case 54:
+  case 55:
 /* Line 1792 of yacc.c  */
-#line 454 "for90.y"
+#line 483 "for90.y"
     {
 				ParseNode * newnode = new ParseNode();
 				sprintf(codegen_buf, "%s = %s", (yyvsp[(1) - (3)]).fs.CurrentTerm.what.c_str(), (yyvsp[(3) - (3)]).fs.CurrentTerm.what.c_str());
@@ -2280,9 +2313,9 @@ yyreduce:
 			}
     break;
 
-  case 55:
+  case 56:
 /* Line 1792 of yacc.c  */
-#line 466 "for90.y"
+#line 495 "for90.y"
     {
 				ParseNode * newnode = new ParseNode();
 				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_STATEMENT, "" };
@@ -2292,9 +2325,9 @@ yyreduce:
 			}
     break;
 
-  case 56:
+  case 57:
 /* Line 1792 of yacc.c  */
-#line 475 "for90.y"
+#line 504 "for90.y"
     {
 				ParseNode * newnode = new ParseNode();
 				sprintf(codegen_buf, "%s \n", (yyvsp[(1) - (1)]).fs.CurrentTerm.what.c_str());
@@ -2305,9 +2338,9 @@ yyreduce:
 			}
     break;
 
-  case 57:
+  case 58:
 /* Line 1792 of yacc.c  */
-#line 484 "for90.y"
+#line 513 "for90.y"
     {
 				ParseNode * newnode = new ParseNode();
 				sprintf(codegen_buf, "%s \n %s \n", (yyvsp[(1) - (2)]).fs.CurrentTerm.what.c_str(), (yyvsp[(2) - (2)]).fs.CurrentTerm.what.c_str());
@@ -2320,53 +2353,53 @@ yyreduce:
 			}
     break;
 
-  case 58:
+  case 59:
 /* Line 1792 of yacc.c  */
-#line 495 "for90.y"
+#line 524 "for90.y"
     {
 				/* suite can be empty but stmt can not */
 			}
     break;
 
-  case 63:
+  case 64:
 /* Line 1792 of yacc.c  */
-#line 504 "for90.y"
+#line 533 "for90.y"
     {
 				(yyval).fs.CurrentTerm = Term{ TokenMeta::META_NONTERMINAL, "" };
 				update_pos((yyval));
 			}
     break;
 
-  case 64:
+  case 65:
 /* Line 1792 of yacc.c  */
-#line 509 "for90.y"
+#line 538 "for90.y"
     {
 				(yyval).fs.CurrentTerm = Term{ TokenMeta::META_NONTERMINAL, (yyvsp[(1) - (1)]).fs.CurrentTerm.what };
 				update_pos((yyval));
 			}
     break;
 
-  case 65:
+  case 66:
 /* Line 1792 of yacc.c  */
-#line 514 "for90.y"
+#line 543 "for90.y"
     {
 				(yyval).fs.CurrentTerm = Term{ TokenMeta::NT_AUTOFORMATTER, "" };
 				update_pos((yyval));
 			}
     break;
 
-  case 66:
+  case 67:
 /* Line 1792 of yacc.c  */
-#line 519 "for90.y"
+#line 548 "for90.y"
     {
 				(yyval).fs.CurrentTerm = Term{ TokenMeta::NT_FORMATTER, (yyvsp[(1) - (1)]).fs.CurrentTerm.what };
 				update_pos((yyval));
 			}
     break;
 
-  case 67:
+  case 68:
 /* Line 1792 of yacc.c  */
-#line 525 "for90.y"
+#line 554 "for90.y"
     {
 				ParseNode * newnode = new ParseNode();
 				/* target code of io_info depend on context */
@@ -2378,9 +2411,9 @@ yyreduce:
 			}
     break;
 
-  case 68:
+  case 69:
 /* Line 1792 of yacc.c  */
-#line 536 "for90.y"
+#line 565 "for90.y"
     {
 				ParseNode * newnode = new ParseNode();
 				newnode->addchild(new ParseNode((yyvsp[(3) - (5)]))); // ioinfo
@@ -2414,19 +2447,9 @@ yyreduce:
 			}
     break;
 
-  case 69:
-/* Line 1792 of yacc.c  */
-#line 573 "for90.y"
-    {
-				(yyvsp[(1) - (1)]).fs.CurrentTerm.what = typename_map.at((yyvsp[(1) - (1)]).fs.CurrentTerm.what);
-				(yyval) = (yyvsp[(1) - (1)]);
-				update_pos((yyval));
-			}
-    break;
-
   case 70:
 /* Line 1792 of yacc.c  */
-#line 579 "for90.y"
+#line 602 "for90.y"
     {
 				(yyvsp[(1) - (1)]).fs.CurrentTerm.what = typename_map.at((yyvsp[(1) - (1)]).fs.CurrentTerm.what);
 				(yyval) = (yyvsp[(1) - (1)]);
@@ -2436,7 +2459,7 @@ yyreduce:
 
   case 71:
 /* Line 1792 of yacc.c  */
-#line 585 "for90.y"
+#line 608 "for90.y"
     {
 				(yyvsp[(1) - (1)]).fs.CurrentTerm.what = typename_map.at((yyvsp[(1) - (1)]).fs.CurrentTerm.what);
 				(yyval) = (yyvsp[(1) - (1)]);
@@ -2446,7 +2469,7 @@ yyreduce:
 
   case 72:
 /* Line 1792 of yacc.c  */
-#line 591 "for90.y"
+#line 614 "for90.y"
     {
 				(yyvsp[(1) - (1)]).fs.CurrentTerm.what = typename_map.at((yyvsp[(1) - (1)]).fs.CurrentTerm.what);
 				(yyval) = (yyvsp[(1) - (1)]);
@@ -2456,7 +2479,7 @@ yyreduce:
 
   case 73:
 /* Line 1792 of yacc.c  */
-#line 597 "for90.y"
+#line 620 "for90.y"
     {
 				(yyvsp[(1) - (1)]).fs.CurrentTerm.what = typename_map.at((yyvsp[(1) - (1)]).fs.CurrentTerm.what);
 				(yyval) = (yyvsp[(1) - (1)]);
@@ -2466,12 +2489,22 @@ yyreduce:
 
   case 74:
 /* Line 1792 of yacc.c  */
-#line 605 "for90.y"
+#line 626 "for90.y"
+    {
+				(yyvsp[(1) - (1)]).fs.CurrentTerm.what = typename_map.at((yyvsp[(1) - (1)]).fs.CurrentTerm.what);
+				(yyval) = (yyvsp[(1) - (1)]);
+				update_pos((yyval));
+			}
+    break;
+
+  case 75:
+/* Line 1792 of yacc.c  */
+#line 634 "for90.y"
     {
 				/* array decl */
 				string arr_decl = ""; string var_decl = ""; bool do_arr = false;
 				ParseNode * newnode = new ParseNode();
-				ParseNode * ty = new ParseNode((yyvsp[(1) - (4)]));
+				ParseNode * ty = new ParseNode((yyvsp[(1) - (4)])); // type
 				newnode->addchild(ty); // type
 				ParseNode * iden = &(yyvsp[(2) - (4)]); // dummy_variable_iden
 				VariableDescAttr * vardescattr = dynamic_cast<VariableDescAttr *>(iden->attr);
@@ -2494,6 +2527,7 @@ yyreduce:
 					/* enumerate paramtable */
 					do {
 						// for all non-flatterned paramtable
+#define USE_LOOP
 						for (int i = 0; i < pn->child.size(); i++)
 						{
 							// for each variable in flatterned paramtable
@@ -2501,7 +2535,8 @@ yyreduce:
 							sprintf(codegen_buf, "forarray<%s>", ty->fs.CurrentTerm.what.c_str());
 							string type_str(codegen_buf);
 							// init high dimension array
-							vector<string> this_major;
+							/* though using for-loop to init a high-dimension array is verbose comparing to using constructors, i use this form because it is more clear and it can remind users of the cost of using a high dimension array */
+							vector<string> this_major; /* if you want to set value of a(i0)(i1)(i2) then this major is a(i0)(i1) */
 							this_major.push_back(pn->child[i]->child[0]->fs.CurrentTerm.what /* array name */);
 							for (int i = 1; i < slice->child.size(); i++)
 							{
@@ -2513,7 +2548,7 @@ yyreduce:
 								string prev_type_str = type_str;
 								sprintf(codegen_buf, "forarray< %s >", type_str.c_str());
 								type_str = string(codegen_buf);
-								sprintf(codegen_buf, "for(int i%d = %s; i%d < %s; i%d++){\n\t%s(i%d) = %s(%s,%s);\n%s\n}\n"
+								sprintf(codegen_buf, "for(int i%d = %s; i%d < %s; i%d++){\n\t%s(i%d) = %s(%s, %s + 1);\n%s\n}\n" /* NOTE fortran is [lower_bound, upper_bound] cpp is [lower_bound, upper_bound) */
 									, sliceid, slice->child[sliceid]->child[0]->fs.CurrentTerm.what.c_str(), sliceid, slice->child[sliceid]->child[1]->fs.CurrentTerm.what.c_str(), sliceid
 									, this_major[sliceid].c_str(), sliceid, prev_type_str.c_str(), slice->child[sliceid + 1]->child[0]->fs.CurrentTerm.what.c_str(), slice->child[sliceid + 1]->child[1]->fs.CurrentTerm.what.c_str()
 									, sliceid + 1 == slice->child.size() - 1 ? "" : tabber(slice->child[sliceid + 1]->fs.CurrentTerm.what).c_str());
@@ -2521,15 +2556,14 @@ yyreduce:
 								slice->child[sliceid]->fs.CurrentTerm.what = string(codegen_buf);
 							}
 							if (vardescattr->desc.reference) {
-								sprintf(codegen_buf, "%s & %s(%s,%s)", type_str.c_str(), pn->child[i]->child[0]->fs.CurrentTerm.what.c_str() /* array name */
+								sprintf(codegen_buf, "%s & %s(%s, %s + 1);\n", type_str.c_str(), pn->child[i]->child[0]->fs.CurrentTerm.what.c_str() /* array name */
 									, slice->child[0]->child[0]->fs.CurrentTerm.what.c_str(), slice->child[0]->child[1]->fs.CurrentTerm.what.c_str() /* slice from to */);
 							}
 							else {
-								sprintf(codegen_buf, "%s %s(%s,%s)", type_str.c_str(), pn->child[i]->child[0]->fs.CurrentTerm.what.c_str() /* array name */
+								sprintf(codegen_buf, "%s %s(%s, %s + 1);\n", type_str.c_str(), pn->child[i]->child[0]->fs.CurrentTerm.what.c_str() /* array name */
 									, slice->child[0]->child[0]->fs.CurrentTerm.what.c_str(), slice->child[0]->child[1]->fs.CurrentTerm.what.c_str() /* slice from to */);
 							}
 							arr_decl += codegen_buf;
-							arr_decl += ";\n";
 							// init high dimension array
 							arr_decl += slice->child[0]->fs.CurrentTerm.what.c_str();
 							/* set initial value */
@@ -2595,9 +2629,9 @@ yyreduce:
 			}
     break;
 
-  case 75:
+  case 76:
 /* Line 1792 of yacc.c  */
-#line 733 "for90.y"
+#line 763 "for90.y"
     {
 				/* paramtable is used in function decl */
 				/* this paramtable has only one value */
@@ -2616,9 +2650,9 @@ yyreduce:
 			}
     break;
 
-  case 76:
+  case 77:
 /* Line 1792 of yacc.c  */
-#line 750 "for90.y"
+#line 780 "for90.y"
     {
 				/* initial value is required in parse tree because it can be an non-terminal `exp` */
 				/* non-array initial values */
@@ -2637,9 +2671,9 @@ yyreduce:
 			}
     break;
 
-  case 77:
+  case 78:
 /* Line 1792 of yacc.c  */
-#line 767 "for90.y"
+#line 797 "for90.y"
     {
 				/* initial value is required in parse tree because it can be an non-terminal `exp` */
 				/* array initial values */
@@ -2659,18 +2693,18 @@ yyreduce:
 			}
     break;
 
-  case 78:
+  case 79:
 /* Line 1792 of yacc.c  */
-#line 785 "for90.y"
+#line 815 "for90.y"
     {
 				(yyval) = (yyvsp[(1) - (1)]);
 				update_pos((yyval));
 			}
     break;
 
-  case 79:
+  case 80:
 /* Line 1792 of yacc.c  */
-#line 790 "for90.y"
+#line 820 "for90.y"
     {
 				ParseNode * newnode = new ParseNode(); 
 				newnode->addchild((yyvsp[(1) - (3)]).child[0]); // paramtable_1
@@ -2686,9 +2720,9 @@ yyreduce:
 			}
     break;
 
-  case 80:
+  case 81:
 /* Line 1792 of yacc.c  */
-#line 804 "for90.y"
+#line 834 "for90.y"
     {
 				/* no params */
 				ParseNode * newnode = new ParseNode();
@@ -2698,9 +2732,9 @@ yyreduce:
 			}
     break;
 
-  case 81:
+  case 82:
 /* Line 1792 of yacc.c  */
-#line 813 "for90.y"
+#line 843 "for90.y"
     {
 				/* something like `abs(i), i=1,4` */
 				ParseNode * newnode = new ParseNode();
@@ -2713,12 +2747,13 @@ yyreduce:
 			}
     break;
 
-  case 82:
+  case 83:
 /* Line 1792 of yacc.c  */
-#line 825 "for90.y"
+#line 855 "for90.y"
     {
 				/* give initial value */
-				/* NOTE that `B(1:2:3)` can be either a single-element argtable or a exp */
+				/* NOTE that `B(1:2:3)` can be either a single-element argtable or a exp, this can probably lead to reduction conflicts */
+				/* NOTE fortran use a 1d list to initialize a 2d(or higher) array, however, contrary to c++ and most other language does, it store them in a **conlumn - first order**. for a 2d array, it means you a order of a(1)(1)->a(2)(1)->a(lb_1)(1)->a(1)(2) */
 				ParseNode * newnode = new ParseNode();
 				ParseNode & argtable = (yyvsp[(2) - (3)]);
 				sprintf(codegen_buf, "(%s)", argtable.fs.CurrentTerm.what.c_str());
@@ -2729,9 +2764,9 @@ yyreduce:
 			}
     break;
 
-  case 83:
+  case 84:
 /* Line 1792 of yacc.c  */
-#line 837 "for90.y"
+#line 868 "for90.y"
     {
 				/* give generate stmt */
 				ParseNode * newnode = new ParseNode();
@@ -2753,15 +2788,12 @@ yyreduce:
 				/* rule `YY_ARRAYINITIAL_START variable '(' dimen_slice ')' YY_ARRAYINITIAL_END ` is included in this rule*/
 				/* note that this two rules can not be splitted because `exp` and `variable` + '(' can cause reduction conflict */
 				/* note either that `variable '(' dimen_slice ')'` is an `exp` */
-				/* give initial value */
-
-				// 
 			}
     break;
 
-  case 84:
+  case 85:
 /* Line 1792 of yacc.c  */
-#line 863 "for90.y"
+#line 891 "for90.y"
     {
 				/* give a array slice */
 				/* NOTE that `B(1:2:3)` can be either a single-element argtable or a exp */
@@ -2797,9 +2829,9 @@ yyreduce:
 			}
     break;
 
-  case 85:
+  case 86:
 /* Line 1792 of yacc.c  */
-#line 899 "for90.y"
+#line 927 "for90.y"
     {
 				ParseNode * newnode = new ParseNode();
 				(yyvsp[(5) - (8)]).fs.CurrentTerm.what = tabber((yyvsp[(5) - (8)]).fs.CurrentTerm.what);
@@ -2816,9 +2848,9 @@ yyreduce:
 			}
     break;
 
-  case 86:
+  case 87:
 /* Line 1792 of yacc.c  */
-#line 914 "for90.y"
+#line 942 "for90.y"
     {
 				ParseNode * newnode = new ParseNode();
 				(yyvsp[(5) - (11)]).fs.CurrentTerm.what = tabber((yyvsp[(5) - (11)]).fs.CurrentTerm.what); (yyvsp[(8) - (11)]).fs.CurrentTerm.what = tabber((yyvsp[(8) - (11)]).fs.CurrentTerm.what);
@@ -2837,9 +2869,9 @@ yyreduce:
 			}
     break;
 
-  case 87:
+  case 88:
 /* Line 1792 of yacc.c  */
-#line 931 "for90.y"
+#line 959 "for90.y"
     {
 				ParseNode * newnode = new ParseNode();
 				(yyvsp[(5) - (9)]).fs.CurrentTerm.what = tabber((yyvsp[(5) - (9)]).fs.CurrentTerm.what); (yyvsp[(6) - (9)]).fs.CurrentTerm.what = tabber((yyvsp[(6) - (9)]).fs.CurrentTerm.what);
@@ -2857,9 +2889,9 @@ yyreduce:
 			}
     break;
 
-  case 88:
+  case 89:
 /* Line 1792 of yacc.c  */
-#line 947 "for90.y"
+#line 975 "for90.y"
     {
 				ParseNode * newnode = new ParseNode();
 				(yyvsp[(3) - (11)]).fs.CurrentTerm.what = tabber((yyvsp[(3) - (11)]).fs.CurrentTerm.what); (yyvsp[(6) - (11)]).fs.CurrentTerm.what = tabber((yyvsp[(6) - (11)]).fs.CurrentTerm.what);
@@ -2878,9 +2910,9 @@ yyreduce:
 			}
     break;
 
-  case 89:
+  case 90:
 /* Line 1792 of yacc.c  */
-#line 964 "for90.y"
+#line 992 "for90.y"
     {
 				ParseNode * newnode = new ParseNode();
 				(yyvsp[(5) - (5)]).fs.CurrentTerm.what = tabber((yyvsp[(5) - (5)]).fs.CurrentTerm.what);
@@ -2897,9 +2929,9 @@ yyreduce:
 			}
     break;
 
-  case 90:
+  case 91:
 /* Line 1792 of yacc.c  */
-#line 980 "for90.y"
+#line 1008 "for90.y"
     {
 				ParseNode * newnode = new ParseNode();
 				(yyvsp[(5) - (6)]).fs.CurrentTerm.what = tabber((yyvsp[(5) - (6)]).fs.CurrentTerm.what);
@@ -2917,9 +2949,9 @@ yyreduce:
 			}
     break;
 
-  case 91:
+  case 92:
 /* Line 1792 of yacc.c  */
-#line 996 "for90.y"
+#line 1024 "for90.y"
     {
 				ParseNode * newnode = new ParseNode(); 
 #ifndef LAZY_GEN
@@ -2935,9 +2967,9 @@ yyreduce:
 			}
     break;
 
-  case 92:
+  case 93:
 /* Line 1792 of yacc.c  */
-#line 1010 "for90.y"
+#line 1038 "for90.y"
     {
 				ParseNode * newnode = new ParseNode();
 				(yyvsp[(8) - (10)]).fs.CurrentTerm.what = tabber((yyvsp[(8) - (10)]).fs.CurrentTerm.what); 
@@ -2956,9 +2988,9 @@ yyreduce:
 			}
     break;
 
-  case 93:
+  case 94:
 /* Line 1792 of yacc.c  */
-#line 1027 "for90.y"
+#line 1055 "for90.y"
     {
 				ParseNode * newnode = new ParseNode();
 				(yyvsp[(9) - (12)]).fs.CurrentTerm.what = tabber((yyvsp[(9) - (12)]).fs.CurrentTerm.what);
@@ -2978,9 +3010,9 @@ yyreduce:
 			}
     break;
 
-  case 94:
+  case 95:
 /* Line 1792 of yacc.c  */
-#line 1046 "for90.y"
+#line 1074 "for90.y"
     {
 				/* fortran90 does not declare type of arguments in function declaration statement*/
 				ParseNode * newnode = new ParseNode();
@@ -3127,18 +3159,9 @@ yyreduce:
 			}
     break;
 
-  case 95:
-/* Line 1792 of yacc.c  */
-#line 1192 "for90.y"
-    {
-				(yyval) = (yyvsp[(1) - (1)]);
-				update_pos((yyval));
-			}
-    break;
-
   case 96:
 /* Line 1792 of yacc.c  */
-#line 1197 "for90.y"
+#line 1220 "for90.y"
     {
 				(yyval) = (yyvsp[(1) - (1)]);
 				update_pos((yyval));
@@ -3147,7 +3170,16 @@ yyreduce:
 
   case 97:
 /* Line 1792 of yacc.c  */
-#line 1203 "for90.y"
+#line 1225 "for90.y"
+    {
+				(yyval) = (yyvsp[(1) - (1)]);
+				update_pos((yyval));
+			}
+    break;
+
+  case 98:
+/* Line 1792 of yacc.c  */
+#line 1231 "for90.y"
     { 
 				ParseNode * newnode = new ParseNode();
 				newnode->addchild(new ParseNode((yyvsp[(4) - (8)]))); //wrapper
@@ -3155,9 +3187,9 @@ yyreduce:
 			}
     break;
 
-  case 98:
+  case 99:
 /* Line 1792 of yacc.c  */
-#line 1209 "for90.y"
+#line 1237 "for90.y"
     {
 				ParseNode * newnode = new ParseNode();
 				newnode->addchild(new ParseNode((yyvsp[(3) - (6)]))); //wrapper
@@ -3167,7 +3199,7 @@ yyreduce:
 
 
 /* Line 1792 of yacc.c  */
-#line 3171 "for90.tab.cpp"
+#line 3203 "for90.tab.cpp"
       default: break;
     }
   /* User semantic actions sometimes alter yychar, and that requires
@@ -3399,7 +3431,7 @@ yyreturn:
 
 
 /* Line 2055 of yacc.c  */
-#line 1215 "for90.y"
+#line 1243 "for90.y"
 
 //extern "C" int yylex();
 
