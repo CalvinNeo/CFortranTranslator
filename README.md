@@ -17,8 +17,8 @@ refer to for90.y for all accepted grammar
 
 |for90|c++|
 |:-:|:-:|
-|INTEGER(all kind)|int|
-|REAL(all kind)|double|
+|INTEGER(all length)|int|
+|REAL(all length)|double|
 |LOGICAL|bool|
 |COMPLEX|struct for_complex|
 |CHARACTER|std::string|
@@ -88,5 +88,5 @@ all parse tree nodes are defined in Intents.h with an `NT_` prefix
 - ~~rewrite paramtable and var_def(simplify right-recursive rules, move dimension to dummy_variale_iden)~~
 - ~~more elegant multi-word keyword handler(instead of defined in regular expression)~~
 - function forward declaration
-- if slice can be a scalar x and equal to (1: x + 1), there will be conflict in argtable
+- ~~if slice can be a scalar x and equal to (1: x + 1), there will be conflict in argtable~~
 

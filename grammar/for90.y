@@ -87,19 +87,45 @@ using namespace std;
 				/* if is array reduce immediately and goto `var_def` */
 				/* do not parse array slices here because it can be dificult */
 				ParseNode * newnode = new ParseNode();
-				ParseNode * slice = new ParseNode($3);
-				newnode->addchild(slice); // def slice
+				ParseNode * dimen = new ParseNode($3);
+				newnode->addchild(dimen); // def slice
 				int sliceid = 0; /* if the array has 2 dimensions, sliceid is 0..1 */
-				for (sliceid = 0; sliceid < slice->child.size(); sliceid++)
+				for (sliceid = 0; sliceid < dimen->child.size(); sliceid++)
 				{
 					sprintf(codegen_buf, "(%s, %s)"
 						/* from, to */
-						, slice->child[sliceid]->child[0]->fs.CurrentTerm.what.c_str()
-						, slice->child[sliceid]->child[1]->fs.CurrentTerm.what.c_str());
-					slice->child[sliceid]->fs.CurrentTerm = Term{ TokenMeta::NT_VARIABLEDESC, string(codegen_buf) };
+						, dimen->child[sliceid]->child[0]->fs.CurrentTerm.what.c_str()
+						, dimen->child[sliceid]->child[1]->fs.CurrentTerm.what.c_str());
+					dimen->child[sliceid]->fs.CurrentTerm = Term{ TokenMeta::NT_VARIABLEDESC, string(codegen_buf) };
 				}
 				newnode->attr = new VariableDescAttr(newnode);
-				dynamic_cast<VariableDescAttr *>(newnode->attr)->desc.slice = slice;
+				dynamic_cast<VariableDescAttr *>(newnode->attr)->desc.slice = dimen;
+				$$ = *newnode;
+				update_pos($$);
+			}
+		| YY_DIMENSION '(' exp ')'
+			{
+				/* define array like a(1) */
+				ParseNode * newnode = new ParseNode();
+				ParseNode * dimen = new ParseNode();
+				ParseNode * slice = new ParseNode();
+				ParseNode * exp = new ParseNode();
+				exp->fs.CurrentTerm = Term{ TokenMeta::NT_VARIABLEDESC, "1" };
+				slice->addchild(exp); // slice from 1
+				sprintf(codegen_buf, "%s", /* from 1, to */$3.fs.CurrentTerm.what.c_str());
+				slice->addchild(new ParseNode($3)); // slice to
+				dimen->addchild(slice);
+				newnode->addchild(dimen); // def slice
+
+				int sliceid = 0; /* only 1 dimension */
+				sprintf(codegen_buf, "(%s, %s)"
+					/* from 1, to */
+					, dimen->child[sliceid]->child[0]->fs.CurrentTerm.what.c_str()
+					, dimen->child[sliceid]->child[1]->fs.CurrentTerm.what.c_str());
+				dimen->child[sliceid]->fs.CurrentTerm = Term{ TokenMeta::NT_VARIABLEDESC, string(codegen_buf) };
+
+				newnode->attr = new VariableDescAttr(newnode);
+				dynamic_cast<VariableDescAttr *>(newnode->attr)->desc.slice = dimen;
 				$$ = *newnode;
 				update_pos($$);
 			}
