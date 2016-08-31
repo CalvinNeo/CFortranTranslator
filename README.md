@@ -88,5 +88,5 @@ all parse tree nodes are defined in Intents.h with an `NT_` prefix
 - ~~rewrite paramtable and var_def(simplify right-recursive rules, move dimension to dummy_variale_iden)~~
 - ~~more elegant multi-word keyword handler(instead of defined in regular expression)~~
 - function forward declaration
-- ~~slice can be a scalar x and equal to (1: x + 1)~~
+- if slice can be a scalar x and equal to (1: x + 1), there will be conflict in argtable
 

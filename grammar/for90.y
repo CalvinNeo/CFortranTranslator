@@ -203,18 +203,7 @@ using namespace std;
 				$$ = $1;
 			}
 	
-	slice : exp
-			{
-				/* arr[to] */
-				ParseNode * newnode = new ParseNode();
-				ParseNode & ub = $1;
-				/* target code of slice depend on context */
-				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_SLICE, "" };
-				newnode->addchild(new ParseNode(ub)); // upper bound
-				$$ = *newnode;
-				update_pos($$);
-			}
-		| exp ':' exp
+	slice : exp ':' exp
 			{
 				/* arr[from : to] */
 				ParseNode * newnode = new ParseNode();
@@ -226,6 +215,8 @@ using namespace std;
 				newnode->addchild(new ParseNode(ub)); // upper bound
 				$$ = *newnode;
 				update_pos($$);
+				/*
+				*/			
 			}
 		| exp ':' exp ':' exp
 			{
@@ -695,15 +686,36 @@ using namespace std;
 									, slice->child[0]->child[0]->fs.CurrentTerm.what.c_str(), slice->child[0]->child[1]->fs.CurrentTerm.what.c_str() /* slice from to */);
 							}
 							arr_decl += codegen_buf;
-							// init high dimension array
-							arr_decl += slice->child[0]->fs.CurrentTerm.what.c_str();
 							/* set initial value */
 							if (pn->child[i]->child[1]->fs.CurrentTerm.token == TokenMeta::NT_ARRAYBUILDER_VALUE) {
-								sprintf(codegen_buf, "%s.init%s;\n", pn->child[i]->child[0]->fs.CurrentTerm.what.c_str(), pn->child[i]->child[1]->fs.CurrentTerm.what.c_str());
+								//sprintf(codegen_buf, "%s.init%s;\n", pn->child[i]->child[0]->fs.CurrentTerm.what.c_str() /* variable name */
+								//	, pn->child[i]->child[1]->fs.CurrentTerm.what.c_str());
+								std::string vec_size = "std::vector<int>{", vec_lb = "std::vector<int>{";
+								for (int sliceid = 0; sliceid < slice->child.size(); sliceid++)
+								{
+									if (sliceid != 0) {
+										vec_lb += ",";
+										vec_size += ",";
+									}
+									vec_lb += slice->child[sliceid]->child[0]->fs.CurrentTerm.what;
+									int lb, ub;
+									sscanf(slice->child[sliceid]->child[0]->fs.CurrentTerm.what.c_str(), "%d", &lb);
+									sscanf(slice->child[sliceid]->child[1]->fs.CurrentTerm.what.c_str(), "%d", &ub);
+									sprintf(codegen_buf, "%d", ub - lb + 1);
+									vec_size += codegen_buf;
+								}
+								vec_size += "}", vec_lb += "}";
+								sprintf(codegen_buf, pn->child[i]->child[1]->fs.CurrentTerm.what.c_str() /* sth like "init_for1array(%%s, %%s, %%s, %s)\n" */
+									, pn->child[i]->child[0]->fs.CurrentTerm.what.c_str() /* variable name */
+									, vec_lb.c_str()
+									, vec_size.c_str());
 							}
 							else if (pn->child[i]->child[1]->fs.CurrentTerm.token == TokenMeta::NT_ARRAYBUILDER_EXP) {
 								string formatter = (pn->child[i]->child[1]->fs.CurrentTerm.what + ";\n");
 								sprintf(codegen_buf, formatter.c_str(), pn->child[i]->child[0]->fs.CurrentTerm.what.c_str());
+							}
+							else {
+								sprintf(codegen_buf, "");
 							}
 							arr_decl += codegen_buf;
 						}
@@ -857,8 +869,9 @@ using namespace std;
 				/* NOTE that `B(1:2:3)` can be either a single-element argtable or a exp, this can probably lead to reduction conflicts */
 				/* NOTE fortran use a 1d list to initialize a 2d(or higher) array, however, contrary to c++ and most other language does, it store them in a **conlumn - first order**. for a 2d array, it means you a order of a(1)(1)->a(2)(1)->a(lb_1)(1)->a(1)(2) */
 				ParseNode * newnode = new ParseNode();
-				ParseNode & argtable = $2;
-				sprintf(codegen_buf, "(%s)", argtable.fs.CurrentTerm.what.c_str());
+				ParseNode & argtable = $2; 
+				/* for1array<_Container_value_type> & farr, const std::vector<int> & lower_bound, const std::vector<int> & size, const std::vector<T> & values */
+				sprintf(codegen_buf, "init_for1array(%%s, %%s, %%s, %s);\n", /* value */ argtable.fs.CurrentTerm.what.c_str());
 				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_ARRAYBUILDER_VALUE, string(codegen_buf) };
 				newnode->addchild(new ParseNode(argtable)); // argtable
 				$$ = *newnode;
@@ -958,7 +971,7 @@ using namespace std;
 		| YY_IF exp YY_THEN crlf suite elseif_stmt YY_END YY_IF crlf
 			{
 				ParseNode * newnode = new ParseNode();
-				$5.fs.CurrentTerm.what = tabber($5.fs.CurrentTerm.what); $6.fs.CurrentTerm.what = tabber($6.fs.CurrentTerm.what);
+				$5.fs.CurrentTerm.what = tabber($5.fs.CurrentTerm.what); 
 #ifndef LAZY_GEN
 				sprintf(codegen_buf, "if (%s) {\n%s}\n%s", $2.fs.CurrentTerm.what.c_str(), $5.fs.CurrentTerm.what.c_str(), $6.fs.CurrentTerm.what.c_str());
 				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_IF, string(codegen_buf) };
@@ -974,7 +987,7 @@ using namespace std;
 		| YY_IF exp YY_THEN crlf suite elseif_stmt YY_ELSE crlf suite YY_END YY_IF
 			{
 				ParseNode * newnode = new ParseNode();
-				$3.fs.CurrentTerm.what = tabber($3.fs.CurrentTerm.what); $6.fs.CurrentTerm.what = tabber($6.fs.CurrentTerm.what);
+				$3.fs.CurrentTerm.what = tabber($3.fs.CurrentTerm.what); 
 #ifndef LAZY_GEN
 				sprintf(codegen_buf, "if (%s) {\n%s}\nelse {\n%s}%s", $1.fs.CurrentTerm.what.c_str(), $3.fs.CurrentTerm.what.c_str(), $6.fs.CurrentTerm.what.c_str(), $9.fs.CurrentTerm.what.c_str());
 				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_IF, string(codegen_buf) };
@@ -1218,6 +1231,8 @@ using namespace std;
 	
 	wrapper : suite
 			{
+				sprintf(codegen_buf, "%s", $1.fs.CurrentTerm.what.c_str());
+				$$.fs.CurrentTerm = Term{ TokenMeta::META_NONTERMINAL, string(codegen_buf) };
 				$$ = $1;
 				update_pos($$);
 			}
@@ -1228,15 +1243,19 @@ using namespace std;
 			}
 
     program : YY_PROGRAM YY_WORD crlf wrapper YY_END YY_PROGRAM YY_WORD crlf
-			{ 
+			{
 				ParseNode * newnode = new ParseNode();
 				newnode->addchild(new ParseNode($4)); //wrapper
+				sprintf(codegen_buf, "%s", $4.fs.CurrentTerm.what.c_str());
+				newnode->fs.CurrentTerm = Term{ TokenMeta::META_NONTERMINAL, string(codegen_buf) };
 				program_tree = *newnode;
 			}
         | YY_PROGRAM crlf wrapper YY_END YY_PROGRAM crlf
 			{
 				ParseNode * newnode = new ParseNode();
 				newnode->addchild(new ParseNode($3)); //wrapper
+				sprintf(codegen_buf, "%s", $3.fs.CurrentTerm.what.c_str());
+				newnode->fs.CurrentTerm = Term{ TokenMeta::META_NONTERMINAL, string(codegen_buf) };
 				program_tree = *newnode;
 			}
 

@@ -5,7 +5,7 @@ std::string for2cpp(std::string for_code) {
 	string cpp_code = cpp_header;
 	parse(for_code);
 	cpp_code += program_tree.fs.CurrentTerm.what;
-	return "";
+	return cpp_code;
 }
 
 

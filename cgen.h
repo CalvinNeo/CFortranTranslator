@@ -24,7 +24,7 @@ const std::map<std::string, std::string> funcname_map{
 	, { "forcomplex", "forcomplex" }
 };
 
-const std::string cpp_header = "#include\"for90std.h\"";
+const std::string cpp_header = "#include\"for90std.h\" \n";
 
 std::string for2cpp(std::string for_code); 
 
