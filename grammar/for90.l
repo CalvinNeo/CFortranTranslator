@@ -42,7 +42,7 @@ bool abandon = false;
 #define YYRTCOMPLEX(TOK) YYRTN(TOK, YY_COMPLEX) 
 // 规则中被定义的终结符, **包括ascii表内的单个字符**
 #define YYRTILLEGAL(TOK) update_yylval( Term{TOK, std::string(yytext)});  	 update_flex(1);	return yytext[0]; 
-#define YYRTCRLF()  update_yylval( Term{TokenMeta::CRLF, std::string(yytext)}); update_flex(yyleng);
+#define YYRTCRLF()  update_yylval( Term{TokenMeta::CRLF, std::string(yytext)}); update_flex(yyleng); return YY_CRLF;
 #define YYRTNOP() update_yylval( Term{TokenMeta::Nop, std::string(yytext)},  true);  update_flex(yyleng);
 
 #define RTN(TOK, YYTOK) YYRTN(TOK, YYTOK) 
@@ -138,6 +138,9 @@ void update_flex(int len, bool newline) {
 	else {
 		flex_state.parse_pos += len; flex_state.line_pos += flex_state.parse_len; flex_state.parse_len = len;
 	}
+}
+FlexState & get_flex_state() {
+	return flex_state;
 }
 #ifdef USE_YACC
 

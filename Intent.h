@@ -202,12 +202,11 @@
 
 		// system
 		CRLF = -1000,
-		InnerData = -1002,
 		Label = -1003,//书签
 		Sharp = -1004,//#号,表示预处理
 		EndOfScan = -1005, //表示Scanning读取结束
 		End = -1006,//程序结束
-		not_a_token = -1007,
+		Error = -1007,
 		Comments = -1008,// /*
 		CommentsEnd = -1009,// */
 		CommentLine = -1010,// //

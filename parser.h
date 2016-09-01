@@ -36,6 +36,7 @@ extern std::string global_code;
 void preorder(ParseNode * ptree);
 /* generate codes instead of in .y files */
 std::string lazy_gen(ParseNode * ptree);
+FlexState & get_flex_state();
 
 // yacc part code
 // implement in for90.y

@@ -47,7 +47,15 @@ using namespace std;
 
 %%
 	crlf : YY_CRLF
-		| 
+			{
+				$$.fs.CurrentTerm = Term{ TokenMeta::CRLF, "\n" };
+				update_pos($$);
+			}
+		|
+			{
+				$$.fs.CurrentTerm = Term{ TokenMeta::Nop, "" };
+				update_pos($$);
+			}
 
 	dummy_function_iden : YY_RECURSIVE
 		| dummy_function_iden
@@ -256,6 +264,21 @@ using namespace std;
 				$$ = *newnode;
 				update_pos($$);
 			}
+		| ':'
+			{
+				/* arr[from : to : step] */
+				ParseNode * newnode = new ParseNode();
+					ParseNode * lb = new ParseNode();
+					lb->fs.CurrentTerm = Term{ TokenMeta::NT_EXPRESSION, "-1" };
+					ParseNode * ub = new ParseNode();
+					ub->fs.CurrentTerm = Term{ TokenMeta::NT_EXPRESSION, "-1" };
+				/* target code of slice depend on context */
+				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_SLICE, "" };
+				newnode->addchild(new ParseNode(*lb)); // lower bound
+				newnode->addchild(new ParseNode(*ub)); // upper bound
+				$$ = *newnode;
+				update_pos($$);
+			}
 	dimen_slice : slice 
 			{
 				/* 1d array */
@@ -297,6 +320,31 @@ using namespace std;
 				$$ = *newnode;
 				update_pos($$);
 			}
+		| exp
+			{
+				/* argtable is used in function call */
+				ParseNode * newnode = new ParseNode();
+#ifndef LAZY_GEN
+				sprintf(codegen_buf, "%s", $1.fs.CurrentTerm.what.c_str());
+				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_ARGTABLE, string(codegen_buf) };
+#endif // !LAZY_GEN
+				newnode->addchild(new ParseNode($1)); // exp
+				$$ = *newnode;
+				update_pos($$);
+			}
+        | exp ',' argtable
+			{
+				ParseNode * newnode = new ParseNode();
+#ifndef LAZY_GEN
+				sprintf(codegen_buf, "%s, %s", $1.fs.CurrentTerm.what.c_str(), $3.fs.CurrentTerm.what.c_str());
+				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_ARGTABLE, string(codegen_buf) };
+#endif // !LAZY_GEN
+				newnode->addchild(new ParseNode($1)); // exp
+				newnode->addchild(new ParseNode($3)); // argtable
+				newnode = flattern_bin(newnode);
+				$$ = *newnode;
+				update_pos($$);
+			}
 
 	function_array : callable '(' argtable ')' crlf
 			{
@@ -311,7 +359,8 @@ using namespace std;
 				else {
 					name = $1.fs.CurrentTerm.what;
 				}
-				sprintf(codegen_buf, "%s(%s)", name.c_str(), $3.fs.CurrentTerm.what.c_str());
+				int token5 = $5.fs.CurrentTerm.token;
+				sprintf(codegen_buf, "%s(%s)%s", name.c_str(), $3.fs.CurrentTerm.what.c_str(), token5 == TokenMeta::CRLF ? ";" : "");
 				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_FUCNTIONARRAY, string(codegen_buf) };
 #endif // !LAZY_GEN
 				newnode->addchild(new ParseNode($1)); // function/array name
@@ -419,39 +468,43 @@ using namespace std;
 				$$ = $1;
 			}
 
-    argtable : exp
-			{
-				/* argtable is used in function call */
-				ParseNode * newnode = new ParseNode();
-#ifndef LAZY_GEN
-				sprintf(codegen_buf, "%s", $1.fs.CurrentTerm.what.c_str());
-				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_ARGTABLE, string(codegen_buf) };
-#endif // !LAZY_GEN
-				newnode->addchild(new ParseNode($1)); // exp
-				$$ = *newnode;
-				update_pos($$);
-			}
-        | exp ',' argtable
+    argtable : dimen_slice
 			{
 				ParseNode * newnode = new ParseNode();
 #ifndef LAZY_GEN
-				sprintf(codegen_buf, "%s, %s", $1.fs.CurrentTerm.what.c_str(), $3.fs.CurrentTerm.what.c_str());
-				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_ARGTABLE, string(codegen_buf) };
-#endif // !LAZY_GEN
-				newnode->addchild(new ParseNode($1)); // exp
-				newnode->addchild(new ParseNode($3)); // argtable
-				newnode = flattern_bin(newnode);
-				$$ = *newnode;
-				update_pos($$);
-			}
-		| dimen_slice
-			{
-				ParseNode * newnode = new ParseNode();
-#ifndef LAZY_GEN
-				sprintf(codegen_buf, "%s", $1.fs.CurrentTerm.what.c_str());
+				ParseNode & dimen = $1;
+				bool isdimen = false;
+				int sliceid = 0; /* if the array has 2 dimensions, sliceid is 0..1 */
+				dimen.fs.CurrentTerm.what = "";
+				for (sliceid = 0; sliceid < dimen.child.size(); sliceid++)
+				{
+					if (sliceid != 0) {
+						dimen.fs.CurrentTerm.what += ", ";
+					}
+					if (dimen.fs.CurrentTerm.token == TokenMeta::NT_DIMENSLICE) {
+						// dimen_slice
+						isdimen = true;
+						newnode->addchild(new ParseNode(*dimen.child[sliceid])); 
+						sprintf(codegen_buf, "%s, %s"
+							/* from, to */
+							, dimen.child[sliceid]->child[0]->fs.CurrentTerm.what.c_str()
+							, dimen.child[sliceid]->child[1]->fs.CurrentTerm.what.c_str());
+					}
+					else {
+						// exp
+						isdimen = false;
+						sprintf(codegen_buf, "%s", dimen.child[sliceid]->fs.CurrentTerm.what.c_str());							
+					}
+					dimen.fs.CurrentTerm.what += codegen_buf;
+				}
+				if (isdimen) {
+					sprintf(codegen_buf, ".slice(%s)", dimen.fs.CurrentTerm.what.c_str());
+				}
+				else {
+					sprintf(codegen_buf, "%s", dimen.fs.CurrentTerm.what.c_str());
+				}
 				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_ARGTABLE_DIMENSLICE, string(codegen_buf) };
 #endif // !LAZY_GEN
-				newnode->addchild(new ParseNode($1)); // dimen_slice
 				$$ = *newnode;
 				update_pos($$);
 			}
@@ -460,7 +513,7 @@ using namespace std;
 				// TODO : argtable can also be empty
 			}
 
-	stmt : exp
+	stmt : exp crlf
 			{
 				// TODO IMPORTANT
 				/*
@@ -475,7 +528,7 @@ using namespace std;
 				$$ = *newnode;
 				update_pos($$);
 			}
-		| var_def
+		| var_def crlf
 			{
 				ParseNode * newnode = new ParseNode();
 				/* 因为var_def本身可能生成多行代码, 因此此处生成代码不应当带分号`;` */
@@ -647,7 +700,7 @@ using namespace std;
 			}
 
 
-    var_def : type_spec dummy_variable_iden YY_DOUBLECOLON paramtable
+    var_def : type_spec dummy_variable_iden YY_DOUBLECOLON paramtable 
 			{
 				/* array decl */
 				string arr_decl = ""; string var_decl = ""; bool do_arr = false;
@@ -1015,7 +1068,7 @@ using namespace std;
 				ParseNode * newnode = new ParseNode();
 				$3.fs.CurrentTerm.what = tabber($3.fs.CurrentTerm.what); 
 #ifndef LAZY_GEN
-				sprintf(codegen_buf, "if (%s) {\n%s}\nelse {\n%s}%s", $1.fs.CurrentTerm.what.c_str(), $3.fs.CurrentTerm.what.c_str(), $6.fs.CurrentTerm.what.c_str(), $9.fs.CurrentTerm.what.c_str());
+				sprintf(codegen_buf, "if (%s) {\n%s}\nelse {\n%s}%s", $2.fs.CurrentTerm.what.c_str(), $5.fs.CurrentTerm.what.c_str(), $6.fs.CurrentTerm.what.c_str(), $9.fs.CurrentTerm.what.c_str());
 				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_IF, string(codegen_buf) };
 #endif // !LAZY_GEN
 
@@ -1291,6 +1344,7 @@ using namespace std;
 void yyerror(const char* s)
 {
 	fprintf(stderr, "%s\n", s);
+	printf("from %d len %d, current token %d : %s \n", get_flex_state().parse_pos, get_flex_state().parse_len, yylval.fs.CurrentTerm.token, yylval.fs.CurrentTerm.what.c_str());
 }
 string tabber(string & src) {
 	string newline;

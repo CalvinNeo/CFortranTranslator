@@ -74,6 +74,8 @@ all parse tree nodes are defined in Intents.h with an `NT_` prefix
 - NT_SUITE -> NT_STATEMENT
 - NT_VARIABLEDEFINE -> (typeinfo, NT_DIMENSLICE || dummy, NT_PARAMTABLE )
 - NT_PARAMTABLE -> NT_VARIABLEINITIAL || NT_DECLAREDVARIABLE -> (NT_DECLAREDVARIABLE -> (UnknownVariant, NT_EXPRESSION as initial value) ) 
+- NT_ARGTABLE_DIMENSLICE -> NT_DIMENSLICE
+- NT_ARGTABLE -> NT_EXPRESSION
 
 ## todolist
 - lazygen(partial)
@@ -90,4 +92,5 @@ all parse tree nodes are defined in Intents.h with an `NT_` prefix
 - function forward declaration
 - ~~if slice can be a scalar x and equal to (1: x + 1), there will be conflict in argtable~~
 - c-style array(partial)
-
+- variable with type
+- enable crlf rule(may cause bugs)

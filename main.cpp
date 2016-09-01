@@ -25,7 +25,6 @@ int main()
 	//cout << TokenMeta::LB << endl;
 
 	global_code = "program if 1 then 2 else if 3 then 4 end if end program";
-	//global_code = "\"ab\\\"c\"";
 	//global_code = "program 1.3 + 2 * 3 - .true. end program";
 	global_code = "program integer::a \n if 1 then 2 else if 3 then 4 end if end program";
 	global_code = "program integer::a = 1 + 2, b = 2, c = 3 \n  end program";
@@ -46,11 +45,10 @@ int main()
 	global_code = "program recursive function main(A,B) result(C) \n implicit none \n integer::a = 1 + 2, b = 2, c = 3 \n end function end program";
 	global_code = "program integer,intent(out),dimension(5:7)::A=(/1, 2/) \n  end program";
 	global_code = "program integer,dimension(5:7, 6:8, 7:9)::A=(/1, 2, 3, 4, 5, 6/) \n  end program";
-	global_code = "program integer,dimension(2)::A \n  end program";
-	global_code = "program recursive function main(A,B) result(C) \n implicit none \n integer::a = 1 + 2, b = 2, c = 3 \n end function end program";
-	global_code = "program integer,dimension(5:7, 6:8, 7:9)::A=(/1, 2, 3, 4, 5, 6/) \n  end program";
-	//global_code = "program integer,dimension(5:7)::A=(/ int(i) + 1, i=1,4/) \n  end program";
-
+	global_code = "program integer,dimension(2, 3)::A=(/ (int(i) + 1, i=1,4) , j = 2, 3 /) \n  end program";
+	global_code = "program integer,dimension(5 : 7, 6 : 8)::A \n A(1:2, :) \n  end program";
+	global_code = "program recursive function main(A,B) result(C) \n a = abs(real(c)) \n end function end program";
+	global_code = "program integer::a \n if 1 then 2 else if 3 then 4 end if end program";
 
 
 	std::vector<int> accumulated{2, 2, 2};
@@ -74,7 +72,7 @@ int main()
 		printf("%s\n", errlog);
 	}
 	preorder(&program_tree);
-	cout << endl << for2cpp(global_code) << endl;
+	//cout << endl << for2cpp(global_code) << endl;
 	system("pause");
 	return 0;
 }
