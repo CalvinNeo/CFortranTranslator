@@ -30,7 +30,7 @@ refer to for90.y for all accepted grammar
 #### array
 1. `DIMENSION(a:b)` -> `forarray<T>(a, b + 1)`
 2. forarray default lower bound is **1**, which is different from cpp
-3. fortran use a 1d list to initialize a 2d(or higher) array, however, contrary to c++ and most other language does, it store them in a **conlumn-first order**. for a 2d array, it means you a order of a(1)(1) -> a(2)(1) -> a(lb_1)(1) -> a(1)(2) . for details refer to array_builder rule in .y
+3. fortran use a 1d list to initialize a 2d(or higher) array, however, contrary to c++ and most other language does, it store them in a **conlumn-first order**. for a 2d array, it means you a order of a(1)(1) -> a(2)(1) -> a(lb_1)(1) -> a(1)(2) . you can `#undef USE_FORARRAY` to use c-style array .for details refer to array_builder rule in .y
 
 ### variables
 1. all variables must be **explicitly** declared
@@ -89,4 +89,5 @@ all parse tree nodes are defined in Intents.h with an `NT_` prefix
 - ~~more elegant multi-word keyword handler(instead of defined in regular expression)~~
 - function forward declaration
 - ~~if slice can be a scalar x and equal to (1: x + 1), there will be conflict in argtable~~
+- c-style array(partial)
 

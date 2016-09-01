@@ -6,6 +6,8 @@
 #include <numeric>
 #include <type_traits>
 
+//#define USE_FORARRAY
+
 template<class T>
 struct fornarray {
 	template<class ... Args>
@@ -158,10 +160,11 @@ protected:
 	int lb, ub;
 };
 
+#ifndef USE_FORARRAY
 template<typename T
 	, class _Container_value_type
 	, class _Iterator>
-void init_for1array_value(for1array<T> & farr, const std::vector<int> & lower_bound, int deep, const std::vector<int> & size, const std::vector<int> & accumulated, _Iterator b, _Iterator e) {
+	void init_for1array_layer(for1array<T> & farr, const std::vector<int> & lower_bound, int deep, const std::vector<int> & size, const std::vector<int> & accumulated, _Iterator b, _Iterator e) {
 	for (auto iter = b; iter != e; iter += accumulated[deep] /* always 1 */)
 	{
 		farr.add(*iter);
@@ -170,26 +173,60 @@ void init_for1array_value(for1array<T> & farr, const std::vector<int> & lower_bo
 template<typename T
 	, class _Container_value_type
 	, class _Iterator>
-void init_for1array_value(for1array<_Container_value_type> & farr, const std::vector<int> & lower_bound, int deep, const std::vector<int> & size, const std::vector<int> & accumulated, _Iterator b, _Iterator e) {
+	void init_for1array_layer(for1array<_Container_value_type> & farr, const std::vector<int> & lower_bound, int deep, const std::vector<int> & size, const std::vector<int> & accumulated, _Iterator b, _Iterator e) {
 	/* deep can never be equal to size.size() - 1 */
 	int i = lower_bound[deep];
 	for (auto iter = b; iter != e; iter += accumulated[deep])
 	{
 		/* NOTE: assume the array is already allocated and no need to clear */
 		// farr.add(_Container_value_type());
-		init_for1array_value<T, _Container_value_type, std::vector<T>::const_iterator >(farr(i), lower_bound, deep + 1, size, accumulated, iter, iter + accumulated[deep]);
+		init_for1array_layer<T, _Container_value_type, std::vector<T>::const_iterator >(farr(i), lower_bound, deep + 1, size, accumulated, iter, iter + accumulated[deep]);
 		i++;
 	}
 }
+#else
+template<typename T
+	, class _Container_value_type
+	, class _Iterator>
+	void init_for1array_layer(for1array<T> & farr, const std::vector<int> & lower_bound, int deep, const std::vector<int> & size, const std::vector<int> & accumulated, _Iterator b, _Iterator e) {
+	for (auto iter = b; iter != e; iter += accumulated[deep])
+	{
+		farr.add(*iter);
+	}
+}
+template<typename T
+	, class _Container_value_type
+	, class _Iterator>
+	void init_for1array_layer(for1array<_Container_value_type> & farr, const std::vector<int> & lower_bound, int deep, const std::vector<int> & size, const std::vector<int> & accumulated, _Iterator b, _Iterator e) {
+	/* deep can never be equal to size.size() - 1 */
+	int i = lower_bound[deep];
+	for (auto outer = b; outer != e; outer += accumulated[deep + 1])
+	{
+		for (auto iter = outer; iter != outer + accumulated[deep + 1]; iter += accumulated[deep])
+		{
+			/* NOTE: assume the array is already allocated and no need to clear */
+			// farr.add(_Container_value_type());
+			init_for1array_layer<T, _Container_value_type, std::vector<T>::const_iterator >(farr(i), lower_bound, deep + 1, size, accumulated, b, e);
+			i++;
+		}
+	}
+}
+#endif // !USE_FORARRAY
+
+
 template<typename T, class _Container_value_type>
 void init_for1array(for1array<_Container_value_type> & farr, const std::vector<int> & lower_bound, const std::vector<int> & size, const std::vector<T> & values) {
 	/* NOTE: assume the array is already allocated and no need to clear */
 	// f_arr.clear()
 	std::vector<int> accumulated(size);
 	int s = 1;
+#ifndef USE_FORARRAY
 	std::transform(accumulated.rbegin(), accumulated.rend(), accumulated.rbegin(), [&s](int x) {int ans = s; s *= x; return ans; });
+#else
+	std::transform(accumulated.begin(), accumulated.end(), accumulated.begin(), [&s](int x) {int ans = s; s *= x; return ans; });
+#endif // !USE_FORARRAY
 	typedef std::conditional<std::is_same<_Container_value_type, T>::value, T, _Container_value_type >::type _New_value_type;
-	init_for1array_value<T, _New_value_type, std::vector<T>::const_iterator >(farr, lower_bound, 0, size, accumulated, values.begin(), values.end());
+	init_for1array_layer<T, _New_value_type, std::vector<T>::const_iterator >(farr, lower_bound, 0, size, accumulated, values.begin(), values.end());
 }
 
 
