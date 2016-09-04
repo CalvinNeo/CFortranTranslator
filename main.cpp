@@ -33,22 +33,20 @@ int main()
 	global_code = "program integer::a = 1 + 2 \n logical::b = .false. \n a = 3 \n end program";
 	global_code = "program integer::a = 1 + 2 \n  end program";
 	global_code = "program recursive function main(A,B) result(C) \n implicit none \n integer::a = 1 + 2, b = 2, c = 3 \n end function end program";
-	global_code = "program recursive function main(A,B) result(C) \n a = abs(c) \n end function end program";
+	global_code = "program recursive function main(A,B) result(C) \n a = abs(c, abs(1 ,2)) \n end function end program";
 	/* '(' exp ')' ∫Õ callableπÈ‘º≥ÂÕª */
-	global_code = "program recursive function main(A,B) result(C) \n a = abs(real(c)) \n end function end program";
+	global_code = "program recursive function main(A,B) result(C) \n integer::a, b, c\n a = abs(real(c)) \n end function end program";
 	global_code = "program recursive function main() result(C) \n complex::C = 1_2 \n end function end program";
 	global_code = "program integer,dimension(5:7)::A=(/1, 2/) \n  end program";
 	global_code = "program integer,dimension(5:7)::A=(/ int(i) + 1, i=1,4/) \n  end program";
 	global_code = "program integer,dimension(5:7)::A=(/ B(1:2:3) /) \n  end program";
 	global_code = "program integer,intent(out)::a = 1 + 2, b = 2, c = 3 \n  end program";
 	global_code = "program integer,dimension(5:7)::A=(/1, 2/) \n  end program"; 
-	global_code = "program recursive function main(A,B) result(C) \n implicit none \n integer::a = 1 + 2, b = 2, c = 3 \n end function end program";
 	global_code = "program integer,intent(out),dimension(5:7)::A=(/1, 2/) \n  end program";
 	global_code = "program integer,dimension(5:7, 6:8, 7:9)::A=(/1, 2, 3, 4, 5, 6/) \n  end program";
 	global_code = "program integer,dimension(2, 3)::A=(/ (int(i) + 1, i=1,4) , j = 2, 3 /) \n  end program";
 	global_code = "program integer,dimension(5 : 7, 6 : 8)::A \n A(1:2, :) \n  end program";
-	global_code = "program recursive function main(A,B) result(C) \n a = abs(real(c)) \n end function end program";
-	global_code = "program integer::a \n if 1 then 2 else if 3 then 4 end if end program";
+	global_code = "program integer,dimension(5:7)::A=(/ a(1:2) , b(3:4)/) \n  end program";
 
 
 	std::vector<int> accumulated{2, 2, 2};

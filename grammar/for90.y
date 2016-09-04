@@ -316,7 +316,7 @@ using namespace std;
 				newnode->addchild(new ParseNode(slice)); // slice
 				newnode->addchild(new ParseNode($3)); // dimen_slice
 				// attention flattern_bin
-				 newnode = flattern_bin(newnode);
+				newnode = flattern_bin(newnode);
 				$$ = *newnode;
 				update_pos($$);
 			}
@@ -359,9 +359,14 @@ using namespace std;
 				else {
 					name = $1.fs.CurrentTerm.what;
 				}
-				int token5 = $5.fs.CurrentTerm.token;
-				sprintf(codegen_buf, "%s(%s)%s", name.c_str(), $3.fs.CurrentTerm.what.c_str(), token5 == TokenMeta::CRLF ? ";" : "");
-				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_FUCNTIONARRAY, string(codegen_buf) };
+				//sprintf(codegen_buf, $3.fs.CurrentTerm.what.c_str(), name.c_str()); 
+				string x;
+				x += name;
+				x += "(";
+				x += $3.fs.CurrentTerm.what;
+				x += ")";
+				x += ($5.fs.CurrentTerm.token == TokenMeta::CRLF ? ";" : "");
+				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_FUCNTIONARRAY,  x};
 #endif // !LAZY_GEN
 				newnode->addchild(new ParseNode($1)); // function/array name
 				newnode->addchild(new ParseNode($3)); // argtable
@@ -493,14 +498,16 @@ using namespace std;
 					else {
 						// exp
 						isdimen = false;
+						newnode->addchild(new ParseNode(*dimen.child[sliceid]));
 						sprintf(codegen_buf, "%s", dimen.child[sliceid]->fs.CurrentTerm.what.c_str());							
 					}
 					dimen.fs.CurrentTerm.what += codegen_buf;
 				}
 				if (isdimen) {
-					sprintf(codegen_buf, ".slice(%s)", dimen.fs.CurrentTerm.what.c_str());
+					sprintf(codegen_buf, "%%s.slice(%s)", dimen.fs.CurrentTerm.what.c_str());
 				}
 				else {
+					//sprintf(codegen_buf, "%%s(%s)", dimen.fs.CurrentTerm.what.c_str());
 					sprintf(codegen_buf, "%s", dimen.fs.CurrentTerm.what.c_str());
 				}
 				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_ARGTABLE_DIMENSLICE, string(codegen_buf) };
@@ -766,32 +773,40 @@ using namespace std;
 							}
 							arr_decl += codegen_buf;
 							/* set initial value */
-							if (pn->child[i]->child[1]->fs.CurrentTerm.token == TokenMeta::NT_ARRAYBUILDER_VALUE) {
-								//sprintf(codegen_buf, "%s.init%s;\n", pn->child[i]->child[0]->fs.CurrentTerm.what.c_str() /* variable name */
-								//	, pn->child[i]->child[1]->fs.CurrentTerm.what.c_str());
-								std::string vec_size = "std::vector<int>{", vec_lb = "std::vector<int>{";
-								for (int sliceid = 0; sliceid < slice->child.size(); sliceid++)
+							if (pn->child[i]->child[1]->fs.CurrentTerm.token == TokenMeta::NT_ARRAYBUILDER)
+							{
+								for (int abid = 0; abid < pn->child[i]->child[1]->child.size(); abid++)
 								{
-									if (sliceid != 0) {
-										vec_lb += ",";
-										vec_size += ",";
+									ParseNode * ab = pn->child[i]->child[1]->child[abid];
+									if (ab->fs.CurrentTerm.token == TokenMeta::NT_ARRAYBUILDER_VALUE) {
+										std::string vec_size = "std::vector<int>{", vec_lb = "std::vector<int>{";
+										for (int sliceid = 0; sliceid < slice->child.size(); sliceid++)
+										{
+											if (sliceid != 0) {
+												vec_lb += ",";
+												vec_size += ",";
+											}
+											vec_lb += slice->child[sliceid]->child[0]->fs.CurrentTerm.what;
+											int lb, ub;
+											sscanf(slice->child[sliceid]->child[0]->fs.CurrentTerm.what.c_str(), "%d", &lb);
+											sscanf(slice->child[sliceid]->child[1]->fs.CurrentTerm.what.c_str(), "%d", &ub);
+											sprintf(codegen_buf, "%d", ub - lb + 1);
+											vec_size += codegen_buf;
+										}
+										vec_size += "}", vec_lb += "}";
+										sprintf(codegen_buf, ab->fs.CurrentTerm.what.c_str() /* sth like "init_for1array(%%s, %%s, %%s, %s)\n" */
+											, pn->child[i]->child[0]->fs.CurrentTerm.what.c_str() /* variable name */
+											, vec_lb.c_str()
+											, vec_size.c_str());
 									}
-									vec_lb += slice->child[sliceid]->child[0]->fs.CurrentTerm.what;
-									int lb, ub;
-									sscanf(slice->child[sliceid]->child[0]->fs.CurrentTerm.what.c_str(), "%d", &lb);
-									sscanf(slice->child[sliceid]->child[1]->fs.CurrentTerm.what.c_str(), "%d", &ub);
-									sprintf(codegen_buf, "%d", ub - lb + 1);
-									vec_size += codegen_buf;
+									else if (ab->fs.CurrentTerm.token == TokenMeta::NT_ARRAYBUILDER_EXP) {
+										string formatter = (ab->fs.CurrentTerm.what + ";\n");
+										sprintf(codegen_buf, formatter.c_str(), pn->child[i]->child[0]->fs.CurrentTerm.what.c_str());
+									}
+									else {
+										sprintf(codegen_buf, "");
+									}
 								}
-								vec_size += "}", vec_lb += "}";
-								sprintf(codegen_buf, pn->child[i]->child[1]->fs.CurrentTerm.what.c_str() /* sth like "init_for1array(%%s, %%s, %%s, %s)\n" */
-									, pn->child[i]->child[0]->fs.CurrentTerm.what.c_str() /* variable name */
-									, vec_lb.c_str()
-									, vec_size.c_str());
-							}
-							else if (pn->child[i]->child[1]->fs.CurrentTerm.token == TokenMeta::NT_ARRAYBUILDER_EXP) {
-								string formatter = (pn->child[i]->child[1]->fs.CurrentTerm.what + ";\n");
-								sprintf(codegen_buf, formatter.c_str(), pn->child[i]->child[0]->fs.CurrentTerm.what.c_str());
 							}
 							else {
 								sprintf(codegen_buf, "");
@@ -942,14 +957,15 @@ using namespace std;
 				update_pos($$);
 			}
 
-	array_builder : YY_ARRAYINITIAL_START argtable YY_ARRAYINITIAL_END
+	array_builder_elem: YY_ARRAYINITIAL_START argtable YY_ARRAYINITIAL_END
 			{
 				/* give initial value */
-				/* NOTE that `B(1:2:3)` can be either a single-element argtable or a exp, this can probably lead to reduction conflicts */
+				/* NOTE that `B(1:2:3)` can be either a single-element argtable or a exp, this can probably lead to reduction conflicts, NOW we merge rules */
 				/* NOTE fortran use a 1d list to initialize a 2d(or higher) array, however, contrary to c++ and most other language does, it store them in a **conlumn - first order**. for a 2d array, it means you a order of a(1)(1)->a(2)(1)->a(lb_1)(1)->a(1)(2) */
 				ParseNode * newnode = new ParseNode();
 				ParseNode & argtable = $2; 
-				/* for1array<_Container_value_type> & farr, const std::vector<int> & lower_bound, const std::vector<int> & size, const std::vector<T> & values */
+				/* for1array<_Container_value_type> & farr, const std::vector<int> & lower_bound
+				, const std::vector<int> & size, const std::vector<T> & values */
 				sprintf(codegen_buf, "init_for1array(%%s, %%s, %%s, %s);\n", /* value */ argtable.fs.CurrentTerm.what.c_str());
 				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_ARRAYBUILDER_VALUE, string(codegen_buf) };
 				newnode->addchild(new ParseNode(argtable)); // argtable
@@ -981,39 +997,59 @@ using namespace std;
 			}
 		| YY_ARRAYINITIAL_START exp YY_ARRAYINITIAL_END
 			{
-				/* give a array slice */
-				/* NOTE that `B(1:2:3)` can be either a single-element argtable or a exp */
+				//// dummy rule now merged with argtable
+				///* give a array slice */
+				///* NOTE that `B(1:2:3)` can be either a single-element argtable or a exp */
+				//ParseNode * newnode = new ParseNode();
+				///* assert NT_FUCNTIONARRAY is the only child of $2 */
+				//ParseNode & exp = $2;
+ 			//	assert(exp.child.size() == 1 && exp.child[0]->fs.CurrentTerm.token == TokenMeta::NT_FUCNTIONARRAY);
+				//ParseNode * dimen_slice = exp.child[0]/*NT_FUCNTIONARRAY*/->child[1]/*NT_ARGTABLE_DIMENSLICE*/->child[0]/*NT_DIMENSLICE*/;
+				//ParseNode * name = exp.child[0]/*NT_FUCNTIONARRAY*/->child[0];
+				//string dimenstr = "";
+				//do {
+				//	// for all non-flatterned dimen_slice
+				//	for (int i = 0; i < dimen_slice->child.size(); i++)
+				//	{
+				//		ParseNode * slice = dimen_slice->child[i];
+				//		if (slice->child.size() == 2) {
+				//			sprintf(codegen_buf, "(%s.slice(%s, %s))", name->fs.CurrentTerm.what.c_str(), slice->child[0]->fs.CurrentTerm.what.c_str(), slice->child[1]->fs.CurrentTerm.what.c_str());
+				//		}
+				//		else if (slice->child.size() == 3) {
+				//			sprintf(codegen_buf, "(%s.slice(%s, %s, %s))", name->fs.CurrentTerm.what.c_str(), slice->child[0]->fs.CurrentTerm.what.c_str()
+				//				, slice->child[1]->fs.CurrentTerm.what.c_str(), slice->child[2]->fs.CurrentTerm.what.c_str());
+				//		}
+				//	}
+				//	if (dimen_slice->child.size() >= 2)
+				//	{
+				//		dimen_slice = dimen_slice->child[1];
+				//	}
+				//} while (dimen_slice->child.size() == 2 && dimen_slice->child[1]->fs.CurrentTerm.token == TokenMeta::NT_DIMENSLICE);
+				//newnode->fs.CurrentTerm = Term{ TokenMeta::NT_ARRAYBUILDER_VALUE,  string(codegen_buf) };
+				//newnode->addchild(new ParseNode($2)); // array slice
+				//$$ = *newnode;
+				//update_pos($$);
+			}
+	array_builder : array_builder_elem
+			{
 				ParseNode * newnode = new ParseNode();
-				/* assert NT_FUCNTIONARRAY is the only child of $2 */
-				ParseNode & exp = $2;
- 				assert(exp.child.size() == 1 && exp.child[0]->fs.CurrentTerm.token == TokenMeta::NT_FUCNTIONARRAY);
-				ParseNode * dimen_slice = exp.child[0]/*NT_FUCNTIONARRAY*/->child[1]/*NT_ARGTABLE_DIMENSLICE*/->child[0]/*NT_DIMENSLICE*/;
-				ParseNode * name = exp.child[0]/*NT_FUCNTIONARRAY*/->child[0];
-				string dimenstr = "";
-				do {
-					// for all non-flatterned dimen_slice
-					for (int i = 0; i < dimen_slice->child.size(); i++)
-					{
-						ParseNode * slice = dimen_slice->child[i];
-						if (slice->child.size() == 2) {
-							sprintf(codegen_buf, "(%s.slice(%s, %s))", name->fs.CurrentTerm.what.c_str(), slice->child[0]->fs.CurrentTerm.what.c_str(), slice->child[1]->fs.CurrentTerm.what.c_str());
-						}
-						else if (slice->child.size() == 3) {
-							sprintf(codegen_buf, "(%s.slice(%s, %s, %s))", name->fs.CurrentTerm.what.c_str(), slice->child[0]->fs.CurrentTerm.what.c_str()
-								, slice->child[1]->fs.CurrentTerm.what.c_str(), slice->child[2]->fs.CurrentTerm.what.c_str());
-						}
-					}
-					if (dimen_slice->child.size() >= 2)
-					{
-						dimen_slice = dimen_slice->child[1];
-					}
-				} while (dimen_slice->child.size() == 2 && dimen_slice->child[1]->fs.CurrentTerm.token == TokenMeta::NT_DIMENSLICE);
-				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_ARRAYBUILDER_VALUE,  string(codegen_buf) };
-				newnode->addchild(new ParseNode($2)); // array slice
+				newnode->addchild(new ParseNode($1)); // array_builder_elem
+				sprintf(codegen_buf, "%s", $1.fs.CurrentTerm.what.c_str());
+				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_ARRAYBUILDER, string(codegen_buf) };
 				$$ = *newnode;
 				update_pos($$);
 			}
-
+		| array_builder_elem ',' array_builder
+			{
+				ParseNode * newnode = new ParseNode();
+				newnode->addchild(new ParseNode($1)); // array_builder_elem
+				newnode->addchild(new ParseNode($3)); // array_builder
+				sprintf(codegen_buf, "%s\n%s", $1.fs.CurrentTerm.what.c_str(), $3.fs.CurrentTerm.what.c_str());
+				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_ARRAYBUILDER, string(codegen_buf) };
+				newnode = flattern_bin(newnode);
+				$$ = *newnode;
+				update_pos($$);
+			}
 
 	if_stmt : YY_IF exp YY_THEN crlf suite YY_END YY_IF crlf
 			{
@@ -1401,7 +1437,7 @@ void update_pos(YYSTYPE & current_node) {
 		current_node.fs.parse_pos = current_node.child[0]->fs.parse_pos;
 		current_node.fs.parse_line = current_node.child[0]->fs.parse_line;
 		current_node.fs.parse_len = tot_len;
-		current_node.fs.parse_len = current_node.child[0]->fs.line_pos;
+		current_node.fs.line_pos = current_node.child[0]->fs.line_pos;
 	}
 }
 
