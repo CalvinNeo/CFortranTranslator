@@ -326,7 +326,7 @@ using namespace std;
 				ParseNode * newnode = new ParseNode();
 #ifndef LAZY_GEN
 				sprintf(codegen_buf, "%s", $1.fs.CurrentTerm.what.c_str());
-				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_ARGTABLE, string(codegen_buf) };
+				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_ARGTABLE_PURE, string(codegen_buf) };
 #endif // !LAZY_GEN
 				newnode->addchild(new ParseNode($1)); // exp
 				$$ = *newnode;
@@ -337,7 +337,7 @@ using namespace std;
 				ParseNode * newnode = new ParseNode();
 #ifndef LAZY_GEN
 				sprintf(codegen_buf, "%s, %s", $1.fs.CurrentTerm.what.c_str(), $3.fs.CurrentTerm.what.c_str());
-				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_ARGTABLE, string(codegen_buf) };
+				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_ARGTABLE_PURE, string(codegen_buf) };
 #endif // !LAZY_GEN
 				newnode->addchild(new ParseNode($1)); // exp
 				newnode->addchild(new ParseNode($3)); // argtable
@@ -353,20 +353,25 @@ using namespace std;
 				ParseNode * newnode = new ParseNode();
 #ifndef LAZY_GEN
 				string name;
+				string x;
 				if (funcname_map.find($1.fs.CurrentTerm.what) != funcname_map.end()) {
 					name = funcname_map.at($1.fs.CurrentTerm.what);
 				}
 				else {
 					name = $1.fs.CurrentTerm.what;
 				}
-				//sprintf(codegen_buf, $3.fs.CurrentTerm.what.c_str(), name.c_str()); 
-				string x;
-				x += name;
-				x += "(";
-				x += $3.fs.CurrentTerm.what;
-				x += ")";
-				x += ($5.fs.CurrentTerm.token == TokenMeta::CRLF ? ";" : "");
-				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_FUCNTIONARRAY,  x};
+				if ($3.fs.CurrentTerm.token == TokenMeta::NT_ARGTABLE_PURE) {
+					sprintf(codegen_buf, $3.fs.CurrentTerm.what.c_str(), name.c_str());
+					newnode->fs.CurrentTerm = Term{ TokenMeta::NT_FUCNTIONARRAY,  string(codegen_buf) };
+				}
+				else {
+					x += name;
+					x += "(";
+					x += $3.fs.CurrentTerm.what;
+					x += ")";
+					x += ($5.fs.CurrentTerm.token == TokenMeta::CRLF ? ";" : "");
+					newnode->fs.CurrentTerm = Term{ TokenMeta::NT_FUCNTIONARRAY,  x };
+				}
 #endif // !LAZY_GEN
 				newnode->addchild(new ParseNode($1)); // function/array name
 				newnode->addchild(new ParseNode($3)); // argtable
@@ -504,13 +509,15 @@ using namespace std;
 					dimen.fs.CurrentTerm.what += codegen_buf;
 				}
 				if (isdimen) {
+					//sprintf(codegen_buf, "%s", dimen.fs.CurrentTerm.what.c_str());
 					sprintf(codegen_buf, "%%s.slice(%s)", dimen.fs.CurrentTerm.what.c_str());
+					newnode->fs.CurrentTerm = Term{ TokenMeta::NT_ARGTABLE_PURE, string(codegen_buf) };
 				}
 				else {
 					//sprintf(codegen_buf, "%%s(%s)", dimen.fs.CurrentTerm.what.c_str());
 					sprintf(codegen_buf, "%s", dimen.fs.CurrentTerm.what.c_str());
+					newnode->fs.CurrentTerm = Term{ TokenMeta::NT_ARGTABLE_DIMENSLICE, string(codegen_buf) };
 				}
-				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_ARGTABLE_DIMENSLICE, string(codegen_buf) };
 #endif // !LAZY_GEN
 				$$ = *newnode;
 				update_pos($$);

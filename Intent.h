@@ -238,6 +238,7 @@
 		/* NT_ARGTABLE 和 NT_ARGTABLE_DIMENSLICE 都应当看作函数的参数表 */
 		NT_VOID = -2023, /* this ParseNode do not exist but ParseNode * can not be nullptr so this is placeholder */
 		NT_ARRAYBUILDER = -2024, /* mixed array builder */
+		NT_ARGTABLE_PURE = -2025,
 };
 //}
 
