@@ -24,6 +24,11 @@ const std::map<std::string, std::string> funcname_map{
 	, { "forcomplex", "forcomplex" }
 };
 
+
+const std::vector<std::string> intrinsic_lvalue{
+	"iostat"
+};
+
 const std::string cpp_header = "#include\"for90std.h\" \n";
 
 std::string for2cpp(std::string for_code); 

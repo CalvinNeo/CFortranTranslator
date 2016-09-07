@@ -335,12 +335,14 @@ using namespace std;
         | exp ',' argtable
 			{
 				ParseNode * newnode = new ParseNode();
+				ParseNode & exp = $1;
+				ParseNode & argtable = $3;
 #ifndef LAZY_GEN
 				sprintf(codegen_buf, "%s, %s", $1.fs.CurrentTerm.what.c_str(), $3.fs.CurrentTerm.what.c_str());
 				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_ARGTABLE_PURE, string(codegen_buf) };
 #endif // !LAZY_GEN
-				newnode->addchild(new ParseNode($1)); // exp
-				newnode->addchild(new ParseNode($3)); // argtable
+				newnode->addchild(new ParseNode(exp)); // exp
+				newnode->addchild(new ParseNode(argtable)); // argtable
 				newnode = flattern_bin(newnode);
 				$$ = *newnode;
 				update_pos($$);
@@ -351,30 +353,33 @@ using namespace std;
 				/* function call OR array index */
 				/* NOTE that array index can be A(1:2, 3:4) */
 				ParseNode * newnode = new ParseNode();
+				ParseNode & callable = $1;
+				ParseNode & argtable = $3;
+				ParseNode & crlf = $5;
 #ifndef LAZY_GEN
 				string name;
 				string x;
-				if (funcname_map.find($1.fs.CurrentTerm.what) != funcname_map.end()) {
-					name = funcname_map.at($1.fs.CurrentTerm.what);
+				if (funcname_map.find(callable.fs.CurrentTerm.what) != funcname_map.end()) {
+					name = funcname_map.at(callable.fs.CurrentTerm.what);
 				}
 				else {
-					name = $1.fs.CurrentTerm.what;
+					name = callable.fs.CurrentTerm.what;
 				}
-				if ($3.fs.CurrentTerm.token == TokenMeta::NT_ARGTABLE_PURE) {
-					sprintf(codegen_buf, $3.fs.CurrentTerm.what.c_str(), name.c_str());
+				if (argtable.fs.CurrentTerm.token == TokenMeta::NT_ARGTABLE_PURE) {
+					sprintf(codegen_buf, argtable.fs.CurrentTerm.what.c_str(), name.c_str());
 					newnode->fs.CurrentTerm = Term{ TokenMeta::NT_FUCNTIONARRAY,  string(codegen_buf) };
 				}
 				else {
 					x += name;
 					x += "(";
-					x += $3.fs.CurrentTerm.what;
+					x += argtable.fs.CurrentTerm.what;
 					x += ")";
-					x += ($5.fs.CurrentTerm.token == TokenMeta::CRLF ? ";" : "");
+					x += (crlf.fs.CurrentTerm.token == TokenMeta::CRLF ? ";" : "");
 					newnode->fs.CurrentTerm = Term{ TokenMeta::NT_FUCNTIONARRAY,  x };
 				}
 #endif // !LAZY_GEN
-				newnode->addchild(new ParseNode($1)); // function/array name
-				newnode->addchild(new ParseNode($3)); // argtable
+				newnode->addchild(new ParseNode(callable)); // function/array name
+				newnode->addchild(new ParseNode(argtable)); // argtable
 				$$ = *newnode;
 				update_pos($$);
 			}
@@ -383,11 +388,12 @@ using namespace std;
 			{
 				/* function call OR array index */
 				ParseNode * newnode = new ParseNode();
+				ParseNode & function_array = $1;
 #ifndef LAZY_GEN
-				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_EXPRESSION, $1.fs.CurrentTerm.what };
+				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_EXPRESSION, function_array.fs.CurrentTerm.what };
 #endif // !LAZY_GEN
 
-				newnode->addchild(new ParseNode($1)); // function_array
+				newnode->addchild(new ParseNode(function_array)); // function_array
 				$$ = *newnode;
 				update_pos($$);
 			}
@@ -396,72 +402,90 @@ using namespace std;
 			{
 				/* `function_array` rule has priority over this rule  */
 				ParseNode * newnode = new ParseNode();
+				ParseNode & exp = $2;
 #ifndef LAZY_GEN
-				sprintf(codegen_buf, "( %s )", $2.fs.CurrentTerm.what.c_str());
+				sprintf(codegen_buf, "( %s )", exp.fs.CurrentTerm.what.c_str());
 				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_EXPRESSION, string(codegen_buf) };
 #endif // !LAZY_GEN
 
-				newnode->addchild(new ParseNode($2)); 
+				newnode->addchild(new ParseNode(exp));
 				$$ = *newnode;
 				update_pos($$);
 			}
 		| exp '+' exp crlf
 			{
 				ParseNode * newnode = new ParseNode();
-				sprintf(codegen_buf, "%s + %s", $1.fs.CurrentTerm.what.c_str(), $3.fs.CurrentTerm.what.c_str());
+				ParseNode & exp1 = $1;
+				ParseNode & op = $2;
+				ParseNode & exp2 = $3;
+				sprintf(codegen_buf, "%s + %s", exp1.fs.CurrentTerm.what.c_str(), exp2.fs.CurrentTerm.what.c_str());
 				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_EXPRESSION, string(codegen_buf) };
-				newnode->addchild(new ParseNode($1)); // left operand exp
-				newnode->addchild(new ParseNode($2)); // +
-				newnode->addchild(new ParseNode($3)); // tight operand exp
+				newnode->addchild(new ParseNode(exp1)); // left operand exp
+				newnode->addchild(new ParseNode(op)); // +
+				newnode->addchild(new ParseNode(exp2)); // tight operand exp
 				$$ = *newnode;
 			}
 		| exp '-' exp crlf
 			{
 				ParseNode * newnode = new ParseNode();
-				sprintf(codegen_buf, "%s - %s", $1.fs.CurrentTerm.what.c_str(), $3.fs.CurrentTerm.what.c_str());
+				ParseNode & exp1 = $1;
+				ParseNode & op = $2;
+				ParseNode & exp2 = $3;
+				sprintf(codegen_buf, "%s - %s", exp1.fs.CurrentTerm.what.c_str(), exp2.fs.CurrentTerm.what.c_str());
 				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_EXPRESSION, string(codegen_buf) };
-				newnode->addchild(new ParseNode($1)); // left operand exp
-				newnode->addchild(new ParseNode($2)); // -
-				newnode->addchild(new ParseNode($3)); // right operand exp
+				newnode->addchild(new ParseNode(exp1)); // left operand exp
+				newnode->addchild(new ParseNode(op)); // -
+				newnode->addchild(new ParseNode(exp2)); // right operand exp
 				$$ = *newnode;
 			}
 		| exp '*' exp crlf
 			{
 				ParseNode * newnode = new ParseNode();
-				sprintf(codegen_buf, "%s * %s", $1.fs.CurrentTerm.what.c_str(), $3.fs.CurrentTerm.what.c_str());
+				ParseNode & exp1 = $1;
+				ParseNode & op = $2;
+				ParseNode & exp2 = $3;
+				sprintf(codegen_buf, "%s * %s", exp1.fs.CurrentTerm.what.c_str(), exp2.fs.CurrentTerm.what.c_str());
 				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_EXPRESSION, string(codegen_buf) };
-				newnode->addchild(new ParseNode($1)); // left operand exp
-				newnode->addchild(new ParseNode($2)); // *
-				newnode->addchild(new ParseNode($3)); // right operand exp
+				newnode->addchild(new ParseNode(exp1)); // left operand exp
+				newnode->addchild(new ParseNode(op)); // *
+				newnode->addchild(new ParseNode(exp2)); // right operand exp
 				$$ = *newnode;
 			}
 		| exp '/' exp crlf
 			{
 				ParseNode * newnode = new ParseNode();
-				sprintf(codegen_buf, "%s / %s", $1.fs.CurrentTerm.what.c_str(), $3.fs.CurrentTerm.what.c_str());
+				ParseNode & exp1 = $1;
+				ParseNode & op = $2;
+				ParseNode & exp2 = $3;
+				sprintf(codegen_buf, "%s / %s", exp1.fs.CurrentTerm.what.c_str(), exp2.fs.CurrentTerm.what.c_str());
 				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_EXPRESSION, string(codegen_buf) };
-				newnode->addchild(new ParseNode($1)); // left operand exp
-				newnode->addchild(new ParseNode($2)); // /
-				newnode->addchild(new ParseNode($3)); // right operand exp
+				newnode->addchild(new ParseNode(exp1)); // left operand exp
+				newnode->addchild(new ParseNode(op)); // /
+				newnode->addchild(new ParseNode(exp2)); // right operand exp
 				$$ = *newnode;
 			}
 		| exp YY_POWER exp crlf
 			{
 				ParseNode * newnode = new ParseNode();
-				sprintf(codegen_buf, "power(%s, %s)", $1.fs.CurrentTerm.what.c_str(), $3.fs.CurrentTerm.what.c_str());
+				ParseNode & exp1 = $1;
+				ParseNode & op = $2;
+				ParseNode & exp2 = $3;
+				sprintf(codegen_buf, "power(%s, %s)", exp1.fs.CurrentTerm.what.c_str(), exp2.fs.CurrentTerm.what.c_str());
 				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_EXPRESSION, string(codegen_buf) };
-				newnode->addchild(new ParseNode($1)); // left operand exp
-				newnode->addchild(new ParseNode($2)); // **
-				newnode->addchild(new ParseNode($3)); // right operand exp
+				newnode->addchild(new ParseNode(exp1)); // left operand exp
+				newnode->addchild(new ParseNode(op)); // **
+				newnode->addchild(new ParseNode(exp2)); // right operand exp
 				$$ = *newnode;
 			}
-        | '-' exp %prec YY_NEG crlf
+        | '-' %prec YY_NEG exp crlf
 			{
 				ParseNode * newnode = new ParseNode();
-				sprintf(codegen_buf, "(-%s)", $1.fs.CurrentTerm.what.c_str(), $3.fs.CurrentTerm.what.c_str());
+				ParseNode & exp1 = $2;
+				ParseNode & op = $1;
+				sprintf(codegen_buf, "(-%s)", exp1.fs.CurrentTerm.what.c_str());
 				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_EXPRESSION, string(codegen_buf) };
-				newnode->addchild(new ParseNode($1)); // (-)
-				newnode->addchild(new ParseNode($2)); // only right operand exp
+				newnode->addchild(new ParseNode(op)); // (-)
+				newnode->addchild(new ParseNode(exp1)); // only right operand exp
 				$$ = *newnode;
 				update_pos($$);
 			}
@@ -474,48 +498,50 @@ using namespace std;
 			{
 				// may cause reduction-reduction conflict when use `variable` instead of `callable`
 				// TODO : i am a little strange that `integer::a, b, c` works well because i am afraid that callable will reduce to exp from here. however according to LR(1), `::` is not in FOLLOW(exp)
-				string x = $1.fs.CurrentTerm.what;
 				$$ = $1;
 			}
+	kwargtable : let_stmt
+			{
 
+			}
     argtable : dimen_slice
 			{
 				ParseNode * newnode = new ParseNode();
 #ifndef LAZY_GEN
-				ParseNode & dimen = $1;
+				ParseNode & dimen_slice = $1;
 				bool isdimen = false;
 				int sliceid = 0; /* if the array has 2 dimensions, sliceid is 0..1 */
-				dimen.fs.CurrentTerm.what = "";
-				for (sliceid = 0; sliceid < dimen.child.size(); sliceid++)
+				dimen_slice.fs.CurrentTerm.what = "";
+				for (sliceid = 0; sliceid < dimen_slice.child.size(); sliceid++)
 				{
 					if (sliceid != 0) {
-						dimen.fs.CurrentTerm.what += ", ";
+						dimen_slice.fs.CurrentTerm.what += ", ";
 					}
-					if (dimen.fs.CurrentTerm.token == TokenMeta::NT_DIMENSLICE) {
+					if (dimen_slice.fs.CurrentTerm.token == TokenMeta::NT_DIMENSLICE) {
 						// dimen_slice
 						isdimen = true;
-						newnode->addchild(new ParseNode(*dimen.child[sliceid])); 
+						newnode->addchild(new ParseNode(*dimen_slice.child[sliceid]));
 						sprintf(codegen_buf, "%s, %s"
 							/* from, to */
-							, dimen.child[sliceid]->child[0]->fs.CurrentTerm.what.c_str()
-							, dimen.child[sliceid]->child[1]->fs.CurrentTerm.what.c_str());
+							, dimen_slice.child[sliceid]->child[0]->fs.CurrentTerm.what.c_str()
+							, dimen_slice.child[sliceid]->child[1]->fs.CurrentTerm.what.c_str());
 					}
 					else {
 						// exp
 						isdimen = false;
-						newnode->addchild(new ParseNode(*dimen.child[sliceid]));
-						sprintf(codegen_buf, "%s", dimen.child[sliceid]->fs.CurrentTerm.what.c_str());							
+						newnode->addchild(new ParseNode(*dimen_slice.child[sliceid]));
+						sprintf(codegen_buf, "%s", dimen_slice.child[sliceid]->fs.CurrentTerm.what.c_str());
 					}
-					dimen.fs.CurrentTerm.what += codegen_buf;
+					dimen_slice.fs.CurrentTerm.what += codegen_buf;
 				}
 				if (isdimen) {
-					//sprintf(codegen_buf, "%s", dimen.fs.CurrentTerm.what.c_str());
-					sprintf(codegen_buf, "%%s.slice(%s)", dimen.fs.CurrentTerm.what.c_str());
+					//sprintf(codegen_buf, "%s", dimen_slice.fs.CurrentTerm.what.c_str());
+					sprintf(codegen_buf, "%%s.slice(%s)", dimen_slice.fs.CurrentTerm.what.c_str());
 					newnode->fs.CurrentTerm = Term{ TokenMeta::NT_ARGTABLE_PURE, string(codegen_buf) };
 				}
 				else {
-					//sprintf(codegen_buf, "%%s(%s)", dimen.fs.CurrentTerm.what.c_str());
-					sprintf(codegen_buf, "%s", dimen.fs.CurrentTerm.what.c_str());
+					//sprintf(codegen_buf, "%%s(%s)", dimen_slice.fs.CurrentTerm.what.c_str());
+					sprintf(codegen_buf, "%s", dimen_slice.fs.CurrentTerm.what.c_str());
 					newnode->fs.CurrentTerm = Term{ TokenMeta::NT_ARGTABLE_DIMENSLICE, string(codegen_buf) };
 				}
 #endif // !LAZY_GEN
@@ -536,21 +562,23 @@ using namespace std;
 					所以单独建立stmt节点兵添加$1位stmt节点的唯一的儿子
 				*/
 				ParseNode * newnode = new ParseNode();
-				sprintf(codegen_buf, "%s ;\n", $1.fs.CurrentTerm.what.c_str());
+				ParseNode & exp = $1;
+				sprintf(codegen_buf, "%s ;\n", exp.fs.CurrentTerm.what.c_str());
 				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_STATEMENT, string(codegen_buf) };
-				newnode->addchild(new ParseNode($1)); // exp
+				newnode->addchild(new ParseNode(exp)); // exp
 				$$ = *newnode;
 				update_pos($$);
 			}
 		| var_def crlf
 			{
 				ParseNode * newnode = new ParseNode();
+				ParseNode & var_def = $1;
 				/* 因为var_def本身可能生成多行代码, 因此此处生成代码不应当带分号`;` */
 #ifndef LAZY_GEN
-				sprintf(codegen_buf, "%s \n", $1.fs.CurrentTerm.what.c_str());
+				sprintf(codegen_buf, "%s \n", var_def.fs.CurrentTerm.what.c_str());
 				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_STATEMENT, string(codegen_buf) };
 #endif // !LAZY_GEN
-				newnode->addchild(new ParseNode($1)); // var_def
+				newnode->addchild(new ParseNode(var_def)); // var_def
 				$$ = *newnode;
 				update_pos($$);
 			}
@@ -566,11 +594,14 @@ using namespace std;
 	let_stmt : exp '=' exp
 			{
 				ParseNode * newnode = new ParseNode();
-				sprintf(codegen_buf, "%s = %s", $1.fs.CurrentTerm.what.c_str(), $3.fs.CurrentTerm.what.c_str());
+				ParseNode & exp1 = $1;
+				ParseNode & op = $2;
+				ParseNode & exp2 = $3;
+				sprintf(codegen_buf, "%s = %s", exp1.fs.CurrentTerm.what.c_str(), exp2.fs.CurrentTerm.what.c_str());
 				newnode->fs.CurrentTerm = Term{ TokenMeta::META_NONTERMINAL, string(codegen_buf) };
-				newnode->addchild(new ParseNode($1)); // left operand exp
-				newnode->addchild(new ParseNode($2)); // =
-				newnode->addchild(new ParseNode($3)); // right operand exp
+				newnode->addchild(new ParseNode(exp1)); // left operand exp
+				newnode->addchild(new ParseNode(op)); // =
+				newnode->addchild(new ParseNode(exp2)); // right operand exp
 				$$ = *newnode;
 				update_pos($$);
 			}
@@ -587,19 +618,22 @@ using namespace std;
 	suite : stmt
 			{
 				ParseNode * newnode = new ParseNode();
-				sprintf(codegen_buf, "%s \n", $1.fs.CurrentTerm.what.c_str());
+				ParseNode & stmt = $1;
+				sprintf(codegen_buf, "%s \n", stmt.fs.CurrentTerm.what.c_str());
 				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_SUITE, string(codegen_buf) };
-				newnode->addchild(new ParseNode($1)); // stmt
+				newnode->addchild(new ParseNode(stmt)); // stmt
 				$$ = *newnode;
 				update_pos($$);
 			}
 		| stmt suite
 			{
 				ParseNode * newnode = new ParseNode();
-				sprintf(codegen_buf, "%s \n %s \n", $1.fs.CurrentTerm.what.c_str(), $2.fs.CurrentTerm.what.c_str());
+				ParseNode & stmt = $1;
+				ParseNode & suite = $2;
+				sprintf(codegen_buf, "%s \n %s \n", stmt.fs.CurrentTerm.what.c_str(), suite.fs.CurrentTerm.what.c_str());
 				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_SUITE, string(codegen_buf) };
-				newnode->addchild(new ParseNode($1)); // stmt
-				newnode->addchild(new ParseNode($2)); // suite
+				newnode->addchild(new ParseNode(stmt)); // stmt
+				newnode->addchild(new ParseNode(suite)); // suite
 				newnode = flattern_bin(newnode);
 				$$ = *newnode;
 				update_pos($$);

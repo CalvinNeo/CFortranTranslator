@@ -49,6 +49,7 @@
     <ClCompile Include="..\..\attribute.cpp">
       <Filter>parser</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\develop.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\grammar\for90.tab.h">
@@ -78,6 +79,7 @@
     <ClInclude Include="..\..\attribute.h">
       <Filter>parser</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\develop.h" />
   </ItemGroup>
   <ItemGroup>
     <Flex Include="..\..\grammar\for90.l">

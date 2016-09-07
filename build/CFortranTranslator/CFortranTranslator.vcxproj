@@ -21,6 +21,7 @@
   <ItemGroup>
     <ClCompile Include="..\..\attribute.cpp" />
     <ClCompile Include="..\..\cgen.cpp" />
+    <ClCompile Include="..\..\develop.cpp" />
     <ClCompile Include="..\..\for90std.cpp" />
     <ClCompile Include="..\..\grammar\for90.flex.cpp" />
     <ClCompile Include="..\..\grammar\for90.tab.cpp" />
@@ -34,6 +35,7 @@
   <ItemGroup>
     <ClInclude Include="..\..\attribute.h" />
     <ClInclude Include="..\..\cgen.h" />
+    <ClInclude Include="..\..\develop.h" />
     <ClInclude Include="..\..\for90std.h" />
     <ClInclude Include="..\..\grammar\for90.flex.h" />
     <ClInclude Include="..\..\grammar\for90.tab.h" />
