@@ -223,6 +223,7 @@ using namespace std;
 
 		| error '\n'
 
+
 	variable : YY_WORD
 			{
 				ParseNode * newnode = new ParseNode();
@@ -489,6 +490,148 @@ using namespace std;
 				$$ = *newnode;
 				update_pos($$);
 			}
+		| exp YY_NEQ exp crlf
+			{
+				ParseNode * newnode = new ParseNode();
+				ParseNode & exp1 = $1;
+				ParseNode & op = $2;
+				ParseNode & exp2 = $3;
+				sprintf(codegen_buf, "%s != %s", exp1.fs.CurrentTerm.what.c_str(), exp2.fs.CurrentTerm.what.c_str());
+				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_EXPRESSION, string(codegen_buf) };
+				newnode->addchild(new ParseNode(exp1)); // left operand exp
+				newnode->addchild(new ParseNode(op)); // !=
+				newnode->addchild(new ParseNode(exp2)); // right operand exp
+				$$ = *newnode;
+			}
+		| exp YY_NEQV exp crlf
+			{
+				ParseNode * newnode = new ParseNode();
+				ParseNode & exp1 = $1;
+				ParseNode & op = $2;
+				ParseNode & exp2 = $3;
+				sprintf(codegen_buf, "%s != %s", exp1.fs.CurrentTerm.what.c_str(), exp2.fs.CurrentTerm.what.c_str());
+				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_EXPRESSION, string(codegen_buf) };
+				newnode->addchild(new ParseNode(exp1)); // left operand exp
+				newnode->addchild(new ParseNode(op)); // !=
+				newnode->addchild(new ParseNode(exp2)); // right operand exp
+				$$ = *newnode;
+			}
+		| exp YY_EQ exp crlf
+			{
+				ParseNode * newnode = new ParseNode();
+				ParseNode & exp1 = $1;
+				ParseNode & op = $2;
+				ParseNode & exp2 = $3;
+				sprintf(codegen_buf, "%s == %s", exp1.fs.CurrentTerm.what.c_str(), exp2.fs.CurrentTerm.what.c_str());
+				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_EXPRESSION, string(codegen_buf) };
+				newnode->addchild(new ParseNode(exp1)); // left operand exp
+				newnode->addchild(new ParseNode(op)); // ==
+				newnode->addchild(new ParseNode(exp2)); // right operand exp
+				$$ = *newnode;
+			}
+		| exp YY_EQV exp crlf
+			{
+				ParseNode * newnode = new ParseNode();
+				ParseNode & exp1 = $1;
+				ParseNode & op = $2;
+				ParseNode & exp2 = $3;
+				sprintf(codegen_buf, "%s == %s", exp1.fs.CurrentTerm.what.c_str(), exp2.fs.CurrentTerm.what.c_str());
+				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_EXPRESSION, string(codegen_buf) };
+				newnode->addchild(new ParseNode(exp1)); // left operand exp
+				newnode->addchild(new ParseNode(op)); // ==
+				newnode->addchild(new ParseNode(exp2)); // right operand exp
+				$$ = *newnode;
+			}
+		| exp YY_ANDAND exp crlf
+			{
+				ParseNode * newnode = new ParseNode();
+				ParseNode & exp1 = $1;
+				ParseNode & op = $2;
+				ParseNode & exp2 = $3;
+				sprintf(codegen_buf, "%s && %s", exp1.fs.CurrentTerm.what.c_str(), exp2.fs.CurrentTerm.what.c_str());
+				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_EXPRESSION, string(codegen_buf) };
+				newnode->addchild(new ParseNode(exp1)); // left operand exp
+				newnode->addchild(new ParseNode(op)); // &&
+				newnode->addchild(new ParseNode(exp2)); // right operand exp
+				$$ = *newnode;
+			}
+		| exp YY_OROR exp crlf
+			{
+				ParseNode * newnode = new ParseNode();
+				ParseNode & exp1 = $1;
+				ParseNode & op = $2;
+				ParseNode & exp2 = $3;
+				sprintf(codegen_buf, "%s || %s", exp1.fs.CurrentTerm.what.c_str(), exp2.fs.CurrentTerm.what.c_str());
+				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_EXPRESSION, string(codegen_buf) };
+				newnode->addchild(new ParseNode(exp1)); // left operand exp
+				newnode->addchild(new ParseNode(op)); // ||
+				newnode->addchild(new ParseNode(exp2)); // right operand exp
+				$$ = *newnode;
+			}
+		| YY_NOT exp crlf
+			{
+				ParseNode * newnode = new ParseNode();
+				ParseNode & exp1 = $2;
+				ParseNode & op = $1;
+				sprintf(codegen_buf, "!(%s)", exp1.fs.CurrentTerm.what.c_str());
+				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_EXPRESSION, string(codegen_buf) };
+				newnode->addchild(new ParseNode(op)); // !
+				newnode->addchild(new ParseNode(exp1)); // only right operand exp
+				$$ = *newnode;
+				update_pos($$);
+			}
+		| exp YY_GT exp crlf
+			{
+				ParseNode * newnode = new ParseNode();
+				ParseNode & exp1 = $1;
+				ParseNode & op = $2;
+				ParseNode & exp2 = $3;
+				sprintf(codegen_buf, "%s > %s", exp1.fs.CurrentTerm.what.c_str(), exp2.fs.CurrentTerm.what.c_str());
+				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_EXPRESSION, string(codegen_buf) };
+				newnode->addchild(new ParseNode(exp1)); // left operand exp
+				newnode->addchild(new ParseNode(op)); // >
+				newnode->addchild(new ParseNode(exp2)); // right operand exp
+				$$ = *newnode;
+			}
+		| exp YY_GE exp crlf
+			{
+				ParseNode * newnode = new ParseNode();
+				ParseNode & exp1 = $1;
+				ParseNode & op = $2;
+				ParseNode & exp2 = $3;
+				sprintf(codegen_buf, "%s >= %s", exp1.fs.CurrentTerm.what.c_str(), exp2.fs.CurrentTerm.what.c_str());
+				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_EXPRESSION, string(codegen_buf) };
+				newnode->addchild(new ParseNode(exp1)); // left operand exp
+				newnode->addchild(new ParseNode(op)); // >=
+				newnode->addchild(new ParseNode(exp2)); // right operand exp
+				$$ = *newnode;
+			}
+		| exp YY_LE exp crlf
+			{
+				ParseNode * newnode = new ParseNode();
+				ParseNode & exp1 = $1;
+				ParseNode & op = $2;
+				ParseNode & exp2 = $3;
+				sprintf(codegen_buf, "%s <= %s", exp1.fs.CurrentTerm.what.c_str(), exp2.fs.CurrentTerm.what.c_str());
+				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_EXPRESSION, string(codegen_buf) };
+				newnode->addchild(new ParseNode(exp1)); // left operand exp
+				newnode->addchild(new ParseNode(op)); // <=
+				newnode->addchild(new ParseNode(exp2)); // right operand exp
+				$$ = *newnode;
+			}
+		| exp YY_LT exp crlf
+			{
+				ParseNode * newnode = new ParseNode();
+				ParseNode & exp1 = $1;
+				ParseNode & op = $2;
+				ParseNode & exp2 = $3;
+				sprintf(codegen_buf, "%s < %s", exp1.fs.CurrentTerm.what.c_str(), exp2.fs.CurrentTerm.what.c_str());
+				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_EXPRESSION, string(codegen_buf) };
+				newnode->addchild(new ParseNode(exp1)); // left operand exp
+				newnode->addchild(new ParseNode(op)); // <
+				newnode->addchild(new ParseNode(exp2)); // right operand exp
+				$$ = *newnode;
+			}
 		| literal crlf
             { 
 				// 
@@ -586,6 +729,15 @@ using namespace std;
         | output_stmt
 		| dummy_stmt
 		| let_stmt
+			{
+				ParseNode * newnode = new ParseNode();
+				ParseNode & let = $1;
+				sprintf(codegen_buf, "%s ;\n", let.fs.CurrentTerm.what.c_str());
+				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_STATEMENT, string(codegen_buf) };
+				newnode->addchild(new ParseNode(let)); // let
+				$$ = *newnode;
+				update_pos($$);
+			}
 
     output_stmt : write
 
@@ -598,7 +750,7 @@ using namespace std;
 				ParseNode & op = $2;
 				ParseNode & exp2 = $3;
 				sprintf(codegen_buf, "%s = %s", exp1.fs.CurrentTerm.what.c_str(), exp2.fs.CurrentTerm.what.c_str());
-				newnode->fs.CurrentTerm = Term{ TokenMeta::META_NONTERMINAL, string(codegen_buf) };
+				newnode->fs.CurrentTerm = Term{ TokenMeta::Let, string(codegen_buf) };
 				newnode->addchild(new ParseNode(exp1)); // left operand exp
 				newnode->addchild(new ParseNode(op)); // =
 				newnode->addchild(new ParseNode(exp2)); // right operand exp
@@ -1095,65 +1247,74 @@ using namespace std;
 	if_stmt : YY_IF exp YY_THEN crlf suite YY_END YY_IF crlf
 			{
 				ParseNode * newnode = new ParseNode();
-				$5.fs.CurrentTerm.what = tabber($5.fs.CurrentTerm.what);
+				ParseNode & exp = $2;
+				ParseNode & suite_true = $5; suite_true.fs.CurrentTerm.what = tabber(suite_true.fs.CurrentTerm.what);
 #ifndef LAZY_GEN
-				sprintf(codegen_buf, "if (%s) {\n%s}", $2.fs.CurrentTerm.what.c_str(), $5.fs.CurrentTerm.what.c_str());
+				sprintf(codegen_buf, "if (%s) {\n%s}", exp.fs.CurrentTerm.what.c_str(), suite_true.fs.CurrentTerm.what.c_str());
 				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_IF, string(codegen_buf) };
 #endif // !LAZY_GEN
 
 				newnode->addchild(new ParseNode($1)); // if
-				newnode->addchild(new ParseNode($2)); // exp
-				newnode->addchild(new ParseNode($5)); // suite
+				newnode->addchild(new ParseNode(exp)); // exp
+				newnode->addchild(new ParseNode(suite_true)); // suite
 				$$ = *newnode;
 				update_pos($$);
 			}
 		| YY_IF exp YY_THEN crlf suite YY_ELSE crlf suite YY_END YY_IF crlf
 			{
 				ParseNode * newnode = new ParseNode();
-				$5.fs.CurrentTerm.what = tabber($5.fs.CurrentTerm.what); $8.fs.CurrentTerm.what = tabber($8.fs.CurrentTerm.what);
+				ParseNode & exp = $2;
+				ParseNode & suite_true = $5; suite_true.fs.CurrentTerm.what = tabber(suite_true.fs.CurrentTerm.what);
+				ParseNode & suite_else = $8; suite_else.fs.CurrentTerm.what = tabber(suite_else.fs.CurrentTerm.what);
 #ifndef LAZY_GEN
-				sprintf(codegen_buf, "if (%s) {\n%s}\nelse {\n %s}", $2.fs.CurrentTerm.what.c_str(), $5.fs.CurrentTerm.what.c_str(), $8.fs.CurrentTerm.what.c_str());
+				sprintf(codegen_buf, "if (%s) {\n%s}\nelse {\n %s}", exp.fs.CurrentTerm.what.c_str(), suite_true.fs.CurrentTerm.what.c_str(), suite_else.fs.CurrentTerm.what.c_str());
 				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_IF, string(codegen_buf) };
 #endif // !LAZY_GEN
 
 				newnode->addchild(new ParseNode($1)); // if
-				newnode->addchild(new ParseNode($2)); // exp
-				newnode->addchild(new ParseNode($5)); // suite
+				newnode->addchild(new ParseNode(exp)); // exp
+				newnode->addchild(new ParseNode(suite_true)); // suite
 				newnode->addchild(new ParseNode($6)); // else
-				newnode->addchild(new ParseNode($8)); // else-stmt
+				newnode->addchild(new ParseNode(suite_else)); // else-stmt
 				$$ = *newnode;
 				update_pos($$);
 			}
 		| YY_IF exp YY_THEN crlf suite elseif_stmt YY_END YY_IF crlf
 			{
 				ParseNode * newnode = new ParseNode();
-				$5.fs.CurrentTerm.what = tabber($5.fs.CurrentTerm.what); 
+				ParseNode & exp = $2;
+				ParseNode & suite_true = $5; suite_true.fs.CurrentTerm.what = tabber(suite_true.fs.CurrentTerm.what);
+				ParseNode & elseif = $6;
 #ifndef LAZY_GEN
-				sprintf(codegen_buf, "if (%s) {\n%s}\n%s", $2.fs.CurrentTerm.what.c_str(), $5.fs.CurrentTerm.what.c_str(), $6.fs.CurrentTerm.what.c_str());
+				sprintf(codegen_buf, "if (%s) {\n%s}\n%s", exp.fs.CurrentTerm.what.c_str(), suite_true.fs.CurrentTerm.what.c_str(), elseif.fs.CurrentTerm.what.c_str());
 				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_IF, string(codegen_buf) };
 #endif // !LAZY_GEN
 
 				newnode->addchild(new ParseNode($1)); // if
-				newnode->addchild(new ParseNode($2)); // exp
-				newnode->addchild(new ParseNode($5)); // suite
-				newnode->addchild(new ParseNode($6)); // recursive elseif-stmt
+				newnode->addchild(new ParseNode(exp)); // exp
+				newnode->addchild(new ParseNode(suite_true)); // suite
+				newnode->addchild(new ParseNode(elseif)); // recursive elseif-stmt
 				$$ = *newnode;
 				update_pos($$);
 			}
 		| YY_IF exp YY_THEN crlf suite elseif_stmt YY_ELSE crlf suite YY_END YY_IF
 			{
 				ParseNode * newnode = new ParseNode();
-				$3.fs.CurrentTerm.what = tabber($3.fs.CurrentTerm.what); 
+				ParseNode & exp = $2;
+				ParseNode & suite_true = $5; suite_true.fs.CurrentTerm.what = tabber(suite_true.fs.CurrentTerm.what);
+				ParseNode & elseif = $6;
+				ParseNode & suite_else = $9; suite_else.fs.CurrentTerm.what = tabber(suite_else.fs.CurrentTerm.what);
+				
 #ifndef LAZY_GEN
-				sprintf(codegen_buf, "if (%s) {\n%s}\nelse {\n%s}%s", $2.fs.CurrentTerm.what.c_str(), $5.fs.CurrentTerm.what.c_str(), $6.fs.CurrentTerm.what.c_str(), $9.fs.CurrentTerm.what.c_str());
+				sprintf(codegen_buf, "if (%s) {\n%s}\n%selse {\n%s}", exp.fs.CurrentTerm.what.c_str(), suite_true.fs.CurrentTerm.what.c_str(), elseif.fs.CurrentTerm.what.c_str(), suite_else.fs.CurrentTerm.what.c_str());
 				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_IF, string(codegen_buf) };
 #endif // !LAZY_GEN
 
 				newnode->addchild(new ParseNode($1)); // if
-				newnode->addchild(new ParseNode($2)); // exp
-				newnode->addchild(new ParseNode($5)); // suite
-				newnode->addchild(new ParseNode($6)); // recursive elseif-stmt
-				newnode->addchild(new ParseNode($9)); // else-stmt
+				newnode->addchild(new ParseNode(exp)); // exp
+				newnode->addchild(new ParseNode(suite_true)); // suite
+				newnode->addchild(new ParseNode(elseif)); // recursive elseif-stmt
+				newnode->addchild(new ParseNode(suite_else)); // else-stmt
 				$$ = *newnode;
 				update_pos($$);
 			}
