@@ -13,6 +13,7 @@ using namespace std;
 int main(int argc, char* argv[], char* env[])
 {
 	debug();
+
 	system("pause");
 	return 0;
 }

@@ -27,13 +27,19 @@ void debug() {
 	// if_stmt, logical eval
 	global_code = "program if a .eqv. b then 2 else c end if end program";
 	global_code = "program if a .eqv. b then 2 else if a >= b then b <= a end if end program";
-	global_code = "program if a .eqv. b then 2 else if a >= b then b <= a else c end if end program";
+	global_code = "program if (a .eqv. b) then 2 else if a >= b then b <= a else c end if end program";
 	global_code = "program if 1 then if 2 then 3 end if end if end program";
 	global_code = "program if 1 then if 11 then 22 else if 33 then 44 else 4 end if end if end program";
 	global_code = "program if 1 then if 11 then 22 else if 33 then 44 end if else 4 end if end program";
 	global_code = "program if 1 then if 11 then 22 else if 33 then 44 else 55 end if else if 3 then 4 else 5 end if end program";
 	global_code = "program if a .eqv. b then if .not. a < b then a = b else b = .not. .true. end if else if a >= b then b <= a else c end if end program";
 	global_code = "program 1.3 + 2 * 3 - .true. end program";
+
+	// do_stmt
+	global_code = "program do infi_loop() end do end program";
+	global_code = "program do i = 1, 5 \n count_loop() end do end program";
+	global_code = "program do i = 1, 5 \n if (a == 0) then cycle else exit end if end do end program";
+	global_code = "program do while (i < 8) \n conditional_loop() end do end program";
 
 	// type
 	global_code = "program recursive function main() result(C) \n complex::C = 1_2 \n end function end program";
@@ -46,33 +52,43 @@ void debug() {
 
 	// io
 	global_code = "program write *,* a, b \n  end program";
+	global_code = "program write (*,*) 'L=', L \n  end program";
+	global_code = "program write *,\"1X,F10.3,F8.4\" x, y \n  end program";
+	global_code = "program read (*,*) x, y \n  end program";
+	global_code = "program read (*,\"F, F\") x, y \n  end program";
 
 	// function
 	global_code = "program recursive function main(A,B) result(C) \n implicit none \n integer::a = 1 + 2, b = 2, c = 3 \n end function end program";
+	global_code = "program recursive function main(A,B) result(C) \n implicit none \n integer,intent(in)::a = 1 + 2, b = 2 \n integer,intent(out)::c = 3 \n end function end program";
 	global_code = "program recursive function main(A,B) result(C) \n a = abs(c, abs(1 ,2)) \n end function end program";
 	global_code = "program recursive function main(A,B) result(C) \n a = empty() \n end function end program";
-	/* '(' exp ')' 和 callable归约冲突 */
-	global_code = "program recursive function main(A,B) result(C) \n integer::a, b, c\n a = abs(real(c)) \n end function end program";
+	global_code = "program recursive function main(A,B) result(C) \n integer::a, b, c\n a = abs(real(c)) \n end function end program"; /* '(' exp ')' 和 callable归约冲突 */
 
 	// array
+	global_code = "program integer,intent(out),dimension(5:7)::A=(/1, 2/) \n  end program"; // intent
+	
 	global_code = "program integer,dimension(5:7)::A=(/1, 2/) \n  end program";
-	global_code = "program integer,dimension(5:7)::A=(/ int(i) + 1, i=1,4/) \n  end program";
-	global_code = "program integer,dimension(5:7)::A=(/ B(1:2:3) /) \n  end program";
-	global_code = "program integer,intent(out),dimension(5:7)::A=(/1, 2/) \n  end program";
 	global_code = "program integer,dimension(5:7, 6:8, 7:9)::A=(/1, 2, 3, 4, 5, 6/) \n  end program";
-	global_code = "program integer,dimension(2, 3)::A=(/ (int(i) + 1, i=1,4) , j = 2, 3 /) \n  end program";
 	global_code = "program integer,dimension(5:7, 6:8)::A \n A(1:2, :) \n  end program";
+
+	global_code = "program integer,dimension(5:7)::A=(/ int(i) + 1, i=1,4/) \n  end program";
+	global_code = "program integer,dimension(2, 3)::A=(/ (int(i) + 1, i=1,4) , j = 2, 3 /) \n  end program"; // not support
+
+	global_code = "program integer,dimension(5:7)::A=(/ B(1:2:3) /) \n  end program";
+
 	global_code = "program integer,dimension(5:7)::A=(/ a(1:2) , b(3:4) /) \n  end program";
 	global_code = "program integer,dimension(5:7)::A=(/ a(1:2) , b(3:4) , (int(i) + 1, i=1,4) /) \n  end program";
 
+	// paste here
+	global_code = "program recursive function main(A,B) result(C) \n implicit none \n integer,intent(in)::a = 1 + 2, b = 2 \n integer,intent(out)::c = 3 \n end function end program";
 
-	std::vector<int> accumulated{ 2, 2, 2 };
-	int s = 1;
-	std::transform(accumulated.rbegin(), accumulated.rend(), accumulated.rbegin(), [&s](int x) {int ans = s; s *= x; return ans; });
+	//std::vector<int> accumulated{ 2, 2, 2 };
+	//int s = 1;
+	//std::transform(accumulated.rbegin(), accumulated.rend(), accumulated.rbegin(), [&s](int x) {int ans = s; s *= x; return ans; });
 
 
-	cout << max_n(1, 2) << endl;
-	cout << parse_ioformatter("\"aaa\"2(f, 2i)") << endl;
+	//cout << max_n(1, 2) << endl;
+	//cout << parse_ioformatter("\"aaa\"2(f, 2i)") << endl;
 
 	forarray<forarray<int>> a(1, 3);
 	for (int i = 1; i < 3; i++)

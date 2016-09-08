@@ -9,6 +9,7 @@
 #include <boost/algorithm/string.hpp>
 #include "../tokenizer.h"
 #include "../parser.h"
+#include "../cgen.h"
 
 
 // Ç°ÖÃÉùÃ÷
@@ -114,7 +115,7 @@ newline [\r\n]
 "==" { RTOP(TokenMeta::EQ, YY_EQ) }
 "/=" { RTOP(TokenMeta::NEQ, YY_NEQ) /* [Ee][Ll][Ss][Ee]{ws}[Ii][Ff] {RTWORD()} */ }
 
-[a-zA-Z_][a-zA-Z0-9]* { RTWORD() }
+[a-zA-Z_][a-zA-Z0-9_]* { RTWORD() }
 \.[a-zA-Z_][a-zA-Z0-9]*\. { RTWORD() }
 \"(\\.|[^"])*\" {RTSTRING(TokenMeta::META_STRING) 
 /* The delimiting quotes are escaped because they are Flex meta-characters. */}
@@ -188,9 +189,15 @@ int word_parse() {
 			}
 
 			/* this is a keyword with specialized yytoken */
+			if (pre_map.find(yytextstr) != pre_map.end()) {
+				yytextstr = pre_map.at(yytextstr);
+			}
 			update_yylval( Term{ keywords[i].token , std::string(yytextstr) });
 			return keywords[i].yytoken;
 		}
+	}
+	if (pre_map.find(yytextstr) != pre_map.end()) {
+		yytextstr = pre_map.at(yytextstr);
 	}
 	update_yylval(Term{ TokenMeta::META_WORD , std::string(yytextstr) });
 	return YY_WORD;

@@ -217,13 +217,13 @@
 		NT_AUTOFORMATTER = -2003, /* the second `*` sign of write (*,*), xxx */
 		NT_ARGTABLE = -2004,
 		NT_FUNCTIONDECLARE = -2005,
-		NT_VARIABLEDEFINE = -2006,  /* int a = 2, b, c */
+		NT_VARIABLEDEFINE = -2006,  /* is a statement that can define a list of variables , such as int a = 2, b, c */
 		NT_STATEMENT = -2007,
 		NT_EXPRESSION = -2008,
 		NT_IF = -2009,
 		NT_ELSEIF = -2010,
 		NT_DO = -2011,
-		NT_VARIABLEINITIAL = -2012, /* (varname, initial_value) */
+		NT_VARIABLEINITIAL = -2012, /* is a variable define info, such as (varname, initial_value) */
 		NT_DECLAREDVARIABLE = -2013, /* in programming languages such as fortran, function's paramtable declares the name but the type of parameters, the definition of parameters is placed in main structure of function */
 		/* 在fortran类语言中, 函数的参数表不包含变量的类型, 参数的实际定义在函数体内, 所以翻译成C时, 需要将这部分定义外提到参数表中, 此时置源语句的函数定义不是NT_VARIABLEINITIAL而是NT_DECLAREDVARIABLE */	
 		NT_SUITE = -2014,
@@ -239,6 +239,7 @@
 		NT_VOID = -2023, /* this ParseNode do not exist but ParseNode * can not be nullptr so this is placeholder */
 		NT_ARRAYBUILDER = -2024, /* mixed array builder */
 		NT_ARGTABLE_PURE = -2025,
+		NT_WRAPPER = -2026,
 };
 //}
 

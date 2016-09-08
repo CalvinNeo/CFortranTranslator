@@ -5,15 +5,17 @@
 #include <string>
 
 // const map has no operator[]
-const std::map<std::string, std::string> typename_map{
-	{"integer", "int"}
-	, {"logical", "bool"}
-	, {"character", "string"}
-	, { "real", "double" }
-	, { "complex", "forcomplex" }
+const std::map<std::string, std::string> pre_map{
+	{ "integer", "int" }
+	,{ "logical", "bool" }
+	,{ "character", "string" }
+	,{ "real", "double" }
+	,{ "complex", "forcomplex" }
+	, { "cycle", "continue" }
+	, { "exit", "break" }
 };
 
-/* NOTICE: `typename_map` has already do previous job for `funcname_map` */
+/* NOTICE: `pre_map` has already do previous job for `funcname_map` */
 const std::map<std::string, std::string> funcname_map{
 	{ "min", "min_n" }
 	, { "max", "max_n" }

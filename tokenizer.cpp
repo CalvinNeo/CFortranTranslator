@@ -75,6 +75,10 @@ const vector<KeywordMeta> keywords = {
 		, TokenMeta::Do
 		, YY_DO
 	}
+	, KeywordMeta{"dowhile"
+		, TokenMeta::While
+		, YY_DOWHILE
+	}
 	, KeywordMeta{"exit"
 		, TokenMeta::Break
 		, YY_BREAK
@@ -202,19 +206,19 @@ const vector<KeywordMeta> keywords = {
 		, YY_FLOAT_T
 	}
 	, KeywordMeta{ "integer"
-		, TokenMeta::META_ANY
+		, TokenMeta::Int_Def
 		, YY_INTEGER_T
 	}
 	, KeywordMeta{ "logical"
-		, TokenMeta::META_ANY
+		, TokenMeta::Bool_Def
 		, YY_BOOL_T
 	}
 	, KeywordMeta{ "complex"
-		, TokenMeta::META_ANY
+		, TokenMeta::Complex_Def
 		, YY_COMPLEX_T
 	}
 	, KeywordMeta{ "character"
-		, TokenMeta::META_ANY
+		, TokenMeta::String_Def
 		, YY_STRING_T
 	}
 	, KeywordMeta{ "print"
@@ -261,9 +265,14 @@ const vector<KeywordMeta> keywords = {
 		, TokenMeta::META_ANY
 		, YY_OPTIONAL
 	}
+	, KeywordMeta{ "select"
+		, TokenMeta::Switch
+		, YY_SELECT
+	}
 };
 
 
 const std::map<std::string, std::vector<std::string> > forward1 = {
 	{"else", {"if"}}
+	, {"do",{ "while" }}
 };

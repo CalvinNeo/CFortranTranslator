@@ -75,8 +75,9 @@ all parse tree nodes are defined in Intents.h with an `NT_` prefix
 - NT_VARIABLEDEFINE -> (typeinfo, NT_DIMENSLICE || dummy, NT_PARAMTABLE )
 - NT_PARAMTABLE -> NT_VARIABLEINITIAL || NT_DECLAREDVARIABLE -> (NT_DECLAREDVARIABLE -> (UnknownVariant, NT_EXPRESSION as initial value) ) 
 - NT_ARGTABLE_DIMENSLICE -> NT_DIMENSLICE
-- NT_ARGTABLE -> NT_EXPRESSION
-- NT_ARRAYBUILDER -> (NT_ARRAYBUILDER_VALUE -> argtable, NT_ARRAYBUILDER_EXP, exp)
+- NT_ARGTABLE_PURE -> NT_EXPRESSION
+- NT_ARRAYBUILDER -> (NT_ARRAYBUILDER_VALUE -> argtable || NT_ARRAYBUILDER_EXP || exp) +
+- wrapper(not a node) -> NT_SUITE || NT_FUNCTIONDECLARE
 
 ## todolist
 - lazygen(partial)
