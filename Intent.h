@@ -179,7 +179,7 @@
 		Complex_Def = Complex - 100,
 		Short_Def = Short - 100,
 
-		//Flow-Control
+		// Flow-Control
 		If = -600,
 		Else = -601,
 		ElseIf = Else,
@@ -240,6 +240,9 @@
 		NT_ARRAYBUILDER = -2024, /* mixed array builder */
 		NT_ARGTABLE_PURE = -2025,
 		NT_WRAPPER = -2026,
+		NT_SELECT = -2027,
+		NT_CASE = -2028,
+		NT_CASES = -2029,
 };
 //}
 

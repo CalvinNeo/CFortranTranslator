@@ -269,6 +269,10 @@ const vector<KeywordMeta> keywords = {
 		, TokenMeta::Switch
 		, YY_SELECT
 	}
+	, KeywordMeta{ "default"
+		, TokenMeta::Default
+		, YY_DEFAULT
+	}
 };
 
 

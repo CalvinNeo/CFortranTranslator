@@ -2,15 +2,14 @@
 A translator between C++ and Fortran90.
 
 ## Install
-1. win_flex and win_bison
-2. boost
-3. vs2015
+1. vs2015(Update 3) + win_flex(win_flex_bison 2.4.5, flex 2.5.37) + win_bison(win_flex_bison 2.4.5, bison 2.7), or any thing that works
+2. boost(1.60)
 
 ## grammar restrictions and translate rules
 refer to for90.y for all accepted grammar
 ### unsupported keywords
 
-1. NO `DO|IF|CASE|...` with a name after
+1. NO named blocks
 
 ### types
 #### type mapping
@@ -70,12 +69,13 @@ refer to for90.y for all accepted grammar
 ## Parse Tree
 all parse tree nodes are defined in Intents.h with an `NT_` prefix
 ### Parse Tree Layers
-- NT_DIMENSLICE -> NT_SLICE
+- NT_DIMENSLICE -> NT_SLICE ; dimen_slice rule
+- NT_ARGTABLE_PURE -> NT_EXPRESSION ; dimen_slice rule
 - NT_SUITE -> NT_STATEMENT
 - NT_VARIABLEDEFINE -> (typeinfo, NT_DIMENSLICE || dummy, NT_PARAMTABLE )
-- NT_PARAMTABLE -> NT_VARIABLEINITIAL || NT_DECLAREDVARIABLE -> (NT_DECLAREDVARIABLE -> (UnknownVariant, NT_EXPRESSION as initial value) ) 
+- NT_PARAMTABLE -> NT_VARIABLEINITIAL || NT_DECLAREDVARIABLE
+- NT_VARIABLEINITIAL/NT_DECLAREDVARIABLE -> (UnknownVariant, NT_EXPRESSION || NT_VARIABLEINITIALDUMMY)
 - NT_ARGTABLE_DIMENSLICE -> NT_DIMENSLICE
-- NT_ARGTABLE_PURE -> NT_EXPRESSION
 - NT_ARRAYBUILDER -> (NT_ARRAYBUILDER_VALUE -> argtable || NT_ARRAYBUILDER_EXP || exp) +
 - wrapper(not a node) -> NT_SUITE || NT_FUNCTIONDECLARE
 
@@ -95,7 +95,8 @@ all parse tree nodes are defined in Intents.h with an `NT_` prefix
 - ~~if slice can be a scalar x and equal to (1: x + 1), there will be conflict in argtable~~
 - c-style array(partial)
 - variable with type
-- enable crlf rule(may cause bugs)
+- ~~enable crlf rule~~(may cause bugs)
 - mixed array_builder
 - array functions(reshape, spread, transpose)
+- more specific type
 - bugfix(update_pos parse_len)
