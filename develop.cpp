@@ -79,8 +79,12 @@ void debug() {
 	global_code = "program integer,dimension(5:7)::A=(/ a(1:2) , b(3:4) /) \n  end program";
 	global_code = "program integer,dimension(5:7)::A=(/ a(1:2) , b(3:4) , (int(i) + 1, i=1,4) /) \n  end program";
 
+	// select
+	global_code = "program select case abs(i) \n case 1 \n a = 3 \n case 2 : 3 \n a = 4  end select end program";
+
+
 	// paste here
-	global_code = "program recursive function main(A,B) result(C) \n implicit none \n integer,intent(in)::a = 1 + 2, b \n integer,intent(out)::c = 3 \n end function end program";
+	global_code = "program select case abs(i) \n case 1 \n a = 3 \n case 2 : 3 \n a = 4  end select end program";
 
 	//std::vector<int> accumulated{ 2, 2, 2 };
 	//int s = 1;

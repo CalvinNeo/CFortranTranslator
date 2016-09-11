@@ -353,14 +353,13 @@ using namespace std;
 				update_pos($$);
 			}
 
-	function_array : callable '(' argtable ')' crlf
+	function_array : callable '(' argtable ')' 
 			{
 				/* function call OR array index */
 				/* NOTE that array index can be A(1:2, 3:4) */
 				ParseNode * newnode = new ParseNode();
 				ParseNode & callable = $1;
 				ParseNode & argtable = $3;
-				ParseNode & crlf = $5;
 #ifndef LAZY_GEN
 				string name;
 				string x;
@@ -379,7 +378,6 @@ using namespace std;
 					x += "(";
 					x += argtable.fs.CurrentTerm.what;
 					x += ")";
-					x += (crlf.fs.CurrentTerm.token == TokenMeta::CRLF ? ";" : "");
 					newnode->fs.CurrentTerm = Term{ TokenMeta::NT_FUCNTIONARRAY,  x };
 				}
 #endif // !LAZY_GEN
@@ -389,13 +387,16 @@ using namespace std;
 				update_pos($$);
 			}
 
-	exp : function_array
+	exp : function_array crlf
 			{
 				/* function call OR array index */
 				ParseNode * newnode = new ParseNode();
 				ParseNode & function_array = $1;
+				ParseNode & crlf = $2;
 #ifndef LAZY_GEN
-				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_EXPRESSION, function_array.fs.CurrentTerm.what };
+				string x = function_array.fs.CurrentTerm.what;
+				x += (crlf.fs.CurrentTerm.token == TokenMeta::CRLF ? ";" : "");
+				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_EXPRESSION,  x};
 #endif // !LAZY_GEN
 
 				newnode->addchild(new ParseNode(function_array)); // function_array
@@ -754,7 +755,9 @@ using namespace std;
     output_stmt : write
 	input_stmt : read
 
-	compound_stmt : if_stmt | do_stmt
+	compound_stmt : if_stmt 
+		| do_stmt 
+		| select_stmt
 
 	jump_stmt : YY_CONTINUE
 		| YY_BREAK
@@ -1493,26 +1496,37 @@ using namespace std;
 				ParseNode & exp = $4;
 				ParseNode & case_stmt = $7;
 				string codegen = "";
-				for (int i = 0; i < case_stmt.size(); i++)
+				for (int i = 0; i < case_stmt.child.size(); i++)
 				{
-					ParseNode & case_stmt_elem = case_stmt[i];
+					ParseNode & case_stmt_elem = *case_stmt.child[i];
 					ParseNode & dimen_slice = *case_stmt_elem.child[1];
 					if (dimen_slice.fs.CurrentTerm.token == TokenMeta::NT_DIMENSLICE) {
 						// NT_DIMENSLICE
+						string dsstr;
+						for (int sliceid = 0; sliceid < dimen_slice.child.size(); sliceid++)
+						{
+							if (sliceid == 0) {
+								sprintf(codegen_buf, "(%s >= %s && %s < %s)", exp.fs.CurrentTerm.what.c_str(), dimen_slice.child[sliceid]->child[0]->fs.CurrentTerm.what.c_str(), exp.fs.CurrentTerm.what.c_str(), dimen_slice.child[sliceid]->child[1]->fs.CurrentTerm.what.c_str());
+							}
+							else {
+								sprintf(codegen_buf, " || (%s >= %s && %s < %s)", exp.fs.CurrentTerm.what.c_str(), dimen_slice.child[sliceid]->child[0]->fs.CurrentTerm.what.c_str(), exp.fs.CurrentTerm.what.c_str(), dimen_slice.child[sliceid]->child[1]->fs.CurrentTerm.what.c_str());
+							}
+							dsstr += string(codegen_buf);
+						}
 						if (i == 0) {
-							sprintf(codegen_buf, "if(%s){\n%s}\n", exp.fs.CurrentTerm.what.c_str(), tabber(case_stmt_elem.fs.CurrentTerm.what).c_str());
+							sprintf(codegen_buf, "if(%s){\n%s}\n", dsstr.c_str(), case_stmt_elem.child[2]->fs.CurrentTerm.what.c_str());
 						}
 						else {
-							sprintf(codegen_buf, "else if(%s){\n%s}\n", exp.fs.CurrentTerm.what.c_str(), tabber(case_stmt_elem.fs.CurrentTerm.what).c_str());
+							sprintf(codegen_buf, "else if(%s){\n%s}\n", dsstr.c_str(), case_stmt_elem.child[2]->fs.CurrentTerm.what.c_str());
 						}
 					}
 					else {
 						// NT_ARGTABLE_PURE
 						if (i == 0) {
-							sprintf(codegen_buf, "if(%s){\n%s}\n", exp.fs.CurrentTerm.what.c_str(), tabber(case_stmt_elem.fs.CurrentTerm.what).c_str());
+							sprintf(codegen_buf, "if(%s == %s){\n%s}\n", exp.fs.CurrentTerm.what.c_str(), dimen_slice.child[0]->fs.CurrentTerm.what.c_str(), case_stmt_elem.child[2]->fs.CurrentTerm.what.c_str());
 						}
 						else {
-							sprintf(codegen_buf, "else if(%s){\n%s}\n", exp.fs.CurrentTerm.what.c_str(), tabber(case_stmt_elem.fs.CurrentTerm.what).c_str());
+							sprintf(codegen_buf, "else if(%s == %s){\n%s}\n", exp.fs.CurrentTerm.what.c_str(), dimen_slice.child[0]->fs.CurrentTerm.what.c_str(),  case_stmt_elem.child[2]->fs.CurrentTerm.what.c_str());
 						}
 					}
 					codegen += codegen_buf;
