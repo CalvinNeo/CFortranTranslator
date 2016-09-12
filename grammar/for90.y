@@ -369,7 +369,7 @@ using namespace std;
 				else {
 					name = callable.fs.CurrentTerm.what;
 				}
-				if (argtable.fs.CurrentTerm.token == TokenMeta::NT_ARGTABLE_PURE) {
+				if (argtable.fs.CurrentTerm.token == TokenMeta::NT_ARGTABLE_DIMENSLICE) {
 					sprintf(codegen_buf, argtable.fs.CurrentTerm.what.c_str(), name.c_str());
 					newnode->fs.CurrentTerm = Term{ TokenMeta::NT_FUCNTIONARRAY,  string(codegen_buf) };
 				}
@@ -387,16 +387,13 @@ using namespace std;
 				update_pos($$);
 			}
 
-	exp : function_array crlf
+	exp : function_array 
 			{
 				/* function call OR array index */
 				ParseNode * newnode = new ParseNode();
 				ParseNode & function_array = $1;
-				ParseNode & crlf = $2;
 #ifndef LAZY_GEN
-				string x = function_array.fs.CurrentTerm.what;
-				x += (crlf.fs.CurrentTerm.token == TokenMeta::CRLF ? ";" : "");
-				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_EXPRESSION,  x};
+				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_EXPRESSION,  function_array.fs.CurrentTerm.what };
 #endif // !LAZY_GEN
 
 				newnode->addchild(new ParseNode(function_array)); // function_array
@@ -404,7 +401,7 @@ using namespace std;
 				update_pos($$);
 			}
 
-		| '(' exp ')' crlf
+		| '(' exp ')' 
 			{
 				/* `function_array` rule has priority over this rule  */
 				ParseNode * newnode = new ParseNode();
@@ -418,7 +415,7 @@ using namespace std;
 				$$ = *newnode;
 				update_pos($$);
 			}
-		| exp '+' exp crlf
+		| exp '+' exp 
 			{
 				ParseNode * newnode = new ParseNode();
 				ParseNode & exp1 = $1;
@@ -431,7 +428,7 @@ using namespace std;
 				newnode->addchild(new ParseNode(exp2)); // tight operand exp
 				$$ = *newnode;
 			}
-		| exp '-' exp crlf
+		| exp '-' exp 
 			{
 				ParseNode * newnode = new ParseNode();
 				ParseNode & exp1 = $1;
@@ -444,7 +441,7 @@ using namespace std;
 				newnode->addchild(new ParseNode(exp2)); // right operand exp
 				$$ = *newnode;
 			}
-		| exp '*' exp crlf
+		| exp '*' exp 
 			{
 				ParseNode * newnode = new ParseNode();
 				ParseNode & exp1 = $1;
@@ -457,7 +454,7 @@ using namespace std;
 				newnode->addchild(new ParseNode(exp2)); // right operand exp
 				$$ = *newnode;
 			}
-		| exp '/' exp crlf
+		| exp '/' exp 
 			{
 				ParseNode * newnode = new ParseNode();
 				ParseNode & exp1 = $1;
@@ -470,7 +467,7 @@ using namespace std;
 				newnode->addchild(new ParseNode(exp2)); // right operand exp
 				$$ = *newnode;
 			}
-		| exp YY_POWER exp crlf
+		| exp YY_POWER exp 
 			{
 				ParseNode * newnode = new ParseNode();
 				ParseNode & exp1 = $1;
@@ -483,7 +480,7 @@ using namespace std;
 				newnode->addchild(new ParseNode(exp2)); // right operand exp
 				$$ = *newnode;
 			}
-        | '-' %prec YY_NEG exp crlf
+        | '-' %prec YY_NEG exp 
 			{
 				ParseNode * newnode = new ParseNode();
 				ParseNode & exp1 = $2;
@@ -495,7 +492,7 @@ using namespace std;
 				$$ = *newnode;
 				update_pos($$);
 			}
-		| exp YY_NEQ exp crlf
+		| exp YY_NEQ exp 
 			{
 				ParseNode * newnode = new ParseNode();
 				ParseNode & exp1 = $1;
@@ -508,7 +505,7 @@ using namespace std;
 				newnode->addchild(new ParseNode(exp2)); // right operand exp
 				$$ = *newnode;
 			}
-		| exp YY_NEQV exp crlf
+		| exp YY_NEQV exp 
 			{
 				ParseNode * newnode = new ParseNode();
 				ParseNode & exp1 = $1;
@@ -521,7 +518,7 @@ using namespace std;
 				newnode->addchild(new ParseNode(exp2)); // right operand exp
 				$$ = *newnode;
 			}
-		| exp YY_EQ exp crlf
+		| exp YY_EQ exp 
 			{
 				ParseNode * newnode = new ParseNode();
 				ParseNode & exp1 = $1;
@@ -534,7 +531,7 @@ using namespace std;
 				newnode->addchild(new ParseNode(exp2)); // right operand exp
 				$$ = *newnode;
 			}
-		| exp YY_EQV exp crlf
+		| exp YY_EQV exp 
 			{
 				ParseNode * newnode = new ParseNode();
 				ParseNode & exp1 = $1;
@@ -547,7 +544,7 @@ using namespace std;
 				newnode->addchild(new ParseNode(exp2)); // right operand exp
 				$$ = *newnode;
 			}
-		| exp YY_ANDAND exp crlf
+		| exp YY_ANDAND exp 
 			{
 				ParseNode * newnode = new ParseNode();
 				ParseNode & exp1 = $1;
@@ -560,7 +557,7 @@ using namespace std;
 				newnode->addchild(new ParseNode(exp2)); // right operand exp
 				$$ = *newnode;
 			}
-		| exp YY_OROR exp crlf
+		| exp YY_OROR exp 
 			{
 				ParseNode * newnode = new ParseNode();
 				ParseNode & exp1 = $1;
@@ -573,7 +570,7 @@ using namespace std;
 				newnode->addchild(new ParseNode(exp2)); // right operand exp
 				$$ = *newnode;
 			}
-		| YY_NOT exp crlf
+		| YY_NOT exp 
 			{
 				ParseNode * newnode = new ParseNode();
 				ParseNode & exp1 = $2;
@@ -585,7 +582,7 @@ using namespace std;
 				$$ = *newnode;
 				update_pos($$);
 			}
-		| exp YY_GT exp crlf
+		| exp YY_GT exp 
 			{
 				ParseNode * newnode = new ParseNode();
 				ParseNode & exp1 = $1;
@@ -598,7 +595,7 @@ using namespace std;
 				newnode->addchild(new ParseNode(exp2)); // right operand exp
 				$$ = *newnode;
 			}
-		| exp YY_GE exp crlf
+		| exp YY_GE exp 
 			{
 				ParseNode * newnode = new ParseNode();
 				ParseNode & exp1 = $1;
@@ -611,7 +608,7 @@ using namespace std;
 				newnode->addchild(new ParseNode(exp2)); // right operand exp
 				$$ = *newnode;
 			}
-		| exp YY_LE exp crlf
+		| exp YY_LE exp 
 			{
 				ParseNode * newnode = new ParseNode();
 				ParseNode & exp1 = $1;
@@ -624,7 +621,7 @@ using namespace std;
 				newnode->addchild(new ParseNode(exp2)); // right operand exp
 				$$ = *newnode;
 			}
-		| exp YY_LT exp crlf
+		| exp YY_LT exp 
 			{
 				ParseNode * newnode = new ParseNode();
 				ParseNode & exp1 = $1;
@@ -637,12 +634,12 @@ using namespace std;
 				newnode->addchild(new ParseNode(exp2)); // right operand exp
 				$$ = *newnode;
 			}
-		| literal crlf
+		| literal 
             { 
 				// 
 				$$ = $1;
 			}
-		| callable crlf
+		| callable 
 			{
 				// may cause reduction-reduction conflict when use `variable` instead of `callable`
 				// TODO : i am a little strange that `integer::a, b, c` works well because i am afraid that callable will reduce to exp from here. however according to LR(1), `::` is not in FOLLOW(exp)
@@ -682,12 +679,12 @@ using namespace std;
 				if (isdimen) {
 					//sprintf(codegen_buf, "%s", dimen_slice.fs.CurrentTerm.what.c_str());
 					sprintf(codegen_buf, "%%s.slice(%s)", dimen_slice.fs.CurrentTerm.what.c_str());
-					newnode->fs.CurrentTerm = Term{ TokenMeta::NT_ARGTABLE_PURE, string(codegen_buf) };
+					newnode->fs.CurrentTerm = Term{ TokenMeta::NT_ARGTABLE_DIMENSLICE, string(codegen_buf) };
 				}
 				else {
 					//sprintf(codegen_buf, "%%s(%s)", dimen_slice.fs.CurrentTerm.what.c_str());
 					sprintf(codegen_buf, "%s", dimen_slice.fs.CurrentTerm.what.c_str());
-					newnode->fs.CurrentTerm = Term{ TokenMeta::NT_ARGTABLE_DIMENSLICE, string(codegen_buf) };
+					newnode->fs.CurrentTerm = Term{ TokenMeta::NT_ARGTABLE_PURE, string(codegen_buf) };
 				}
 #endif // !LAZY_GEN
 				$$ = *newnode;
@@ -696,6 +693,12 @@ using namespace std;
 		|
 			{
 				// TODO : argtable can also be empty
+				ParseNode * newnode = new ParseNode();
+#ifndef LAZY_GEN
+				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_ARGTABLE_PURE, "" };
+#endif // !LAZY_GEN
+				$$ = *newnode;
+				update_pos($$);
 			}
 
 	stmt : exp crlf
@@ -708,6 +711,7 @@ using namespace std;
 				*/
 				ParseNode * newnode = new ParseNode();
 				ParseNode & exp = $1;
+				//(crlf.fs.CurrentTerm.token == TokenMeta::CRLF ? ";" : "")
 				sprintf(codegen_buf, "%s ;\n", exp.fs.CurrentTerm.what.c_str());
 				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_STATEMENT, string(codegen_buf) };
 				newnode->addchild(new ParseNode(exp)); // exp
@@ -763,7 +767,7 @@ using namespace std;
 		| YY_BREAK
 		| YY_GOTO
 
-	let_stmt : exp '=' exp
+	let_stmt : exp '=' exp crlf
 			{
 				ParseNode * newnode = new ParseNode();
 				ParseNode & exp1 = $1;
@@ -1253,7 +1257,7 @@ using namespace std;
 				update_pos($$);
 			}
 
-	array_builder_elem: YY_ARRAYINITIAL_START argtable YY_ARRAYINITIAL_END
+	array_builder_elem : YY_ARRAYINITIAL_START argtable YY_ARRAYINITIAL_END
 			{
 				/* give initial value */
 				/* NOTE that `B(1:2:3)` can be either a single-element argtable or a exp, this can probably lead to reduction conflicts, NOW we merge rules */
@@ -1276,7 +1280,7 @@ using namespace std;
 				ParseNode * index = $2.child[1];
 				ParseNode * from = $2.child[2];
 				ParseNode * to = $2.child[3];
-				sprintf(codegen_buf, "for(int %s = %s; %s < %s; %s++){\n%s(%s) = %s\n}", index->fs.CurrentTerm.what.c_str(), from->fs.CurrentTerm.what.c_str() /* exp_from */
+				sprintf(codegen_buf, "for(int %s = %s; %s < %s; %s++){\n%s(%s) = %s;\n}", index->fs.CurrentTerm.what.c_str(), from->fs.CurrentTerm.what.c_str() /* exp_from */
 					, index->fs.CurrentTerm.what.c_str(), to->fs.CurrentTerm.what.c_str() /* exp_to */, index->fs.CurrentTerm.what.c_str() /* index variable inc */
 					, "\t%s" /* array variable name */, index->fs.CurrentTerm.what.c_str() /* index variable */, exp->fs.CurrentTerm.what.c_str());
 				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_ARRAYBUILDER_EXP, string(codegen_buf) };
