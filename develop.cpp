@@ -59,7 +59,7 @@ void debug() {
 
 	// function
 	global_code = "program recursive function main(A,B) result(C) \n implicit none \n integer::a = 1 + 2, b = 2, c = 3 \n end function end program";
-	global_code = "program recursive function main(A,B) result(C) \n implicit none \n integer,intent(in)::a = 1 + 2, b \n integer,intent(out)::c = 3 \n end function end program";
+	global_code = "program recursive function main(A,B) result(C) \n implicit none \n integer,intent(in)::a = 1 + 2, b \n integer,intent(out)::c = 3 \n end function end program"; // pay attention  no def a, b and add return c
 	global_code = "program recursive function main(A,B) result(C) \n integer::a , b , c \n a = abs(c, abs(1 ,2)) \n end function end program";
 	global_code = "program recursive function main(A,B) result(C) \n integer::a , b , c \n a = empty() \n end function end program";
 	global_code = "program recursive function main(A,B) result(C) \n integer::a, b, c\n a = abs(real(c)) \n end function end program"; /* '(' exp ')' ∫Õ callableπÈ‘º≥ÂÕª */
@@ -85,7 +85,6 @@ void debug() {
 
 	// paste here
 	global_code = "program recursive function main(A,B) result(C) \n implicit none \n integer::a = 1 + 2, b = 2, c = 3 \n end function end program";
-	global_code = "program recursive function main(A,B) result(C) \n implicit none \n integer,intent(in)::a = 1 + 2, b \n integer,intent(out)::c = 3 \n end function end program";
 
 	//std::vector<int> accumulated{ 2, 2, 2 };
 	//int s = 1;

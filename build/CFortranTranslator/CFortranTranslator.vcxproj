@@ -23,6 +23,7 @@
     <ClCompile Include="..\..\cgen.cpp" />
     <ClCompile Include="..\..\develop.cpp" />
     <ClCompile Include="..\..\for90std.cpp" />
+    <ClCompile Include="..\..\getopt.cpp" />
     <ClCompile Include="..\..\grammar\for90.flex.cpp" />
     <ClCompile Include="..\..\grammar\for90.tab.cpp" />
     <ClCompile Include="..\..\lazygen.cpp" />
@@ -37,6 +38,7 @@
     <ClInclude Include="..\..\cgen.h" />
     <ClInclude Include="..\..\develop.h" />
     <ClInclude Include="..\..\for90std.h" />
+    <ClInclude Include="..\..\getopt.h" />
     <ClInclude Include="..\..\grammar\for90.flex.h" />
     <ClInclude Include="..\..\grammar\for90.tab.h" />
     <ClInclude Include="..\..\Intent.h" />
@@ -144,6 +146,9 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>F:\Codes\CommonLib\boost_1_60_0\libs;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
+    <Flex>
+      <Debug>true</Debug>
+    </Flex>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
