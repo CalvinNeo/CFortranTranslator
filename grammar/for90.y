@@ -29,8 +29,8 @@ using namespace std;
 %token _YY_TYPE YY_INTEGER YY_FLOAT YY_WORD YY_OPERATOR YY_STRING YY_ILLEGAL YY_COMPLEX YY_TRUE YY_FALSE
 %token _YY_CONTROL YY_END YY_IF YY_THEN YY_ELSE YY_ELSEIF YY_ENDIF YY_DO YY_ENDDO YY_CONTINUE YY_BREAK YY_WHILE YY_ENDWHILE YY_WHERE YY_ENDWHERE YY_CASE YY_ENDCASE YY_SELECT YY_ENDSELECT YY_GOTO YY_DOWHILE YY_DEFAULT
 %token _YY_DELIM YY_PROGRAM YY_ENDPROGRAM YY_FUNCTION YY_ENDFUNCTION YY_RECURSIVE YY_RESULT YY_SUBROUTINE YY_ENDSUBROUTINE YY_MODULE YY_ENDMODULE YY_BLOCK YY_ENDBLOCK
-%token _YY_DESCRIBER YY_IMPLICIT YY_NONE YY_USE YY_PARAMETER YY_FORMAT YY_ENTRY YY_DIMENSION YY_ARRAYINITIAL_START YY_ARRAYINITIAL_END YY_INTENT YY_IN YY_OUT YY_INOUT YY_OPTIONAL
-%token _YY_TYPEDEF YY_INTEGER_T YY_FLOAT_T YY_STRING_T YY_COMPLEX_T YY_BOOL_T
+%token _YY_DESCRIBER YY_IMPLICIT YY_NONE YY_USE YY_PARAMETER YY_FORMAT YY_ENTRY YY_DIMENSION YY_ARRAYINITIAL_START YY_ARRAYINITIAL_END YY_INTENT YY_IN YY_OUT YY_INOUT YY_OPTIONAL YY_LEN YY_KIND
+%token _YY_TYPEDEF YY_INTEGER_T YY_FLOAT_T YY_STRING_T YY_COMPLEX_T YY_BOOL_T YY_CHARACTER_T
 %token _YY_COMMAND YY_WRITE YY_READ YY_PRINT YY_OPEN YY_CLOSE YY_CALL
 
 
@@ -153,6 +153,27 @@ using namespace std;
 		| YY_PARAMETER
 			{
 				/* const value */
+				ParseNode * newnode = new ParseNode();
+				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_VARIABLEDESC, "NT_VARIABLEDESC" }; // const
+				newnode->attr = new VariableDescAttr(newnode);
+				dynamic_cast<VariableDescAttr *>(newnode->attr)->desc.constant = true;
+				$$ = *newnode;
+				update_pos($$);
+			}
+		| YY_LEN '=' exp
+			{
+				// do nothing because we use std::string
+			}
+		| YY_KIND '=' YY_INTEGER
+			{
+				int kind;
+				sscanf($3.fs.CurrentTerm.what.c_str(), "%d", &kind);
+				ParseNode * newnode = new ParseNode();
+				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_VARIABLEDESC, "NT_VARIABLEDESC" }; // kind
+				newnode->attr = new VariableDescAttr(newnode);
+				dynamic_cast<VariableDescAttr *>(newnode->attr)->desc.kind = kind;
+				$$ = *newnode;
+				update_pos($$);
 			}
 				
 	dummy_variable_iden : ',' dummy_variable_iden_1
@@ -165,10 +186,11 @@ using namespace std;
 			{				
 				ParseNode * newnode = new ParseNode();
 				ParseNode * variable_iden = & $3;
+				ParseNode & variable_iden_1 = $2;
 				/* target code of slice depend on context */
 				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_VARIABLEDESC, "NT_VARIABLEDESC" };
 				/* merge attrs */
-				newnode->attr = $2.attr->clone();
+				newnode->attr = variable_iden_1.attr->clone();
 				VariableDescAttr * new_a = dynamic_cast<VariableDescAttr *>(newnode->attr);
 				VariableDescAttr * var_a = dynamic_cast<VariableDescAttr *>(variable_iden->attr);
 				new_a->merge(*var_a);
@@ -184,7 +206,37 @@ using namespace std;
 				$$ = *newnode;
 				update_pos($$);
 			}
-	
+
+	dummy_variable_spec : dummy_variable_iden_1
+			{
+				ParseNode * newnode = new ParseNode($1);
+				$$ = $1;
+				update_pos($$);
+			}
+		| dummy_variable_iden_1 dummy_variable_spec
+			{				
+				ParseNode * newnode = new ParseNode();
+				ParseNode * variable_iden = & $2;
+				/* target code of slice depend on context */
+				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_VARIABLEDESC, "NT_VARIABLEDESC" };
+				/* merge attrs */
+				newnode->attr = $1.attr->clone();
+				VariableDescAttr * new_a = dynamic_cast<VariableDescAttr *>(newnode->attr);
+				VariableDescAttr * var_a = dynamic_cast<VariableDescAttr *>(variable_iden->attr);
+				new_a->merge(*var_a);
+				// TODO do not add child
+				$$ = *newnode;
+				update_pos($$);
+			}
+		|
+			{
+				ParseNode * newnode = new ParseNode();
+				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_VARIABLEDESC, "NT_VARIABLEDESC" }; 
+				newnode->attr = new VariableDescAttr(newnode);
+				$$ = *newnode;
+				update_pos($$);
+			}
+
 	literal : YY_FLOAT
 			{
 				/* 该条目下的右部全部为单个终结符号(语法树的叶子节点), 因此$1全部来自lex程序 */
@@ -946,32 +998,73 @@ using namespace std;
 				$$ = *newnode;
 				update_pos($$);
 			}
+				
+	_type_kind : '(' dummy_variable_spec ')'
+			{
+				$$ = $2;
+				update_pos($$);
+			}
 
-    type_spec : YY_INTEGER_T
+    type_spec : YY_INTEGER_T _type_kind
 			{
 				// now translated in pre_map
 				//$1.fs.CurrentTerm.what = typename_map.at($1.fs.CurrentTerm.what);
 				$$ = $1;
+				ParseNode * newnode = &$$;
+				newnode->attr = $2.attr->clone();
+				VariableDescAttr * new_a = dynamic_cast<VariableDescAttr *>(newnode->attr);
+				VariableDescAttr * var_a = dynamic_cast<VariableDescAttr *>($2.attr);
+				new_a->merge(*var_a);
 				update_pos($$);
 			}
-        | YY_FLOAT_T
+        | YY_FLOAT_T _type_kind
 			{
 				$$ = $1;
+				ParseNode * newnode = &$$;
+				newnode->attr = $2.attr->clone();
+				VariableDescAttr * new_a = dynamic_cast<VariableDescAttr *>(newnode->attr);
+				VariableDescAttr * var_a = dynamic_cast<VariableDescAttr *>($2.attr);
+				new_a->merge(*var_a);
 				update_pos($$);
 			}
-        | YY_STRING_T
+        | YY_STRING_T _type_kind
 			{
 				$$ = $1;
+				ParseNode * newnode = &$$;
+				newnode->attr = $2.attr->clone();
+				VariableDescAttr * new_a = dynamic_cast<VariableDescAttr *>(newnode->attr);
+				VariableDescAttr * var_a = dynamic_cast<VariableDescAttr *>($2.attr);
+				new_a->merge(*var_a);
 				update_pos($$);
 			}
-        | YY_COMPLEX_T
+        | YY_COMPLEX_T _type_kind
 			{
 				$$ = $1;
+				ParseNode * newnode = &$$;
+				newnode->attr = $2.attr->clone();
+				VariableDescAttr * new_a = dynamic_cast<VariableDescAttr *>(newnode->attr);
+				VariableDescAttr * var_a = dynamic_cast<VariableDescAttr *>($2.attr);
+				new_a->merge(*var_a);
 				update_pos($$);
 			}
-        | YY_BOOL_T
+        | YY_BOOL_T _type_kind
 			{
 				$$ = $1;
+				ParseNode * newnode = &$$;
+				newnode->attr = $2.attr->clone();
+				VariableDescAttr * new_a = dynamic_cast<VariableDescAttr *>(newnode->attr);
+				VariableDescAttr * var_a = dynamic_cast<VariableDescAttr *>($2.attr);
+				new_a->merge(*var_a);
+				update_pos($$);
+			}
+        | YY_CHARACTER_T _type_kind
+			{
+				$$ = $1;
+				ParseNode * newnode = &$$;
+				newnode->attr = $2.attr->clone();
+				VariableDescAttr * new_a = dynamic_cast<VariableDescAttr *>(newnode->attr);
+				VariableDescAttr * var_a = dynamic_cast<VariableDescAttr *>($2.attr);
+				new_a->merge(*var_a);
 				update_pos($$);
 			}
 
@@ -981,11 +1074,46 @@ using namespace std;
 				/* array decl */
 				string arr_decl = ""; string var_decl = ""; bool do_arr = false;
 				ParseNode * newnode = new ParseNode();
-				ParseNode * ty = new ParseNode($1); // type
-				newnode->addchild(ty); // type
-				ParseNode * iden = &$2; // dummy_variable_iden
-				VariableDescAttr * vardescattr = dynamic_cast<VariableDescAttr *>(iden->attr);
+				ParseNode & type_spec = $1;
+				ParseNode & dummy_variable_iden = $2;
+				ParseNode * ty = new ParseNode(type_spec); // type
+				VariableDescAttr * vardescattr = dynamic_cast<VariableDescAttr *>(dummy_variable_iden.attr);
 				ParseNode * slice = vardescattr->desc.slice;
+				newnode->addchild(ty); // type
+				// specify type
+				/* merge type_spec and dummy_variable_iden attr */
+				VariableDescAttr * ty_a = dynamic_cast<VariableDescAttr *>(type_spec.attr);
+				vardescattr->merge(*ty_a);
+				if (vardescattr->desc.kind != 0) {
+					if (type_spec.fs.CurrentTerm.token == TokenMeta::Int_Def) {
+						if (vardescattr->desc.kind == 1) {
+							ty->fs.CurrentTerm.what = "char";
+						}
+						else if (vardescattr->desc.kind == 2) {
+							ty->fs.CurrentTerm.what = "int";
+						}
+						else if (vardescattr->desc.kind == 4) {
+							ty->fs.CurrentTerm.what = "int";
+						}
+						else if (vardescattr->desc.kind == 8) {
+							ty->fs.CurrentTerm.what = "long long";
+						}
+					}
+					else if (type_spec.fs.CurrentTerm.token == TokenMeta::Float_Def) {
+						if (vardescattr->desc.kind == 1) {
+							ty->fs.CurrentTerm.what = "float";
+						}
+						else if (vardescattr->desc.kind == 2) {
+							ty->fs.CurrentTerm.what = "double";
+						}
+						else if (vardescattr->desc.kind == 4) {
+							ty->fs.CurrentTerm.what = "double";
+						}
+						else if (vardescattr->desc.kind == 8) {
+							ty->fs.CurrentTerm.what = "long double";
+						}
+					}
+				}
 				if (slice == nullptr) {
 					// slice == nullptr if this is not array
 					/* must assure no ParseNode * is nullptr */

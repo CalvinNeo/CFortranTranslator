@@ -5,6 +5,7 @@
 #include <functional>
 #include <numeric>
 #include <type_traits>
+#include <complex>
 
 //#define USE_FORARRAY
 
@@ -229,17 +230,18 @@ void init_for1array(for1array<_Container_value_type> & farr, const std::vector<i
 	init_for1array_layer<T, _New_value_type, std::vector<T>::const_iterator >(farr, lower_bound, 0, size, accumulated, values.begin(), values.end());
 }
 
+typedef std::complex<double> forcomplex;
 
-struct forcomplex {
-	
-	const forcomplex operator+(const forcomplex & rhs);
-
-	forcomplex(double real, double imagine);
-	forcomplex(std::string);
-protected:
-	double m_real;
-	double m_imagine;
-};
+//struct forcomplex {
+//	
+//	const forcomplex operator+(const forcomplex & rhs);
+//
+//	forcomplex(double real, double imagine);
+//	forcomplex(std::string);
+//protected:
+//	double m_real;
+//	double m_imagine;
+//};
 
 template <class T, class ... Args>
 T min_n(T x, Args... args) {

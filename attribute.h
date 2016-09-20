@@ -37,6 +37,7 @@ struct VariableDesc {
 	dirty<bool> constant = false;
 	dirty<bool> optional = false;
 	dirty<struct ParseNode *> slice = nullptr;
+	dirty<int> kind = 0;
 };
 
 // ÊôĞÔÎÄ·¨
@@ -95,6 +96,9 @@ struct VariableDescAttr : public ParseAttr {
 		}
 		if (!desc.slice.isdirty() && x2.desc.slice.isdirty()) {
 			desc.slice = x2.desc.slice;
+		}
+		if (!desc.kind.isdirty() && x2.desc.kind.isdirty()) {
+			desc.kind = x2.desc.kind;
 		}
 	}
 };

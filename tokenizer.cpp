@@ -200,7 +200,7 @@ const vector<KeywordMeta> keywords = {
 		, YY_NEQ
 	}
 	, KeywordMeta{ "real"
-		, TokenMeta::META_ANY
+		, TokenMeta::Float_Def
 		// YY_FLOAT 指的是一个float类型的常量
 		// YY_FLOAT_T 是float类型声明符
 		, YY_FLOAT_T
@@ -272,6 +272,14 @@ const vector<KeywordMeta> keywords = {
 	, KeywordMeta{ "default"
 		, TokenMeta::Default
 		, YY_DEFAULT
+	}
+	, KeywordMeta{ "len"
+		, TokenMeta::META_ANY
+		, YY_LEN
+	}
+	, KeywordMeta{ "kind"
+		, TokenMeta::META_ANY
+		, YY_KIND
 	}
 };
 

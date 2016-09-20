@@ -49,6 +49,7 @@ void debug() {
 	global_code = "program integer::A, B \n  end program";
 	global_code = "program integer::a = 1 + 2 \n logical::b = .false. \n a = 3 \n end program";
 	global_code = "program integer,intent(out)::a = 1 + 2, b = 2, c = 3 \n  end program";
+	global_code = "program integer(kind = 1)::int_char \n integer(kind = 4)::int_int \n integer(kind = 8)::int_longlong \n  end program";
 
 	// io
 	global_code = "program write *,* a, b \n  end program";
@@ -84,7 +85,7 @@ void debug() {
 
 
 	// paste here
-	global_code = "program recursive function main(A,B) result(C) \n implicit none \n integer::a = 1 + 2, b = 2, c = 3 \n end function end program";
+	global_code = "program integer(kind = 1)::int_char \n integer(kind = 4)::int_int \n integer(kind = 8)::int_longlong \n  end program";
 
 	//std::vector<int> accumulated{ 2, 2, 2 };
 	//int s = 1;

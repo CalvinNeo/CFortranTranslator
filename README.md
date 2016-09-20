@@ -98,5 +98,6 @@ all parse tree nodes are defined in Intents.h with an `NT_` prefix
 - ~~enable crlf rule~~(may cause bugs)
 - mixed array_builder
 - array functions(reshape, spread, transpose)
-- more specific type
+- ~~more specific type~~
+- type stmt
 - bugfix(update_pos parse_len)

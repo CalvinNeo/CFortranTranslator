@@ -2,7 +2,7 @@
 #include <memory>
 
 static int optind = 1;
-static char * optarg = nullptr;
+char * optarg = nullptr;
 static int opterr = 1;
 static bool optinited = false;
 static char optnames[128];

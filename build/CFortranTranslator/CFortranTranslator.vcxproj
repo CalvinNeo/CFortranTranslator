@@ -147,7 +147,7 @@
       <AdditionalLibraryDirectories>F:\Codes\CommonLib\boost_1_60_0\libs;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <Flex>
-      <Debug>true</Debug>
+      <Debug>false</Debug>
     </Flex>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
