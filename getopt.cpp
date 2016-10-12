@@ -47,10 +47,14 @@ int getopt(int argc, char *const argv[], const char *optstring) {
 		return '?';
 	}
 	if (optnames[optname] == 2) {
+		// an argument
 		if (++optind >= argc) {
 			return -1;
 		}
 		optarg = argv[optind];
+	}
+	else {
+		++optind;
 	}
 	return optname;
 }

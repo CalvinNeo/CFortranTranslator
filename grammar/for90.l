@@ -119,6 +119,8 @@ newline [\r\n]
 \.[a-zA-Z_][a-zA-Z0-9]*\. { RTWORD() }
 \"(\\.|[^"])*\" {RTSTRING(TokenMeta::META_STRING) 
 /* The delimiting quotes are escaped because they are Flex meta-characters. */}
+\'(\\.|[^'])*\' {RTSTRING(TokenMeta::META_STRING) 
+/* string with `'` */}
 . {/* all other things, including some operators not listed */ RTILLEGAL(TokenMeta::META_ILLEGAL) }
 
 %%
@@ -134,7 +136,7 @@ int make_term_flex(const TokenMeta & token, const char * w) {
 }
 void update_flex(int len, bool newline) {
 	if (newline) {
-		flex_state.parse_line++; flex_state.line_pos = 0; flex_state.parse_pos += yyleng; flex_state.parse_len = 0;
+		flex_state.parse_line++; flex_state.line_pos = 0; flex_state.parse_pos += yyleng; flex_state.parse_len = 0; 
 	}
 	else {
 		flex_state.parse_pos += len; flex_state.line_pos += flex_state.parse_len; flex_state.parse_len = len;

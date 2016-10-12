@@ -11,22 +11,41 @@
 
 using namespace std;
 
+void do_trans(const std::string & src) {
+	global_code = src;
+	parse(global_code);
+}
+
 int main(int argc, char* argv[], char* env[])
 {
-	int opt; 
-	while ((opt = getopt(argc, argv, "f:Fp")) != -1) {
+	int opt;
+	bool for90 = true;
+	bool isdebug = false; 
+	std::string code;
+	while ((opt = getopt(argc, argv, "df:Fp")) != -1) {
 		if (opt == 'f')
 		{
 			fstream f;
 			f.open(optarg, ios::in);
-			std::string code((std::istreambuf_iterator<char>(f)), std::istreambuf_iterator<char>());
+			code = std::string((std::istreambuf_iterator<char>(f)), std::istreambuf_iterator<char>());
 			f.close();
 		}
 		else if (opt == 'F') {
-			cout << optarg << endl;
+			// for90
+			for90 = true;
+		}
+		else if (opt == 'd') {
+			// debug
+			isdebug = true;
 		}
 	}
-	debug();
+	if (isdebug) {
+		debug();
+	}
+	else {
+		do_trans(code);
+		preorder(&program_tree);
+	}
 	system("pause");
 	return 0;
 }

@@ -51,6 +51,11 @@ using namespace std;
 			{
 				$$.fs.CurrentTerm = Term{ TokenMeta::CRLF, "\n" };
 				update_pos($$);
+}
+		| ';'
+			{
+				$$.fs.CurrentTerm = Term{ TokenMeta::Semicolon, ";" };
+				update_pos($$);
 			}
 		|
 			{
@@ -253,7 +258,9 @@ using namespace std;
 		| YY_STRING
 			{
 				ParseNode * newnode = new ParseNode();
-				newnode->fs.CurrentTerm = Term{ TokenMeta::String, $1.fs.CurrentTerm.what }; // string
+				// replace `'` with `"`
+				string modified = "\"" + $1.fs.CurrentTerm.what.substr(1, $1.fs.CurrentTerm.what.size() - 2) + "\"";
+				newnode->fs.CurrentTerm = Term{ TokenMeta::String, modified }; // string
 				$$ = *newnode;
 			}
 		| YY_TRUE
@@ -900,7 +907,9 @@ using namespace std;
 			}
 		| YY_STRING
 			{
-				$$.fs.CurrentTerm = Term{ TokenMeta::NT_FORMATTER, $1.fs.CurrentTerm.what };
+				// replace `'` with `"`
+				string modified = "\"" + $1.fs.CurrentTerm.what.substr(1, $1.fs.CurrentTerm.what.size() - 2) + "\"";
+				$$.fs.CurrentTerm = Term{ TokenMeta::NT_FORMATTER, modified };
 				update_pos($$);
 			}
 
@@ -917,7 +926,7 @@ using namespace std;
 				update_pos($$);
 			}
 
-    write : YY_WRITE _optional_lbrace io_info _optional_rbrace argtable
+    write : YY_WRITE _optional_lbrace io_info _optional_rbrace argtable crlf
 			{
 				ParseNode * newnode = new ParseNode();
 				ParseNode & io_info = $3;
@@ -953,7 +962,7 @@ using namespace std;
 				update_pos($$);
 			}
 
-	read: YY_READ _optional_lbrace io_info _optional_rbrace argtable
+	read: YY_READ _optional_lbrace io_info _optional_rbrace argtable crlf
 			{
 				ParseNode * newnode = new ParseNode();
 				ParseNode & io_info = $3;
@@ -1002,6 +1011,14 @@ using namespace std;
 	_type_kind : '(' dummy_variable_spec ')'
 			{
 				$$ = $2;
+				update_pos($$);
+			}
+		| 
+			{
+				ParseNode * newnode = new ParseNode();
+				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_VARIABLEDESC, "NT_VARIABLEDESC" };
+				newnode->attr = new VariableDescAttr(newnode);
+				$$ = *newnode;
 				update_pos($$);
 			}
 
@@ -1925,7 +1942,8 @@ using namespace std;
 void yyerror(const char* s)
 {
 	fprintf(stderr, "%s\n", s);
-	printf("from %d len %d, current token %d : %s \n", get_flex_state().parse_pos, get_flex_state().parse_len, yylval.fs.CurrentTerm.token, yylval.fs.CurrentTerm.what.c_str());
+	printf("line %d from %d len %d, current token %d : %s \n", get_flex_state().parse_line, get_flex_state().parse_pos, get_flex_state().parse_len, yylval.fs.CurrentTerm.token, yylval.fs.CurrentTerm.what.c_str());
+	printf("context : %s\n", global_code.substr(get_flex_state().parse_pos - 5, 10).c_str());
 }
 string tabber(string & src) {
 	string newline;

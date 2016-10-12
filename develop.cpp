@@ -42,6 +42,7 @@ void debug() {
 	global_code = "program do while (i < 8) \n conditional_loop() end do end program";
 
 	// type
+	global_code = "program real::a, b, c \n end program";
 	global_code = "program recursive function main() result(C) \n complex::C = 1_2 \n end function end program";
 
 	// var_decl
@@ -85,7 +86,7 @@ void debug() {
 
 
 	// paste here
-	global_code = "program integer(kind = 1)::int_char \n integer(kind = 4)::int_int \n integer(kind = 8)::int_longlong \n  end program";
+	global_code = "program real::a, b, c \n end program";
 
 	//std::vector<int> accumulated{ 2, 2, 2 };
 	//int s = 1;
