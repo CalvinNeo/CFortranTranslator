@@ -816,6 +816,8 @@ using namespace std;
 			}
 
     output_stmt : write
+		| print
+
 	input_stmt : read
 
 	compound_stmt : if_stmt 
@@ -890,6 +892,8 @@ using namespace std;
 		| '('
 	_optional_rbrace : 
 		| ')'
+	_optional_comma : ','
+		|
 	_optional_device : '*'
 			{
 				$$.fs.CurrentTerm = Term{ TokenMeta::META_NONTERMINAL, "" };
@@ -918,6 +922,21 @@ using namespace std;
 				ParseNode * newnode = new ParseNode();
 				ParseNode & _optional_device = $1;
 				ParseNode & _optional_formatter = $3;
+				/* target code of io_info depend on context, can be either iostream/cstdio */
+				newnode->fs.CurrentTerm = Term{ TokenMeta::META_NONTERMINAL, "" };
+				newnode->addchild(new ParseNode(_optional_device)); // _optional_device
+				newnode->addchild(new ParseNode(_optional_formatter)); // _optional_formatter
+				$$ = *newnode;
+				update_pos($$);
+			}
+		| _optional_device
+			{
+				// 实际上是出现一个*号是_optional_formatter, 但是为了避免和规则 _optional_device ',' _optional_formatter 冲突, 所以写成这样
+				ParseNode * newnode = new ParseNode();
+				ParseNode _optional_device = ParseNode();
+				_optional_device.fs.CurrentTerm = Term{ TokenMeta::META_NONTERMINAL, "" };
+				ParseNode _optional_formatter = ParseNode();
+				_optional_formatter.fs.CurrentTerm = Term{ TokenMeta::NT_AUTOFORMATTER, "" };
 				/* target code of io_info depend on context */
 				newnode->fs.CurrentTerm = Term{ TokenMeta::META_NONTERMINAL, "" };
 				newnode->addchild(new ParseNode(_optional_device)); // _optional_device
@@ -925,6 +944,7 @@ using namespace std;
 				$$ = *newnode;
 				update_pos($$);
 			}
+
 
     write : YY_WRITE _optional_lbrace io_info _optional_rbrace argtable crlf
 			{
@@ -961,6 +981,50 @@ using namespace std;
 				$$ = *newnode;
 				update_pos($$);
 			}
+
+	print : YY_PRINT io_info argtable crlf
+			{
+				ParseNode * newnode = new ParseNode();
+				ParseNode & io_info = $2;
+					//ParseNode & io_info = ParseNode();	
+					//ParseNode _optional_device = ParseNode();
+					//_optional_device.fs.CurrentTerm = Term{ TokenMeta::META_NONTERMINAL, "" };
+					//ParseNode _optional_formatter = $2;
+					//io_info.fs.CurrentTerm = Term{ TokenMeta::META_NONTERMINAL, "" };
+					//io_info.addchild(new ParseNode(_optional_device));
+					//io_info.addchild(new ParseNode(_optional_formatter)); 
+				ParseNode & argtable = $3;
+				ParseNode * argtbl = &argtable;
+				ParseNode * formatter = io_info.child[1];
+				if (formatter->fs.CurrentTerm.token == TokenMeta::NT_FORMATTER) {
+					string fmt = io_info.child[1]->fs.CurrentTerm.what.substr(1, io_info.child[1]->fs.CurrentTerm.what.size() - 1); // strip " 
+					sprintf(codegen_buf, "printf(\"%s\", %s) ;\n", parse_ioformatter(fmt).c_str(), argtbl->fs.CurrentTerm.what.c_str());
+					newnode->fs.CurrentTerm = Term{ TokenMeta::META_NONTERMINAL, string(codegen_buf) };
+				}
+				else {
+					/* NT_AUTOFORMATTER */
+					string coutcode = "cout";
+					/* enumerate argtable */
+					// TODO the while loop is wrong, there is need for while loop. ref: var_def code
+					//while (argtbl->child.size() == 2 && argtbl->child[1]->fs.CurrentTerm.token == TokenMeta::NT_ARGTABLE) {
+						// for all non-flatterned argtable
+						for (int i = 0; i < argtbl->child.size(); i++)
+						{
+							// for each variable in flatterned argtable
+							coutcode += "<<";
+							coutcode += argtbl->child[i]->fs.CurrentTerm.what;
+						}
+						// argtbl = argtbl->child[1];
+					//}
+					coutcode += ";";
+					newnode->fs.CurrentTerm = Term{ TokenMeta::META_NONTERMINAL, coutcode };
+				}
+				newnode->addchild(new ParseNode(io_info)); // ioinfo
+				newnode->addchild(new ParseNode(argtable)); // argtable
+				$$ = *newnode;
+				update_pos($$);
+			}
+
 
 	read: YY_READ _optional_lbrace io_info _optional_rbrace argtable crlf
 			{
@@ -1943,7 +2007,7 @@ void yyerror(const char* s)
 {
 	fprintf(stderr, "%s\n", s);
 	printf("line %d from %d len %d, current token %d : %s \n", get_flex_state().parse_line, get_flex_state().parse_pos, get_flex_state().parse_len, yylval.fs.CurrentTerm.token, yylval.fs.CurrentTerm.what.c_str());
-	printf("context : %s\n", global_code.substr(get_flex_state().parse_pos - 5, 10).c_str());
+	printf("context : %s ^ %s\n", global_code.substr(max(0, get_flex_state().parse_pos - 5), 5).c_str(), global_code.substr(get_flex_state().parse_pos, 5).c_str());
 }
 string tabber(string & src) {
 	string newline;

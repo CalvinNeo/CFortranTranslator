@@ -59,6 +59,7 @@ std::string parse_ioformatter(const std::string & src) {
 		case '9':
 			if (stat == 1)
 			{
+				// have previous i, e, f, a, x, is component of std::string mid
 				int j = i + 1;
 				for (; j < src.size() && src[j] >= '0' && src[j] <= '9'; j++);
 				mid = src.substr(i, j - i).c_str();
@@ -67,6 +68,7 @@ std::string parse_ioformatter(const std::string & src) {
 			else {
 				int j = i + 1;
 				for (; j < src.size() && src[j] >= '0' && src[j] <= '9'; j++);
+				// IMPORTANT in level repeat.size() - 1 BEFORE push_back, or will cause `rt += buf;` failure
 				sscanf(src.substr(i, j - i).c_str(), "%d", &repeat[repeat.size() - 1]);
 			}
 			break;
@@ -98,13 +100,16 @@ std::string parse_ioformatter(const std::string & src) {
 			break;
 		case ')':
 			memset(buf, 0, sizeof(buf));
-			sprintf(buf, s.c_str(), mid.c_str());
+			sprintf(buf, s.c_str(), mid.c_str()); // mis is precision specifier
+			// handle`1` of `1X`
 			for (int j = 0; j < repeat[repeat.size() - 1]; j++)
 			{
 				rt += buf;
 			}
-			s = rt.substr(repeat_from.back(), i - repeat_from.back());
-			for (int j = 0; j < repeat[repeat.size() - 1]; j++)
+			// pop stack repeat before repeat s
+			repeat.pop_back();
+			s = rt.substr(repeat_from.back(), i - repeat_from.back() + 1);
+			for (int j = 1; j < repeat[repeat.size() - 1]; j++)
 			{
 				rt += s;
 			}
@@ -112,7 +117,6 @@ std::string parse_ioformatter(const std::string & src) {
 			/* because s is empty so no need to jump ',' */
 			//for (; i < s.size() && s[i] != ','; i++);
 			//i--;
-			repeat.pop_back();
 			repeat_from.pop_back();
 			stat = 0;
 			break;

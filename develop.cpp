@@ -55,7 +55,9 @@ void debug() {
 	// io
 	global_code = "program write *,* a, b \n  end program";
 	global_code = "program write (*,*) 'L=', L \n  end program";
+	global_code = "program print '2(a,f)' \n  end program";
 	global_code = "program write *,\"1X,F10.3,F8.4\" x, y \n  end program";
+	global_code = "program read *, x, y \n  end program";
 	global_code = "program read (*,*) x, y \n  end program";
 	global_code = "program read (*,\"F, F\") x, y \n  end program";
 
@@ -87,6 +89,7 @@ void debug() {
 
 	// paste here
 	global_code = "program real::a, b, c \n end program";
+	global_code = "program write *,* a, b \n  end program";
 
 	//std::vector<int> accumulated{ 2, 2, 2 };
 	//int s = 1;
