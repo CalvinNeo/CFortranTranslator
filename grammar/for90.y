@@ -917,11 +917,11 @@ using namespace std;
 				update_pos($$);
 			}
 
-	io_info : _optional_device ',' _optional_formatter
+	io_info : '(' _optional_device ',' _optional_formatter ')'
 			{
 				ParseNode * newnode = new ParseNode();
-				ParseNode & _optional_device = $1;
-				ParseNode & _optional_formatter = $3;
+				ParseNode & _optional_device = $2;
+				ParseNode & _optional_formatter = $4;
 				/* target code of io_info depend on context, can be either iostream/cstdio */
 				newnode->fs.CurrentTerm = Term{ TokenMeta::META_NONTERMINAL, "" };
 				newnode->addchild(new ParseNode(_optional_device)); // _optional_device
@@ -929,14 +929,12 @@ using namespace std;
 				$$ = *newnode;
 				update_pos($$);
 			}
-		| _optional_device
+		| _optional_formatter _optional_comma
 			{
-				// 实际上是出现一个*号是_optional_formatter, 但是为了避免和规则 _optional_device ',' _optional_formatter 冲突, 所以写成这样
 				ParseNode * newnode = new ParseNode();
 				ParseNode _optional_device = ParseNode();
 				_optional_device.fs.CurrentTerm = Term{ TokenMeta::META_NONTERMINAL, "" };
-				ParseNode _optional_formatter = ParseNode();
-				_optional_formatter.fs.CurrentTerm = Term{ TokenMeta::NT_AUTOFORMATTER, "" };
+				ParseNode _optional_formatter = $1;
 				/* target code of io_info depend on context */
 				newnode->fs.CurrentTerm = Term{ TokenMeta::META_NONTERMINAL, "" };
 				newnode->addchild(new ParseNode(_optional_device)); // _optional_device
@@ -946,11 +944,12 @@ using namespace std;
 			}
 
 
-    write : YY_WRITE _optional_lbrace io_info _optional_rbrace argtable crlf
+    write : YY_WRITE io_info argtable crlf
 			{
+				// brace is forced
 				ParseNode * newnode = new ParseNode();
-				ParseNode & io_info = $3;
-				ParseNode & argtable = $5;
+				ParseNode & io_info = $2;
+				ParseNode & argtable = $3;
 				ParseNode * argtbl = &argtable;
 				ParseNode * formatter = io_info.child[1];
 				if (formatter->fs.CurrentTerm.token == TokenMeta::NT_FORMATTER) {
@@ -1026,13 +1025,13 @@ using namespace std;
 			}
 
 
-	read: YY_READ _optional_lbrace io_info _optional_rbrace argtable crlf
+	read: YY_READ io_info argtable crlf
 			{
 				ParseNode * newnode = new ParseNode();
-				ParseNode & io_info = $3;
-				ParseNode & argtable = $5;
+				ParseNode & io_info = $2;
+				ParseNode & argtable = $3;
 				ParseNode * argtbl = &argtable;
-				ParseNode * formatter = $3.child[1];
+				ParseNode * formatter = io_info.child[1];
 				if (formatter->fs.CurrentTerm.token == TokenMeta::NT_FORMATTER) {
 					string fmt = io_info.child[1]->fs.CurrentTerm.what.substr(1, io_info.child[1]->fs.CurrentTerm.what.size() - 1); // strip " 
 					string pointer_to;
@@ -1579,7 +1578,7 @@ using namespace std;
 				$$ = *newnode;
 				update_pos($$);
 			}
-		| YY_IF exp YY_THEN crlf suite elseif_stmt YY_ELSE crlf suite YY_END YY_IF
+		| YY_IF exp YY_THEN crlf suite elseif_stmt YY_ELSE crlf suite YY_END YY_IF crlf
 			{
 				ParseNode * newnode = new ParseNode();
 				ParseNode & exp = $2;
@@ -1703,9 +1702,10 @@ using namespace std;
 				update_pos($$);
 			}
 
-	select_stmt : YY_SELECT YY_CASE _optional_lbrace exp _optional_rbrace crlf case_stmt YY_END YY_SELECT
+	select_stmt : YY_SELECT YY_CASE _optional_lbrace exp _optional_rbrace crlf case_stmt YY_END YY_SELECT crlf
 			{
 				ParseNode * newnode = new ParseNode();
+				ParseNode & select = $1;
 				ParseNode & exp = $4;
 				ParseNode & case_stmt = $7;
 				string codegen = "";
@@ -1747,7 +1747,7 @@ using namespace std;
 #ifndef LAZY_GEN
 				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_SELECT, codegen };
 #endif // !LAZY_GEN
-				newnode->addchild(new ParseNode($1)); // select
+				newnode->addchild(new ParseNode(select)); // select
 				newnode->addchild(new ParseNode(exp)); // exp
 				newnode->addchild(new ParseNode(case_stmt)); // suite
 				$$ = *newnode;

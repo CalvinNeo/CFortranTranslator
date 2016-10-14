@@ -101,4 +101,7 @@ all parse tree nodes are defined in Intents.h with an `NT_` prefix
 - ~~more specific type~~
 - type stmt
 - read statement undefined device
+- more precise code location
+- comments
+- file functions
 - bugfix(update_pos parse_len)

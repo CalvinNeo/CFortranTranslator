@@ -44,7 +44,8 @@ int main(int argc, char* argv[], char* env[])
 	}
 	else {
 		do_trans(code);
-		preorder(&program_tree);
+		cout << program_tree.fs.CurrentTerm.what << endl;
+		//preorder(&program_tree);
 	}
 	system("pause");
 	return 0;
