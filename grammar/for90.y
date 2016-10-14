@@ -824,9 +824,9 @@ using namespace std;
 		| do_stmt 
 		| select_stmt
 
-	jump_stmt : YY_CONTINUE
-		| YY_BREAK
-		| YY_GOTO
+	jump_stmt : YY_CONTINUE crlf
+		| YY_BREAK crlf
+		| YY_GOTO crlf
 
 	let_stmt : exp '=' exp crlf
 			{
@@ -1713,6 +1713,11 @@ using namespace std;
 				{
 					ParseNode & case_stmt_elem = *case_stmt.child[i];
 					ParseNode & dimen_slice = *case_stmt_elem.child[1];
+					/*
+						0 -- case
+						1 -- dimen_slice
+						2 -- stmt(case body)
+					*/
 					if (dimen_slice.fs.CurrentTerm.token == TokenMeta::NT_DIMENSLICE) {
 						// NT_DIMENSLICE
 						string dsstr;
@@ -1735,12 +1740,28 @@ using namespace std;
 					}
 					else {
 						// NT_ARGTABLE_PURE
+						string choice = "";
 						if (i == 0) {
+							choice = "if(";
 							sprintf(codegen_buf, "if(%s == %s){\n%s}\n", exp.fs.CurrentTerm.what.c_str(), dimen_slice.child[0]->fs.CurrentTerm.what.c_str(), case_stmt_elem.child[2]->fs.CurrentTerm.what.c_str());
 						}
 						else {
-							sprintf(codegen_buf, "else if(%s == %s){\n%s}\n", exp.fs.CurrentTerm.what.c_str(), dimen_slice.child[0]->fs.CurrentTerm.what.c_str(),  case_stmt_elem.child[2]->fs.CurrentTerm.what.c_str());
+							choice = "else if(";
+							sprintf(codegen_buf, "else if(%s == %s){\n%s}\n", exp.fs.CurrentTerm.what.c_str(), dimen_slice.child[0]->fs.CurrentTerm.what.c_str(), case_stmt_elem.child[2]->fs.CurrentTerm.what.c_str());
 						}
+						for (int j = 0; j < dimen_slice.child.size(); j++)
+						{
+							if (j == 0) {
+								sprintf(codegen_buf, "%s == %s", exp.fs.CurrentTerm.what.c_str(), dimen_slice.child[j]->fs.CurrentTerm.what.c_str());
+							}
+							else {
+								sprintf(codegen_buf, "|| (%s == %s)", exp.fs.CurrentTerm.what.c_str(), dimen_slice.child[j]->fs.CurrentTerm.what.c_str());
+							}
+							choice += codegen_buf;
+						}
+						sprintf(codegen_buf, "){\n%s}\n", case_stmt_elem.child[2]->fs.CurrentTerm.what.c_str());
+						choice += codegen_buf;
+						sprintf(codegen_buf, "%s", choice.c_str());
 					}
 					codegen += codegen_buf;
 				}
@@ -1755,13 +1776,15 @@ using namespace std;
 			}
 	case_stmt_elem : YY_CASE _optional_lbrace dimen_slice _optional_rbrace crlf suite
 			{
+				// one case
 				ParseNode * newnode = new ParseNode();
+				ParseNode & case_head = $1;
 				ParseNode & dimen_slice = $3;
 				ParseNode & suite = $6; suite.fs.CurrentTerm.what = tabber(suite.fs.CurrentTerm.what);
 #ifndef LAZY_GEN
 				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_CASE, "" };
 #endif // !LAZY_GEN
-				newnode->addchild(new ParseNode($1)); // case
+				newnode->addchild(new ParseNode(case_head)); // case
 				newnode->addchild(new ParseNode(dimen_slice)); // dimen_slice
 				newnode->addchild(new ParseNode(suite)); // suite
 				$$ = *newnode;

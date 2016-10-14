@@ -79,7 +79,7 @@ all parse tree nodes are defined in Intents.h with an `NT_` prefix
 - NT_ARRAYBUILDER -> (NT_ARRAYBUILDER_VALUE -> argtable || NT_ARRAYBUILDER_EXP || exp) +
 - wrapper(not a node) -> NT_SUITE || NT_FUNCTIONDECLARE
 
-## todolist
+## todolist(features)
 - lazygen(partial)
 - ~~function-array reduction-reduction conflict~~
 - ~~multi-dimension forarray~~
@@ -98,10 +98,12 @@ all parse tree nodes are defined in Intents.h with an `NT_` prefix
 - ~~enable crlf rule~~(may cause bugs)
 - mixed array_builder
 - array functions(reshape, spread, transpose)
-- ~~more specific type~~
+- ~~more specific type(char, int, long long)~~
 - type stmt
-- read statement undefined device
-- more precise code location
 - comments
 - file functions
-- bugfix(update_pos parse_len)
+- one-line if
+
+## todolist(bugfix)
+- more precise code location (update_pos parse_len)
+- ~~read statement undefined device~~
