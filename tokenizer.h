@@ -2,7 +2,7 @@
 #include <string>
 #include <map>
 #include <vector>
-#include "intent.h"
+#include "Intent.h"
 
 typedef IntentMeta TokenMeta;
 struct Term {

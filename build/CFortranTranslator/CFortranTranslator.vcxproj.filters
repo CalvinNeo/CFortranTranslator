@@ -51,6 +51,9 @@
     </ClCompile>
     <ClCompile Include="..\..\develop.cpp" />
     <ClCompile Include="..\..\getopt.cpp" />
+    <ClCompile Include="..\..\IntentHelper.cpp">
+      <Filter>NuclearLang</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\grammar\for90.tab.h">
@@ -82,6 +85,9 @@
     </ClInclude>
     <ClInclude Include="..\..\develop.h" />
     <ClInclude Include="..\..\getopt.h" />
+    <ClInclude Include="..\..\IntentHelper.h">
+      <Filter>NuclearLang</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Flex Include="..\..\grammar\for90.l">

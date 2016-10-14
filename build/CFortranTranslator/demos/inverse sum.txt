@@ -7,9 +7,7 @@ program
 		t = 1.0 / i
 		s = s + t
 		i = i + 1
-		if(i > n) then
-			exit
-		end if
+		if(i > n) then exit
 	end do
 	print *, "sum=", s
 end program

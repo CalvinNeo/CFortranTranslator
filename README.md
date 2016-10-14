@@ -5,6 +5,12 @@ A translator between C++ and Fortran90.
 1. vs2015(Update 3) + win_flex(win_flex_bison 2.4.5, flex 2.5.37) + win_bison(win_flex_bison 2.4.5, bison 2.7), or any thing that works
 2. boost(1.60)
 
+## Debug
+### Configurations
+the **Debug** mode accept command line arguments `argv[]` which is set to default values in VS project configurations
+the **Develop** mode invoke the function `void debug()` which is defined in **develop.cpp**
+the **Release** is same as the **Debug** mode except for default values which is not set
+
 ## grammar restrictions and translate rules
 refer to for90.y for all accepted grammar
 ### unsupported keywords
@@ -24,7 +30,7 @@ refer to for90.y for all accepted grammar
 |array(1d)|for1array&lt;T&gt;|
 |array(nd)|for1array&lt;forarray&lt; ...forarray&lt;T&gt;&gt;&gt;|
 |array(alias)|forarray|
-|array-cstyle|not implemented|
+|array-cstyle|not implemented yet|
 
 #### array
 1. `DIMENSION(a:b)` -> `forarray<T>(a, b + 1)`
@@ -41,6 +47,7 @@ refer to for90.y for all accepted grammar
 3. intent(out) variables will translate to `T & variable`
 
 #### inherit function mapping
+##### type cast
 |for90|c++|
 |:-:|:-:|
 |INTEGER()|to_int|
@@ -48,14 +55,31 @@ refer to for90.y for all accepted grammar
 |LOGICAL()|to_bool|
 |COMPLEX()|to_int|
 |CHARACTER()|forcomplex(constructor)|
+
+##### mathematical
+|for90|c++|
+|:-:|:-:|
 |min|min_n|
 |max|max_n|
+
+##### file
+|for90|c++|
+|:-:|:-:|
+
+##### array
+|for90|c++|
+|:-:|:-:|
+|reshape|not implemented yet|
+|spread|not implemented yet|
+|transpose|not implemented yet|
 
 ### IO
 |for90|c++|
 |:-:|:-:|
-|*,*|cout|
-|*,formatter|printf|
+|*|cin/cout|
+|(*,*)|cin/cout|
+|(*,formatter)|scanf/printf|
+|(device_id,formatter)|not implemented yet|
 
 ## extend grammar
 1. declare new %token in .y
@@ -91,7 +115,7 @@ all parse tree nodes are defined in Intents.h with an `NT_` prefix
 - ~~reference in parameter list~~
 - ~~rewrite paramtable and var_def(simplify right-recursive rules, move dimension to dummy_variale_iden)~~
 - ~~more elegant multi-word keyword handler(instead of defined in regular expression)~~
-- function forward declaration
+- function forward declaration(if necessary)
 - ~~if slice can be a scalar x and equal to (1: x + 1), there will be conflict in argtable~~
 - c-style array(partial)
 - variable with type
@@ -103,7 +127,9 @@ all parse tree nodes are defined in Intents.h with an `NT_` prefix
 - comments
 - file functions
 - one-line if
+- ~~error infomation include Intent name~~
 
 ## todolist(bugfix)
 - more precise code location (update_pos parse_len)
+- more specific type cast functions(char, int, long long)
 - ~~read statement undefined device~~

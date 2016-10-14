@@ -34,6 +34,7 @@
     <ClCompile Include="..\..\getopt.cpp" />
     <ClCompile Include="..\..\grammar\for90.flex.cpp" />
     <ClCompile Include="..\..\grammar\for90.tab.cpp" />
+    <ClCompile Include="..\..\IntentHelper.cpp" />
     <ClCompile Include="..\..\lazygen.cpp" />
     <ClCompile Include="..\..\main.cpp" />
     <ClCompile Include="..\..\parser.cpp" />
@@ -50,6 +51,7 @@
     <ClInclude Include="..\..\grammar\for90.flex.h" />
     <ClInclude Include="..\..\grammar\for90.tab.h" />
     <ClInclude Include="..\..\Intent.h" />
+    <ClInclude Include="..\..\IntentHelper.h" />
     <ClInclude Include="..\..\parser.h" />
     <ClInclude Include="..\..\tokenizer.h" />
     <ClInclude Include="..\..\Variable.h" />

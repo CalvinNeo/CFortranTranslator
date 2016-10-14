@@ -1,4 +1,6 @@
 #pragma once
+#include "IntentHelper.h"
+#include <string>
 
 //namespace IntentMeta {
 	//enum class IntentMeta {

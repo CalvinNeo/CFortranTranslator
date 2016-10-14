@@ -1599,6 +1599,22 @@ using namespace std;
 				$$ = *newnode;
 				update_pos($$);
 			}
+		|  YY_IF exp YY_THEN stmt
+			{
+				ParseNode * newnode = new ParseNode();
+				ParseNode & exp = $2;
+				ParseNode & stmt_true = $4; 
+#ifndef LAZY_GEN
+				sprintf(codegen_buf, "if (%s) %s", exp.fs.CurrentTerm.what.c_str(), stmt_true.fs.CurrentTerm.what.c_str());
+				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_IF, string(codegen_buf) };
+#endif // !LAZY_GEN
+
+				newnode->addchild(new ParseNode($1)); // if
+				newnode->addchild(new ParseNode(exp)); // exp
+				newnode->addchild(new ParseNode(stmt_true)); // stmt
+				$$ = *newnode;
+				update_pos($$);
+			}
 	elseif_stmt : YY_ELSEIF exp YY_THEN crlf suite
 			{
 				ParseNode * newnode = new ParseNode();
@@ -1708,6 +1724,8 @@ using namespace std;
 				ParseNode & select = $1;
 				ParseNode & exp = $4;
 				ParseNode & case_stmt = $7;
+
+#ifndef LAZY_GEN
 				string codegen = "";
 				for (int i = 0; i < case_stmt.child.size(); i++)
 				{
@@ -1765,7 +1783,6 @@ using namespace std;
 					}
 					codegen += codegen_buf;
 				}
-#ifndef LAZY_GEN
 				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_SELECT, codegen };
 #endif // !LAZY_GEN
 				newnode->addchild(new ParseNode(select)); // select
@@ -2029,7 +2046,7 @@ using namespace std;
 void yyerror(const char* s)
 {
 	fprintf(stderr, "%s\n", s);
-	printf("line %d from %d len %d, current token %d : %s \n", get_flex_state().parse_line, get_flex_state().parse_pos, get_flex_state().parse_len, yylval.fs.CurrentTerm.token, yylval.fs.CurrentTerm.what.c_str());
+	printf("line %d from %d len %d, current token is %s(id = %d) : %s \n", get_flex_state().parse_line, get_flex_state().parse_pos, get_flex_state().parse_len, get_intent_name(yylval.fs.CurrentTerm.token).c_str(), yylval.fs.CurrentTerm.token, yylval.fs.CurrentTerm.what.c_str());
 	printf("context : %s ^ %s\n", global_code.substr(max(0, get_flex_state().parse_pos - 5), 5).c_str(), global_code.substr(get_flex_state().parse_pos, 5).c_str());
 }
 string tabber(string & src) {

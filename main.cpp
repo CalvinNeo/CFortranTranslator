@@ -8,6 +8,7 @@
 #include <numeric>
 #include "develop.h"
 #include "getopt.h"
+#include "IntentHelper.h"
 
 using namespace std;
 
