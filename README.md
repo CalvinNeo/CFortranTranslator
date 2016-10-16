@@ -7,9 +7,9 @@ A translator between C++ and Fortran90.
 
 ## Debug
 ### Configurations
-the **Debug** mode accept command line arguments `argv[]` which is set to default values in VS project configurations
-the **Develop** mode invoke the function `void debug()` which is defined in **develop.cpp**
-the **Release** is same as the **Debug** mode except for default values which is not set
+1. the **Debug** mode accept command line arguments `argv[]` which is set to default values in VS project configurations
+2. the **Develop** mode invoke the function `void debug()` which is defined in **develop.cpp**
+3. the **Release** is same as the **Debug** mode except for default values which is not set
 
 ## grammar restrictions and translate rules
 refer to for90.y for all accepted grammar

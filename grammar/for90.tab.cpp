@@ -2880,7 +2880,7 @@ yyreduce:
 				ParseNode * newnode = new ParseNode();
 				ParseNode & exp = (yyvsp[(1) - (2)]);
 				//(crlf.fs.CurrentTerm.token == TokenMeta::CRLF ? ";" : "")
-				sprintf(codegen_buf, "%s ;\n", exp.fs.CurrentTerm.what.c_str());
+				sprintf(codegen_buf, "%s ;", exp.fs.CurrentTerm.what.c_str());
 				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_STATEMENT, string(codegen_buf) };
 				newnode->addchild(new ParseNode(exp)); // exp
 				(yyval) = *newnode;
@@ -2896,7 +2896,7 @@ yyreduce:
 				ParseNode & var_def = (yyvsp[(1) - (2)]);
 				/* 因为var_def本身可能生成多行代码, 因此此处生成代码不应当带分号`;` */
 #ifndef LAZY_GEN
-				sprintf(codegen_buf, "%s \n", var_def.fs.CurrentTerm.what.c_str());
+				sprintf(codegen_buf, "%s ", var_def.fs.CurrentTerm.what.c_str());
 				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_STATEMENT, string(codegen_buf) };
 #endif // !LAZY_GEN
 				newnode->addchild(new ParseNode(var_def)); // var_def
@@ -2911,7 +2911,7 @@ yyreduce:
     {
 				ParseNode * newnode = new ParseNode();
 				ParseNode & let = (yyvsp[(1) - (1)]);
-				sprintf(codegen_buf, "%s ;\n", let.fs.CurrentTerm.what.c_str());
+				sprintf(codegen_buf, "%s ;", let.fs.CurrentTerm.what.c_str());
 				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_STATEMENT, string(codegen_buf) };
 				newnode->addchild(new ParseNode(let)); // let
 				(yyval) = *newnode;
@@ -2925,7 +2925,7 @@ yyreduce:
     {
 				ParseNode * newnode = new ParseNode();
 				ParseNode & jmp = (yyvsp[(1) - (1)]);
-				sprintf(codegen_buf, "%s ;\n", jmp.fs.CurrentTerm.what.c_str());
+				sprintf(codegen_buf, "%s ;", jmp.fs.CurrentTerm.what.c_str());
 				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_STATEMENT, string(codegen_buf) };
 				newnode->addchild(new ParseNode(jmp)); // jmp
 				(yyval) = *newnode;
@@ -2969,7 +2969,7 @@ yyreduce:
     {
 				ParseNode * newnode = new ParseNode();
 				ParseNode & stmt = (yyvsp[(1) - (1)]);
-				sprintf(codegen_buf, "%s \n", stmt.fs.CurrentTerm.what.c_str());
+				sprintf(codegen_buf, "%s\n", stmt.fs.CurrentTerm.what.c_str());
 				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_SUITE, string(codegen_buf) };
 				newnode->addchild(new ParseNode(stmt)); // stmt
 				(yyval) = *newnode;
@@ -2984,7 +2984,7 @@ yyreduce:
 				ParseNode * newnode = new ParseNode();
 				ParseNode & stmt = (yyvsp[(1) - (2)]);
 				ParseNode & suite = (yyvsp[(2) - (2)]);
-				sprintf(codegen_buf, "%s \n %s \n", stmt.fs.CurrentTerm.what.c_str(), suite.fs.CurrentTerm.what.c_str());
+				sprintf(codegen_buf, "%s\n%s", stmt.fs.CurrentTerm.what.c_str(), suite.fs.CurrentTerm.what.c_str());
 				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_SUITE, string(codegen_buf) };
 				newnode->addchild(new ParseNode(stmt)); // stmt
 				newnode->addchild(new ParseNode(suite)); // suite
