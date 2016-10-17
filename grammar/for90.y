@@ -954,7 +954,7 @@ using namespace std;
 				ParseNode * formatter = io_info.child[1];
 				if (formatter->fs.CurrentTerm.token == TokenMeta::NT_FORMATTER) {
 					string fmt = io_info.child[1]->fs.CurrentTerm.what.substr(1, io_info.child[1]->fs.CurrentTerm.what.size() - 1); // strip " 
-					sprintf(codegen_buf, "printf(\"%s\", %s) ;\n", parse_ioformatter(fmt).c_str(), argtbl->fs.CurrentTerm.what.c_str());
+					sprintf(codegen_buf, "printf(\"%s\", %s) ;", parse_ioformatter(fmt).c_str(), argtbl->fs.CurrentTerm.what.c_str());
 					newnode->fs.CurrentTerm = Term{ TokenMeta::META_NONTERMINAL, string(codegen_buf) };
 				}
 				else {
@@ -997,7 +997,7 @@ using namespace std;
 				ParseNode * formatter = io_info.child[1];
 				if (formatter->fs.CurrentTerm.token == TokenMeta::NT_FORMATTER) {
 					string fmt = io_info.child[1]->fs.CurrentTerm.what.substr(1, io_info.child[1]->fs.CurrentTerm.what.size() - 1); // strip " 
-					sprintf(codegen_buf, "printf(\"%s\", %s) ;\n", parse_ioformatter(fmt).c_str(), argtbl->fs.CurrentTerm.what.c_str());
+					sprintf(codegen_buf, "printf(\"%s\", %s) ;", parse_ioformatter(fmt).c_str(), argtbl->fs.CurrentTerm.what.c_str());
 					newnode->fs.CurrentTerm = Term{ TokenMeta::META_NONTERMINAL, string(codegen_buf) };
 				}
 				else {
@@ -1044,7 +1044,7 @@ using namespace std;
 						pointer_to += argtbl->child[i]->fs.CurrentTerm.what;
 					}
 					argtbl = argtbl->child[1];
-					sprintf(codegen_buf, "scanf(\"%s\", %s) ;\n", parse_ioformatter(fmt).c_str(), pointer_to.c_str());
+					sprintf(codegen_buf, "scanf(\"%s\", %s) ;", parse_ioformatter(fmt).c_str(), pointer_to.c_str());
 					newnode->fs.CurrentTerm = Term{ TokenMeta::META_NONTERMINAL, string(codegen_buf) };
 				}
 				else {
@@ -1503,7 +1503,8 @@ using namespace std;
 				/* note that this two rules can not be splitted because `exp` and `variable` + '(' can cause reduction conflict */
 				/* note either that `variable '(' dimen_slice ')'` is an `exp` */
 			}
-
+	_optional_then : YY_THEN
+		|
 	array_builder : array_builder_elem
 			{
 				ParseNode * newnode = new ParseNode();
@@ -1599,7 +1600,7 @@ using namespace std;
 				$$ = *newnode;
 				update_pos($$);
 			}
-		|  YY_IF exp YY_THEN stmt
+		|  YY_IF exp _optional_then stmt
 			{
 				ParseNode * newnode = new ParseNode();
 				ParseNode & exp = $2;
@@ -1664,7 +1665,7 @@ using namespace std;
 				$$ = *newnode;
 				update_pos($$);
 			}
-		| YY_DO variable '=' exp ',' exp crlf suite YY_END YY_DO
+		| YY_DO variable '=' exp ',' exp crlf suite YY_END YY_DO crlf
 			{
 				ParseNode * newnode = new ParseNode();
 				ParseNode & variable = $2;
@@ -1684,7 +1685,7 @@ using namespace std;
 				$$ = *newnode;
 				update_pos($$);
 			}
-		| YY_DO variable '=' exp ',' exp ',' exp crlf suite YY_END YY_DO
+		| YY_DO variable '=' exp ',' exp ',' exp crlf suite YY_END YY_DO crlf
 			{
 				ParseNode * newnode = new ParseNode();
 				$9.fs.CurrentTerm.what = tabber($9.fs.CurrentTerm.what);
@@ -1702,7 +1703,7 @@ using namespace std;
 				$$ = *newnode;
 				update_pos($$);
 			}
-		| YY_DOWHILE exp crlf suite YY_END YY_DO
+		| YY_DOWHILE exp crlf suite YY_END YY_DO crlf
 			{
 				ParseNode * newnode = new ParseNode();
 				ParseNode & exp = $2;

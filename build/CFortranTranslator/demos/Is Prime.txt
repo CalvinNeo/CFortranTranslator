@@ -6,8 +6,8 @@ program
 		if(mod(n, i) == 0) exit
 	end do
 	if(i>=n) then
-		print *, 'Y'
+		print 'Y'
 	else
-		print *, 'N'
+		print 'N'
 	end if
 end program

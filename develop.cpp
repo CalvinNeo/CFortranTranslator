@@ -110,6 +110,7 @@ void debug() {
 	parse(global_code);
 	while (fscanf(stderr, "%s", errlog) != EOF) {
 		printf("%s\n", errlog);
+		
 	}
 	preorder(&program_tree);
 	//cout << endl << for2cpp(global_code) << endl;

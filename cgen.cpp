@@ -25,6 +25,11 @@ std::string parse_ioformatter(const std::string & src) {
 		ch = tolower(src[i]);
 		switch (ch)
 		{
+		case 'l':
+			// bool
+			s = "%%c";
+			stat = 1;
+			break;
 		case 'i':
 			s = "%%%sd";
 			stat = 1;

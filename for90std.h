@@ -260,5 +260,7 @@ T max_n(T x, T y) {
 	return max(x, y);
 }
 
+#define mod modfl
+
 #define forarray for1array
 #define init_forarray init_for1array
