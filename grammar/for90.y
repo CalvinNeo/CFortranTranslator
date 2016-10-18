@@ -25,7 +25,7 @@ using namespace std;
 %debug
 
 %token _YY_VOID YY_REQ_MORE YY_CRLF
-%token _YY_OP YY_GT YY_GE YY_EQ YY_LE YY_LT YY_NEQ YY_NEQV YY_EQV YY_ANDAND YY_OROR YY_NOT YY_POWER YY_DOUBLECOLON YY_NEG
+%token _YY_OP YY_GT YY_GE YY_EQ YY_LE YY_LT YY_NEQ YY_NEQV YY_EQV YY_ANDAND YY_OROR YY_NOT YY_POWER YY_DOUBLECOLON YY_NEG YY_POS
 %token _YY_TYPE YY_INTEGER YY_FLOAT YY_WORD YY_OPERATOR YY_STRING YY_ILLEGAL YY_COMPLEX YY_TRUE YY_FALSE
 %token _YY_CONTROL YY_END YY_IF YY_THEN YY_ELSE YY_ELSEIF YY_ENDIF YY_DO YY_ENDDO YY_CONTINUE YY_BREAK YY_WHILE YY_ENDWHILE YY_WHERE YY_ENDWHERE YY_CASE YY_ENDCASE YY_SELECT YY_ENDSELECT YY_GOTO YY_DOWHILE YY_DEFAULT
 %token _YY_DELIM YY_PROGRAM YY_ENDPROGRAM YY_FUNCTION YY_ENDFUNCTION YY_RECURSIVE YY_RESULT YY_SUBROUTINE YY_ENDSUBROUTINE YY_MODULE YY_ENDMODULE YY_BLOCK YY_ENDBLOCK
@@ -39,10 +39,11 @@ using namespace std;
 %left YY_ANDAND
 %left YY_EQ YY_NEQ
 %left YY_GT YY_GE YY_LE YY_LT
+%right YY_NEG YY_POS
 %left '+' '-' 
 %left '*' '/' 
 %left YY_POWER
-%right YY_NEG YY_NOT
+%right YY_NOT
 
 %start program
 
@@ -551,6 +552,18 @@ using namespace std;
 				$$ = *newnode;
 				update_pos($$);
 			}
+        | '+' %prec YY_NEG exp 
+			{
+				ParseNode * newnode = new ParseNode();
+				ParseNode & exp1 = $2;
+				ParseNode & op = $1;
+				sprintf(codegen_buf, "%s", exp1.fs.CurrentTerm.what.c_str());
+				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_EXPRESSION, string(codegen_buf) };
+				newnode->addchild(new ParseNode(op)); // (+)
+				newnode->addchild(new ParseNode(exp1)); // only right operand exp
+				$$ = *newnode;
+				update_pos($$);
+			}
 		| exp YY_NEQ exp 
 			{
 				ParseNode * newnode = new ParseNode();
@@ -696,12 +709,14 @@ using namespace std;
 		| literal 
             { 
 				// 
+				ParseNode & exp = $1;
 				$$ = $1;
 			}
 		| callable 
 			{
 				// may cause reduction-reduction conflict when use `variable` instead of `callable`
 				// TODO : i am a little strange that `integer::a, b, c` works well because i am afraid that callable will reduce to exp from here. however according to LR(1), `::` is not in FOLLOW(exp)
+				ParseNode & exp = $1;
 				$$ = $1;
 			}
 
@@ -1673,7 +1688,9 @@ using namespace std;
 				ParseNode & exp_to = $6;
 				ParseNode & suite = $8; suite.fs.CurrentTerm.what = tabber(suite.fs.CurrentTerm.what);
 #ifndef LAZY_GEN
-				sprintf(codegen_buf, "for(%s = %s; %s < %s; %s++){\n%s}", variable.fs.CurrentTerm.what.c_str(), exp_from.fs.CurrentTerm.what.c_str(), variable.fs.CurrentTerm.what.c_str(), exp_to.fs.CurrentTerm.what.c_str(), variable.fs.CurrentTerm.what.c_str(), suite.fs.CurrentTerm.what.c_str());
+				sprintf(codegen_buf, "for(%s = %s; %s <= %s; %s++){\n%s}", variable.fs.CurrentTerm.what.c_str(), exp_from.fs.CurrentTerm.what.c_str()
+					, variable.fs.CurrentTerm.what.c_str(), exp_to.fs.CurrentTerm.what.c_str()
+					, variable.fs.CurrentTerm.what.c_str(), suite.fs.CurrentTerm.what.c_str());
 				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_DO, string(codegen_buf) };
 #endif // !LAZY_GEN
 
@@ -1690,7 +1707,7 @@ using namespace std;
 				ParseNode * newnode = new ParseNode();
 				$9.fs.CurrentTerm.what = tabber($9.fs.CurrentTerm.what);
 #ifndef LAZY_GEN
-				sprintf(codegen_buf, "for(%s = %s; %s < %s; %s+=%s){\n%s}", $2.fs.CurrentTerm.what.c_str(), $4.fs.CurrentTerm.what.c_str(), $2.fs.CurrentTerm.what.c_str(), $6.fs.CurrentTerm.what.c_str(), $2.fs.CurrentTerm.what.c_str(), $8.fs.CurrentTerm.what.c_str(), $9.fs.CurrentTerm.what.c_str());
+				sprintf(codegen_buf, "for(%s = %s; %s <= %s; %s+=%s){\n%s}", $2.fs.CurrentTerm.what.c_str(), $4.fs.CurrentTerm.what.c_str(), $2.fs.CurrentTerm.what.c_str(), $6.fs.CurrentTerm.what.c_str(), $2.fs.CurrentTerm.what.c_str(), $8.fs.CurrentTerm.what.c_str(), $9.fs.CurrentTerm.what.c_str());
 				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_DO, string(codegen_buf) };
 #endif // !LAZY_GEN
 

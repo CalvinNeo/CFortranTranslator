@@ -40,6 +40,7 @@ void debug() {
 	global_code = "program do i = 1, 5 \n count_loop() end do end program";
 	global_code = "program do i = 1, 5 \n if (a == 0) then cycle else exit end if end do end program";
 	global_code = "program do while (i < 8) \n conditional_loop() end do end program";
+	global_code = "program do i = 2, n-1 \n count_loop() end do end program";
 
 	// type
 	global_code = "program real::a, b, c \n end program";
@@ -89,7 +90,8 @@ void debug() {
 
 	// paste here
 	global_code = "program real::a, b, c \n end program";
-	global_code = "program write *,* a, b \n  end program";
+	global_code = "program do i = 2, n-1 \n count_loop() end do end program";
+
 
 	//std::vector<int> accumulated{ 2, 2, 2 };
 	//int s = 1;

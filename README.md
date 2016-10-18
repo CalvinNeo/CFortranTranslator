@@ -133,3 +133,4 @@ all parse tree nodes are defined in Intents.h with an `NT_` prefix
 - more precise code location (update_pos parse_len)
 - more specific type cast functions(char, int, long long)
 - ~~read statement undefined device~~
+- minus 1 and negative 1 conflict(modify definition in .l)
