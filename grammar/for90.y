@@ -45,7 +45,7 @@ using namespace std;
 %left YY_POWER
 %right YY_NOT
 
-%start program
+%start fortran_program
 
 %%
 	crlf : YY_CRLF
@@ -1223,6 +1223,7 @@ using namespace std;
 				newnode->addchild(pn); // paramtable
 				if (do_arr)
 				{
+					// ARRAY
 					/* in cpp code, definition of an array is inherit attribute(¼Ì³ÐÊôÐÔ) grammar */
 					/* enumerate paramtable */
 					do {
@@ -1328,6 +1329,7 @@ using namespace std;
 					newnode->fs.CurrentTerm = Term{ TokenMeta::NT_VARIABLEDEFINE, arr_decl };
 				}
 				else {
+					// SCALAR
 					sprintf(codegen_buf, "%s ", ty->fs.CurrentTerm.what.c_str());
 					var_decl += string(codegen_buf);
 					/* enumerate paramtable */
@@ -1846,7 +1848,7 @@ using namespace std;
 			}
 
 
-	function_decl : dummy_function_iden YY_FUNCTION variable '(' paramtable ')' YY_RESULT '(' variable ')' crlf suite YY_END YY_FUNCTION
+	function_decl : dummy_function_iden YY_FUNCTION variable '(' paramtable ')' YY_RESULT '(' variable ')' crlf suite YY_END YY_FUNCTION crlf
 			{
 				/* fortran90 does not declare type of arguments in function declaration statement*/
 				ParseNode * newnode = new ParseNode();
@@ -2002,6 +2004,7 @@ using namespace std;
 					}
 					else {
 						newsuitestr += oldsuite->child[i]->fs.CurrentTerm.what;
+						newsuitestr += '\n';
 					}
 				}
 				// update oldsuite->fs.CurrentTerm.what
@@ -2026,34 +2029,49 @@ using namespace std;
 				update_pos($$);
 			}
 	
-	wrapper : suite
-			{
-				sprintf(codegen_buf, "%s", $1.fs.CurrentTerm.what.c_str());
-				//$$.fs.CurrentTerm = Term{ TokenMeta::NT_WRAPPER, string(codegen_buf) };
-				$$ = $1;
-				update_pos($$);
-			}
-		| function_decl
-			{
-				sprintf(codegen_buf, "%s", $1.fs.CurrentTerm.what.c_str());
-				//$$.fs.CurrentTerm = Term{ TokenMeta::NT_WRAPPER, string(codegen_buf) };
-				$$ = $1;
-				update_pos($$);
-			}
+	_optional_name : YY_WORD
+		|
 
-    program : YY_PROGRAM YY_WORD crlf wrapper YY_END YY_PROGRAM YY_WORD crlf
+    program : YY_PROGRAM _optional_name crlf suite YY_END YY_PROGRAM _optional_name crlf
 			{
 				ParseNode * newnode = new ParseNode();
-				newnode->addchild(new ParseNode($4)); //wrapper
-				sprintf(codegen_buf, "%s", $4.fs.CurrentTerm.what.c_str());
+				newnode->addchild(new ParseNode($4)); //suite
+				sprintf(codegen_buf, "int main(){\n%s\treturn 0;\n}", tabber($4.fs.CurrentTerm.what).c_str());
+				newnode->fs.CurrentTerm = Term{ TokenMeta::META_NONTERMINAL, string(codegen_buf) };
+				$$ = *newnode;
+			}
+
+
+	wrapper :  function_decl
+			{
+				sprintf(codegen_buf, "%s", $1.fs.CurrentTerm.what.c_str());
+				$$ = $1;
+				update_pos($$);
+			}
+		| program
+			{
+				sprintf(codegen_buf, "%s", $1.fs.CurrentTerm.what.c_str());
+				$$ = $1;
+				update_pos($$);
+			}	
+
+
+	fortran_program : wrapper
+			{
+				ParseNode * newnode = new ParseNode();
+				newnode->addchild(new ParseNode($1)); //wrapper
+				sprintf(codegen_buf, "%s", $1.fs.CurrentTerm.what.c_str());
 				newnode->fs.CurrentTerm = Term{ TokenMeta::META_NONTERMINAL, string(codegen_buf) };
 				program_tree = *newnode;
 			}
-        | YY_PROGRAM crlf wrapper YY_END YY_PROGRAM crlf
+	
+		| wrapper fortran_program
 			{
 				ParseNode * newnode = new ParseNode();
-				newnode->addchild(new ParseNode($3)); //wrapper
-				sprintf(codegen_buf, "%s", $3.fs.CurrentTerm.what.c_str());
+				newnode->addchild(new ParseNode($1)); //wrapper
+				newnode->addchild(new ParseNode($2)); //fortran_program
+				sprintf(codegen_buf, "%s\n%s", $1.fs.CurrentTerm.what.c_str(), $2.fs.CurrentTerm.what.c_str());
+				newnode = flattern_bin(newnode);
 				newnode->fs.CurrentTerm = Term{ TokenMeta::META_NONTERMINAL, string(codegen_buf) };
 				program_tree = *newnode;
 			}
@@ -2065,7 +2083,7 @@ void yyerror(const char* s)
 {
 	fprintf(stderr, "%s\n", s);
 	printf("line %d from %d len %d, current token is %s(id = %d) : %s \n", get_flex_state().parse_line, get_flex_state().parse_pos, get_flex_state().parse_len, get_intent_name(yylval.fs.CurrentTerm.token).c_str(), yylval.fs.CurrentTerm.token, yylval.fs.CurrentTerm.what.c_str());
-	printf("context : %s ^ %s\n", global_code.substr(max(0, get_flex_state().parse_pos - 5), 5).c_str(), global_code.substr(get_flex_state().parse_pos, 5).c_str());
+	printf("context : %s ^ %s\n", global_code.substr(max(0, get_flex_state().parse_pos - 10), 10).c_str(), global_code.substr(get_flex_state().parse_pos, 10).c_str());
 }
 string tabber(string & src) {
 	string newline;

@@ -2,8 +2,6 @@ function isum(n) result (isum_result)
 	implicit none
 	integer::n, isum_result, i
 	isum_result = 0
-	isum_result = 0
-	isum_result = 0
 	do i = 1, n
 		isum_result = isum_result + 1
 	end do

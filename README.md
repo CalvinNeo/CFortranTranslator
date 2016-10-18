@@ -15,7 +15,7 @@ A translator between C++ and Fortran90.
 refer to for90.y for all accepted grammar
 ### unsupported keywords
 
-1. NO named blocks
+1. no named blocks(supported soon)
 
 ### types
 #### type mapping
@@ -90,6 +90,10 @@ refer to for90.y for all accepted grammar
 6. if this keyword takes more than 1 word and can cause reduction conflicts between itself and its prefix like `else if`, update forward1 in tokenizer.cpp
 7. update translation rules in cgen.h
 
+## immediate code generate
+when use immediate code generate, upper level non-terminal can channge generated codes by low level non-terminal:
+1. function_decl change suite(function body)
+
 ## Parse Tree
 all parse tree nodes are defined in Intents.h with an `NT_` prefix
 ### Parse Tree Layers
@@ -115,7 +119,7 @@ all parse tree nodes are defined in Intents.h with an `NT_` prefix
 - ~~reference in parameter list~~
 - ~~rewrite paramtable and var_def(simplify right-recursive rules, move dimension to dummy_variale_iden)~~
 - ~~more elegant multi-word keyword handler(instead of defined in regular expression)~~
-- function forward declaration(if necessary)
+- replace interface with function forward declaration(if necessary)
 - ~~if slice can be a scalar x and equal to (1: x + 1), there will be conflict in argtable~~
 - c-style array(partial)
 - variable with type
@@ -128,9 +132,11 @@ all parse tree nodes are defined in Intents.h with an `NT_` prefix
 - file functions
 - one-line if
 - ~~error infomation include Intent name~~
+- allow named blocks
 
 ## todolist(bugfix)
 - more precise code location (update_pos parse_len)
 - more specific type cast functions(char, int, long long)
 - ~~read statement undefined device~~
-- minus 1 and negative 1 conflict(modify definition in .l)
+- ~~minus 1 and negative 1 conflict(modify definition in .l)~~
+- either an `interface` or **forward declaraion of return value** is need when calling functions in fortran, so must remove all `interface` or forward declaraion of return value in generated code in order to avoid repeat defination.

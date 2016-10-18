@@ -24,6 +24,10 @@ void debug() {
 	//cout << LB << endl;
 	//cout << TokenMeta::LB << endl;
 
+	// math
+	global_code = "program 1 * -3 + +++++2 end program";
+	global_code = "program 1 + (3 * (2.5 + 3.6)) end program";
+
 	// if_stmt, logical eval
 	global_code = "program if a .eqv. b then 2 else c end if end program";
 	global_code = "program if a .eqv. b then 2 else if a >= b then b <= a end if end program";
