@@ -27,6 +27,7 @@ const std::map<std::string, std::string> funcname_map{
 };
 
 
+// system left value
 const std::vector<std::string> intrinsic_lvalue{
 	"iostat"
 };
