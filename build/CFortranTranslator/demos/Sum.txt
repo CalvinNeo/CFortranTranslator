@@ -8,7 +8,8 @@ function isum(n) result (isum_result)
 end function
 program
 	implicit none
-	integer::isum, s
+	integer::isum, dummy
+	integer::s
 	s = isum(100)
 	print *, s
 end program

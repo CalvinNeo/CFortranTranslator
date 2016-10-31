@@ -31,6 +31,7 @@
     <ClCompile Include="..\..\cgen.cpp" />
     <ClCompile Include="..\..\develop.cpp" />
     <ClCompile Include="..\..\for90std.cpp" />
+    <ClCompile Include="..\..\Function.cpp" />
     <ClCompile Include="..\..\getopt.cpp" />
     <ClCompile Include="..\..\grammar\for90.flex.cpp" />
     <ClCompile Include="..\..\grammar\for90.tab.cpp" />
@@ -47,6 +48,7 @@
     <ClInclude Include="..\..\cgen.h" />
     <ClInclude Include="..\..\develop.h" />
     <ClInclude Include="..\..\for90std.h" />
+    <ClInclude Include="..\..\Function.h" />
     <ClInclude Include="..\..\getopt.h" />
     <ClInclude Include="..\..\grammar\for90.flex.h" />
     <ClInclude Include="..\..\grammar\for90.tab.h" />

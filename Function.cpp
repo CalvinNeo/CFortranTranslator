@@ -2,17 +2,45 @@
 #include "tokenizer.h"
 #include "parser.h"
 
-std::map < std::string, funcprt_t > functions;
+std::map < std::string, funcptr_t > functions;
 
-funcprt_t get_function(std::string module_name, std::string function_name) {
-	
+bool try_get_function(std::string module_name, std::string function_name) {
+	std::string fullname = module_name + "::" + function_name;
+	if (functions.find(fullname) != functions.end()) {
+		return true;
+	}
+	else {
+		return false;
+	}
 }
 
-bool add_function(std::string module_name, std::string function_name, funcprt_t fptr) {
-	if (functions.find(module_name + "::" + function_name) != functions.end()) {
+bool try_get_function(std::string module_name, std::string function_name, funcptr_t & fptr) {
+	std::string fullname = module_name + "::" + function_name;
+	if (functions.find(fullname) != functions.end()) {
+		fptr = &functions[fullname];
+		return true;
+	}
+	else {
+		return false;
+	}
+}
+
+funcptr_t get_function(std::string module_name, std::string function_name) {
+	std::string fullname = module_name + "::" + function_name;
+	if (functions.find(fullname) != functions.end()) {
+		return functions[fullname];
+	}
+	else {
+		throw 0;
+	}
+}
+
+bool add_function(std::string module_name, std::string function_name, funcptr_t fptr) {
+	std::string fullname = module_name + "::" + function_name;
+	if (functions.find(fullname) != functions.end()) {
 		return false;
 	}
 	else {
-
+		functions[fullname] = fptr;
 	}
 }

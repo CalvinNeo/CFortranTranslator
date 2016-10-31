@@ -3,8 +3,11 @@
 #include <vector>
 #include <map>
 
-typedef void * funcprt_t;
+typedef void * funcptr_t;
 
-funcprt_t get_function(std::string module_name, std::string function_name);
+bool try_get_function(std::string module_name, std::string function_name, funcptr_t & fptr );
+bool try_get_function(std::string module_name, std::string function_name);
 
-bool add_function(std::string module_name, std::string function_name, funcprt_t fptr);
+funcptr_t get_function(std::string module_name, std::string function_name);
+
+bool add_function(std::string module_name, std::string function_name, funcptr_t fptr);

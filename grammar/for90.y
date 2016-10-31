@@ -9,6 +9,7 @@
 #include "../attribute.h"
 #include "../parser.h"
 #include "../cgen.h"
+#include "../Function.h"
 
 // 前置声明, 不然编译不过
 void yyerror(const char* s); 
@@ -1332,15 +1333,22 @@ using namespace std;
 					// SCALAR
 					sprintf(codegen_buf, "%s ", ty->fs.CurrentTerm.what.c_str());
 					var_decl += string(codegen_buf);
+					bool hitted = false; // 是否至少有一个变量，因为有的变量定义可能是函数的声明，这在c++规范是不允许的，所以可能出现空int，空逗号的情况。
 					/* enumerate paramtable */
 					do {
 						// for all non-flatterned paramtable
 						for (int i = 0; i < pn->child.size(); i++)
 						{
-							if (i > 0) {
+							ParseNode * this_variable = pn->child[i];
+							// skip if it is a function
+							// TODO no module currently
+							if (try_get_function("", this_variable->fs.CurrentTerm.what)) {
+								continue;
+							}
+							if (hitted) {
 								var_decl += ", ";
 							}
-							ParseNode * this_variable = pn->child[i];
+							hitted = true;
 							// use it in fucntion_decl
 							string var_pattern;
 							if (vardescattr->desc.reference) {
@@ -1380,11 +1388,15 @@ using namespace std;
 						}
 					} while (pn->child.size() == 2 && pn->child[1]->fs.CurrentTerm.token == TokenMeta::NT_PARAMTABLE);
 					var_decl += ";";
+					if (!hitted) {
+						// all function declarations
+						var_decl = "";
+					}
+					
 #ifndef LAZY_GEN
-					// sprintf(codegen_buf, "%s %s;", $1.fs.CurrentTerm.what.c_str(), $4.fs.CurrentTerm.what.c_str());
 					newnode->fs.CurrentTerm = Term{ TokenMeta::NT_VARIABLEDEFINE, var_decl };
 #endif // !LAZY_GEN
-				}
+				} // end if
 
 				$$ = *newnode;
 				update_pos($$);
@@ -1860,6 +1872,10 @@ using namespace std;
 				vector<ParseNode *> param_definition;
 				ParseNode & variable_result = $9;
 				ParseNode & suite = $12;
+
+				// log function in function table
+				add_function("", variable_function.fs.CurrentTerm.what, nullptr);
+
 				do {
 					// for all non-flatterned paramtable
 					for (int i = 0; i < prmtbl->child.size(); i++)
@@ -2017,7 +2033,7 @@ using namespace std;
 				// return value
 				newnode->addchild(new ParseNode(suite)); // trimed suite
 
-				sprintf(codegen_buf, "%s %s(%s){\n%s\n}"
+				sprintf(codegen_buf, "%s %s(%s)\n{%s\n}"
 					, get<1>(param_name_typename[param_name_typename.size()-1]).c_str() // return value type
 					, variable_function.fs.CurrentTerm.what.c_str() // function name
 					, argtblstr.c_str() // argtable
@@ -2036,7 +2052,7 @@ using namespace std;
 			{
 				ParseNode * newnode = new ParseNode();
 				newnode->addchild(new ParseNode($4)); //suite
-				sprintf(codegen_buf, "int main(){\n%s\treturn 0;\n}", tabber($4.fs.CurrentTerm.what).c_str());
+				sprintf(codegen_buf, "int main()\n{%s\treturn 0;\n}", tabber($4.fs.CurrentTerm.what).c_str());
 				newnode->fs.CurrentTerm = Term{ TokenMeta::META_NONTERMINAL, string(codegen_buf) };
 				$$ = *newnode;
 			}

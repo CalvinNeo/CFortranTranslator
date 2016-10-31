@@ -54,6 +54,9 @@
     <ClCompile Include="..\..\IntentHelper.cpp">
       <Filter>NuclearLang</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Function.cpp">
+      <Filter>NuclearLang</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\grammar\for90.tab.h">
@@ -86,6 +89,9 @@
     <ClInclude Include="..\..\develop.h" />
     <ClInclude Include="..\..\getopt.h" />
     <ClInclude Include="..\..\IntentHelper.h">
+      <Filter>NuclearLang</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Function.h">
       <Filter>NuclearLang</Filter>
     </ClInclude>
   </ItemGroup>

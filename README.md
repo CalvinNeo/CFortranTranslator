@@ -139,4 +139,4 @@ all parse tree nodes are defined in Intents.h with an `NT_` prefix
 - more specific type cast functions(char, int, long long)
 - ~~read statement undefined device~~
 - ~~minus 1 and negative 1 conflict(modify definition in .l)~~
-- either an `interface` or **forward declaraion of return value** is need when calling functions in fortran, so must remove all `interface` or forward declaraion of return value in generated code in order to avoid repeat defination.
+- either an `interface` or **forward declaraion of return value** is need when calling functions in fortran, so must remove all `interface` and ~~forward declaraion of function return value~~ in generated code in order to avoid repeat definition.
