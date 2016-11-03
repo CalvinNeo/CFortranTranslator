@@ -117,6 +117,7 @@ newline [\r\n]
 
 [a-zA-Z_][a-zA-Z0-9_]* { RTWORD() }
 \.[a-zA-Z_][a-zA-Z0-9]*\. { RTWORD() }
+\!.*{newline} { RTNOP() /*×¢ÊÍ*/}
 \"(\\.|[^"])*\" {RTSTRING(TokenMeta::META_STRING) 
 /* The delimiting quotes are escaped because they are Flex meta-characters. */}
 \'(\\.|[^'])*\' {RTSTRING(TokenMeta::META_STRING) 

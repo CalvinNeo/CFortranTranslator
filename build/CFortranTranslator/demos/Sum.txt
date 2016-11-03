@@ -8,7 +8,7 @@ function isum(n) result (isum_result)
 end function
 program
 	implicit none
-	integer::isum, dummy
+	integer::isum, dummy ! isum is a function, in c++ code its declaration will be removed from main function
 	integer::s
 	s = isum(100)
 	print *, s

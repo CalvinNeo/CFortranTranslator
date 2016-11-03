@@ -29,7 +29,7 @@ using namespace std;
 %token _YY_OP YY_GT YY_GE YY_EQ YY_LE YY_LT YY_NEQ YY_NEQV YY_EQV YY_ANDAND YY_OROR YY_NOT YY_POWER YY_DOUBLECOLON YY_NEG YY_POS
 %token _YY_TYPE YY_INTEGER YY_FLOAT YY_WORD YY_OPERATOR YY_STRING YY_ILLEGAL YY_COMPLEX YY_TRUE YY_FALSE
 %token _YY_CONTROL YY_END YY_IF YY_THEN YY_ELSE YY_ELSEIF YY_ENDIF YY_DO YY_ENDDO YY_CONTINUE YY_BREAK YY_WHILE YY_ENDWHILE YY_WHERE YY_ENDWHERE YY_CASE YY_ENDCASE YY_SELECT YY_ENDSELECT YY_GOTO YY_DOWHILE YY_DEFAULT
-%token _YY_DELIM YY_PROGRAM YY_ENDPROGRAM YY_FUNCTION YY_ENDFUNCTION YY_RECURSIVE YY_RESULT YY_SUBROUTINE YY_ENDSUBROUTINE YY_MODULE YY_ENDMODULE YY_BLOCK YY_ENDBLOCK
+%token _YY_DELIM YY_PROGRAM YY_ENDPROGRAM YY_FUNCTION YY_ENDFUNCTION YY_RECURSIVE YY_RESULT YY_SUBROUTINE YY_ENDSUBROUTINE YY_MODULE YY_ENDMODULE YY_BLOCK YY_ENDBLOCK YY_INTERFACE YY_ENDINTERFACE
 %token _YY_DESCRIBER YY_IMPLICIT YY_NONE YY_USE YY_PARAMETER YY_FORMAT YY_ENTRY YY_DIMENSION YY_ARRAYINITIAL_START YY_ARRAYINITIAL_END YY_INTENT YY_IN YY_OUT YY_INOUT YY_OPTIONAL YY_LEN YY_KIND
 %token _YY_TYPEDEF YY_INTEGER_T YY_FLOAT_T YY_STRING_T YY_COMPLEX_T YY_BOOL_T YY_CHARACTER_T
 %token _YY_COMMAND YY_WRITE YY_READ YY_PRINT YY_OPEN YY_CLOSE YY_CALL
@@ -830,6 +830,7 @@ using namespace std;
 				$$ = *newnode;
 				update_pos($$);
 			}
+		| interface_decl
 
     output_stmt : write
 		| print
@@ -983,12 +984,12 @@ using namespace std;
 						for (int i = 0; i < argtbl->child.size(); i++)
 						{
 							// for each variable in flatterned argtable
-							coutcode += "<<";
+							coutcode += " << ";
 							coutcode += argtbl->child[i]->fs.CurrentTerm.what;
 						}
 						// argtbl = argtbl->child[1];
 					//}
-					coutcode += ";";
+					coutcode += " << endl;";
 					newnode->fs.CurrentTerm = Term{ TokenMeta::META_NONTERMINAL, coutcode };
 				}
 				newnode->addchild(new ParseNode(io_info)); // ioinfo
@@ -1026,12 +1027,12 @@ using namespace std;
 						for (int i = 0; i < argtbl->child.size(); i++)
 						{
 							// for each variable in flatterned argtable
-							coutcode += "<<";
+							coutcode += " << ";
 							coutcode += argtbl->child[i]->fs.CurrentTerm.what;
 						}
 						// argtbl = argtbl->child[1];
 					//}
-					coutcode += ";";
+					coutcode += " << endl;";
 					newnode->fs.CurrentTerm = Term{ TokenMeta::META_NONTERMINAL, coutcode };
 				}
 				newnode->addchild(new ParseNode(io_info)); // ioinfo
@@ -1073,7 +1074,7 @@ using namespace std;
 						for (int i = 0; i < argtbl->child.size(); i++)
 						{
 							// for each variable in flatterned argtable
-							cincode += ">>";
+							cincode += " >> ";
 							cincode += argtbl->child[i]->fs.CurrentTerm.what;
 						}
 						// argtbl = argtbl->child[1];
@@ -1858,20 +1859,36 @@ using namespace std;
 				$$ = *newnode;
 				update_pos($$);
 			}
+	
+	_optional_result : YY_RESULT '(' variable ')'
+			{
+				$$ = $3;
+			}
+		|
+			{
+				ParseNode * newnode = new ParseNode();
+				newnode->fs.CurrentTerm = Term{ TokenMeta::UnknownVariant, "" }; // return nothing
+				$$ = *newnode;
+			}
 
+	_optional_function : YY_FUNCTION
+		| YY_SUBROUTINE
 
-	function_decl : dummy_function_iden YY_FUNCTION variable '(' paramtable ')' YY_RESULT '(' variable ')' crlf suite YY_END YY_FUNCTION crlf
+	function_decl : dummy_function_iden _optional_function variable '(' paramtable ')' _optional_result crlf suite YY_END _optional_function crlf
 			{
 				/* fortran90 does not declare type of arguments in function declaration statement*/
 				ParseNode * newnode = new ParseNode();
-				vector<tuple<string, string, ParseNode *>> param_name_typename; // all params in paramtable of function declare (var_name, var_type)
-				ParseNode & variable_function = $3;
+				// all params in paramtable of function declare (var_name, var_type, ParseNode*)
+				vector<tuple<string, string, ParseNode *>> param_name_typename;
+				vector<ParseNode *> param_definition; // all variables declared in this function
+				ParseNode & variable_function = $3; // function name
 				/* enumerate paramtable */
 				ParseNode & paramtable = $5;
-				ParseNode * prmtbl = &paramtable;
-				vector<ParseNode *> param_definition;
-				ParseNode & variable_result = $9;
-				ParseNode & suite = $12;
+				ParseNode * prmtbl = &paramtable; // iterate the paramtable
+				ParseNode & variable_result = $7; // result variable
+				ParseNode & suite = $9;
+
+				bool is_subroutine = variable_result.fs.CurrentTerm.what == "";
 
 				// log function in function table
 				add_function("", variable_function.fs.CurrentTerm.what, nullptr);
@@ -1891,6 +1908,7 @@ using namespace std;
 					}
 				} while (prmtbl->child.size() == 2 && prmtbl->child[1]->fs.CurrentTerm.token == TokenMeta::NT_PARAMTABLE);
 				/* result variable */
+				// if subroutine get tuple ("", "void")
 				param_name_typename.push_back(make_tuple(variable_result.fs.CurrentTerm.what, "void", nullptr));
 				/* find out all var_def nodes */
 				for (int i = 0; i < suite.child.size(); i++)
@@ -2033,11 +2051,12 @@ using namespace std;
 				// return value
 				newnode->addchild(new ParseNode(suite)); // trimed suite
 
-				sprintf(codegen_buf, "%s %s(%s)\n{%s\n}"
-					, get<1>(param_name_typename[param_name_typename.size()-1]).c_str() // return value type
+				sprintf(codegen_buf, "%s %s(%s)\n{%s\treturn %s;\n}"
+					, get<1>(param_name_typename[param_name_typename.size()-1]).c_str() // return value type, "void" if subroutine
 					, variable_function.fs.CurrentTerm.what.c_str() // function name
 					, argtblstr.c_str() // argtable
 					, oldsuite->fs.CurrentTerm.what.c_str() // code
+					, (is_subroutine? "" :variable_result.fs.CurrentTerm.what.c_str()) // add return stmt if not function
 				);
 				/* generate function code */
 				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_FUNCTIONDECLARE, string(codegen_buf) };
@@ -2071,25 +2090,37 @@ using namespace std;
 				update_pos($$);
 			}	
 
-
-	fortran_program : wrapper
+	wrappers : wrapper
 			{
 				ParseNode * newnode = new ParseNode();
-				newnode->addchild(new ParseNode($1)); //wrapper
+				newnode->addchild(new ParseNode($1)); // wrapper
 				sprintf(codegen_buf, "%s", $1.fs.CurrentTerm.what.c_str());
 				newnode->fs.CurrentTerm = Term{ TokenMeta::META_NONTERMINAL, string(codegen_buf) };
-				program_tree = *newnode;
+				$$ = *newnode;
 			}
-	
-		| wrapper fortran_program
+		| wrapper wrappers
 			{
 				ParseNode * newnode = new ParseNode();
-				newnode->addchild(new ParseNode($1)); //wrapper
-				newnode->addchild(new ParseNode($2)); //fortran_program
+				newnode->addchild(new ParseNode($1)); // wrapper
+				newnode->addchild(new ParseNode($2)); // wrappers
 				sprintf(codegen_buf, "%s\n%s", $1.fs.CurrentTerm.what.c_str(), $2.fs.CurrentTerm.what.c_str());
 				newnode = flattern_bin(newnode);
 				newnode->fs.CurrentTerm = Term{ TokenMeta::META_NONTERMINAL, string(codegen_buf) };
-				program_tree = *newnode;
+				$$ = *newnode;
+			}
+
+	interface_decl : YY_INTERFACE crlf wrappers crlf YY_END YY_INTERFACE crlf
+			{
+				// drop interface directly
+				ParseNode * newnode = new ParseNode();
+				// no child
+				newnode->fs.CurrentTerm = Term{ TokenMeta::META_NONTERMINAL, "" };
+				$$ = *newnode;
+			}
+
+	fortran_program : wrappers
+			{
+				program_tree = $1;
 			}
 
 %%

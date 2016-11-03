@@ -71,6 +71,10 @@ const vector<KeywordMeta> keywords = {
 		, TokenMeta::RBrace
 		, YY_ENDMODULE
 	}
+	, KeywordMeta{"endinterface"
+		, TokenMeta::RBrace
+		, YY_ENDINTERFACE
+	}
 	, KeywordMeta{"do"
 		, TokenMeta::Do
 		, YY_DO
@@ -118,6 +122,10 @@ const vector<KeywordMeta> keywords = {
 	, KeywordMeta{"subroutine"
 		, TokenMeta::META_ANY
 		, YY_SUBROUTINE
+	}
+	, KeywordMeta{"interface"
+		, TokenMeta::META_ANY
+		, YY_INTERFACE
 	}
 	, KeywordMeta{"module"
 		, TokenMeta::META_ANY

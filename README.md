@@ -92,6 +92,7 @@ refer to for90.y for all accepted grammar
 
 ## immediate code generate
 when use immediate code generate, upper level non-terminal can channge generated codes by low level non-terminal:
+
 1. function_decl change suite(function body)
 
 ## Parse Tree
@@ -99,13 +100,16 @@ all parse tree nodes are defined in Intents.h with an `NT_` prefix
 ### Parse Tree Layers
 - NT_DIMENSLICE -> NT_SLICE ; dimen_slice rule
 - NT_ARGTABLE_PURE -> NT_EXPRESSION ; dimen_slice rule
-- NT_SUITE -> NT_STATEMENT
+- NT_SUITE -> NT_STATEMENT+
+- NT_STATEMENT -> exp || var_def || compound_stmt || output_stmt || input_stmt || dummy_stmt || let_stmt || jump_stmt || interface_decl
 - NT_VARIABLEDEFINE -> (typeinfo, NT_DIMENSLICE || dummy, NT_PARAMTABLE )
 - NT_PARAMTABLE -> NT_VARIABLEINITIAL || NT_DECLAREDVARIABLE
 - NT_VARIABLEINITIAL/NT_DECLAREDVARIABLE -> (UnknownVariant, NT_EXPRESSION || NT_VARIABLEINITIALDUMMY)
 - NT_ARGTABLE_DIMENSLICE -> NT_DIMENSLICE
 - NT_ARRAYBUILDER -> (NT_ARRAYBUILDER_VALUE -> argtable || NT_ARRAYBUILDER_EXP || exp) +
-- wrapper(not a node) -> NT_SUITE || NT_FUNCTIONDECLARE
+- fortran_program -> wrappers
+- wrappers -> wrapper +
+- wrapper(not a node) -> function_decl || program
 
 ## todolist(features)
 - lazygen(partial)
@@ -140,3 +144,5 @@ all parse tree nodes are defined in Intents.h with an `NT_` prefix
 - ~~read statement undefined device~~
 - ~~minus 1 and negative 1 conflict(modify definition in .l)~~
 - either an `interface` or **forward declaraion of return value** is need when calling functions in fortran, so must remove all `interface` and ~~forward declaraion of function return value~~ in generated code in order to avoid repeat definition.
+- error message line info is always 0
+- handle error when can't find declaration of the variable listed in function paramtable

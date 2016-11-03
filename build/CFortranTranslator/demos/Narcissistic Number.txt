@@ -1,5 +1,6 @@
 program
 	implicit none
+	! find numbers which equals to its digital sum
 	integer::i, j, k, m, n
 	do i = 1, 9
 		do j = 0, 9
