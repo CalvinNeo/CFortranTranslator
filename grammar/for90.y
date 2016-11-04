@@ -413,8 +413,8 @@ using namespace std;
 				$$ = *newnode;
 				update_pos($$);
 			}
-
-	function_array : callable '(' argtable ')' 
+				
+	function_array_pure : callable '(' argtable ')'
 			{
 				/* function call OR array index */
 				/* NOTE that array index can be A(1:2, 3:4) */
@@ -446,6 +446,15 @@ using namespace std;
 				newnode->addchild(new ParseNode(argtable)); // argtable
 				$$ = *newnode;
 				update_pos($$);
+			}
+
+	function_array : function_array_pure
+			{
+				$$ = $1
+			}
+		| YY_CALL function_array_pure
+			{
+				$$ = $2
 			}
 
 	exp : function_array 
@@ -1978,7 +1987,15 @@ using namespace std;
 						else {
 						}
 					}
-					argtblstr += get<1>(param_name_typename[i]);
+					if (vardescattr->desc.optional)
+					{
+						argtblstr += "foroptional<";
+						argtblstr += get<1>(param_name_typename[i]);
+						argtblstr += ">";
+					}
+					else {
+						argtblstr += get<1>(param_name_typename[i]);
+					}
 					argtblstr += " ";
 					if (vardescattr != nullptr)
 					{

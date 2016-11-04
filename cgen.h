@@ -17,13 +17,21 @@ const std::map<std::string, std::string> pre_map{
 
 /* NOTICE: `pre_map` has already do previous job for `funcname_map` */
 const std::map<std::string, std::string> funcname_map{
+	// math
 	{ "min", "min_n" }
 	, { "max", "max_n" }
+
+	// type
 	, {"int", "to_int"}
 	, { "bool", "to_bool" }
 	, { "string", "to_string" }
 	, { "double", "to_double" }
 	, { "forcomplex", "forcomplex" }
+
+	// array
+
+	// intrinsic
+	,{ "present", "forpresent" }
 };
 
 

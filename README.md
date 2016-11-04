@@ -17,6 +17,11 @@ refer to for90.y for all accepted grammar
 
 1. no named blocks(supported soon)
 
+### INTERFACE block
+`INTERFACE` block will be skipped during parsing, so avoid:
+
+1. rename kwyword parameter
+
 ### types
 #### type mapping
 
@@ -97,19 +102,31 @@ when use immediate code generate, upper level non-terminal can channge generated
 
 ## Parse Tree
 all parse tree nodes are defined in Intents.h with an `NT_` prefix
+### ParseNode
+1. father: parent node
+2. fs:
+	* fs.CurrentTerm.what: direct-gen code
+	* fs.CurrentTerm.token: refer *Intent.h*
+3. attr
+4. child
+
 ### Parse Tree Layers
-- NT_DIMENSLICE -> NT_SLICE ; dimen_slice rule
-- NT_ARGTABLE_PURE -> NT_EXPRESSION ; dimen_slice rule
-- NT_SUITE -> NT_STATEMENT+
-- NT_STATEMENT -> exp || var_def || compound_stmt || output_stmt || input_stmt || dummy_stmt || let_stmt || jump_stmt || interface_decl
+- fortran_program -> wrappers
+- wrappers -> wrapper +
+- wrapper(not a node) -> function_decl || program
 - NT_VARIABLEDEFINE -> (typeinfo, NT_DIMENSLICE || dummy, NT_PARAMTABLE )
 - NT_PARAMTABLE -> NT_VARIABLEINITIAL || NT_DECLAREDVARIABLE
 - NT_VARIABLEINITIAL/NT_DECLAREDVARIABLE -> (UnknownVariant, NT_EXPRESSION || NT_VARIABLEINITIALDUMMY)
 - NT_ARGTABLE_DIMENSLICE -> NT_DIMENSLICE
+- NT_DIMENSLICE -> NT_SLICE ; dimen_slice rule
+- NT_ARGTABLE_PURE -> NT_EXPRESSION ; dimen_slice rule
+- NT_SUITE -> NT_STATEMENT+
+- NT_STATEMENT -> exp || var_def || compound_stmt || output_stmt || input_stmt || dummy_stmt || let_stmt || jump_stmt || interface_decl
 - NT_ARRAYBUILDER -> (NT_ARRAYBUILDER_VALUE -> argtable || NT_ARRAYBUILDER_EXP || exp) +
-- fortran_program -> wrappers
-- wrappers -> wrapper +
-- wrapper(not a node) -> function_decl || program
+
+### Attributes
+`->` means attached to
+- VariableDesc -> NT_DECLAREDVARIABLE
 
 ## todolist(features)
 - lazygen(partial)

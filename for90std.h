@@ -260,6 +260,44 @@ T max_n(T x, T y) {
 	return max(x, y);
 }
 
+template <class T>
+struct foroptional
+{
+	operator T() {
+		return value;
+	}
+	T & operator= (const T & newv) {
+		dirty = true;
+		value = newv;
+		return value;
+	}
+	foroptional(const T & newv) {
+		dirty = false;
+		value = newv;
+	}
+	foroptional(const foroptional<T> & newv) {
+		dirty = false;
+		value = newv.get();
+	}
+	foroptional() {
+		dirty = false;
+	}
+	bool inited() const {
+		return dirty;
+	}
+	T get() {
+		return dat;
+	}
+private:
+	T dat;
+	bool dirty = false;
+};
+
+template <class T>
+bool forpresent(foroptional<T> x) {
+	return x.inited();
+}
+
 #define mod modfl
 
 #define forarray for1array
