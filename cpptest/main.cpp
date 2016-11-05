@@ -1,5 +1,4 @@
 #include "../for90std.h"
-#include <cmath>
 
 double ss(const double & r, const foroptional<double> & h)
 {
@@ -16,8 +15,6 @@ double ss(const double & r, const foroptional<double> & h)
 }
 int main()
 {
-
-	//printf(" %s%10.3f", "area=", ss(2.5));
 	printf(" %s%10.3f", "vol=", ss(2.5, 9));
 	return 0;
 }

@@ -155,7 +155,7 @@ all parse tree nodes are defined in [/Intent.h](/Intent.h) with an `NT_` prefix
 - ~~one-line if~~
 - ~~error infomation include Intent name~~
 - allow named blocks
-- allow function pointers
+- support function pointers, Parse `Interface` for function pointer
 
 ## todolist(bugfix)
 - more precise code location (update_pos parse_len)

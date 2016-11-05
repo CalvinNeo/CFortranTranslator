@@ -263,7 +263,7 @@ T max_n(T x, T y) {
 template <class T>
 struct foroptional
 {
-	operator T() {
+	operator T() const {
 		return value;
 	} 
 
@@ -273,19 +273,19 @@ struct foroptional
 		return value;
 	}
 	foroptional(const T & newv) {
-		dirty = false;
+		dirty = true;
 		value = newv;
 	}
 	foroptional(T & newv) {
-		dirty = false;
+		dirty = true;
 		value = newv;
 	}
 	foroptional(const foroptional<T> & newv) {
-		dirty = false;
+		dirty = true;
 		value = newv.const_get();
 	}
 	foroptional(foroptional<T> & newv) {
-		dirty = false;
+		dirty = true;
 		value = newv.get();
 	}
 	foroptional() {
@@ -297,7 +297,7 @@ struct foroptional
 	T get() {
 		return value;
 	}
-	const T & const_get() {
+	const T & const_get() const {
 		return value;
 	}
 private:

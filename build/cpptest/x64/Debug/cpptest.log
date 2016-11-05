@@ -1,5 +1,5 @@
 ﻿  main.cpp
-f:\codes\c++\cfortrantranslator\for90std.h(311): warning C4521: “foroptional<double>”: 指定了多个复制构造函数
-  f:\codes\c++\cfortrantranslator\cpptest\main.cpp(8): note: 参见对正在编译的类 模板 实例化“foroptional<double>”的引用
-f:\codes\c++\cfortrantranslator\cpptest\main.cpp(9): error C2440: “=”: 无法从“const foroptional<double>”转换为“double”
-  f:\codes\c++\cfortrantranslator\cpptest\main.cpp(9): note: 没有可用于执行该转换的用户定义的转换运算符，或者无法调用该运算符
+f:\codes\c++\cfortrantranslator\for90std.h(306): warning C4521: “foroptional<double>”: 指定了多个复制构造函数
+  f:\codes\c++\cfortrantranslator\cpptest\main.cpp(7): note: 参见对正在编译的类 模板 实例化“foroptional<double>”的引用
+  cpptest.vcxproj -> F:\Codes\C++\CFortranTranslator\build\x64\Debug\cpptest.exe
+  cpptest.vcxproj -> F:\Codes\C++\CFortranTranslator\build\x64\Debug\cpptest.pdb (Partial PDB)

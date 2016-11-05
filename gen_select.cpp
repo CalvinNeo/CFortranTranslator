@@ -1,5 +1,17 @@
 #include "gen_common.h"
 
+ParseNode * gen_case(const ParseNode & dimen_slice, ParseNode & suite) {
+	// one case
+	ParseNode * newnode = new ParseNode();
+	suite.fs.CurrentTerm.what = tabber(suite.fs.CurrentTerm.what);
+	newnode->fs.CurrentTerm = Term{ TokenMeta::NT_CASE, "" };
+	ParseNode select;
+	newnode->addchild(new ParseNode(select)); // case
+	newnode->addchild(new ParseNode(dimen_slice)); // dimen_slice
+	newnode->addchild(new ParseNode(suite)); // suite
+	return newnode;
+}
+
 ParseNode * gen_select(const ParseNode & exp, const ParseNode & case_stmt) {
 
 	ParseNode * newnode = new ParseNode();

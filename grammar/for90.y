@@ -1276,73 +1276,38 @@ using namespace std;
 				$$ = *newnode;
 				update_pos($$);
 			}
+
 	do_stmt : YY_DO crlf suite YY_END YY_DO crlf
 			{
-				ParseNode * newnode = new ParseNode();
-				ParseNode & suite = $3; suite.fs.CurrentTerm.what = tabber(suite.fs.CurrentTerm.what);
-#ifndef LAZY_GEN
-				sprintf(codegen_buf, "do{\n%s}", suite.fs.CurrentTerm.what.c_str());
-#endif // !LAZY_GEN
-
-				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_DO, string(codegen_buf) };
-				newnode->addchild(new ParseNode($1)); // do
-				newnode->addchild(new ParseNode(suite)); // suite
-				$$ = *newnode;
+				ParseNode & suite = $3; 
+				$$ = *gen_do(suite);
 				update_pos($$);
 			}
 		| YY_DO variable '=' exp ',' exp crlf suite YY_END YY_DO crlf
 			{
-				ParseNode * newnode = new ParseNode();
-				ParseNode & variable = $2;
+				ParseNode & loop_variable = $2;
 				ParseNode & exp_from = $4;
 				ParseNode & exp_to = $6;
-				ParseNode & suite = $8; suite.fs.CurrentTerm.what = tabber(suite.fs.CurrentTerm.what);
-#ifndef LAZY_GEN
-				sprintf(codegen_buf, "for(%s = %s; %s <= %s; %s++){\n%s}", variable.fs.CurrentTerm.what.c_str(), exp_from.fs.CurrentTerm.what.c_str()
-					, variable.fs.CurrentTerm.what.c_str(), exp_to.fs.CurrentTerm.what.c_str()
-					, variable.fs.CurrentTerm.what.c_str(), suite.fs.CurrentTerm.what.c_str());
-				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_DO, string(codegen_buf) };
-#endif // !LAZY_GEN
-
-				newnode->addchild(new ParseNode($1)); // do
-				newnode->addchild(new ParseNode(variable)); // varname
-				newnode->addchild(new ParseNode(exp_from)); // begin
-				newnode->addchild(new ParseNode(exp_to)); // end
-				newnode->addchild(new ParseNode(suite)); // suite
-				$$ = *newnode;
+				ParseNode & step = *gen_exp(*gen_token(Term{ TokenMeta::META_INTEGER , "1" }));
+				ParseNode & suite = $8; 
+				$$ = *gen_do_range(exp_from, exp_from, exp_to, step, suite);
 				update_pos($$);
 			}
 		| YY_DO variable '=' exp ',' exp ',' exp crlf suite YY_END YY_DO crlf
 			{
-				ParseNode * newnode = new ParseNode();
-				$9.fs.CurrentTerm.what = tabber($9.fs.CurrentTerm.what);
-#ifndef LAZY_GEN
-				sprintf(codegen_buf, "for(%s = %s; %s <= %s; %s+=%s){\n%s}", $2.fs.CurrentTerm.what.c_str(), $4.fs.CurrentTerm.what.c_str(), $2.fs.CurrentTerm.what.c_str(), $6.fs.CurrentTerm.what.c_str(), $2.fs.CurrentTerm.what.c_str(), $8.fs.CurrentTerm.what.c_str(), $9.fs.CurrentTerm.what.c_str());
-				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_DO, string(codegen_buf) };
-#endif // !LAZY_GEN
-
-				newnode->addchild(new ParseNode($1)); // do
-				newnode->addchild(new ParseNode($2)); // varname
-				newnode->addchild(new ParseNode($4)); // begin
-				newnode->addchild(new ParseNode($6)); // end
-				newnode->addchild(new ParseNode($8)); // step
-				newnode->addchild(new ParseNode($9)); // suite
-				$$ = *newnode;
+				ParseNode & loop_variable = $2;
+				ParseNode & exp1 = $4;
+				ParseNode & exp2 = $6;
+				ParseNode & exp3 = $8;
+				ParseNode & suite = $10;
+				$$ = *gen_do_range(loop_variable, exp1, exp2, exp3, suite);
 				update_pos($$);
 			}
 		| YY_DOWHILE exp crlf suite YY_END YY_DO crlf
 			{
-				ParseNode * newnode = new ParseNode();
 				ParseNode & exp = $2;
-				ParseNode & suite = $4; suite.fs.CurrentTerm.what = tabber(suite.fs.CurrentTerm.what);
-#ifndef LAZY_GEN
-				sprintf(codegen_buf, "while(%s){\n%s}", exp.fs.CurrentTerm.what.c_str(), suite.fs.CurrentTerm.what.c_str());
-				newnode->fs.CurrentTerm = Term{ TokenMeta::While, string(codegen_buf) };
-#endif // !LAZY_GEN
-				newnode->addchild(new ParseNode($1)); // while
-				newnode->addchild(new ParseNode(exp)); // exp
-				newnode->addchild(new ParseNode(suite)); // suite
-				$$ = *newnode;
+				ParseNode & suite = $4; 
+				$$ = *gen_do_while(exp, suite);
 				update_pos($$);
 			}
 
@@ -1357,17 +1322,9 @@ using namespace std;
 	case_stmt_elem : YY_CASE _optional_lbrace dimen_slice _optional_rbrace crlf suite
 			{
 				// one case
-				ParseNode * newnode = new ParseNode();
-				ParseNode & case_head = $1;
 				ParseNode & dimen_slice = $3;
-				ParseNode & suite = $6; suite.fs.CurrentTerm.what = tabber(suite.fs.CurrentTerm.what);
-#ifndef LAZY_GEN
-				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_CASE, "" };
-#endif // !LAZY_GEN
-				newnode->addchild(new ParseNode(case_head)); // case
-				newnode->addchild(new ParseNode(dimen_slice)); // dimen_slice
-				newnode->addchild(new ParseNode(suite)); // suite
-				$$ = *newnode;
+				ParseNode & suite = $6; 
+				$$ = *gen_case(dimen_slice, suite);
 				update_pos($$);
 			}
 	case_stmt : case_stmt_elem
@@ -1385,7 +1342,7 @@ using namespace std;
 				ParseNode & case_stmt = $2;
 				ParseNode * newnode = new ParseNode(case_stmt);
 				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_CASES, "" };
-				newnode->addchild(new ParseNode(case_stmt_elem), false); // case_stmt_elem
+				newnode->addchild(new ParseNode(case_stmt_elem), false /* add to the front of the vector */); // case_stmt_elem
 				$$ = *newnode;
 				update_pos($$);
 			}
