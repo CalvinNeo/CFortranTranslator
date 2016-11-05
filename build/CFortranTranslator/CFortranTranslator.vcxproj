@@ -28,10 +28,16 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\attribute.cpp" />
-    <ClCompile Include="..\..\cgen.cpp" />
+    <ClCompile Include="..\..\codegen.cpp" />
     <ClCompile Include="..\..\develop.cpp" />
     <ClCompile Include="..\..\for90std.cpp" />
     <ClCompile Include="..\..\Function.cpp" />
+    <ClCompile Include="..\..\gen_do.cpp" />
+    <ClCompile Include="..\..\gen_function.cpp" />
+    <ClCompile Include="..\..\gen_if.cpp" />
+    <ClCompile Include="..\..\gen_io.cpp" />
+    <ClCompile Include="..\..\gen_select.cpp" />
+    <ClCompile Include="..\..\gen_vardef.cpp" />
     <ClCompile Include="..\..\getopt.cpp" />
     <ClCompile Include="..\..\grammar\for90.flex.cpp" />
     <ClCompile Include="..\..\grammar\for90.tab.cpp" />
@@ -45,7 +51,9 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\attribute.h" />
-    <ClInclude Include="..\..\cgen.h" />
+    <ClInclude Include="..\..\gen_common.h" />
+    <ClInclude Include="..\..\gen_config.h" />
+    <ClInclude Include="..\..\codegen.h" />
     <ClInclude Include="..\..\develop.h" />
     <ClInclude Include="..\..\for90std.h" />
     <ClInclude Include="..\..\Function.h" />

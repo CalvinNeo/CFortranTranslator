@@ -8,8 +8,10 @@
 #include "../tokenizer.h"
 #include "../attribute.h"
 #include "../parser.h"
-#include "../cgen.h"
+#include "../gen_config.h"
 #include "../Function.h"
+#include "../codegen.h"
+
 
 // 前置声明, 不然编译不过
 void yyerror(const char* s); 
@@ -18,8 +20,7 @@ extern void set_buff(const std::string & code);
 extern void release_buff();
 #define YYDEBUG 1
 #define YYERROR_VERBOSE
-#define MAX_CODE_LENGTH 65535
-char codegen_buf[MAX_CODE_LENGTH];
+static char codegen_buf[MAX_CODE_LENGTH];
 using namespace std;
 %}
 
@@ -53,7 +54,7 @@ using namespace std;
 			{
 				$$.fs.CurrentTerm = Term{ TokenMeta::CRLF, "\n" };
 				update_pos($$);
-}
+			}
 		| ';'
 			{
 				$$.fs.CurrentTerm = Term{ TokenMeta::Semicolon, ";" };
@@ -487,234 +488,144 @@ using namespace std;
 			}
 		| exp '+' exp 
 			{
-				ParseNode * newnode = new ParseNode();
 				ParseNode & exp1 = $1;
 				ParseNode & op = $2;
 				ParseNode & exp2 = $3;
-				sprintf(codegen_buf, "%s + %s", exp1.fs.CurrentTerm.what.c_str(), exp2.fs.CurrentTerm.what.c_str());
-				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_EXPRESSION, string(codegen_buf) };
-				newnode->addchild(new ParseNode(exp1)); // left operand exp
-				newnode->addchild(new ParseNode(op)); // +
-				newnode->addchild(new ParseNode(exp2)); // tight operand exp
-				$$ = *newnode;
+				$$ = *gen_exp(exp1, op, exp2, "%s + %s");
+				update_pos($$);
 			}
 		| exp '-' exp 
 			{
-				ParseNode * newnode = new ParseNode();
 				ParseNode & exp1 = $1;
 				ParseNode & op = $2;
 				ParseNode & exp2 = $3;
-				sprintf(codegen_buf, "%s - %s", exp1.fs.CurrentTerm.what.c_str(), exp2.fs.CurrentTerm.what.c_str());
-				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_EXPRESSION, string(codegen_buf) };
-				newnode->addchild(new ParseNode(exp1)); // left operand exp
-				newnode->addchild(new ParseNode(op)); // -
-				newnode->addchild(new ParseNode(exp2)); // right operand exp
-				$$ = *newnode;
+				$$ = *gen_exp(exp1, op, exp2, "%s - %s");
+				update_pos($$);
 			}
 		| exp '*' exp 
 			{
-				ParseNode * newnode = new ParseNode();
 				ParseNode & exp1 = $1;
 				ParseNode & op = $2;
 				ParseNode & exp2 = $3;
-				sprintf(codegen_buf, "%s * %s", exp1.fs.CurrentTerm.what.c_str(), exp2.fs.CurrentTerm.what.c_str());
-				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_EXPRESSION, string(codegen_buf) };
-				newnode->addchild(new ParseNode(exp1)); // left operand exp
-				newnode->addchild(new ParseNode(op)); // *
-				newnode->addchild(new ParseNode(exp2)); // right operand exp
-				$$ = *newnode;
+				$$ = *gen_exp(exp1, op, exp2, "%s * %s");
+				update_pos($$);
 			}
 		| exp '/' exp 
 			{
-				ParseNode * newnode = new ParseNode();
 				ParseNode & exp1 = $1;
 				ParseNode & op = $2;
 				ParseNode & exp2 = $3;
-				sprintf(codegen_buf, "%s / %s", exp1.fs.CurrentTerm.what.c_str(), exp2.fs.CurrentTerm.what.c_str());
-				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_EXPRESSION, string(codegen_buf) };
-				newnode->addchild(new ParseNode(exp1)); // left operand exp
-				newnode->addchild(new ParseNode(op)); // /
-				newnode->addchild(new ParseNode(exp2)); // right operand exp
-				$$ = *newnode;
+				$$ = *gen_exp(exp1, op, exp2, "%s / %s");
+				update_pos($$);
 			}
 		| exp YY_POWER exp 
 			{
-				ParseNode * newnode = new ParseNode();
 				ParseNode & exp1 = $1;
 				ParseNode & op = $2;
 				ParseNode & exp2 = $3;
-				sprintf(codegen_buf, "power(%s, %s)", exp1.fs.CurrentTerm.what.c_str(), exp2.fs.CurrentTerm.what.c_str());
-				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_EXPRESSION, string(codegen_buf) };
-				newnode->addchild(new ParseNode(exp1)); // left operand exp
-				newnode->addchild(new ParseNode(op)); // **
-				newnode->addchild(new ParseNode(exp2)); // right operand exp
-				$$ = *newnode;
+				$$ = *gen_exp(exp1, op, exp2, "power(%s, %s)");
+				update_pos($$);
 			}
         | '-' %prec YY_NEG exp 
 			{
-				ParseNode * newnode = new ParseNode();
 				ParseNode & exp1 = $2;
 				ParseNode & op = $1;
-				sprintf(codegen_buf, "(-%s)", exp1.fs.CurrentTerm.what.c_str());
-				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_EXPRESSION, string(codegen_buf) };
-				newnode->addchild(new ParseNode(op)); // (-)
-				newnode->addchild(new ParseNode(exp1)); // only right operand exp
-				$$ = *newnode;
+				$$ = *gen_exp(exp1, op,  "(-%s)");
 				update_pos($$);
 			}
         | '+' %prec YY_NEG exp 
 			{
-				ParseNode * newnode = new ParseNode();
 				ParseNode & exp1 = $2;
 				ParseNode & op = $1;
-				sprintf(codegen_buf, "%s", exp1.fs.CurrentTerm.what.c_str());
-				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_EXPRESSION, string(codegen_buf) };
-				newnode->addchild(new ParseNode(op)); // (+)
-				newnode->addchild(new ParseNode(exp1)); // only right operand exp
-				$$ = *newnode;
+				$$ = *gen_exp(exp1, op,  "%s");
 				update_pos($$);
 			}
 		| exp YY_NEQ exp 
 			{
-				ParseNode * newnode = new ParseNode();
 				ParseNode & exp1 = $1;
 				ParseNode & op = $2;
 				ParseNode & exp2 = $3;
-				sprintf(codegen_buf, "%s != %s", exp1.fs.CurrentTerm.what.c_str(), exp2.fs.CurrentTerm.what.c_str());
-				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_EXPRESSION, string(codegen_buf) };
-				newnode->addchild(new ParseNode(exp1)); // left operand exp
-				newnode->addchild(new ParseNode(op)); // !=
-				newnode->addchild(new ParseNode(exp2)); // right operand exp
-				$$ = *newnode;
+				$$ = *gen_exp(exp1, op, exp2, "%s != %s");
+				update_pos($$);
 			}
 		| exp YY_NEQV exp 
 			{
-				ParseNode * newnode = new ParseNode();
 				ParseNode & exp1 = $1;
 				ParseNode & op = $2;
 				ParseNode & exp2 = $3;
-				sprintf(codegen_buf, "%s != %s", exp1.fs.CurrentTerm.what.c_str(), exp2.fs.CurrentTerm.what.c_str());
-				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_EXPRESSION, string(codegen_buf) };
-				newnode->addchild(new ParseNode(exp1)); // left operand exp
-				newnode->addchild(new ParseNode(op)); // !=
-				newnode->addchild(new ParseNode(exp2)); // right operand exp
-				$$ = *newnode;
+				$$ = *gen_exp(exp1, op, exp2, "%s != %s");
+				update_pos($$);
 			}
 		| exp YY_EQ exp 
 			{
-				ParseNode * newnode = new ParseNode();
 				ParseNode & exp1 = $1;
 				ParseNode & op = $2;
 				ParseNode & exp2 = $3;
-				sprintf(codegen_buf, "%s == %s", exp1.fs.CurrentTerm.what.c_str(), exp2.fs.CurrentTerm.what.c_str());
-				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_EXPRESSION, string(codegen_buf) };
-				newnode->addchild(new ParseNode(exp1)); // left operand exp
-				newnode->addchild(new ParseNode(op)); // ==
-				newnode->addchild(new ParseNode(exp2)); // right operand exp
-				$$ = *newnode;
+				$$ = *gen_exp(exp1, op, exp2, "%s ++ %s");
+				update_pos($$);
 			}
 		| exp YY_EQV exp 
 			{
-				ParseNode * newnode = new ParseNode();
 				ParseNode & exp1 = $1;
 				ParseNode & op = $2;
 				ParseNode & exp2 = $3;
-				sprintf(codegen_buf, "%s == %s", exp1.fs.CurrentTerm.what.c_str(), exp2.fs.CurrentTerm.what.c_str());
-				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_EXPRESSION, string(codegen_buf) };
-				newnode->addchild(new ParseNode(exp1)); // left operand exp
-				newnode->addchild(new ParseNode(op)); // ==
-				newnode->addchild(new ParseNode(exp2)); // right operand exp
-				$$ = *newnode;
+				$$ = *gen_exp(exp1, op, exp2, "%s == %s");
+				update_pos($$);
 			}
 		| exp YY_ANDAND exp 
 			{
-				ParseNode * newnode = new ParseNode();
 				ParseNode & exp1 = $1;
 				ParseNode & op = $2;
 				ParseNode & exp2 = $3;
-				sprintf(codegen_buf, "%s && %s", exp1.fs.CurrentTerm.what.c_str(), exp2.fs.CurrentTerm.what.c_str());
-				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_EXPRESSION, string(codegen_buf) };
-				newnode->addchild(new ParseNode(exp1)); // left operand exp
-				newnode->addchild(new ParseNode(op)); // &&
-				newnode->addchild(new ParseNode(exp2)); // right operand exp
-				$$ = *newnode;
+				$$ = *gen_exp(exp1, op, exp2, "%s && %s");
+				update_pos($$);
 			}
 		| exp YY_OROR exp 
 			{
-				ParseNode * newnode = new ParseNode();
 				ParseNode & exp1 = $1;
 				ParseNode & op = $2;
 				ParseNode & exp2 = $3;
-				sprintf(codegen_buf, "%s || %s", exp1.fs.CurrentTerm.what.c_str(), exp2.fs.CurrentTerm.what.c_str());
-				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_EXPRESSION, string(codegen_buf) };
-				newnode->addchild(new ParseNode(exp1)); // left operand exp
-				newnode->addchild(new ParseNode(op)); // ||
-				newnode->addchild(new ParseNode(exp2)); // right operand exp
-				$$ = *newnode;
+				$$ = *gen_exp(exp1, op, exp2, "%s || %s");
+				update_pos($$);
 			}
 		| YY_NOT exp 
 			{
-				ParseNode * newnode = new ParseNode();
 				ParseNode & exp1 = $2;
 				ParseNode & op = $1;
-				sprintf(codegen_buf, "!(%s)", exp1.fs.CurrentTerm.what.c_str());
-				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_EXPRESSION, string(codegen_buf) };
-				newnode->addchild(new ParseNode(op)); // !
-				newnode->addchild(new ParseNode(exp1)); // only right operand exp
-				$$ = *newnode;
+				$$ = *gen_exp(exp1, op, "!(%s)");
 				update_pos($$);
 			}
 		| exp YY_GT exp 
 			{
-				ParseNode * newnode = new ParseNode();
 				ParseNode & exp1 = $1;
 				ParseNode & op = $2;
 				ParseNode & exp2 = $3;
-				sprintf(codegen_buf, "%s > %s", exp1.fs.CurrentTerm.what.c_str(), exp2.fs.CurrentTerm.what.c_str());
-				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_EXPRESSION, string(codegen_buf) };
-				newnode->addchild(new ParseNode(exp1)); // left operand exp
-				newnode->addchild(new ParseNode(op)); // >
-				newnode->addchild(new ParseNode(exp2)); // right operand exp
-				$$ = *newnode;
+				$$ = *gen_exp(exp1, op, exp2, "%s > %s");
+				update_pos($$);
 			}
 		| exp YY_GE exp 
 			{
-				ParseNode * newnode = new ParseNode();
 				ParseNode & exp1 = $1;
 				ParseNode & op = $2;
 				ParseNode & exp2 = $3;
-				sprintf(codegen_buf, "%s >= %s", exp1.fs.CurrentTerm.what.c_str(), exp2.fs.CurrentTerm.what.c_str());
-				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_EXPRESSION, string(codegen_buf) };
-				newnode->addchild(new ParseNode(exp1)); // left operand exp
-				newnode->addchild(new ParseNode(op)); // >=
-				newnode->addchild(new ParseNode(exp2)); // right operand exp
-				$$ = *newnode;
+				$$ = *gen_exp(exp1, op, exp2, "%s >= %s");
+				update_pos($$);
 			}
 		| exp YY_LE exp 
 			{
-				ParseNode * newnode = new ParseNode();
 				ParseNode & exp1 = $1;
 				ParseNode & op = $2;
 				ParseNode & exp2 = $3;
-				sprintf(codegen_buf, "%s <= %s", exp1.fs.CurrentTerm.what.c_str(), exp2.fs.CurrentTerm.what.c_str());
-				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_EXPRESSION, string(codegen_buf) };
-				newnode->addchild(new ParseNode(exp1)); // left operand exp
-				newnode->addchild(new ParseNode(op)); // <=
-				newnode->addchild(new ParseNode(exp2)); // right operand exp
-				$$ = *newnode;
+				$$ = *gen_exp(exp1, op, exp2, "%s <= %s");
+				update_pos($$);
 			}
 		| exp YY_LT exp 
 			{
-				ParseNode * newnode = new ParseNode();
 				ParseNode & exp1 = $1;
 				ParseNode & op = $2;
 				ParseNode & exp2 = $3;
-				sprintf(codegen_buf, "%s < %s", exp1.fs.CurrentTerm.what.c_str(), exp2.fs.CurrentTerm.what.c_str());
-				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_EXPRESSION, string(codegen_buf) };
-				newnode->addchild(new ParseNode(exp1)); // left operand exp
-				newnode->addchild(new ParseNode(op)); // <
-				newnode->addchild(new ParseNode(exp2)); // right operand exp
-				$$ = *newnode;
+				$$ = *gen_exp(exp1, op, exp2, "%s < %s");
+				update_pos($$);
 			}
 		| literal 
             { 
@@ -784,8 +695,10 @@ using namespace std;
 				$$ = *newnode;
 				update_pos($$);
 			}
+	_crlf_semicolon : crlf
+		| ';' crlf
 
-	stmt : exp crlf
+	stmt : exp _crlf_semicolon
 			{
 				// TODO IMPORTANT
 				/*
@@ -802,7 +715,7 @@ using namespace std;
 				$$ = *newnode;
 				update_pos($$);
 			}
-		| var_def crlf
+		| var_def _crlf_semicolon
 			{
 				ParseNode * newnode = new ParseNode();
 				ParseNode & var_def = $1;
@@ -816,8 +729,8 @@ using namespace std;
 				update_pos($$);
 			}
         | compound_stmt
-        | output_stmt
-		| input_stmt
+        | output_stmt 
+		| input_stmt 
 		| dummy_stmt
 		| let_stmt
 			{
@@ -841,20 +754,21 @@ using namespace std;
 			}
 		| interface_decl
 
-    output_stmt : write
-		| print
 
-	input_stmt : read
+    output_stmt : write _crlf_semicolon
+		| print _crlf_semicolon
+
+	input_stmt : read _crlf_semicolon
 
 	compound_stmt : if_stmt 
 		| do_stmt 
 		| select_stmt
 
-	jump_stmt : YY_CONTINUE crlf
+	jump_stmt : YY_CONTINUE _crlf_semicolon
 		| YY_BREAK crlf
 		| YY_GOTO crlf
 
-	let_stmt : exp '=' exp crlf
+	let_stmt : exp '=' exp _crlf_semicolon
 			{
 				ParseNode * newnode = new ParseNode();
 				ParseNode & exp1 = $1;
@@ -970,130 +884,28 @@ using namespace std;
 			}
 
 
-    write : YY_WRITE io_info argtable crlf
+    write : YY_WRITE io_info argtable 
 			{
-				// brace is forced
-				ParseNode * newnode = new ParseNode();
 				ParseNode & io_info = $2;
 				ParseNode & argtable = $3;
-				ParseNode * argtbl = &argtable;
-				ParseNode * formatter = io_info.child[1];
-				if (formatter->fs.CurrentTerm.token == TokenMeta::NT_FORMATTER) {
-					string fmt = io_info.child[1]->fs.CurrentTerm.what.substr(1, io_info.child[1]->fs.CurrentTerm.what.size() - 1); // strip " 
-					sprintf(codegen_buf, "printf(\"%s\", %s) ;", parse_ioformatter(fmt).c_str(), argtbl->fs.CurrentTerm.what.c_str());
-					newnode->fs.CurrentTerm = Term{ TokenMeta::META_NONTERMINAL, string(codegen_buf) };
-				}
-				else {
-					/* NT_AUTOFORMATTER */
-					string coutcode = "cout";
-					/* enumerate argtable */
-					// TODO the while loop is wrong, there is need for while loop. ref: var_def code
-					//while (argtbl->child.size() == 2 && argtbl->child[1]->fs.CurrentTerm.token == TokenMeta::NT_ARGTABLE) {
-						// for all non-flatterned argtable
-						for (int i = 0; i < argtbl->child.size(); i++)
-						{
-							// for each variable in flatterned argtable
-							coutcode += " << ";
-							coutcode += argtbl->child[i]->fs.CurrentTerm.what;
-						}
-						// argtbl = argtbl->child[1];
-					//}
-					coutcode += " << endl;";
-					newnode->fs.CurrentTerm = Term{ TokenMeta::META_NONTERMINAL, coutcode };
-				}
-				newnode->addchild(new ParseNode(io_info)); // ioinfo
-				newnode->addchild(new ParseNode(argtable)); // argtable
-				$$ = *newnode;
+				$$ = *gen_write(io_info, argtable);
 				update_pos($$);
 			}
 
-	print : YY_PRINT io_info argtable crlf
+	print : YY_PRINT io_info argtable 
 			{
-				ParseNode * newnode = new ParseNode();
 				ParseNode & io_info = $2;
-					//ParseNode & io_info = ParseNode();	
-					//ParseNode _optional_device = ParseNode();
-					//_optional_device.fs.CurrentTerm = Term{ TokenMeta::META_NONTERMINAL, "" };
-					//ParseNode _optional_formatter = $2;
-					//io_info.fs.CurrentTerm = Term{ TokenMeta::META_NONTERMINAL, "" };
-					//io_info.addchild(new ParseNode(_optional_device));
-					//io_info.addchild(new ParseNode(_optional_formatter)); 
 				ParseNode & argtable = $3;
-				ParseNode * argtbl = &argtable;
-				ParseNode * formatter = io_info.child[1];
-				if (formatter->fs.CurrentTerm.token == TokenMeta::NT_FORMATTER) {
-					string fmt = io_info.child[1]->fs.CurrentTerm.what.substr(1, io_info.child[1]->fs.CurrentTerm.what.size() - 1); // strip " 
-					sprintf(codegen_buf, "printf(\"%s\", %s) ;", parse_ioformatter(fmt).c_str(), argtbl->fs.CurrentTerm.what.c_str());
-					newnode->fs.CurrentTerm = Term{ TokenMeta::META_NONTERMINAL, string(codegen_buf) };
-				}
-				else {
-					/* NT_AUTOFORMATTER */
-					string coutcode = "cout";
-					/* enumerate argtable */
-					// TODO the while loop is wrong, there is need for while loop. ref: var_def code
-					//while (argtbl->child.size() == 2 && argtbl->child[1]->fs.CurrentTerm.token == TokenMeta::NT_ARGTABLE) {
-						// for all non-flatterned argtable
-						for (int i = 0; i < argtbl->child.size(); i++)
-						{
-							// for each variable in flatterned argtable
-							coutcode += " << ";
-							coutcode += argtbl->child[i]->fs.CurrentTerm.what;
-						}
-						// argtbl = argtbl->child[1];
-					//}
-					coutcode += " << endl;";
-					newnode->fs.CurrentTerm = Term{ TokenMeta::META_NONTERMINAL, coutcode };
-				}
-				newnode->addchild(new ParseNode(io_info)); // ioinfo
-				newnode->addchild(new ParseNode(argtable)); // argtable
-				$$ = *newnode;
+				$$ = *gen_print(io_info, argtable);
 				update_pos($$);
 			}
 
 
-	read: YY_READ io_info argtable crlf
+	read: YY_READ io_info argtable 
 			{
-				ParseNode * newnode = new ParseNode();
 				ParseNode & io_info = $2;
 				ParseNode & argtable = $3;
-				ParseNode * argtbl = &argtable;
-				ParseNode * formatter = io_info.child[1];
-				if (formatter->fs.CurrentTerm.token == TokenMeta::NT_FORMATTER) {
-					string fmt = io_info.child[1]->fs.CurrentTerm.what.substr(1, io_info.child[1]->fs.CurrentTerm.what.size() - 1); // strip " 
-					string pointer_to;
-					for (int i = 0; i < argtbl->child.size(); i++)
-					{
-						if (i > 0) {
-							pointer_to += ",";
-						}
-						pointer_to += "&";
-						pointer_to += argtbl->child[i]->fs.CurrentTerm.what;
-					}
-					argtbl = argtbl->child[1];
-					sprintf(codegen_buf, "scanf(\"%s\", %s) ;", parse_ioformatter(fmt).c_str(), pointer_to.c_str());
-					newnode->fs.CurrentTerm = Term{ TokenMeta::META_NONTERMINAL, string(codegen_buf) };
-				}
-				else {
-					/* NT_AUTOFORMATTER */
-					string cincode = "cin";
-					/* enumerate argtable */
-					// TODO the while loop is wrong, there is need for while loop. ref: var_def code
-					//while (argtbl->child.size() == 2 && argtbl->child[1]->fs.CurrentTerm.token == TokenMeta::NT_ARGTABLE) {
-						// for all non-flatterned argtable
-						for (int i = 0; i < argtbl->child.size(); i++)
-						{
-							// for each variable in flatterned argtable
-							cincode += " >> ";
-							cincode += argtbl->child[i]->fs.CurrentTerm.what;
-						}
-						// argtbl = argtbl->child[1];
-					//}
-					cincode += ";";
-					newnode->fs.CurrentTerm = Term{ TokenMeta::META_NONTERMINAL, cincode };
-				}
-				newnode->addchild(new ParseNode(io_info)); // ioinfo
-				newnode->addchild(new ParseNode(argtable)); // argtable
-				$$ = *newnode;
+				$$ = *gen_read(io_info, argtable);
 				update_pos($$);
 			}
 				
@@ -1178,237 +990,11 @@ using namespace std;
     var_def : type_spec dummy_variable_iden YY_DOUBLECOLON paramtable 
 			{
 				/* array decl */
-				string arr_decl = ""; string var_decl = ""; bool do_arr = false;
-				ParseNode * newnode = new ParseNode();
 				ParseNode & type_spec = $1;
 				ParseNode & dummy_variable_iden = $2;
-				ParseNode * ty = new ParseNode(type_spec); // type
-				VariableDescAttr * vardescattr = dynamic_cast<VariableDescAttr *>(dummy_variable_iden.attr);
-				ParseNode * slice = vardescattr->desc.slice;
-				newnode->addchild(ty); // type
-				// specify type
-				/* merge type_spec and dummy_variable_iden attr */
-				VariableDescAttr * ty_a = dynamic_cast<VariableDescAttr *>(type_spec.attr);
-				vardescattr->merge(*ty_a);
-				if (vardescattr->desc.kind != 0) {
-					if (type_spec.fs.CurrentTerm.token == TokenMeta::Int_Def) {
-						if (vardescattr->desc.kind == 1) {
-							ty->fs.CurrentTerm.what = "char";
-						}
-						else if (vardescattr->desc.kind == 2) {
-							ty->fs.CurrentTerm.what = "int";
-						}
-						else if (vardescattr->desc.kind == 4) {
-							ty->fs.CurrentTerm.what = "int";
-						}
-						else if (vardescattr->desc.kind == 8) {
-							ty->fs.CurrentTerm.what = "long long";
-						}
-					}
-					else if (type_spec.fs.CurrentTerm.token == TokenMeta::Float_Def) {
-						if (vardescattr->desc.kind == 1) {
-							ty->fs.CurrentTerm.what = "float";
-						}
-						else if (vardescattr->desc.kind == 2) {
-							ty->fs.CurrentTerm.what = "double";
-						}
-						else if (vardescattr->desc.kind == 4) {
-							ty->fs.CurrentTerm.what = "double";
-						}
-						else if (vardescattr->desc.kind == 8) {
-							ty->fs.CurrentTerm.what = "long double";
-						}
-					}
-				}
-				if (slice == nullptr) {
-					// slice == nullptr if this is not array
-					/* must assure no ParseNode * is nullptr */
-					slice = new ParseNode();
-					newnode->fs.CurrentTerm = Term{ TokenMeta::NT_VOID, "" };
-				}
-				else {
-					do_arr = true;
-				}
-				newnode->addchild(slice); 
-				ParseNode * pn = new ParseNode($4); // paramtable
-				newnode->addchild(pn); // paramtable
-				if (do_arr)
-				{
-					// ARRAY
-					/* in cpp code, definition of an array is inherit attribute(继承属性) grammar */
-					/* enumerate paramtable */
-					do {
-						// for all non-flatterned paramtable
-#define USE_LOOP
-						for (int i = 0; i < pn->child.size(); i++)
-						{
-							// for each variable in flatterned paramtable
-							int sliceid = 0;
-							sprintf(codegen_buf, "forarray<%s>", ty->fs.CurrentTerm.what.c_str());
-							string type_str(codegen_buf);
-							// init high dimension array
-							/* though using for-loop to init a high-dimension array is verbose comparing to using constructors, i use this form because it is more clear and it can remind users of the cost of using a high dimension array */
-							vector<string> this_major; /* if you want to set value of a(i0)(i1)(i2) then this major is a(i0)(i1) */
-							this_major.push_back(pn->child[i]->child[0]->fs.CurrentTerm.what /* array name */);
-							for (int i = 1; i < slice->child.size(); i++)
-							{
-								sprintf(codegen_buf, "%s(i%d)", this_major.back().c_str(), i - 1);
-								this_major.push_back(string(codegen_buf));
-							}
-							for (sliceid = slice->child.size() - 2; sliceid >= 0 ; sliceid--)
-							{
-								string prev_type_str = type_str;
-								sprintf(codegen_buf, "forarray< %s >", type_str.c_str());
-								type_str = string(codegen_buf);
-								sprintf(codegen_buf, "for(int i%d = %s; i%d < %s; i%d++){\n\t%s(i%d) = %s(%s, %s + 1);\n%s\n}\n" /* NOTE fortran is [lower_bound, upper_bound] cpp is [lower_bound, upper_bound) */
-									, sliceid, slice->child[sliceid]->child[0]->fs.CurrentTerm.what.c_str(), sliceid, slice->child[sliceid]->child[1]->fs.CurrentTerm.what.c_str(), sliceid
-									, this_major[sliceid].c_str(), sliceid, prev_type_str.c_str(), slice->child[sliceid + 1]->child[0]->fs.CurrentTerm.what.c_str(), slice->child[sliceid + 1]->child[1]->fs.CurrentTerm.what.c_str()
-									, sliceid + 1 == slice->child.size() - 1 ? "" : tabber(slice->child[sliceid + 1]->fs.CurrentTerm.what).c_str());
-								prev_type_str = type_str;
-								slice->child[sliceid]->fs.CurrentTerm.what = string(codegen_buf);
-							}
-							// use it in fucntion_decl
-							string var_pattern;
-							if (vardescattr->desc.reference) {
-								if (vardescattr->desc.constant) {
-									var_pattern = "const %s & %s";
-								}
-								else {
-									var_pattern = "%s & %s";
-								}
-							}
-							else {
-								if (vardescattr->desc.constant) {
-									var_pattern = "const %s %s";
-								}
-								else {
-									var_pattern = "%s %s";
-								}
-							}
-							// no desc if var_def is not in paramtable
-							sprintf(codegen_buf, "%s %s(%s, %s + 1);\n" , type_str.c_str(), pn->child[i]->child[0]->fs.CurrentTerm.what.c_str() /* array name */
-								, slice->child[0]->child[0]->fs.CurrentTerm.what.c_str(), slice->child[0]->child[1]->fs.CurrentTerm.what.c_str() /* slice from to */);
-							arr_decl += codegen_buf;
-							/* set initial value */
-							if (pn->child[i]->child[1]->fs.CurrentTerm.token == TokenMeta::NT_ARRAYBUILDER)
-							{
-								for (int abid = 0; abid < pn->child[i]->child[1]->child.size(); abid++)
-								{
-									ParseNode * ab = pn->child[i]->child[1]->child[abid];
-									if (ab->fs.CurrentTerm.token == TokenMeta::NT_ARRAYBUILDER_VALUE) {
-										std::string vec_size = "std::vector<int>{", vec_lb = "std::vector<int>{";
-										for (int sliceid = 0; sliceid < slice->child.size(); sliceid++)
-										{
-											if (sliceid != 0) {
-												vec_lb += ",";
-												vec_size += ",";
-											}
-											vec_lb += slice->child[sliceid]->child[0]->fs.CurrentTerm.what;
-											int lb, ub;
-											sscanf(slice->child[sliceid]->child[0]->fs.CurrentTerm.what.c_str(), "%d", &lb);
-											sscanf(slice->child[sliceid]->child[1]->fs.CurrentTerm.what.c_str(), "%d", &ub);
-											sprintf(codegen_buf, "%d", ub - lb + 1);
-											vec_size += codegen_buf;
-										}
-										vec_size += "}", vec_lb += "}";
-										sprintf(codegen_buf, ab->fs.CurrentTerm.what.c_str() /* sth like "init_for1array(%%s, %%s, %%s, %s)\n" */
-											, pn->child[i]->child[0]->fs.CurrentTerm.what.c_str() /* variable name */
-											, vec_lb.c_str()
-											, vec_size.c_str());
-									}
-									else if (ab->fs.CurrentTerm.token == TokenMeta::NT_ARRAYBUILDER_EXP) {
-										string formatter = (ab->fs.CurrentTerm.what + ";\n");
-										sprintf(codegen_buf, formatter.c_str(), pn->child[i]->child[0]->fs.CurrentTerm.what.c_str());
-									}
-									else {
-										sprintf(codegen_buf, "");
-									}
-								}
-							}
-							else {
-								sprintf(codegen_buf, "");
-							}
-							arr_decl += codegen_buf;
-						}
-						if (pn->child.size() >= 2)
-						{
-							/* if pn->child.size() == 0, this is an empty paramtable(this function takes no arguments) */
-							/* if the paramtable is not flatterned pn->child[1] is a right-recursive paramtable node */
-							pn = pn->child[1];
-						}
-					} while (pn->child.size() == 2 && pn->child[1]->fs.CurrentTerm.token == TokenMeta::NT_PARAMTABLE);
-					newnode->fs.CurrentTerm = Term{ TokenMeta::NT_VARIABLEDEFINE, arr_decl };
-				}
-				else {
-					// SCALAR
-					sprintf(codegen_buf, "%s ", ty->fs.CurrentTerm.what.c_str());
-					var_decl += string(codegen_buf);
-					bool hitted = false; // 是否至少有一个变量，因为有的变量定义可能是函数的声明，这在c++规范是不允许的，所以可能出现空int，空逗号的情况。
-					/* enumerate paramtable */
-					do {
-						// for all non-flatterned paramtable
-						for (int i = 0; i < pn->child.size(); i++)
-						{
-							ParseNode * this_variable = pn->child[i];
-							// skip if it is a function
-							// TODO no module currently
-							if (try_get_function("", this_variable->fs.CurrentTerm.what)) {
-								continue;
-							}
-							if (hitted) {
-								var_decl += ", ";
-							}
-							hitted = true;
-							// use it in fucntion_decl
-							string var_pattern;
-							if (vardescattr->desc.reference) {
-								if (vardescattr->desc.constant) {
-									var_pattern = "const & %s";
-								}
-								else {
-									var_pattern = "& %s";
-								}
-							}
-							else {
-								if (vardescattr->desc.constant) {
-									var_pattern = "const %s";
-								}
-								else {
-									var_pattern = "%s";
-								}
-							}
-							// no desc if var_def is not in paramtable
-							sprintf(codegen_buf, "%s" , this_variable->child[0]->fs.CurrentTerm.what.c_str());
+				ParseNode & paramtable = $4;
 
-							var_decl += codegen_buf;
-							/* initial value */
-							if (this_variable->child[1]->fs.CurrentTerm.token != TokenMeta::NT_VARIABLEINITIALDUMMY) {
-								/* if initial value is not dummy but `exp` */
-								var_decl += " = ";
-								var_decl += this_variable->child[1]->fs.CurrentTerm.what;
-							}
-							/* desc */
-							this_variable->attr = vardescattr->clone();
-						}
-						if (pn->child.size() >= 2)
-						{
-							/* if pn->child.size() == 0, this is an empty paramtable(this function takes no arguments) */
-							/* if the paramtable is not flatterned pn->child[1] is a right-recursive paramtable node */
-							pn = pn->child[1];
-						}
-					} while (pn->child.size() == 2 && pn->child[1]->fs.CurrentTerm.token == TokenMeta::NT_PARAMTABLE);
-					var_decl += ";";
-					if (!hitted) {
-						// all function declarations
-						var_decl = "";
-					}
-					
-#ifndef LAZY_GEN
-					newnode->fs.CurrentTerm = Term{ TokenMeta::NT_VARIABLEDEFINE, var_decl };
-#endif // !LAZY_GEN
-				} // end if
-
-				$$ = *newnode;
+				$$ = *gen_vardef(type_spec, dummy_variable_iden, paramtable);
 				update_pos($$);
 			}
 
@@ -1762,75 +1348,10 @@ using namespace std;
 
 	select_stmt : YY_SELECT YY_CASE _optional_lbrace exp _optional_rbrace crlf case_stmt YY_END YY_SELECT crlf
 			{
-				ParseNode * newnode = new ParseNode();
 				ParseNode & select = $1;
 				ParseNode & exp = $4;
 				ParseNode & case_stmt = $7;
-
-#ifndef LAZY_GEN
-				string codegen = "";
-				for (int i = 0; i < case_stmt.child.size(); i++)
-				{
-					ParseNode & case_stmt_elem = *case_stmt.child[i];
-					ParseNode & dimen_slice = *case_stmt_elem.child[1];
-					/*
-						0 -- case
-						1 -- dimen_slice
-						2 -- stmt(case body)
-					*/
-					if (dimen_slice.fs.CurrentTerm.token == TokenMeta::NT_DIMENSLICE) {
-						// NT_DIMENSLICE
-						string dsstr;
-						for (int sliceid = 0; sliceid < dimen_slice.child.size(); sliceid++)
-						{
-							if (sliceid == 0) {
-								sprintf(codegen_buf, "(%s >= %s && %s < %s)", exp.fs.CurrentTerm.what.c_str(), dimen_slice.child[sliceid]->child[0]->fs.CurrentTerm.what.c_str(), exp.fs.CurrentTerm.what.c_str(), dimen_slice.child[sliceid]->child[1]->fs.CurrentTerm.what.c_str());
-							}
-							else {
-								sprintf(codegen_buf, " || (%s >= %s && %s < %s)", exp.fs.CurrentTerm.what.c_str(), dimen_slice.child[sliceid]->child[0]->fs.CurrentTerm.what.c_str(), exp.fs.CurrentTerm.what.c_str(), dimen_slice.child[sliceid]->child[1]->fs.CurrentTerm.what.c_str());
-							}
-							dsstr += string(codegen_buf);
-						}
-						if (i == 0) {
-							sprintf(codegen_buf, "if(%s){\n%s}\n", dsstr.c_str(), case_stmt_elem.child[2]->fs.CurrentTerm.what.c_str());
-						}
-						else {
-							sprintf(codegen_buf, "else if(%s){\n%s}\n", dsstr.c_str(), case_stmt_elem.child[2]->fs.CurrentTerm.what.c_str());
-						}
-					}
-					else {
-						// NT_ARGTABLE_PURE
-						string choice = "";
-						if (i == 0) {
-							choice = "if(";
-							sprintf(codegen_buf, "if(%s == %s){\n%s}\n", exp.fs.CurrentTerm.what.c_str(), dimen_slice.child[0]->fs.CurrentTerm.what.c_str(), case_stmt_elem.child[2]->fs.CurrentTerm.what.c_str());
-						}
-						else {
-							choice = "else if(";
-							sprintf(codegen_buf, "else if(%s == %s){\n%s}\n", exp.fs.CurrentTerm.what.c_str(), dimen_slice.child[0]->fs.CurrentTerm.what.c_str(), case_stmt_elem.child[2]->fs.CurrentTerm.what.c_str());
-						}
-						for (int j = 0; j < dimen_slice.child.size(); j++)
-						{
-							if (j == 0) {
-								sprintf(codegen_buf, "%s == %s", exp.fs.CurrentTerm.what.c_str(), dimen_slice.child[j]->fs.CurrentTerm.what.c_str());
-							}
-							else {
-								sprintf(codegen_buf, "|| (%s == %s)", exp.fs.CurrentTerm.what.c_str(), dimen_slice.child[j]->fs.CurrentTerm.what.c_str());
-							}
-							choice += codegen_buf;
-						}
-						sprintf(codegen_buf, "){\n%s}\n", case_stmt_elem.child[2]->fs.CurrentTerm.what.c_str());
-						choice += codegen_buf;
-						sprintf(codegen_buf, "%s", choice.c_str());
-					}
-					codegen += codegen_buf;
-				}
-				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_SELECT, codegen };
-#endif // !LAZY_GEN
-				newnode->addchild(new ParseNode(select)); // select
-				newnode->addchild(new ParseNode(exp)); // exp
-				newnode->addchild(new ParseNode(case_stmt)); // suite
-				$$ = *newnode;
+				$$ = *gen_select(exp, case_stmt);
 				update_pos($$);
 			}
 	case_stmt_elem : YY_CASE _optional_lbrace dimen_slice _optional_rbrace crlf suite
@@ -1886,198 +1407,13 @@ using namespace std;
 	function_decl : dummy_function_iden _optional_function variable '(' paramtable ')' _optional_result crlf suite YY_END _optional_function crlf
 			{
 				/* fortran90 does not declare type of arguments in function declaration statement*/
-				ParseNode * newnode = new ParseNode();
-				// all params in paramtable of function declare (var_name, var_type, ParseNode*)
-				vector<tuple<string, string, ParseNode *>> param_name_typename;
-				vector<ParseNode *> param_definition; // all variables declared in this function
 				ParseNode & variable_function = $3; // function name
 				/* enumerate paramtable */
 				ParseNode & paramtable = $5;
-				ParseNode * prmtbl = &paramtable; // iterate the paramtable
 				ParseNode & variable_result = $7; // result variable
 				ParseNode & suite = $9;
 
-				bool is_subroutine = variable_result.fs.CurrentTerm.what == "";
-
-				// log function in function table
-				add_function("", variable_function.fs.CurrentTerm.what, nullptr);
-
-				do {
-					// for all non-flatterned paramtable
-					for (int i = 0; i < prmtbl->child.size(); i++)
-					{
-						// for each variable in flatterned paramtable
-						param_name_typename.push_back(make_tuple(prmtbl->child[i]->fs.CurrentTerm.what, "void", nullptr)); // refer to function suite and determine type of params
-					}
-					if (prmtbl->child.size() >= 2)
-					{
-						/* if prmtbl->child.size() == 0, this is an empty paramtable(this function takes no arguments) */
-						/* if the paramtable is not flatterned prmtbl->child[1] is a right-recursive paramtable node */
-						prmtbl = prmtbl->child[1];
-					}
-				} while (prmtbl->child.size() == 2 && prmtbl->child[1]->fs.CurrentTerm.token == TokenMeta::NT_PARAMTABLE);
-				/* result variable */
-				// if subroutine get tuple ("", "void")
-				param_name_typename.push_back(make_tuple(variable_result.fs.CurrentTerm.what, "void", nullptr));
-				/* find out all var_def nodes */
-				for (int i = 0; i < suite.child.size(); i++)
-				{
-					ParseNode * stmti = suite.child[i];
-					/* suite.child[i] => stmt */ 
-					/*  REF stmt for why stmt is a node always with 1 child(except for dummy stmt) */
-					if (stmti->child.size() == 1 && stmti->child[0]->fs.CurrentTerm.token == TokenMeta::NT_VARIABLEDEFINE) {
-						/* stmti->child[0] => var_def */
-						/* from pn=stmti->child[0].child[0] is typename */
-						/* from pn=stmti->child[0].child[1] is dimen_slice */
-						/* from pn=stmti->child[0].child[2] is all variables of this type */
-						ParseNode * pn = stmti->child[0]->child[2];
-						do {
-							// for all non-flatterned paramtable
-							for (int i = 0; i < pn->child.size(); i++)
-							{
-								// for each variable in flatterned paramtable
-								/* pn->child[i] is varname_i with initial value */
-								/* pn->child[i]->child[0] is varname string */
-								param_definition.push_back(pn->child[i]->child[0]);
-							}
-							if (pn->child.size() >= 2)
-							{
-								/* if pn->child.size() == 0, this is an empty paramtable(this function takes no arguments) */
-								/* if the paramtable is not flatterned pn->child[1] is a right-recursive paramtable node */
-								pn = pn->child[1];
-							}
-						} while (pn->child.size() == 2 && pn->child[1]->fs.CurrentTerm.token == TokenMeta::NT_PARAMTABLE);
-					}
-				}
-
-				/* set type to all param_name_typename */
-				for (int i = 0; i < param_name_typename.size(); i++)
-				{
-					string varname = get<0>(param_name_typename[i]);
-					for (int j = 0; j < param_definition.size(); j++)
-					{
-						ParseNode * varname_node = param_definition[j];
-						if (varname_node->fs.CurrentTerm.what == varname) {
-							//	father		NT_VARIABLEINITIAL (variable_name, variable_initial_value)
-							//	father * 2	NT_PARAMTABLE
-							//	father * 3	NT_VARIABLEDEFINE var_def
-							//  param_name_typename[i] = tuple<name, type, ParseNode *>
-							get<1>(param_name_typename[i]) = varname_node->father->father->father->child[0]->fs.CurrentTerm.what;
-							get<2>(param_name_typename[i]) = varname_node->father;
-							/* `delete` ParseNode except return value */
-							if (i != param_name_typename.size() - 1) {
-								varname_node->father->fs.CurrentTerm.token = TokenMeta::NT_DECLAREDVARIABLE;
-							}
-						}
-					}
-				}
-
-				/* generate new paramtable with type */
-				string argtblstr;
-				for (int i = 0; i < param_name_typename.size() - 1 /* exclude YY_RESULT(return value) */; i++)
-				{
-					if(i != 0)
-						argtblstr += ", ";
-					VariableDescAttr * vardescattr = dynamic_cast<VariableDescAttr *>( get<2>(param_name_typename[i])->attr );
-					if (vardescattr != nullptr)
-					{
-						if (vardescattr->desc.constant) {
-							argtblstr += "const ";
-						}
-						else {
-						}
-					}
-					if (vardescattr->desc.optional)
-					{
-						argtblstr += "foroptional<";
-						argtblstr += get<1>(param_name_typename[i]);
-						argtblstr += ">";
-					}
-					else {
-						argtblstr += get<1>(param_name_typename[i]);
-					}
-					argtblstr += " ";
-					if (vardescattr != nullptr)
-					{
-						if (vardescattr->desc.reference) {
-							argtblstr += "& ";
-						}
-						else {
-						}
-					}
-					argtblstr += get<0>(param_name_typename[i]);
-				}
-
-				/* add type infomation to paramtable ParseNodes  */
-				ParseNode * newpt; // paramtable is raw for90 paramtable without type
-				// TODO This is optional so i decide not to implement currently
-				/* generate new return with type */
-				ParseNode * newrt; // variable_result is raw for90 return without type
-				// TODO This is optional so i decide not to implement currently
-				
-				/* re-generated codes of suite */
-				string newsuitestr; // suite is raw for90 suite without type
-				ParseNode * oldsuite = &suite;
-				for (int i = 0; i < oldsuite->child.size(); i++)
-				{
-					if (oldsuite->child[i]->child.size() > 0 && oldsuite->child[i]->child[0]->fs.CurrentTerm.token == TokenMeta::NT_VARIABLEDEFINE)
-					{
-						// this code is similar to `find out all var_def nodes` code
-						//ParseNode * pn = oldsuite->child[0]->child[1];
-						ParseNode * typeinfo = oldsuite->child[i]->child[0]->child[0];
-						ParseNode * pn = oldsuite->child[i]->child[0]->child[2];
-						do {
-							// for all non-flatterned paramtable
-							for (int j = 0; j < pn->child.size(); j++)
-							{
-								// for each variable in flatterned paramtable
-								/* pn->child[i] is varname with initial value */
-								/* pn->child[i]->child[0] is varname string */
-								if (pn->child[j]->fs.CurrentTerm.token == TokenMeta::NT_VARIABLEINITIAL) {
-									//newsuitestr += oldsuite->child[i]->child[0]->fs.CurrentTerm.what; // deprecated THIS IS NT_VARIABLEDEFINE, but different variables can be different
-									newsuitestr += typeinfo->fs.CurrentTerm.what;
-									newsuitestr += " ";
-									newsuitestr += pn->child[j]->child[0]->fs.CurrentTerm.what;
-									if (pn->child[j]->child[1]->fs.CurrentTerm.token != TokenMeta::NT_VARIABLEINITIALDUMMY) {
-										newsuitestr += " = ";
-										newsuitestr += pn->child[j]->child[1]->fs.CurrentTerm.what;
-									}
-									newsuitestr += " ;\n";
-								}
-							}
-							if (pn->child.size() >= 2)
-							{
-								/* if pn->child.size() == 0, this is an empty paramtable(this function takes no arguments) */
-								/* if the paramtable is not flatterned pn->child[1] is a right-recursive paramtable node */
-								pn = pn->child[1];
-							}
-						} while (pn->child.size() == 2 && pn->child[1]->fs.CurrentTerm.token == TokenMeta::NT_PARAMTABLE);
-					}
-					else {
-						newsuitestr += oldsuite->child[i]->fs.CurrentTerm.what;
-						newsuitestr += '\n';
-					}
-				}
-				// update oldsuite->fs.CurrentTerm.what
-				oldsuite->fs.CurrentTerm.what = tabber(newsuitestr);
-				/* generate function ParseTree */
-				newnode->addchild(new ParseNode($2)); // function
-				newnode->addchild(new ParseNode(variable_function)); // function name
-				// argtable
-				// TODO 
-				// return value
-				newnode->addchild(new ParseNode(suite)); // trimed suite
-
-				sprintf(codegen_buf, "%s %s(%s)\n{%s\treturn %s;\n}"
-					, get<1>(param_name_typename[param_name_typename.size()-1]).c_str() // return value type, "void" if subroutine
-					, variable_function.fs.CurrentTerm.what.c_str() // function name
-					, argtblstr.c_str() // argtable
-					, oldsuite->fs.CurrentTerm.what.c_str() // code
-					, (is_subroutine? "" :variable_result.fs.CurrentTerm.what.c_str()) // add return stmt if not function
-				);
-				/* generate function code */
-				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_FUNCTIONDECLARE, string(codegen_buf) };
-				$$ = *newnode;
+				$$ = *gen_function(variable_function, paramtable, variable_result, suite);
 				update_pos($$);
 			}
 	
@@ -2145,10 +1481,10 @@ using namespace std;
 
 void yyerror(const char* s)
 {
-	fprintf(stderr, "%s\n", s);
-	printf("line %d from %d len %d, current token is %s(id = %d) : %s \n", get_flex_state().parse_line, get_flex_state().parse_pos, get_flex_state().parse_len, get_intent_name(yylval.fs.CurrentTerm.token).c_str(), yylval.fs.CurrentTerm.token, yylval.fs.CurrentTerm.what.c_str());
-	printf("context : %s ^ %s\n", global_code.substr(max(0, get_flex_state().parse_pos - 10), 10).c_str(), global_code.substr(get_flex_state().parse_pos, 10).c_str());
+	// fprintf(stderr, "%s", s);
+	print_error(string(s), yylval);
 }
+
 string tabber(string & src) {
 	string newline;
 	string ans = "";

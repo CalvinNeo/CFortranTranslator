@@ -7,7 +7,6 @@
 #include "tokenizer.h"
 #include "Variable.h"
 
-
 // ·ÖÎöÊ÷
 struct ParseNode {
 	struct ParseNode * father;
@@ -37,6 +36,8 @@ void preorder(ParseNode * ptree);
 /* generate codes instead of in .y files */
 std::string lazy_gen(ParseNode * ptree);
 FlexState & get_flex_state();
+void print_error(const std::string & error_info, const ParseNode & pn);
+void print_error(const std::string & error_info);
 
 // yacc part code
 // implement in for90.y
@@ -49,3 +50,5 @@ std::string tabber(std::string &); // add tab(`\t`) into the front of each line
 ParseNode * flattern_bin(ParseNode *); // eliminate right recursion of an binary tree
 
 /* lazygen */
+
+#define MAX_CODE_LENGTH 65535

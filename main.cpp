@@ -3,7 +3,7 @@
 #include <fstream>
 #include "parser.h"
 #include <stdio.h>
-#include "cgen.h"
+#include "gen_config.h"
 #include "for90std.h"
 #include <numeric>
 #include "develop.h"

@@ -265,7 +265,8 @@ struct foroptional
 {
 	operator T() {
 		return value;
-	}
+	} 
+
 	T & operator= (const T & newv) {
 		dirty = true;
 		value = newv;
@@ -275,7 +276,15 @@ struct foroptional
 		dirty = false;
 		value = newv;
 	}
+	foroptional(T & newv) {
+		dirty = false;
+		value = newv;
+	}
 	foroptional(const foroptional<T> & newv) {
+		dirty = false;
+		value = newv.const_get();
+	}
+	foroptional(foroptional<T> & newv) {
 		dirty = false;
 		value = newv.get();
 	}
@@ -286,10 +295,13 @@ struct foroptional
 		return dirty;
 	}
 	T get() {
-		return dat;
+		return value;
+	}
+	const T & const_get() {
+		return value;
 	}
 private:
-	T dat;
+	T value;
 	bool dirty = false;
 };
 
@@ -298,7 +310,14 @@ bool forpresent(foroptional<T> x) {
 	return x.inited();
 }
 
+template<class T1, class T2>
+long double power(T1 x, T2 y) {
+	return powl(x, y);
+}
+
 #define mod modfl
 
 #define forarray for1array
 #define init_forarray init_for1array
+
+using namespace std;

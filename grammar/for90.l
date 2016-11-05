@@ -9,7 +9,7 @@
 #include <boost/algorithm/string.hpp>
 #include "../tokenizer.h"
 #include "../parser.h"
-#include "../cgen.h"
+#include "../gen_config.h"
 
 
 // Ç°ÖÃÉùÃ÷

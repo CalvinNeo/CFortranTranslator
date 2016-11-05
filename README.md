@@ -8,11 +8,11 @@ A translator between C++ and Fortran90.
 ## Debug
 ### Configurations
 1. the **Debug** mode accept command line arguments `argv[]` which is set to default values in VS project configurations
-2. the **Develop** mode invoke the function `void debug()` which is defined in **develop.cpp**
+2. the **Develop** mode invoke the function `void debug()` which is defined in [develop.cpp](/develop.cpp)
 3. the **Release** is same as the **Debug** mode except for default values which is not set
 
 ## grammar restrictions and translate rules
-refer to for90.y for all accepted grammar
+refer to [/grammar/for90.y](/grammar/for90.y) for all accepted grammar
 ### unsupported keywords
 
 1. no named blocks(supported soon)
@@ -40,7 +40,7 @@ refer to for90.y for all accepted grammar
 #### array
 1. `DIMENSION(a:b)` -> `forarray<T>(a, b + 1)`
 2. forarray default lower bound is **1**, which is different from cpp
-3. fortran use a 1d list to initialize a 2d(or higher) array, however, contrary to c++ and most other language does, it store them in a **conlumn-first order**. for a 2d array, it means you a order of a(1)(1) -> a(2)(1) -> a(lb_1)(1) -> a(1)(2) . you can `#undef USE_FORARRAY` to use c-style array .for details refer to array_builder rule in .y
+3. fortran use a 1d list to initialize a 2d(or higher) array, however, contrary to c++ and most other language does, it store them in a **conlumn-first order**. for a 2d array, it means you a order of a(1)(1) -> a(2)(1) -> a(lb_1)(1) -> a(1)(2) . you can `#undef USE_FORARRAY` to use c-style array .for details refer to array_builder rule in [/grammar/for90.y](/grammar/for90.y)
 
 ### variables
 1. all variables must be **explicitly** declared
@@ -87,26 +87,27 @@ refer to for90.y for all accepted grammar
 |(device_id,formatter)|not implemented yet|
 
 ## extend grammar
-1. declare new %token in .y
-2. add pattern of this %token in .l
-3. add rules related to the %token in .y
-4. update bytecodes and grammar tokens in Intent.h
-5. register keyword in tokenizer.cpp(if this token is keyword)
-6. if this keyword takes more than 1 word and can cause reduction conflicts between itself and its prefix like `else if`, update forward1 in tokenizer.cpp
-7. update translation rules in cgen.h
+1. declare new %token in [/grammar/for90.y](/grammar/for90.y)
+2. add pattern of this %token in [/grammar/for90.l](/grammar/for90.l)
+3. add rules related to the %token in [/grammar/for90.y](/grammar/for90.y)
+4. update bytecodes and grammar tokens in [/Intent.h](/Intent.h)
+5. register keyword in [/tokenizer.cpp](/tokenizer.cpp)(if this token is keyword)
+6. if this keyword takes more than 1 word and can cause reduction conflicts between itself and its prefix like `else if`, update forward1 in [/tokenizer.cpp](/tokenizer.cpp)
+7. update translation rules in [/cgen.h](/cgen.h)
 
-## immediate code generate
-when use immediate code generate, upper level non-terminal can channge generated codes by low level non-terminal:
+## code generate
+when using immediate code generate(or using lazy gen), upper level non-terminal can channge generated codes by low level non-terminal, so `gen_` functions pass `ParseNode &` other than `const ParseNode &`:
 
 1. function_decl change suite(function body)
+2. all suite will be changed(`tabber` function)
 
 ## Parse Tree
-all parse tree nodes are defined in Intents.h with an `NT_` prefix
+all parse tree nodes are defined in [/Intent.h](/Intent.h) with an `NT_` prefix
 ### ParseNode
 1. father: parent node
 2. fs:
 	* fs.CurrentTerm.what: direct-gen code
-	* fs.CurrentTerm.token: refer *Intent.h*
+	* fs.CurrentTerm.token: refer [/Intent.h](/Intent.h)
 3. attr
 4. child
 
@@ -125,7 +126,7 @@ all parse tree nodes are defined in Intents.h with an `NT_` prefix
 - NT_ARRAYBUILDER -> (NT_ARRAYBUILDER_VALUE -> argtable || NT_ARRAYBUILDER_EXP || exp) +
 
 ### Attributes
-`->` means attached to
+`->` means `ParseAttr` attached to
 - VariableDesc -> NT_DECLAREDVARIABLE
 
 ## todolist(features)
@@ -154,6 +155,7 @@ all parse tree nodes are defined in Intents.h with an `NT_` prefix
 - one-line if
 - ~~error infomation include Intent name~~
 - allow named blocks
+- allow function pointers
 
 ## todolist(bugfix)
 - more precise code location (update_pos parse_len)
@@ -163,3 +165,4 @@ all parse tree nodes are defined in Intents.h with an `NT_` prefix
 - either an `interface` or **forward declaraion of return value** is need when calling functions in fortran, so must remove all `interface` and ~~forward declaraion of function return value~~ in generated code in order to avoid repeat definition.
 - error message line info is always 0
 - handle error when can't find declaration of the variable listed in function paramtable
+- handle with empty line

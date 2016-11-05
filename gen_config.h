@@ -42,8 +42,5 @@ const std::vector<std::string> intrinsic_lvalue{
 
 const std::string cpp_header = "#include\"for90std.h\" \n";
 
-std::string for2cpp(std::string for_code); 
 
-// utility
-std::string parse_ioformatter(const std::string &);
 
