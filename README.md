@@ -150,9 +150,9 @@ all parse tree nodes are defined in [/Intent.h](/Intent.h) with an `NT_` prefix
 - array functions(reshape, spread, transpose)
 - ~~more specific type(char, int, long long)~~
 - type stmt
-- comments
+- ~~comments~~
 - file functions
-- one-line if
+- ~~one-line if~~
 - ~~error infomation include Intent name~~
 - allow named blocks
 - allow function pointers
@@ -164,5 +164,5 @@ all parse tree nodes are defined in [/Intent.h](/Intent.h) with an `NT_` prefix
 - ~~minus 1 and negative 1 conflict(modify definition in .l)~~
 - either an `interface` or **forward declaraion of return value** is need when calling functions in fortran, so must remove all `interface` and ~~forward declaraion of function return value~~ in generated code in order to avoid repeat definition.
 - error message line info is always 0
-- handle error when can't find declaration of the variable listed in function paramtable
+- ~~handle error when can't find declaration of the variable listed in function paramtable~~
 - handle with empty line

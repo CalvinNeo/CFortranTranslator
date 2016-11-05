@@ -33,6 +33,9 @@
 build/CFortranTranslator/Debug/
 build/CFortranTranslator/Release/
 build/CFortranTranslator/x64/
+build/cpptest/Debug/
+build/cpptest/Release/
+build/cpptest/x64/
 build/.vs/
 build/x64/
 build/Debug/
