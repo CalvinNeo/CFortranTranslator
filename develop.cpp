@@ -71,7 +71,7 @@ void debug() {
 	global_code = "program recursive function main(A,B) result(C) \n implicit none \n integer,intent(in)::a = 1 + 2, b \n integer,intent(out)::c = 3 \n end function end program"; // pay attention  no def a, b and add return c
 	global_code = "program recursive function main(A,B) result(C) \n integer::a , b , c \n a = abs(c, abs(1 ,2)) \n end function end program";
 	global_code = "program recursive function main(A,B) result(C) \n integer::a , b , c \n a = empty() \n end function end program";
-	global_code = "program recursive function main(A,B) result(C) \n integer::a, b, c\n a = abs(real(c)) \n end function end program"; /* '(' exp ')' 和 callable归约冲突 */
+	global_code = "program recursive function main(A,B) result(C) \n integer::a, b, c\n a = abs(real(c)) \n end function end program"; /* '(' exp ')' 和 callable_head归约冲突 */
 
 	// array
 	global_code = "program integer,intent(out),dimension(5:7)::A=(/1, 2/) \n  end program"; // intent

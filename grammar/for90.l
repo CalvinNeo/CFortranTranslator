@@ -99,6 +99,7 @@ newline [\r\n]
 
 %%
 
+^{newline}$ { /* ¿ÕÐÐ */ }
 {newline} {RTCRLF() }
 {ws} { RTNOP() }
 [0-9]+ { RTINT(TokenMeta::META_INTEGER) }

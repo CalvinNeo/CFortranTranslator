@@ -39,6 +39,7 @@
     <ClCompile Include="..\..\gen_if.cpp" />
     <ClCompile Include="..\..\gen_io.cpp" />
     <ClCompile Include="..\..\gen_select.cpp" />
+    <ClCompile Include="..\..\gen_stmt_suite.cpp" />
     <ClCompile Include="..\..\gen_vardef.cpp" />
     <ClCompile Include="..\..\getopt.cpp" />
     <ClCompile Include="..\..\grammar\for90.flex.cpp" />

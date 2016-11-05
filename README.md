@@ -112,18 +112,26 @@ all parse tree nodes are defined in [/Intent.h](/Intent.h) with an `NT_` prefix
 4. child
 
 ### Parse Tree Layers
-- fortran_program -> wrappers
-- wrappers -> wrapper +
-- wrapper(not a node) -> function_decl || program
-- NT_VARIABLEDEFINE -> (typeinfo, NT_DIMENSLICE || dummy, NT_PARAMTABLE )
-- NT_PARAMTABLE -> NT_VARIABLEINITIAL || NT_DECLAREDVARIABLE
-- NT_VARIABLEINITIAL/NT_DECLAREDVARIABLE -> (UnknownVariant, NT_EXPRESSION || NT_VARIABLEINITIALDUMMY)
-- NT_ARGTABLE_DIMENSLICE -> NT_DIMENSLICE
-- NT_DIMENSLICE -> NT_SLICE ; dimen_slice rule
-- NT_ARGTABLE_PURE -> NT_EXPRESSION ; dimen_slice rule
-- NT_SUITE -> NT_STATEMENT+
-- NT_STATEMENT -> exp || var_def || compound_stmt || output_stmt || input_stmt || dummy_stmt || let_stmt || jump_stmt || interface_decl
-- NT_ARRAYBUILDER -> (NT_ARRAYBUILDER_VALUE -> argtable || NT_ARRAYBUILDER_EXP || exp) +
+
+|rules|left NT|right(included)|
+|:-:|:-:|:-:|
+| fortran_program | / | wrappers |
+| wrappers | META_NONTERMINAL | wrapper + |
+| wrapper | / | function_decl / program |
+| var_def | NT_VARIABLEDEFINE | typeinfo, NT_DIMENSLICE / dummy, NT_PARAMTABLE |
+| paramtable | NT_PARAMTABLE | keyvalue + |
+| keyvalue | NT_PARAMTABLE | NT_VARIABLEINITIAL / NT_DECLAREDVARIABLE |
+| keyvalue(soon move to a new function) | NT_VARIABLEINITIAL/NT_DECLAREDVARIABLE | UnknownVariant, NT_EXPRESSION / NT_VARIABLEINITIALDUMMY |
+| function_array_body | NT_ARGTABLE_DIMENSLICE | NT_DIMENSLICE |
+| dimen_slice | NT_DIMENSLICE | NT_SLICE |
+| dimen_slice | NT_ARGTABLE_PURE | NT_EXPRESSION |
+| argtable | NT_ARGTABLE_PURE | dimen_slice |
+| | NT_SUITE | NT_STATEMENT \* |
+| | NT_STATEMENT | exp / var_def / compound_stmt / output_stmt / input_stmt / dummy_stmt / let_stmt / jump_stmt / interface_decl |
+| | NT_ARRAYBUILDER | NT_ARRAYBUILDER_VALUE + |
+| | NT_ARRAYBUILDER_VALUE | argtable / NT_ARRAYBUILDER_EXP / exp |
+| callable_head |  | variable / type_spec |
+
 
 ### Attributes
 `->` means `ParseAttr` attached to

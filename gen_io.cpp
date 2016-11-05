@@ -1,7 +1,7 @@
 #include "gen_common.h"
 
-ParseNode * gen_read(const ParseNode & io_info, const ParseNode & argtable) {
-	ParseNode * newnode = new ParseNode();
+ParseNode gen_read(const ParseNode & io_info, const ParseNode & argtable) {
+	ParseNode newnode = ParseNode();
 	const ParseNode * argtbl = &argtable;
 	ParseNode * formatter = io_info.child[1];
 	if (formatter->fs.CurrentTerm.token == TokenMeta::NT_FORMATTER) {
@@ -17,7 +17,7 @@ ParseNode * gen_read(const ParseNode & io_info, const ParseNode & argtable) {
 		}
 		argtbl = argtbl->child[1];
 		sprintf(codegen_buf, "scanf(\"%s\", %s) ;", parse_ioformatter(fmt).c_str(), pointer_to.c_str());
-		newnode->fs.CurrentTerm = Term{ TokenMeta::META_NONTERMINAL, string(codegen_buf) };
+		newnode.fs.CurrentTerm = Term{ TokenMeta::META_NONTERMINAL, string(codegen_buf) };
 	}
 	else {
 		/* NT_AUTOFORMATTER */
@@ -35,23 +35,23 @@ ParseNode * gen_read(const ParseNode & io_info, const ParseNode & argtable) {
 		// argtbl = argtbl->child[1];
 		//}
 		cincode += ";";
-		newnode->fs.CurrentTerm = Term{ TokenMeta::META_NONTERMINAL, cincode };
+		newnode.fs.CurrentTerm = Term{ TokenMeta::META_NONTERMINAL, cincode };
 	}
-	newnode->addchild(new ParseNode(io_info)); // ioinfo
-	newnode->addchild(new ParseNode(argtable)); // argtable
+	newnode.addchild(new ParseNode(io_info)); // ioinfo
+	newnode.addchild(new ParseNode(argtable)); // argtable
 	return newnode;
 }
 
 
-ParseNode * gen_write(const ParseNode & io_info, const ParseNode & argtable) {
+ParseNode gen_write(const ParseNode & io_info, const ParseNode & argtable) {
 	// brace is forced
-	ParseNode * newnode = new ParseNode();
+	ParseNode newnode = ParseNode();
 	const ParseNode * argtbl = &argtable;
 	ParseNode * formatter = io_info.child[1];
 	if (formatter->fs.CurrentTerm.token == TokenMeta::NT_FORMATTER) {
 		string fmt = io_info.child[1]->fs.CurrentTerm.what.substr(1, io_info.child[1]->fs.CurrentTerm.what.size() - 1); // strip " 
 		sprintf(codegen_buf, "printf(\"%s\", %s) ;", parse_ioformatter(fmt).c_str(), argtbl->fs.CurrentTerm.what.c_str());
-		newnode->fs.CurrentTerm = Term{ TokenMeta::META_NONTERMINAL, string(codegen_buf) };
+		newnode.fs.CurrentTerm = Term{ TokenMeta::META_NONTERMINAL, string(codegen_buf) };
 	}
 	else {
 		/* NT_AUTOFORMATTER */
@@ -69,15 +69,15 @@ ParseNode * gen_write(const ParseNode & io_info, const ParseNode & argtable) {
 		// argtbl = argtbl->child[1];
 		//}
 		coutcode += " << endl;";
-		newnode->fs.CurrentTerm = Term{ TokenMeta::META_NONTERMINAL, coutcode };
+		newnode.fs.CurrentTerm = Term{ TokenMeta::META_NONTERMINAL, coutcode };
 	}
-	newnode->addchild(new ParseNode(io_info)); // ioinfo
-	newnode->addchild(new ParseNode(argtable)); // argtable
+	newnode.addchild(new ParseNode(io_info)); // ioinfo
+	newnode.addchild(new ParseNode(argtable)); // argtable
 	return newnode;
 }
-ParseNode * gen_print(const ParseNode & io_info, const ParseNode & argtable) {
+ParseNode gen_print(const ParseNode & io_info, const ParseNode & argtable) {
 
-	ParseNode * newnode = new ParseNode();
+	ParseNode newnode = ParseNode();
 	//ParseNode & io_info = ParseNode();	
 	//ParseNode _optional_device = ParseNode();
 	//_optional_device.fs.CurrentTerm = Term{ TokenMeta::META_NONTERMINAL, "" };
@@ -90,7 +90,7 @@ ParseNode * gen_print(const ParseNode & io_info, const ParseNode & argtable) {
 	if (formatter->fs.CurrentTerm.token == TokenMeta::NT_FORMATTER) {
 		string fmt = io_info.child[1]->fs.CurrentTerm.what.substr(1, io_info.child[1]->fs.CurrentTerm.what.size() - 1); // strip " 
 		sprintf(codegen_buf, "printf(\"%s\", %s) ;", parse_ioformatter(fmt).c_str(), argtbl->fs.CurrentTerm.what.c_str());
-		newnode->fs.CurrentTerm = Term{ TokenMeta::META_NONTERMINAL, string(codegen_buf) };
+		newnode.fs.CurrentTerm = Term{ TokenMeta::META_NONTERMINAL, string(codegen_buf) };
 	}
 	else {
 		/* NT_AUTOFORMATTER */
@@ -108,10 +108,10 @@ ParseNode * gen_print(const ParseNode & io_info, const ParseNode & argtable) {
 		// argtbl = argtbl->child[1];
 		//}
 		coutcode += " << endl;";
-		newnode->fs.CurrentTerm = Term{ TokenMeta::META_NONTERMINAL, coutcode };
+		newnode.fs.CurrentTerm = Term{ TokenMeta::META_NONTERMINAL, coutcode };
 	}
-	newnode->addchild(new ParseNode(io_info)); // ioinfo
-	newnode->addchild(new ParseNode(argtable)); // argtable
+	newnode.addchild(new ParseNode(io_info)); // ioinfo
+	newnode.addchild(new ParseNode(argtable)); // argtable
 	return newnode;
 }
 

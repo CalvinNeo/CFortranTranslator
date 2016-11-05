@@ -43,3 +43,4 @@ build/Release/
 *.opendb
 *.db
 *.lnk
+*.log

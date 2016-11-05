@@ -297,7 +297,7 @@ using namespace std;
 				$$ = *newnode;
 			}
 
-	callable : variable | type_spec
+	callable_head : variable | type_spec
 			{
 				/* array index and function name and type cast */
 				string x = $1.fs.CurrentTerm.what;
@@ -346,6 +346,7 @@ using namespace std;
 				$$ = *newnode;
 				update_pos($$);
 			}
+
 	dimen_slice : slice 
 			{
 				/* 1d array */
@@ -415,45 +416,21 @@ using namespace std;
 				update_pos($$);
 			}
 				
-	function_array_pure : callable '(' argtable ')'
+	function_array_body : callable_head '(' argtable ')'
 			{
 				/* function call OR array index */
 				/* NOTE that array index can be A(1:2, 3:4) */
-				ParseNode * newnode = new ParseNode();
-				ParseNode & callable = $1;
+				ParseNode & callable_head = $1;
 				ParseNode & argtable = $3;
-#ifndef LAZY_GEN
-				string name;
-				string x;
-				if (funcname_map.find(callable.fs.CurrentTerm.what) != funcname_map.end()) {
-					name = funcname_map.at(callable.fs.CurrentTerm.what);
-				}
-				else {
-					name = callable.fs.CurrentTerm.what;
-				}
-				if (argtable.fs.CurrentTerm.token == TokenMeta::NT_ARGTABLE_DIMENSLICE) {
-					sprintf(codegen_buf, argtable.fs.CurrentTerm.what.c_str(), name.c_str());
-					newnode->fs.CurrentTerm = Term{ TokenMeta::NT_FUCNTIONARRAY,  string(codegen_buf) };
-				}
-				else {
-					x += name;
-					x += "(";
-					x += argtable.fs.CurrentTerm.what;
-					x += ")";
-					newnode->fs.CurrentTerm = Term{ TokenMeta::NT_FUCNTIONARRAY,  x };
-				}
-#endif // !LAZY_GEN
-				newnode->addchild(new ParseNode(callable)); // function/array name
-				newnode->addchild(new ParseNode(argtable)); // argtable
-				$$ = *newnode;
+				$$ = gen_function_array(callable_head, argtable);
 				update_pos($$);
 			}
 
-	function_array : function_array_pure
+	function_array : function_array_body
 			{
 				$$ = $1
 			}
-		| YY_CALL function_array_pure
+		| YY_CALL function_array_body
 			{
 				$$ = $2
 			}
@@ -491,7 +468,7 @@ using namespace std;
 				ParseNode & exp1 = $1;
 				ParseNode & op = $2;
 				ParseNode & exp2 = $3;
-				$$ = *gen_exp(exp1, op, exp2, "%s + %s");
+				$$ = gen_exp(exp1, op, exp2, "%s + %s");
 				update_pos($$);
 			}
 		| exp '-' exp 
@@ -499,7 +476,7 @@ using namespace std;
 				ParseNode & exp1 = $1;
 				ParseNode & op = $2;
 				ParseNode & exp2 = $3;
-				$$ = *gen_exp(exp1, op, exp2, "%s - %s");
+				$$ = gen_exp(exp1, op, exp2, "%s - %s");
 				update_pos($$);
 			}
 		| exp '*' exp 
@@ -507,7 +484,7 @@ using namespace std;
 				ParseNode & exp1 = $1;
 				ParseNode & op = $2;
 				ParseNode & exp2 = $3;
-				$$ = *gen_exp(exp1, op, exp2, "%s * %s");
+				$$ = gen_exp(exp1, op, exp2, "%s * %s");
 				update_pos($$);
 			}
 		| exp '/' exp 
@@ -515,7 +492,7 @@ using namespace std;
 				ParseNode & exp1 = $1;
 				ParseNode & op = $2;
 				ParseNode & exp2 = $3;
-				$$ = *gen_exp(exp1, op, exp2, "%s / %s");
+				$$ = gen_exp(exp1, op, exp2, "%s / %s");
 				update_pos($$);
 			}
 		| exp YY_POWER exp 
@@ -523,21 +500,21 @@ using namespace std;
 				ParseNode & exp1 = $1;
 				ParseNode & op = $2;
 				ParseNode & exp2 = $3;
-				$$ = *gen_exp(exp1, op, exp2, "power(%s, %s)");
+				$$ = gen_exp(exp1, op, exp2, "power(%s, %s)");
 				update_pos($$);
 			}
         | '-' %prec YY_NEG exp 
 			{
 				ParseNode & exp1 = $2;
 				ParseNode & op = $1;
-				$$ = *gen_exp(exp1, op,  "(-%s)");
+				$$ = gen_exp(exp1, op,  "(-%s)");
 				update_pos($$);
 			}
         | '+' %prec YY_NEG exp 
 			{
 				ParseNode & exp1 = $2;
 				ParseNode & op = $1;
-				$$ = *gen_exp(exp1, op,  "%s");
+				$$ = gen_exp(exp1, op,  "%s");
 				update_pos($$);
 			}
 		| exp YY_NEQ exp 
@@ -545,7 +522,7 @@ using namespace std;
 				ParseNode & exp1 = $1;
 				ParseNode & op = $2;
 				ParseNode & exp2 = $3;
-				$$ = *gen_exp(exp1, op, exp2, "%s != %s");
+				$$ = gen_exp(exp1, op, exp2, "%s != %s");
 				update_pos($$);
 			}
 		| exp YY_NEQV exp 
@@ -553,7 +530,7 @@ using namespace std;
 				ParseNode & exp1 = $1;
 				ParseNode & op = $2;
 				ParseNode & exp2 = $3;
-				$$ = *gen_exp(exp1, op, exp2, "%s != %s");
+				$$ = gen_exp(exp1, op, exp2, "%s != %s");
 				update_pos($$);
 			}
 		| exp YY_EQ exp 
@@ -561,7 +538,7 @@ using namespace std;
 				ParseNode & exp1 = $1;
 				ParseNode & op = $2;
 				ParseNode & exp2 = $3;
-				$$ = *gen_exp(exp1, op, exp2, "%s ++ %s");
+				$$ = gen_exp(exp1, op, exp2, "%s ++ %s");
 				update_pos($$);
 			}
 		| exp YY_EQV exp 
@@ -569,7 +546,7 @@ using namespace std;
 				ParseNode & exp1 = $1;
 				ParseNode & op = $2;
 				ParseNode & exp2 = $3;
-				$$ = *gen_exp(exp1, op, exp2, "%s == %s");
+				$$ = gen_exp(exp1, op, exp2, "%s == %s");
 				update_pos($$);
 			}
 		| exp YY_ANDAND exp 
@@ -577,7 +554,7 @@ using namespace std;
 				ParseNode & exp1 = $1;
 				ParseNode & op = $2;
 				ParseNode & exp2 = $3;
-				$$ = *gen_exp(exp1, op, exp2, "%s && %s");
+				$$ = gen_exp(exp1, op, exp2, "%s && %s");
 				update_pos($$);
 			}
 		| exp YY_OROR exp 
@@ -585,14 +562,14 @@ using namespace std;
 				ParseNode & exp1 = $1;
 				ParseNode & op = $2;
 				ParseNode & exp2 = $3;
-				$$ = *gen_exp(exp1, op, exp2, "%s || %s");
+				$$ = gen_exp(exp1, op, exp2, "%s || %s");
 				update_pos($$);
 			}
 		| YY_NOT exp 
 			{
 				ParseNode & exp1 = $2;
 				ParseNode & op = $1;
-				$$ = *gen_exp(exp1, op, "!(%s)");
+				$$ = gen_exp(exp1, op, "!(%s)");
 				update_pos($$);
 			}
 		| exp YY_GT exp 
@@ -600,7 +577,7 @@ using namespace std;
 				ParseNode & exp1 = $1;
 				ParseNode & op = $2;
 				ParseNode & exp2 = $3;
-				$$ = *gen_exp(exp1, op, exp2, "%s > %s");
+				$$ = gen_exp(exp1, op, exp2, "%s > %s");
 				update_pos($$);
 			}
 		| exp YY_GE exp 
@@ -608,7 +585,7 @@ using namespace std;
 				ParseNode & exp1 = $1;
 				ParseNode & op = $2;
 				ParseNode & exp2 = $3;
-				$$ = *gen_exp(exp1, op, exp2, "%s >= %s");
+				$$ = gen_exp(exp1, op, exp2, "%s >= %s");
 				update_pos($$);
 			}
 		| exp YY_LE exp 
@@ -616,7 +593,7 @@ using namespace std;
 				ParseNode & exp1 = $1;
 				ParseNode & op = $2;
 				ParseNode & exp2 = $3;
-				$$ = *gen_exp(exp1, op, exp2, "%s <= %s");
+				$$ = gen_exp(exp1, op, exp2, "%s <= %s");
 				update_pos($$);
 			}
 		| exp YY_LT exp 
@@ -624,7 +601,7 @@ using namespace std;
 				ParseNode & exp1 = $1;
 				ParseNode & op = $2;
 				ParseNode & exp2 = $3;
-				$$ = *gen_exp(exp1, op, exp2, "%s < %s");
+				$$ = gen_exp(exp1, op, exp2, "%s < %s");
 				update_pos($$);
 			}
 		| literal 
@@ -633,10 +610,10 @@ using namespace std;
 				ParseNode & exp = $1;
 				$$ = $1;
 			}
-		| callable 
+		| callable_head
 			{
-				// may cause reduction-reduction conflict when use `variable` instead of `callable`
-				// TODO : i am a little strange that `integer::a, b, c` works well because i am afraid that callable will reduce to exp from here. however according to LR(1), `::` is not in FOLLOW(exp)
+				// may cause reduction-reduction conflict when use `variable` instead of `callable_head`
+				// TODO : i am a little strange that `integer::a, b, c` works well because i am afraid that callable_head will reduce to exp from here. however according to LR(1), `::` is not in FOLLOW(exp)
 				ParseNode & exp = $1;
 				$$ = $1;
 			}
@@ -695,6 +672,7 @@ using namespace std;
 				$$ = *newnode;
 				update_pos($$);
 			}
+
 	_crlf_semicolon : crlf
 		| ';' crlf
 
@@ -770,16 +748,10 @@ using namespace std;
 
 	let_stmt : exp '=' exp _crlf_semicolon
 			{
-				ParseNode * newnode = new ParseNode();
 				ParseNode & exp1 = $1;
 				ParseNode & op = $2;
 				ParseNode & exp2 = $3;
-				sprintf(codegen_buf, "%s = %s", exp1.fs.CurrentTerm.what.c_str(), exp2.fs.CurrentTerm.what.c_str());
-				newnode->fs.CurrentTerm = Term{ TokenMeta::Let, string(codegen_buf) };
-				newnode->addchild(new ParseNode(exp1)); // left operand exp
-				newnode->addchild(new ParseNode(op)); // =
-				newnode->addchild(new ParseNode(exp2)); // right operand exp
-				$$ = *newnode;
+				$$ = gen_exp(exp1, op, exp2, "%s = %s");
 				update_pos($$);
 			}
 
@@ -888,7 +860,7 @@ using namespace std;
 			{
 				ParseNode & io_info = $2;
 				ParseNode & argtable = $3;
-				$$ = *gen_write(io_info, argtable);
+				$$ = gen_write(io_info, argtable);
 				update_pos($$);
 			}
 
@@ -896,7 +868,7 @@ using namespace std;
 			{
 				ParseNode & io_info = $2;
 				ParseNode & argtable = $3;
-				$$ = *gen_print(io_info, argtable);
+				$$ = gen_print(io_info, argtable);
 				update_pos($$);
 			}
 
@@ -905,7 +877,7 @@ using namespace std;
 			{
 				ParseNode & io_info = $2;
 				ParseNode & argtable = $3;
-				$$ = *gen_read(io_info, argtable);
+				$$ = gen_read(io_info, argtable);
 				update_pos($$);
 			}
 				
@@ -994,11 +966,11 @@ using namespace std;
 				ParseNode & dummy_variable_iden = $2;
 				ParseNode & paramtable = $4;
 
-				$$ = *gen_vardef(type_spec, dummy_variable_iden, paramtable);
+				$$ = gen_vardef(type_spec, dummy_variable_iden, paramtable);
 				update_pos($$);
 			}
 
-    kwargtable : variable
+    keyvalue : variable
 			{
 				/* paramtable is used in function decl */
 				/* this paramtable has only one value */
@@ -1050,15 +1022,16 @@ using namespace std;
 				$$ = *newnode;
 				update_pos($$);
 			}
-	paramtable : kwargtable
+
+	paramtable : keyvalue
 			{
 				$$ = $1;
 				update_pos($$);
 			}
-		| kwargtable ',' paramtable
+		| keyvalue ',' paramtable
 			{
 				ParseNode * newnode = new ParseNode(); 
-				newnode->addchild($1.child[0]); // kwargtable
+				newnode->addchild($1.child[0]); // keyvalue
 				sprintf(codegen_buf, "%s, %s", $1.fs.CurrentTerm.what.c_str(), $3.fs.CurrentTerm.what.c_str());
 				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_PARAMTABLE, string(codegen_buf) };
 				ParseNode & pn = $3;
@@ -1280,7 +1253,7 @@ using namespace std;
 	do_stmt : YY_DO crlf suite YY_END YY_DO crlf
 			{
 				ParseNode & suite = $3; 
-				$$ = *gen_do(suite);
+				$$ = gen_do(suite);
 				update_pos($$);
 			}
 		| YY_DO variable '=' exp ',' exp crlf suite YY_END YY_DO crlf
@@ -1288,9 +1261,9 @@ using namespace std;
 				ParseNode & loop_variable = $2;
 				ParseNode & exp_from = $4;
 				ParseNode & exp_to = $6;
-				ParseNode & step = *gen_exp(*gen_token(Term{ TokenMeta::META_INTEGER , "1" }));
+				ParseNode & step = gen_exp(gen_token(Term{ TokenMeta::META_INTEGER , "1" }));
 				ParseNode & suite = $8; 
-				$$ = *gen_do_range(exp_from, exp_from, exp_to, step, suite);
+				$$ = gen_do_range(exp_from, exp_from, exp_to, step, suite);
 				update_pos($$);
 			}
 		| YY_DO variable '=' exp ',' exp ',' exp crlf suite YY_END YY_DO crlf
@@ -1300,14 +1273,14 @@ using namespace std;
 				ParseNode & exp2 = $6;
 				ParseNode & exp3 = $8;
 				ParseNode & suite = $10;
-				$$ = *gen_do_range(loop_variable, exp1, exp2, exp3, suite);
+				$$ = gen_do_range(loop_variable, exp1, exp2, exp3, suite);
 				update_pos($$);
 			}
 		| YY_DOWHILE exp crlf suite YY_END YY_DO crlf
 			{
 				ParseNode & exp = $2;
 				ParseNode & suite = $4; 
-				$$ = *gen_do_while(exp, suite);
+				$$ = gen_do_while(exp, suite);
 				update_pos($$);
 			}
 
@@ -1316,7 +1289,7 @@ using namespace std;
 				ParseNode & select = $1;
 				ParseNode & exp = $4;
 				ParseNode & case_stmt = $7;
-				$$ = *gen_select(exp, case_stmt);
+				$$ = gen_select(exp, case_stmt);
 				update_pos($$);
 			}
 	case_stmt_elem : YY_CASE _optional_lbrace dimen_slice _optional_rbrace crlf suite
@@ -1324,7 +1297,7 @@ using namespace std;
 				// one case
 				ParseNode & dimen_slice = $3;
 				ParseNode & suite = $6; 
-				$$ = *gen_case(dimen_slice, suite);
+				$$ = gen_case(dimen_slice, suite);
 				update_pos($$);
 			}
 	case_stmt : case_stmt_elem
@@ -1370,7 +1343,7 @@ using namespace std;
 				ParseNode & variable_result = $7; // result variable
 				ParseNode & suite = $9;
 
-				$$ = *gen_function(variable_function, paramtable, variable_result, suite);
+				$$ = gen_function(variable_function, paramtable, variable_result, suite);
 				update_pos($$);
 			}
 	

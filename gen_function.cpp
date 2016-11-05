@@ -1,8 +1,8 @@
 ﻿#include "gen_common.h"
 
-ParseNode * gen_function(const ParseNode & variable_function, const ParseNode & paramtable, const ParseNode & variable_result, ParseNode & suite) {
+ParseNode gen_function(const ParseNode & variable_function, const ParseNode & paramtable, const ParseNode & variable_result, ParseNode & suite) {
 	/* fortran90 does not declare type of arguments in function declaration statement*/
-	ParseNode * newnode = new ParseNode();
+	ParseNode newnode = ParseNode();
 	// all params in paramtable of function declare (var_name, var_type, ParseNode*)
 	vector<tuple<string, string, ParseNode *>> param_name_typename;
 	vector<ParseNode *> param_definition; // all variables declared in this function
@@ -176,12 +176,12 @@ ParseNode * gen_function(const ParseNode & variable_function, const ParseNode & 
 	oldsuite->fs.CurrentTerm.what = tabber(newsuitestr);
 	/* generate function ParseTree */
 	ParseNode function_head;
-	newnode->addchild(new ParseNode(function_head)); // function
-	newnode->addchild(new ParseNode(variable_function)); // function name
+	newnode.addchild(new ParseNode(function_head)); // function
+	newnode.addchild(new ParseNode(variable_function)); // function name
 														 // argtable
 														 // TODO 
 														 // return value
-	newnode->addchild(new ParseNode(suite)); // trimed suite
+	newnode.addchild(new ParseNode(suite)); // trimed suite
 
 	sprintf(codegen_buf, "%s %s(%s)\n{%s\treturn %s;\n}"
 		, get<1>(param_name_typename[param_name_typename.size() - 1]).c_str() // return value type, "void" if subroutine
@@ -191,6 +191,6 @@ ParseNode * gen_function(const ParseNode & variable_function, const ParseNode & 
 		, (is_subroutine ? "" : variable_result.fs.CurrentTerm.what.c_str()) // add return stmt if not function
 	);
 	/* generate function code */
-	newnode->fs.CurrentTerm = Term{ TokenMeta::NT_FUNCTIONDECLARE, string(codegen_buf) };
+	newnode.fs.CurrentTerm = Term{ TokenMeta::NT_FUNCTIONDECLARE, string(codegen_buf) };
 	return newnode;
 }

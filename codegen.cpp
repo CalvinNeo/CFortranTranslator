@@ -9,8 +9,8 @@ std::string for2cpp(std::string for_code) {
 }
 
 
-ParseNode * gen_token(Term term) {
-	ParseNode * newnode = new ParseNode();
-	newnode->fs.CurrentTerm = Term{ TokenMeta::NT_EXPRESSION, string(codegen_buf) };
+ParseNode gen_token(Term term) {
+	ParseNode newnode = ParseNode();
+	newnode.fs.CurrentTerm = Term{ TokenMeta::NT_EXPRESSION, string(codegen_buf) };
 	return newnode;
 }

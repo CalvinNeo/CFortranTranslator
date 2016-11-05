@@ -1,20 +1,20 @@
 #include "gen_common.h"
 
-ParseNode * gen_case(const ParseNode & dimen_slice, ParseNode & suite) {
+ParseNode gen_case(const ParseNode & dimen_slice, ParseNode & suite) {
 	// one case
-	ParseNode * newnode = new ParseNode();
+	ParseNode newnode = ParseNode();
 	suite.fs.CurrentTerm.what = tabber(suite.fs.CurrentTerm.what);
-	newnode->fs.CurrentTerm = Term{ TokenMeta::NT_CASE, "" };
+	newnode.fs.CurrentTerm = Term{ TokenMeta::NT_CASE, "" };
 	ParseNode select;
-	newnode->addchild(new ParseNode(select)); // case
-	newnode->addchild(new ParseNode(dimen_slice)); // dimen_slice
-	newnode->addchild(new ParseNode(suite)); // suite
+	newnode.addchild(new ParseNode(select)); // case
+	newnode.addchild(new ParseNode(dimen_slice)); // dimen_slice
+	newnode.addchild(new ParseNode(suite)); // suite
 	return newnode;
 }
 
-ParseNode * gen_select(const ParseNode & exp, const ParseNode & case_stmt) {
+ParseNode gen_select(const ParseNode & exp, const ParseNode & case_stmt) {
 
-	ParseNode * newnode = new ParseNode();
+	ParseNode newnode = ParseNode();
 	string codegen = "";
 	for (int i = 0; i < case_stmt.child.size(); i++)
 	{
@@ -72,10 +72,10 @@ ParseNode * gen_select(const ParseNode & exp, const ParseNode & case_stmt) {
 		}
 		codegen += codegen_buf;
 	}
-	newnode->fs.CurrentTerm = Term{ TokenMeta::NT_SELECT, codegen };
+	newnode.fs.CurrentTerm = Term{ TokenMeta::NT_SELECT, codegen };
 	ParseNode select = ParseNode();
-	newnode->addchild(new ParseNode(select)); // select
-	newnode->addchild(new ParseNode(exp)); // exp
-	newnode->addchild(new ParseNode(case_stmt)); // suite
+	newnode.addchild(new ParseNode(select)); // select
+	newnode.addchild(new ParseNode(exp)); // exp
+	newnode.addchild(new ParseNode(case_stmt)); // suite
 	return newnode;
 }

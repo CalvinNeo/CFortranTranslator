@@ -1,12 +1,12 @@
 #include "gen_common.h"
 
-ParseNode * gen_vardef(const ParseNode & type_spec, const ParseNode & dummy_variable_iden, const ParseNode & paramtable) {
-	ParseNode * newnode = new ParseNode();
+ParseNode gen_vardef(const ParseNode & type_spec, const ParseNode & dummy_variable_iden, const ParseNode & paramtable) {
+	ParseNode newnode = ParseNode();
 	string arr_decl = ""; string var_decl = ""; bool do_arr = false;
 	ParseNode * ty = new ParseNode(type_spec); // type
 	VariableDescAttr * vardescattr = dynamic_cast<VariableDescAttr *>(dummy_variable_iden.attr);
 	ParseNode * slice = vardescattr->desc.slice;
-	newnode->addchild(ty); // type
+	newnode.addchild(ty); // type
 						   // specify type
 						   /* merge type_spec and dummy_variable_iden attr */
 	VariableDescAttr * ty_a = dynamic_cast<VariableDescAttr *>(type_spec.attr);
@@ -45,14 +45,14 @@ ParseNode * gen_vardef(const ParseNode & type_spec, const ParseNode & dummy_vari
 		// slice == nullptr if this is not array
 		/* must assure no ParseNode * is nullptr */
 		slice = new ParseNode();
-		newnode->fs.CurrentTerm = Term{ TokenMeta::NT_VOID, "" };
+		newnode.fs.CurrentTerm = Term{ TokenMeta::NT_VOID, "" };
 	}
 	else {
 		do_arr = true;
 	}
-	newnode->addchild(slice);
+	newnode.addchild(slice);
 	ParseNode * pn = new ParseNode(paramtable); // paramtable
-	newnode->addchild(pn); // paramtable
+	newnode.addchild(pn); // paramtable
 	if (do_arr)
 	{
 		// ARRAY
@@ -158,7 +158,7 @@ ParseNode * gen_vardef(const ParseNode & type_spec, const ParseNode & dummy_vari
 				pn = pn->child[1];
 			}
 		} while (pn->child.size() == 2 && pn->child[1]->fs.CurrentTerm.token == TokenMeta::NT_PARAMTABLE);
-		newnode->fs.CurrentTerm = Term{ TokenMeta::NT_VARIABLEDEFINE, arr_decl };
+		newnode.fs.CurrentTerm = Term{ TokenMeta::NT_VARIABLEDEFINE, arr_decl };
 	}
 	else {
 		// SCALAR
@@ -225,7 +225,7 @@ ParseNode * gen_vardef(const ParseNode & type_spec, const ParseNode & dummy_vari
 		}
 
 #ifndef LAZY_GEN
-		newnode->fs.CurrentTerm = Term{ TokenMeta::NT_VARIABLEDEFINE, var_decl };
+		newnode.fs.CurrentTerm = Term{ TokenMeta::NT_VARIABLEDEFINE, var_decl };
 #endif // !LAZY_GEN
 	} // end if
 	return newnode;
