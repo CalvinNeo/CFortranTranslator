@@ -28,3 +28,6 @@ ParseNode gen_do_range(const ParseNode & loop_variable, const ParseNode & exp1, 
 ParseNode gen_do_while(const ParseNode & exp, ParseNode & suite);
 
 ParseNode gen_function_array(const ParseNode & callable_head, const ParseNode & argtable); // callable, function call or array
+
+ParseNode gen_slice(const ParseNode & lb, const ParseNode & ub, const ParseNode & step);
+ParseNode gen_slice(const ParseNode & lb, const ParseNode & ub);

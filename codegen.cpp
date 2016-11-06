@@ -1,5 +1,7 @@
 #include "gen_common.h"
 
+//char codegen_buf[MAX_CODE_LENGTH];
+
 std::string for2cpp(std::string for_code) {
 	using namespace std;
 	string cpp_code = cpp_header;

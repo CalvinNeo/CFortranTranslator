@@ -9,5 +9,5 @@
 
 using namespace std;
 
-// static is necessary, or will cause
+// use static instead of extern will make build fast
 static char codegen_buf[MAX_CODE_LENGTH]; 

@@ -2,8 +2,11 @@
 A translator between C++ and Fortran90.
 
 ## Install
-1. vs2015(Update 3) + win_flex(win_flex_bison 2.4.5, flex 2.5.37) + win_bison(win_flex_bison 2.4.5, bison 2.7), or any thing that works
-2. boost(1.60)
+My Configuration
+1. vs2015(Update 3) 
+2. win_flex(win_flex_bison 2.4.5, flex 2.5.37)
+3. win_bison(win_flex_bison 2.4.5, bison 2.7)
+4. boost(1.60)
 
 ## Debug
 ### Configurations
@@ -33,7 +36,7 @@ refer to [/grammar/for90.y](/grammar/for90.y) for all accepted grammar
 |COMPLEX|struct for_complex|
 |CHARACTER|std::string|
 |array(1d)|for1array&lt;T&gt;|
-|array(nd)|for1array&lt;forarray&lt; ...forarray&lt;T&gt;&gt;&gt;|
+|array(nd)|for1array&lt;for1array&lt; ...for1array&lt;T&gt;&gt;&gt;|
 |array(alias)|forarray|
 |array-cstyle|not implemented yet|
 
@@ -115,7 +118,7 @@ all parse tree nodes are defined in [/Intent.h](/Intent.h) with an `NT_` prefix
 
 |rules|left NT|right(included)|
 |:-:|:-:|:-:|
-| fortran_program | / | wrappers |
+| fortran_program | root | wrappers |
 | wrappers | META_NONTERMINAL | wrapper + |
 | wrapper | / | function_decl / program |
 | var_def | NT_VARIABLEDEFINE | typeinfo, NT_DIMENSLICE / dummy, NT_PARAMTABLE |
@@ -126,8 +129,8 @@ all parse tree nodes are defined in [/Intent.h](/Intent.h) with an `NT_` prefix
 | dimen_slice | NT_DIMENSLICE | NT_SLICE |
 | dimen_slice | NT_ARGTABLE_PURE | NT_EXPRESSION |
 | argtable | NT_ARGTABLE_PURE | dimen_slice |
-| | NT_SUITE | NT_STATEMENT \* |
-| | NT_STATEMENT | exp / var_def / compound_stmt / output_stmt / input_stmt / dummy_stmt / let_stmt / jump_stmt / interface_decl |
+| suite | NT_SUITE | NT_STATEMENT \* |
+| stmt | NT_STATEMENT | exp / var_def / compound_stmt / output_stmt / input_stmt / dummy_stmt / let_stmt / jump_stmt / interface_decl |
 | | NT_ARRAYBUILDER | NT_ARRAYBUILDER_VALUE + |
 | | NT_ARRAYBUILDER_VALUE | argtable / NT_ARRAYBUILDER_EXP / exp |
 | callable_head |  | variable / type_spec |
@@ -150,7 +153,6 @@ all parse tree nodes are defined in [/Intent.h](/Intent.h) with an `NT_` prefix
 - ~~rewrite paramtable and var_def(simplify right-recursive rules, move dimension to dummy_variale_iden)~~
 - ~~more elegant multi-word keyword handler(instead of defined in regular expression)~~
 - replace interface with function forward declaration(if necessary)
-- ~~if slice can be a scalar x and equal to (1: x + 1), there will be conflict in argtable~~
 - c-style array(partial)
 - variable with type
 - ~~enable crlf rule~~(may cause bugs)
@@ -166,6 +168,7 @@ all parse tree nodes are defined in [/Intent.h](/Intent.h) with an `NT_` prefix
 - support function pointers, Parse `Interface` for function pointer
 
 ## todolist(bugfix)
+- ~~if slice can be a scalar x and equal to (1: x + 1), there will be conflict in argtable~~
 - more precise code location (update_pos parse_len)
 - more specific type cast functions(char, int, long long)
 - ~~read statement undefined device~~

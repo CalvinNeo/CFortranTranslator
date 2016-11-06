@@ -96,6 +96,17 @@ void debug() {
 	global_code = "program real::a, b, c \n end program";
 	global_code = "program do i = 2, n-1 \n count_loop() end do end program";
 
+	global_code = "program integer,intent(out),dimension(5:7)::A=(/1, 2/) \n  end program"; // intent
+
+	global_code = "program integer,dimension(5:7)::A=(/1, 2/) \n  end program";
+	global_code = "program integer,dimension(5:7, 6:8, 7:9)::A=(/1, 2, 3, 4, 5, 6/) \n  end program";
+	global_code = "program integer,dimension(5:7, 6:8)::A \n A(1:2, :) \n  end program";
+
+	global_code = "program integer,dimension(5:7)::A=(/ int(i) + 1, i=1,4/) \n  end program";
+
+	global_code = "program integer,dimension(5:7)::A=(/ B(1:2:3) /) \n  end program";
+	global_code = "program integer,dimension(5:7, 6:8, 7:9)::A=(/1, 2, 3, 4, 5, 6/) \n  end program";
+
 
 	//std::vector<int> accumulated{ 2, 2, 2 };
 	//int s = 1;

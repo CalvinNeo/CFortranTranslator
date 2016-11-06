@@ -84,6 +84,12 @@
     <ClCompile Include="..\..\gen_stmt_suite.cpp">
       <Filter>target</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\gen_slice_dimenslice.cpp">
+      <Filter>target</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\gen_type.cpp">
+      <Filter>target</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\grammar\for90.tab.h">

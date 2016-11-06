@@ -20,6 +20,7 @@ extern void set_buff(const std::string & code);
 extern void release_buff();
 #define YYDEBUG 1
 #define YYERROR_VERBOSE
+// static is necessary, or will cause lnk
 static char codegen_buf[MAX_CODE_LENGTH];
 using namespace std;
 %}
@@ -307,43 +308,29 @@ using namespace std;
 	slice : exp ':' exp
 			{
 				/* arr[from : to] */
-				ParseNode * newnode = new ParseNode();
-				ParseNode & lb = $1;
-				ParseNode & ub = $3;
+				ParseNode & exp1 = $1;
+				ParseNode & exp2 = $3;
 				/* target code of slice depend on context */
-				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_SLICE, "" };
-				newnode->addchild(new ParseNode(lb)); // lower bound
-				newnode->addchild(new ParseNode(ub)); // upper bound
-				$$ = *newnode;
+				$$ = gen_slice(exp1, exp2);
 				update_pos($$);
-				/*
-				*/			
 			}
 		| exp ':' exp ':' exp
 			{
 				/* arr[from : to : step] */
-				ParseNode * newnode = new ParseNode();
+				ParseNode & exp1 = $1;
+				ParseNode & exp2 = $3;
+				ParseNode & exp3 = $5;
 				/* target code of slice depend on context */
-				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_SLICE, "" };
-				newnode->addchild(new ParseNode($1)); // lower bound
-				newnode->addchild(new ParseNode($3)); // upper bound
-				newnode->addchild(new ParseNode($5)); // step
-				$$ = *newnode;
+				$$ = gen_slice(exp1, exp2, exp3);
 				update_pos($$);
 			}
 		| ':'
 			{
 				/* arr[from : to : step] */
-				ParseNode * newnode = new ParseNode();
-					ParseNode * lb = new ParseNode();
-					lb->fs.CurrentTerm = Term{ TokenMeta::NT_EXPRESSION, "-1" };
-					ParseNode * ub = new ParseNode();
-					ub->fs.CurrentTerm = Term{ TokenMeta::NT_EXPRESSION, "-1" };
+				ParseNode & lb = gen_exp(gen_token(Term{ TokenMeta::META_INTEGER, "-1" }));
+				ParseNode & ub = gen_exp(gen_token(Term{ TokenMeta::META_INTEGER, "-1" }));
 				/* target code of slice depend on context */
-				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_SLICE, "" };
-				newnode->addchild(new ParseNode(*lb)); // lower bound
-				newnode->addchild(new ParseNode(*ub)); // upper bound
-				$$ = *newnode;
+				$$ = gen_slice(lb, ub);
 				update_pos($$);
 			}
 
@@ -356,6 +343,7 @@ using namespace std;
 				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_DIMENSLICE, "" };
 				ParseNode & slice = $1;
 				if (slice.child.size() == 1) {
+					// not a slice but a index
 					slice.child.push_back(nullptr);
 					slice.child[1] = slice.child[0];
 					ParseNode * lb = new ParseNode();
@@ -452,15 +440,9 @@ using namespace std;
 		| '(' exp ')' 
 			{
 				/* `function_array` rule has priority over this rule  */
-				ParseNode * newnode = new ParseNode();
 				ParseNode & exp = $2;
-#ifndef LAZY_GEN
-				sprintf(codegen_buf, "( %s )", exp.fs.CurrentTerm.what.c_str());
-				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_EXPRESSION, string(codegen_buf) };
-#endif // !LAZY_GEN
-
-				newnode->addchild(new ParseNode(exp));
-				$$ = *newnode;
+				ParseNode op = gen_token(Term{ TokenMeta::LB, "(" });
+				$$ = gen_exp(exp, op, "( %s )");
 				update_pos($$);
 			}
 		| exp '+' exp 
@@ -538,7 +520,7 @@ using namespace std;
 				ParseNode & exp1 = $1;
 				ParseNode & op = $2;
 				ParseNode & exp2 = $3;
-				$$ = gen_exp(exp1, op, exp2, "%s ++ %s");
+				$$ = gen_exp(exp1, op, exp2, "%s == %s");
 				update_pos($$);
 			}
 		| exp YY_EQV exp 

@@ -30,6 +30,8 @@
 *.sdf
 *.opensdf
 *.suo
+*.idb
+*.pdb
 build/CFortranTranslator/Debug/
 build/CFortranTranslator/Release/
 build/CFortranTranslator/x64/
