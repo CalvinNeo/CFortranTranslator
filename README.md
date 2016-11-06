@@ -2,7 +2,8 @@
 A translator between C++ and Fortran90.
 
 ## Install
-My Configuration
+My Configuration:
+
 1. vs2015(Update 3) 
 2. win_flex(win_flex_bison 2.4.5, flex 2.5.37)
 3. win_bison(win_flex_bison 2.4.5, bison 2.7)
