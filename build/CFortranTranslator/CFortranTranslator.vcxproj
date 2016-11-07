@@ -32,7 +32,9 @@
     <ClCompile Include="..\..\develop.cpp" />
     <ClCompile Include="..\..\for90std.cpp" />
     <ClCompile Include="..\..\Function.cpp" />
+    <ClCompile Include="..\..\gen_argtable.cpp" />
     <ClCompile Include="..\..\gen_callable.cpp" />
+    <ClCompile Include="..\..\gen_describer.cpp" />
     <ClCompile Include="..\..\gen_do.cpp" />
     <ClCompile Include="..\..\gen_exp.cpp" />
     <ClCompile Include="..\..\gen_function.cpp" />
@@ -40,7 +42,7 @@
     <ClCompile Include="..\..\gen_io.cpp" />
     <ClCompile Include="..\..\gen_paramtable.cpp" />
     <ClCompile Include="..\..\gen_select.cpp" />
-    <ClCompile Include="..\..\gen_dimenslice_argtable.cpp" />
+    <ClCompile Include="..\..\gen_dimenslice.cpp" />
     <ClCompile Include="..\..\gen_stmt_suite.cpp" />
     <ClCompile Include="..\..\gen_type.cpp" />
     <ClCompile Include="..\..\gen_vardef.cpp" />

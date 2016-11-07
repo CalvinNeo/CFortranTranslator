@@ -207,7 +207,7 @@ std::map<int, std::string> IntentName = {
 	,{ -2009, "NT_IF" }
 	,{ -2010, "NT_ELSEIF" }
 	,{ -2011, "NT_DO" }
-	,{ -2012, "NT_VARIABLEINITIAL" }
+	,{ -2012, "NT_VARIABLEINITIAL or NT_KEYVALUE" }
 	,{ -2013, "NT_DECLAREDVARIABLE" }
 
 	,{ -2014, "NT_SUITE" }

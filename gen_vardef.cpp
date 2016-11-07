@@ -1,10 +1,10 @@
 #include "gen_common.h"
 
-ParseNode gen_vardef(const ParseNode & type_spec, const ParseNode & dummy_variable_iden, const ParseNode & paramtable) {
+ParseNode gen_vardef(const ParseNode & type_spec, const ParseNode & variable_desc, const ParseNode & paramtable) {
 	ParseNode newnode = ParseNode();
 	string arr_decl = ""; string var_decl = ""; bool do_arr = false;
 	ParseNode * ty = new ParseNode(type_spec); // type
-	VariableDescAttr * vardescattr = dynamic_cast<VariableDescAttr *>(dummy_variable_iden.attr);
+	VariableDescAttr * vardescattr = dynamic_cast<VariableDescAttr *>(variable_desc.attr);
 	ParseNode * slice = vardescattr->desc.slice;
 	newnode.addchild(ty); // type
 						   // specify type

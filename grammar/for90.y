@@ -71,7 +71,7 @@ using namespace std;
 		| dummy_function_iden
 		|
 
-	dummy_variable_iden_1 : YY_INTENT '(' YY_IN ')'
+	variable_desc_elem : YY_INTENT '(' YY_IN ')'
 			{
 				ParseNode * newnode = new ParseNode();
 				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_VARIABLEDESC, "NT_VARIABLEDESC" }; // intent(in)
@@ -185,13 +185,13 @@ using namespace std;
 				update_pos($$);
 			}
 				
-	dummy_variable_iden : ',' dummy_variable_iden_1
+	variable_desc : ',' variable_desc_elem
 			{
 				ParseNode * newnode = new ParseNode($1);
 				$$ = $2;
 				update_pos($$);
 			}
-		| ',' dummy_variable_iden_1 dummy_variable_iden
+		| ',' variable_desc_elem variable_desc
 			{				
 				ParseNode * newnode = new ParseNode();
 				ParseNode * variable_iden = & $3;
@@ -216,13 +216,13 @@ using namespace std;
 				update_pos($$);
 			}
 
-	dummy_variable_spec : dummy_variable_iden_1
+	dummy_variable_spec : variable_desc_elem
 			{
 				ParseNode * newnode = new ParseNode($1);
 				$$ = $1;
 				update_pos($$);
 			}
-		| dummy_variable_iden_1 dummy_variable_spec
+		| variable_desc_elem dummy_variable_spec
 			{				
 				ParseNode * newnode = new ParseNode();
 				ParseNode * variable_iden = & $2;
@@ -298,7 +298,13 @@ using namespace std;
 				$$ = *newnode;
 			}
 
-	callable_head : variable | type_spec
+	callable_head : variable 
+			{
+				/* array index and function name and type cast */
+				string x = $1.fs.CurrentTerm.what;
+				$$ = $1;
+			}
+		| type_spec
 			{
 				/* array index and function name and type cast */
 				string x = $1.fs.CurrentTerm.what;
@@ -902,14 +908,14 @@ using namespace std;
 			}
 
 
-    var_def : type_spec dummy_variable_iden YY_DOUBLECOLON paramtable 
+    var_def : type_spec variable_desc YY_DOUBLECOLON paramtable
 			{
 				/* array decl */
 				ParseNode & type_spec = $1;
-				ParseNode & dummy_variable_iden = $2;
+				ParseNode & variable_desc = $2;
 				ParseNode & paramtable = $4;
 
-				$$ = gen_vardef(type_spec, dummy_variable_iden, paramtable);
+				$$ = gen_vardef(type_spec, variable_desc, paramtable);
 				update_pos($$);
 			}
 
@@ -939,21 +945,25 @@ using namespace std;
 
 	paramtable : keyvalue
 			{
-				$$ = $1;
+				//$$ = $1;
+				//update_pos($$);
+
+				$$ = gen_paramtable($1);
 				update_pos($$);
 			}
 		| keyvalue ',' paramtable
 			{
-				ParseNode * newnode = new ParseNode(); 
-				newnode->addchild($1.child[0]); // keyvalue
-				sprintf(codegen_buf, "%s, %s", $1.fs.CurrentTerm.what.c_str(), $3.fs.CurrentTerm.what.c_str());
-				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_PARAMTABLE, string(codegen_buf) };
-				ParseNode & pn = $3;
-				for (int i = 0; i < pn.child.size(); i++)
-				{
-					newnode->addchild(new ParseNode(*pn.child[i])); // paramtable
-				}
-				$$ = *newnode;
+				//ParseNode * newnode = new ParseNode(); 
+				//newnode->addchild($1.child[0]); // keyvalue
+				//sprintf(codegen_buf, "%s, %s", $1.fs.CurrentTerm.what.c_str(), $3.fs.CurrentTerm.what.c_str());
+				//newnode->fs.CurrentTerm = Term{ TokenMeta::NT_PARAMTABLE, string(codegen_buf) };
+				//ParseNode & pn = $3;
+				//for (int i = 0; i < pn.child.size(); i++)
+				//{
+				//	newnode->addchild(new ParseNode(*pn.child[i])); // paramtable
+				//}
+
+				$$ = gen_flattern($1, $3, "%s, %s", TokenMeta::NT_PARAMTABLE);
 				update_pos($$);
 			}
 		|

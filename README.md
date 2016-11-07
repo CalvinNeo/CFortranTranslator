@@ -128,9 +128,9 @@ all parse tree nodes are defined in [/Intent.h](/Intent.h) with an `NT_` prefix
 | wrappers | META_NONTERMINAL | wrapper + |
 | wrapper | / | function_decl / program |
 | var_def | NT_VARIABLEDEFINE | typeinfo, NT_DIMENSLICE / dummy, NT_PARAMTABLE |
-| paramtable | NT_PARAMTABLE | keyvalue + |
-| keyvalue | NT_PARAMTABLE | NT_VARIABLEINITIAL / NT_DECLAREDVARIABLE |
-| keyvalue(soon move to a new function) | NT_VARIABLEINITIAL/NT_DECLAREDVARIABLE | UnknownVariant, NT_EXPRESSION / NT_VARIABLEINITIALDUMMY |
+| paramtable | NT_PARAMTABLE | (keyvalue / NT_DECLAREDVARIABLE) + |
+| | NT_DECLAREDVARIABLE | no rules, renamed from keyvalue |
+| keyvalue | NT_VARIABLEINITIAL(namely NT_KEYVALUE) | variable, NT_EXPRESSION / NT_VARIABLEINITIALDUMMY |
 | | NT_VARIABLEINITIAL | variable, exp / array_builder |
 | function_array_body | NT_ARGTABLE_DIMENSLICE | NT_DIMENSLICE |
 | dimen_slice | NT_DIMENSLICE | NT_SLICE |
@@ -183,4 +183,5 @@ all parse tree nodes are defined in [/Intent.h](/Intent.h) with an `NT_` prefix
 - error message line info is always 0
 - ~~handle error when can't find declaration of the variable listed in function paramtable~~
 - handle with empty line
-- split keyvalue rules from paramtable rules, may cause bugs
+- ~~split keyvalue rules from paramtable rules, may cause bugs~~
+- _type_kind rules and type cast function call conflict

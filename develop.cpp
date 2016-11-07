@@ -67,18 +67,19 @@ void debug() {
 	global_code = "program read (*,\"F, F\") x, y \n  end program";
 
 	// function
-	global_code = "program recursive function main(A,B) result(C) \n implicit none \n integer::a = 1 + 2, b = 2, c = 3 \n end function end program";
-	global_code = "program recursive function main(A,B) result(C) \n implicit none \n integer,intent(in)::a = 1 + 2, b \n integer,intent(out)::c = 3 \n end function end program"; // pay attention  no def a, b and add return c
-	global_code = "program recursive function main(A,B) result(C) \n integer::a , b , c \n a = abs(c, abs(1 ,2)) \n end function end program";
-	global_code = "program recursive function main(A,B) result(C) \n integer::a , b , c \n a = empty() \n end function end program";
-	global_code = "program recursive function main(A,B) result(C) \n integer::a, b, c\n a = abs(real(c)) \n end function end program"; /* '(' exp ')' ∫Õ callable_headπÈ‘º≥ÂÕª */
+	global_code = " recursive function main(A,B) result(C) \n implicit none \n integer::a = 1 + 2, b = 2, c = 3 \n end function  ";
+	global_code = " recursive function main(A,B) result(C) \n implicit none \n integer,intent(in)::a = 1 + 2, b \n integer,intent(out)::c = 3 \n end function  "; // pay attention  no def a, b and add return c
+	global_code = "recursive function main(A,B) result(C) \n integer::a , b , c \n a = abs(c, abs(1 ,2)) \n end function";
+	global_code = "recursive function main(A,B) result(C) \n integer::a , b , c \n a = empty() \n end function";
+	global_code = "recursive function main(A,B) result(C) \n integer::a, b, c\n a = abs(ahhhhh(c)) \n end function"; /* '(' exp ')' ∫Õ callable_headπÈ‘º≥ÂÕª */ /* IMPORTANT */
+	global_code = "recursive function main(A,B) result(C) \n integer::a, b, c\n a = abs(real(c)) \n end function"; /* _type_kind ∫Õ type cast function call ≥ÂÕª */ /* IMPORTANT */
 
 	// array
 	global_code = "program integer,intent(out),dimension(5:7)::A=(/1, 2/) \n  end program"; // intent
 	
 	global_code = "program integer,dimension(5:7)::A=(/1, 2/) \n  end program";
 	global_code = "program integer,dimension(5:7, 6:8, 7:9)::A=(/1, 2, 3, 4, 5, 6/) \n  end program";
-	global_code = "program integer,dimension(5:7, 6:8)::A \n A(1:2, :) \n  end program";
+	global_code = "program integer,dimension(5:7, 6:8)::A \n A(1:2, :) \n  end program"; // error
 
 	global_code = "program integer,dimension(5:7)::A=(/ int(i) + 1, i=1,4/) \n  end program";
 	global_code = "program integer,dimension(2, 3)::A=(/ (int(i) + 1, i=1,4) , j = 2, 3 /) \n  end program"; // not support
@@ -86,26 +87,17 @@ void debug() {
 	global_code = "program integer,dimension(5:7)::A=(/ B(1:2:3) /) \n  end program";
 
 	global_code = "program integer,dimension(5:7)::A=(/ a(1:2) , b(3:4) /) \n  end program";
-	global_code = "program integer,dimension(5:7)::A=(/ a(1:2) , b(3:4) , (int(i) + 1, i=1,4) /) \n  end program";
+	global_code = "program integer,dimension(5:7)::A=(/ a(1:2) , b(3:4) , (int(i) + 1, i=1,4) /) \n  end program"; // error
 
 	// select
 	global_code = "program select case abs(i) \n case 1 \n a = 3 \n case 2 : 3 \n a = 4  end select end program";
 
 
 	// paste here
-	global_code = "program real::a, b, c \n end program";
-	global_code = "program do i = 2, n-1 \n count_loop() end do end program";
-
 	global_code = "program integer,intent(out),dimension(5:7)::A=(/1, 2/) \n  end program"; // intent
 
-	global_code = "program integer,dimension(5:7)::A=(/1, 2/) \n  end program";
-	global_code = "program integer,dimension(5:7, 6:8, 7:9)::A=(/1, 2, 3, 4, 5, 6/) \n  end program";
-	global_code = "program integer,dimension(5:7, 6:8)::A \n A(1:2, :) \n  end program";
+	global_code = "program integer,dimension(5:7, 6:8)::A \n A(1:2, :) \n  end program"; // error
 
-	global_code = "program integer,dimension(5:7)::A=(/ int(i) + 1, i=1,4/) \n  end program";
-
-	global_code = "program integer,dimension(5:7)::A=(/ B(1:2:3) /) \n  end program";
-	global_code = "program integer,dimension(5:7, 6:8, 7:9)::A=(/1, 2, 3, 4, 5, 6/) \n  end program";
 
 
 	//std::vector<int> accumulated{ 2, 2, 2 };

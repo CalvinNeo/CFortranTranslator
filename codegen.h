@@ -19,7 +19,7 @@ ParseNode gen_exp(const ParseNode & exp1, const ParseNode & op, const ParseNode 
 ParseNode gen_exp(const ParseNode & exp1, const ParseNode & op, std::string trans_rule);
 ParseNode gen_exp(const ParseNode & variable);
 
-ParseNode gen_vardef(const ParseNode & type_spec, const ParseNode & dummy_variable_iden, const ParseNode & paramtable);
+ParseNode gen_vardef(const ParseNode & type_spec, const ParseNode & variable_desc, const ParseNode & paramtable);
 
 ParseNode gen_function(const ParseNode & variable_function, const ParseNode & paramtable, const ParseNode & variable_result, ParseNode & suite); // function define
 
@@ -41,3 +41,4 @@ ParseNode gen_argtable_from_exp(ParseNode & exp);
 ParseNode gen_keyvalue(const ParseNode & variable);
 ParseNode gen_keyvalue_from_exp(const ParseNode & variable, const ParseNode & initial);
 ParseNode gen_keyvalue_from_arraybuilder(const ParseNode & variable, const ParseNode & initial);
+ParseNode gen_paramtable(const ParseNode & keyvalue);

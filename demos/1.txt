@@ -1,4 +1,4 @@
-function ss(r, h) result(ss_result)
+recursive function ss(r, h) result(ss_result)
 	implicit none
 	real,intent(in)::r
 	real,optional,intent(in)::h

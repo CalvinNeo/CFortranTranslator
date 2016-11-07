@@ -87,10 +87,16 @@
     <ClCompile Include="..\..\gen_type.cpp">
       <Filter>target</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\gen_dimenslice_argtable.cpp">
+    <ClCompile Include="..\..\gen_paramtable.cpp">
       <Filter>target</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\gen_paramtable.cpp">
+    <ClCompile Include="..\..\gen_dimenslice.cpp">
+      <Filter>target</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\gen_argtable.cpp">
+      <Filter>target</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\gen_describer.cpp">
       <Filter>target</Filter>
     </ClCompile>
   </ItemGroup>
