@@ -338,69 +338,34 @@ using namespace std;
 			{
 				/* 1d array */
 				/* arr[from : to] */
-				ParseNode * newnode = new ParseNode();
 				/* target code of slice depend on context */
-				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_DIMENSLICE, "" };
 				ParseNode & slice = $1;
-				if (slice.child.size() == 1) {
-					// not a slice but a index
-					slice.child.push_back(nullptr);
-					slice.child[1] = slice.child[0];
-					ParseNode * lb = new ParseNode();
-					lb->fs.CurrentTerm = Term{ TokenMeta::NT_EXPRESSION, "1" };
-					slice.child[0] = lb;
-				}
-				newnode->addchild(new ParseNode(slice)); // only 1 slice
-				$$ = *newnode;
+				// only 1 slice
+				$$ = gen_dimenslice_from_slice(slice);
 				update_pos($$);
 			}
 		| slice ',' dimen_slice
 			{
 				/* multi dimension array */
 				/* arr[from:to, from:to, ...] */
-				ParseNode * newnode = new ParseNode();
 				/* target code of slice depend on context */
-				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_DIMENSLICE, "" };
 				ParseNode & slice = $1;
-				if (slice.child.size() == 1) {
-					slice.child.push_back(nullptr);
-					slice.child[1] = slice.child[0];
-					ParseNode * lb = new ParseNode();
-					lb->fs.CurrentTerm = Term{ TokenMeta::NT_EXPRESSION, "1" };
-					slice.child[0] = lb;
-				}
-				newnode->addchild(new ParseNode(slice)); // slice
-				newnode->addchild(new ParseNode($3)); // dimen_slice
-				// attention flattern_bin
-				newnode = flattern_bin(newnode);
-				$$ = *newnode;
+				ParseNode & dimen_slice = $3;
+				$$ = gen_dimenslice(slice, dimen_slice);
 				update_pos($$);
 			}
 		| exp
 			{
 				/* argtable is used in function call */
-				ParseNode * newnode = new ParseNode();
-#ifndef LAZY_GEN
-				sprintf(codegen_buf, "%s", $1.fs.CurrentTerm.what.c_str());
-				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_ARGTABLE_PURE, string(codegen_buf) };
-#endif // !LAZY_GEN
-				newnode->addchild(new ParseNode($1)); // exp
-				$$ = *newnode;
+				ParseNode & exp = $1;
+				$$ = gen_argtable_from_exp(exp);
 				update_pos($$);
 			}
         | exp ',' argtable
 			{
-				ParseNode * newnode = new ParseNode();
 				ParseNode & exp = $1;
 				ParseNode & argtable = $3;
-#ifndef LAZY_GEN
-				sprintf(codegen_buf, "%s, %s", $1.fs.CurrentTerm.what.c_str(), $3.fs.CurrentTerm.what.c_str());
-				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_ARGTABLE_PURE, string(codegen_buf) };
-#endif // !LAZY_GEN
-				newnode->addchild(new ParseNode(exp)); // exp
-				newnode->addchild(new ParseNode(argtable)); // argtable
-				newnode = flattern_bin(newnode);
-				$$ = *newnode;
+				$$ = gen_argtable(exp, argtable);
 				update_pos($$);
 			}
 				
@@ -426,14 +391,8 @@ using namespace std;
 	exp : function_array 
 			{
 				/* function call OR array index */
-				ParseNode * newnode = new ParseNode();
 				ParseNode & function_array = $1;
-#ifndef LAZY_GEN
-				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_EXPRESSION,  function_array.fs.CurrentTerm.what };
-#endif // !LAZY_GEN
-
-				newnode->addchild(new ParseNode(function_array)); // function_array
-				$$ = *newnode;
+				$$ = gen_exp(function_array);
 				update_pos($$);
 			}
 
@@ -1408,31 +1367,7 @@ string tabber(string & src) {
 	}
 	return ans;
 }
-ParseNode * flattern_bin(ParseNode * pn) {
-	/* it cant work well because it create a whole noew tree copy too much */
-	/* THIS ALGORITHM FLATTERNS A RIGHT-RECURSIVE BINARY TREE */
-	if (pn->child.size() == 2) {
-		ParseNode * newp = new ParseNode();
-		/* child[0] is the only data node */
-		newp->addchild(new ParseNode(*pn->child[0]));
 
-		/* pn->child[1] is a **list** of ALREADY flatterned elements */
-		//	e.g
-		//	child[0] is 1 
-		//	child[1] is [2, 3, 4, 5]
-		for (int i = 0; i < pn->child[1]->child.size(); i++)
-		{
-			newp->addchild(new ParseNode(*pn->child[1]->child[i]));
-		}
-		newp->fs = pn->fs;
-		newp->father = pn->father;
-		delete pn;
-		return newp;
-	}
-	else {
-		return pn;
-	}
-}
 void update_pos(YYSTYPE & current_node) {
 	if (current_node.child.size() == 0) {
 		/* do nothing */

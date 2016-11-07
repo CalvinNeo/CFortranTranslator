@@ -22,7 +22,7 @@ ParseNode  gen_exp(const ParseNode & exp1, const ParseNode & op, std::string tra
 
 ParseNode  gen_exp(const ParseNode & variable) {
 	ParseNode  newnode = ParseNode();
-	newnode.fs.CurrentTerm = Term{ TokenMeta::NT_EXPRESSION };
+	newnode.fs.CurrentTerm = Term{ TokenMeta::NT_EXPRESSION, variable.fs.CurrentTerm.what };
 	newnode.addchild(new ParseNode(variable)); 
 	return newnode;
 }

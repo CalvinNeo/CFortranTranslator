@@ -104,6 +104,8 @@ when using immediate code generate(or using lazy gen), upper level non-terminal 
 
 1. function_decl change suite(function body)
 2. all suite will be changed(`tabber` function)
+3. ~~dimen_slice will expand size == 1 slice to 2~~
+4. 
 
 ## Parse Tree
 all parse tree nodes are defined in [/Intent.h](/Intent.h) with an `NT_` prefix

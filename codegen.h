@@ -3,6 +3,7 @@
 #include "parser.h"
 
 std::string for2cpp(std::string for_code);
+ParseNode * flattern_bin(ParseNode * pn);
 
 ParseNode gen_token(Term term);
 
@@ -30,4 +31,8 @@ ParseNode gen_do_while(const ParseNode & exp, ParseNode & suite);
 ParseNode gen_function_array(const ParseNode & callable_head, const ParseNode & argtable); // callable, function call or array
 
 ParseNode gen_slice(const ParseNode & lb, const ParseNode & ub, const ParseNode & step);
-ParseNode gen_slice(const ParseNode & lb, const ParseNode & ub);
+ParseNode gen_slice(const ParseNode & lb, const ParseNode & ub); 
+ParseNode gen_dimenslice_from_slice(ParseNode & slice);
+ParseNode gen_argtable_from_exp(ParseNode & exp);
+ParseNode gen_dimenslice(ParseNode & slice, const ParseNode & dimen_slice);
+ParseNode gen_argtable(ParseNode & exp, const ParseNode & argtable);
