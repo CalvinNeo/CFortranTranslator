@@ -17,6 +17,12 @@ ParseNode gen_token(Term term) {
 	return newnode;
 }
 
+FlexState gen_flex(Term term) {
+	FlexState f;
+	f.CurrentTerm = term;
+	f.line_pos = f.parse_len = f.parse_line = f.parse_pos = 0;
+	return f;
+}
 
 ParseNode * flattern_bin(ParseNode * pn) {
 	/* it cant work well because it create a whole noew tree copy too much */
@@ -42,4 +48,19 @@ ParseNode * flattern_bin(ParseNode * pn) {
 	else {
 		return pn;
 	}
+}
+
+ParseNode gen_flattern(const ParseNode & item, const ParseNode & list, std::string merge_rule, int merged_token_meta) {
+	ParseNode * nn = new ParseNode();
+	sprintf(codegen_buf, merge_rule.c_str(), item.fs.CurrentTerm.what.c_str(), list.fs.CurrentTerm.what.c_str());
+	if (merged_token_meta == -1) {
+		merged_token_meta = list.fs.CurrentTerm.token;
+	}
+	nn->fs.CurrentTerm = Term{ merged_token_meta, string(codegen_buf) };
+	nn->addchild(new ParseNode(item)); // item
+	nn->addchild(new ParseNode(list)); // list
+	nn = flattern_bin(nn);
+	ParseNode newnode = ParseNode(*nn);
+	delete nn;
+	return newnode;
 }

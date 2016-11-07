@@ -179,7 +179,7 @@ ParseNode gen_function(const ParseNode & variable_function, const ParseNode & pa
 	newnode.addchild(new ParseNode(function_head)); // function
 	newnode.addchild(new ParseNode(variable_function)); // function name
 														 // argtable
-														 // TODO 
+														 // TODO add nodes
 														 // return value
 	newnode.addchild(new ParseNode(suite)); // trimed suite
 

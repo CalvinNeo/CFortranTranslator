@@ -227,6 +227,7 @@ std::map<int, std::string> IntentName = {
 	,{ -2027, "NT_SELECT" }
 	,{ -2028, "NT_CASE" }
 	,{ -2029, "NT_CASES" }
+	,{ -2030, "NT_KEYVALUE" }
 };
 
 

@@ -245,6 +245,7 @@
 		NT_SELECT = -2027,
 		NT_CASE = -2028,
 		NT_CASES = -2029,
+		NT_KEYVALUE = -2030,
 };
 //}
 

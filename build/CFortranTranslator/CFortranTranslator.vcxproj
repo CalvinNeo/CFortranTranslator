@@ -38,8 +38,9 @@
     <ClCompile Include="..\..\gen_function.cpp" />
     <ClCompile Include="..\..\gen_if.cpp" />
     <ClCompile Include="..\..\gen_io.cpp" />
+    <ClCompile Include="..\..\gen_paramtable.cpp" />
     <ClCompile Include="..\..\gen_select.cpp" />
-    <ClCompile Include="..\..\gen_slice_dimenslice.cpp" />
+    <ClCompile Include="..\..\gen_dimenslice_argtable.cpp" />
     <ClCompile Include="..\..\gen_stmt_suite.cpp" />
     <ClCompile Include="..\..\gen_type.cpp" />
     <ClCompile Include="..\..\gen_vardef.cpp" />

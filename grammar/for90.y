@@ -351,7 +351,8 @@ using namespace std;
 				/* target code of slice depend on context */
 				ParseNode & slice = $1;
 				ParseNode & dimen_slice = $3;
-				$$ = gen_dimenslice(slice, dimen_slice);
+				// gen_dimenslice(slice, dimen_slice);
+				$$ = gen_flattern(slice, dimen_slice, "%s, %s", TokenMeta::NT_DIMENSLICE);
 				update_pos($$);
 			}
 		| exp
@@ -365,7 +366,8 @@ using namespace std;
 			{
 				ParseNode & exp = $1;
 				ParseNode & argtable = $3;
-				$$ = gen_argtable(exp, argtable);
+				// gen_argtable(exp, argtable);
+				$$ = gen_flattern(exp, argtable, "%s, %s", TokenMeta::NT_ARGTABLE);
 				update_pos($$);
 			}
 				
@@ -912,55 +914,26 @@ using namespace std;
 			}
 
     keyvalue : variable
-			{
+			{	
 				/* paramtable is used in function decl */
 				/* this paramtable has only one value */
-				ParseNode * newnode = new ParseNode();
-				sprintf(codegen_buf, "%s", $1.fs.CurrentTerm.what.c_str());
-				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_PARAMTABLE, string(codegen_buf) };
-					ParseNode * variablenode = new ParseNode();
-					sprintf(codegen_buf, "%s", $1.fs.CurrentTerm.what.c_str());
-					variablenode->fs.CurrentTerm = Term{ TokenMeta::NT_VARIABLEINITIAL, string(codegen_buf) };
-					variablenode->addchild( new ParseNode($1) ); // type
-					FlexState fs; fs.CurrentTerm = Term{ TokenMeta::NT_VARIABLEINITIALDUMMY, string("void") };
-					variablenode->addchild( new ParseNode(fs, newnode) ); // void is dummy initial
-					newnode->addchild(variablenode);
-				$$ = *newnode;
+				ParseNode & variable = $1;
+				$$ = gen_keyvalue(variable);
 				update_pos($$);
 			}
         | variable '=' exp
 			{
 				/* initial value is required in parse tree because it can be an non-terminal `exp` */
 				/* non-array initial values */
-				ParseNode * newnode = new ParseNode();
-				sprintf(codegen_buf, "%s = %s", $1.fs.CurrentTerm.what.c_str(), $3.fs.CurrentTerm.what.c_str());
-				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_PARAMTABLE, string(codegen_buf) };
-					ParseNode * variablenode = new ParseNode();
-					sprintf(codegen_buf, "%s" , $1.fs.CurrentTerm.what.c_str(), $3.fs.CurrentTerm.what.c_str());
-					variablenode->fs.CurrentTerm = Term{ TokenMeta::NT_VARIABLEINITIAL, string(codegen_buf) };
-					variablenode->addchild(new ParseNode($1)); // variable
-					variablenode->addchild(new ParseNode($3)); // initial
-					newnode->addchild(variablenode);
-				newnode = flattern_bin(newnode);
-				$$ = *newnode;
+				$$ = gen_keyvalue_from_exp($1, $3);
 				update_pos($$);
 			}
 		| variable '=' array_builder
 			{
 				/* initial value is required in parse tree because it can be an non-terminal `exp` */
-				/* array initial values */
-				ParseNode * newnode = new ParseNode();
+				/* array initial values */;
 				/* 因为使用forarray作为数组, 故需要知道类型信息, 不在此处赋值, 在上层的var_def赋初值 */
-				sprintf(codegen_buf, "%s.init(%s)", $1.fs.CurrentTerm.what.c_str(), $3.fs.CurrentTerm.what.c_str());
-				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_PARAMTABLE, string(codegen_buf) };
-					ParseNode * variablenode = new ParseNode();
-					sprintf(codegen_buf, "%s.init(%s)", $1.fs.CurrentTerm.what.c_str(), $3.fs.CurrentTerm.what.c_str());
-					variablenode->fs.CurrentTerm = Term{ TokenMeta::NT_VARIABLEINITIAL, string(codegen_buf) };
-					variablenode->addchild(new ParseNode($1)); // variable
-					variablenode->addchild(new ParseNode($3)); // initial(array_builder)
-				newnode->addchild(variablenode);
-				newnode = flattern_bin(newnode);
-				$$ = *newnode;
+				$$ = gen_keyvalue_from_arraybuilder($1, $3);
 				update_pos($$);
 			}
 

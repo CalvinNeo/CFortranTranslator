@@ -1,11 +1,14 @@
 #pragma once
 
 #include "parser.h"
+#include "tokenizer.h"
 
 std::string for2cpp(std::string for_code);
 ParseNode * flattern_bin(ParseNode * pn);
 
 ParseNode gen_token(Term term);
+FlexState gen_flex(Term term);
+ParseNode gen_flattern(const ParseNode & item, const ParseNode & list, std::string merge_rule, int merged_token_meta = -1);
 
 std::string parse_ioformatter(const std::string &); 
 ParseNode gen_read(const ParseNode & io_info, const ParseNode & argtable);
@@ -34,5 +37,7 @@ ParseNode gen_slice(const ParseNode & lb, const ParseNode & ub, const ParseNode 
 ParseNode gen_slice(const ParseNode & lb, const ParseNode & ub); 
 ParseNode gen_dimenslice_from_slice(ParseNode & slice);
 ParseNode gen_argtable_from_exp(ParseNode & exp);
-ParseNode gen_dimenslice(ParseNode & slice, const ParseNode & dimen_slice);
-ParseNode gen_argtable(ParseNode & exp, const ParseNode & argtable);
+
+ParseNode gen_keyvalue(const ParseNode & variable);
+ParseNode gen_keyvalue_from_exp(const ParseNode & variable, const ParseNode & initial);
+ParseNode gen_keyvalue_from_arraybuilder(const ParseNode & variable, const ParseNode & initial);

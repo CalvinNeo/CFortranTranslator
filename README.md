@@ -95,9 +95,10 @@ refer to [/grammar/for90.y](/grammar/for90.y) for all accepted grammar
 2. add pattern of this %token in [/grammar/for90.l](/grammar/for90.l)
 3. add rules related to the %token in [/grammar/for90.y](/grammar/for90.y)
 4. update bytecodes and grammar tokens in [/Intent.h](/Intent.h)
-5. register keyword in [/tokenizer.cpp](/tokenizer.cpp)(if this token is keyword)
-6. if this keyword takes more than 1 word and can cause reduction conflicts between itself and its prefix like `else if`, update forward1 in [/tokenizer.cpp](/tokenizer.cpp)
-7. update translation rules in [/cgen.h](/cgen.h)
+5. update IntentName in [/IntentHelper.cpp](/IntentHelper.cpp)
+6. register keyword in [/tokenizer.cpp](/tokenizer.cpp)(if this token is keyword)
+7. if this keyword takes more than 1 word and can cause reduction conflicts between itself and its prefix like `else if`, update forward1 in [/tokenizer.cpp](/tokenizer.cpp)
+8. update translation rules in [/cgen.h](/cgen.h)
 
 ## code generate
 when using immediate code generate(or using lazy gen), upper level non-terminal can channge generated codes by low level non-terminal, so `gen_` functions pass `ParseNode &` other than `const ParseNode &`:
@@ -105,7 +106,9 @@ when using immediate code generate(or using lazy gen), upper level non-terminal 
 1. function_decl change suite(function body)
 2. all suite will be changed(`tabber` function)
 3. ~~dimen_slice will expand size == 1 slice to 2~~
-4. 
+
+child ParseNode may also be referred when generating upper level ParseNode, so do not change child index of:
+1. NT_VARIABLEINITIAL: referred by function_decl
 
 ## Parse Tree
 all parse tree nodes are defined in [/Intent.h](/Intent.h) with an `NT_` prefix
@@ -128,6 +131,7 @@ all parse tree nodes are defined in [/Intent.h](/Intent.h) with an `NT_` prefix
 | paramtable | NT_PARAMTABLE | keyvalue + |
 | keyvalue | NT_PARAMTABLE | NT_VARIABLEINITIAL / NT_DECLAREDVARIABLE |
 | keyvalue(soon move to a new function) | NT_VARIABLEINITIAL/NT_DECLAREDVARIABLE | UnknownVariant, NT_EXPRESSION / NT_VARIABLEINITIALDUMMY |
+| | NT_VARIABLEINITIAL | variable, exp / array_builder |
 | function_array_body | NT_ARGTABLE_DIMENSLICE | NT_DIMENSLICE |
 | dimen_slice | NT_DIMENSLICE | NT_SLICE |
 | dimen_slice | NT_ARGTABLE_PURE | NT_EXPRESSION |
@@ -137,7 +141,6 @@ all parse tree nodes are defined in [/Intent.h](/Intent.h) with an `NT_` prefix
 | | NT_ARRAYBUILDER | NT_ARRAYBUILDER_VALUE + |
 | | NT_ARRAYBUILDER_VALUE | argtable / NT_ARRAYBUILDER_EXP / exp |
 | callable_head |  | variable / type_spec |
-
 
 ### Attributes
 `->` means `ParseAttr` attached to
@@ -180,3 +183,4 @@ all parse tree nodes are defined in [/Intent.h](/Intent.h) with an `NT_` prefix
 - error message line info is always 0
 - ~~handle error when can't find declaration of the variable listed in function paramtable~~
 - handle with empty line
+- split keyvalue rules from paramtable rules, may cause bugs
