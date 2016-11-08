@@ -5,6 +5,7 @@
 
 std::string for2cpp(std::string for_code);
 ParseNode * flattern_bin(ParseNode * pn);
+std::string tabber(std::string & src);
 
 ParseNode gen_token(Term term);
 FlexState gen_flex(Term term);
@@ -45,3 +46,5 @@ ParseNode gen_paramtable(const ParseNode & keyvalue);
 
 ParseNode gen_type(const ParseNode & type, const ParseNode & _type_kind);
 ParseNode gen_type(const ParseNode & type);
+
+ParseNode gen_argtable(ParseNode & dimen_slice);

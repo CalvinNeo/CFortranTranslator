@@ -1,5 +1,6 @@
 #include "gen_common.h"
-
+#include <iostream>
+#include <sstream>
 //char codegen_buf[MAX_CODE_LENGTH];
 
 std::string for2cpp(std::string for_code) {
@@ -9,7 +10,6 @@ std::string for2cpp(std::string for_code) {
 	cpp_code += program_tree.fs.CurrentTerm.what;
 	return cpp_code;
 }
-
 
 ParseNode gen_token(Term term) {
 	ParseNode newnode = ParseNode();
@@ -22,6 +22,18 @@ FlexState gen_flex(Term term) {
 	f.CurrentTerm = term;
 	f.line_pos = f.parse_len = f.parse_line = f.parse_pos = 0;
 	return f;
+}
+
+std::string tabber(std::string & src) {
+	std::string newline;
+	string ans = "";
+	std::istringstream f(src);
+	while (::getline(f, newline)) {
+		ans += '\t';
+		ans += newline;
+		ans += '\n';
+	}
+	return ans;
 }
 
 ParseNode * flattern_bin(ParseNode * pn) {

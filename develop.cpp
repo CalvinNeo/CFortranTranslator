@@ -71,10 +71,10 @@ void debug() {
 	global_code = " recursive function main(A,B) result(C) \n implicit none \n integer,intent(in)::a = 1 + 2, b \n integer,intent(out)::c = 3 \n end function  "; // pay attention  no def a, b and add return c
 	global_code = "recursive function main(A,B) result(C) \n integer::a , b , c \n a = abs(c, abs(1 ,2)) \n end function";
 	global_code = "recursive function main(A,B) result(C) \n integer::a , b , c \n a = empty() \n end function";
-	global_code = "recursive function main(A,B) result(C) \n integer::a, b, c\n a = abs(ahhhhh(c)) \n end function"; /* '(' exp ')' 和 callable_head归约冲突 */ /* IMPORTANT */
-	global_code = "recursive function main(A,B) result(C) \n integer::a, b, c\n a = abs(real(c)) \n end function"; /* _type_kind 和 type cast function call 冲突 */ /* IMPORTANT */
+	global_code = "recursive function main(A,B) result(C) \n integer::a, b, c\n a = abs(ahhhhh(c)) \n end function"; /* '(' exp ')' 和 callable_head归约冲突 */ /* IMPORTANT */ // now ok
+	global_code = "recursive function main(A,B) result(C) \n integer::a, b, c\n a = abs(real(c)) \n end function"; /* _type_kind 和 type cast function call 冲突 */ /* IMPORTANT */ // now ok
 	/* 和以上对比，给出冲突的另一边 */
-	global_code = "program \n integer(kind = 4)::a, b \n end program"; 
+	global_code = "program \n integer(kind = 4)::a, b \n end program"; // now ok
 
 	// array
 	global_code = "program integer,intent(out),dimension(5:7)::A=(/1, 2/) \n  end program"; // intent
@@ -98,8 +98,8 @@ void debug() {
 	// paste here
 	global_code = "program integer,intent(out),dimension(5:7)::A=(/1, 2/) \n  end program"; // intent
 
-	global_code = "recursive function main(A,B) result(C) \n integer::a, b, c\n a = abs(real(c)) \n end function"; /* _type_kind 和 type cast function call 冲突 */ /* IMPORTANT */
-	// global_code = "program \n integer(kind = 4)::a, b \n end program";
+	//global_code = "recursive function main(A,B) result(C) \n integer::a, b, c\n a = abs(real(c)) \n end function"; /* _type_kind 和 type cast function call 冲突 */ /* IMPORTANT */
+	 global_code = "program \n integer(kind = 4)::a, b \n end program";
 
 
 

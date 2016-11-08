@@ -193,19 +193,16 @@ using namespace std;
 				update_pos($$);
 			}
 		| ',' variable_desc_elem variable_desc
-			{				
-				ParseNode * newnode = new ParseNode();
+			{
 				ParseNode * variable_iden = & $3;
 				ParseNode & variable_iden_1 = $2;
 				/* target code of slice depend on context */
-				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_VARIABLEDESC, "NT_VARIABLEDESC" };
+				ParseNode newnode = ParseNode(gen_flex(Term{ TokenMeta::NT_VARIABLEDESC, "NT_VARIABLEDESC" }), nullptr);
 				/* merge attrs */
-				newnode->attr = variable_iden_1.attr->clone();
-				VariableDescAttr * new_a = dynamic_cast<VariableDescAttr *>(newnode->attr);
-				VariableDescAttr * var_a = dynamic_cast<VariableDescAttr *>(variable_iden->attr);
-				new_a->merge(*var_a);
+				newnode.attr = variable_iden_1.attr->clone();
+				(dynamic_cast<VariableDescAttr *>(newnode.attr))->merge(*dynamic_cast<VariableDescAttr *>(variable_iden->attr));
 				// TODO do not add child
-				$$ = *newnode;
+				$$ = newnode;
 				update_pos($$);
 			}
 		|
@@ -221,43 +218,30 @@ using namespace std;
 	literal : YY_FLOAT
 			{
 				/* 该条目下的右部全部为单个终结符号(语法树的叶子节点), 因此$1全部来自lex程序 */
-				ParseNode * newnode = new ParseNode();
-				newnode->fs.CurrentTerm = Term{ TokenMeta::Float, $1.fs.CurrentTerm.what }; // float number
-				$$ = *newnode;
+				$$ = gen_token(Term{ TokenMeta::Float, $1.fs.CurrentTerm.what });// float number
 			}
 		| YY_INTEGER
 			{
-				ParseNode * newnode = new ParseNode();
-				newnode->fs.CurrentTerm = Term{ TokenMeta::Int, $1.fs.CurrentTerm.what }; // int number
-				$$ = *newnode;
+				$$ = gen_token(Term{ TokenMeta::Int, $1.fs.CurrentTerm.what });// int number
 			}
 		| YY_STRING
 			{
-				ParseNode * newnode = new ParseNode();
 				// replace `'` with `"`
-				string modified = "\"" + $1.fs.CurrentTerm.what.substr(1, $1.fs.CurrentTerm.what.size() - 2) + "\"";
-				newnode->fs.CurrentTerm = Term{ TokenMeta::String, modified }; // string
-				$$ = *newnode;
+				$$ = gen_token(Term{ TokenMeta::String, "\"" + $1.fs.CurrentTerm.what.substr(1, $1.fs.CurrentTerm.what.size() - 2) + "\"" }); // string
 			}
 		| YY_TRUE
 			{
-				ParseNode * newnode = new ParseNode();
-				newnode->fs.CurrentTerm = Term{ TokenMeta::Bool, "true" }; // bool true
-				$$ = *newnode;
+				$$ = gen_token(Term{ TokenMeta::Bool, "true" });// bool true
 			}
 		| YY_FALSE
 			{
-				ParseNode * newnode = new ParseNode();
-				newnode->fs.CurrentTerm = Term{ TokenMeta::Bool, "false" }; // bool false
-				$$ = *newnode;
+				$$ = gen_token(Term{ TokenMeta::Bool, "false" });// bool false
 			}
         | YY_COMPLEX
             {
-				ParseNode * newnode = new ParseNode();
 				string strcplx = $1.fs.CurrentTerm.what;
 				int splitter = strcplx.find_first_of('_', 0);
-				newnode->fs.CurrentTerm = Term{ TokenMeta::Complex, "forcomplex(" + strcplx.substr(0, splitter) + ", " + strcplx.substr(splitter + 1) + ") "}; // complex
-				$$ = *newnode;
+				$$ = gen_token(Term{ TokenMeta::Complex, "forcomplex(" + strcplx.substr(0, splitter) + ", " + strcplx.substr(splitter + 1) + ") " }); //complex
 			}
 
 		| error '\n'
@@ -541,56 +525,13 @@ using namespace std;
 
     argtable : dimen_slice
 			{
-				ParseNode * newnode = new ParseNode();
-#ifndef LAZY_GEN
-				ParseNode & dimen_slice = $1;
-				bool isdimen = false;
-				int sliceid = 0; /* if the array has 2 dimensions, sliceid is 0..1 */
-				dimen_slice.fs.CurrentTerm.what = "";
-				for (sliceid = 0; sliceid < dimen_slice.child.size(); sliceid++)
-				{
-					if (sliceid != 0) {
-						dimen_slice.fs.CurrentTerm.what += ", ";
-					}
-					if (dimen_slice.fs.CurrentTerm.token == TokenMeta::NT_DIMENSLICE) {
-						// dimen_slice
-						isdimen = true;
-						newnode->addchild(new ParseNode(*dimen_slice.child[sliceid]));
-						sprintf(codegen_buf, "%s, %s"
-							/* from, to */
-							, dimen_slice.child[sliceid]->child[0]->fs.CurrentTerm.what.c_str()
-							, dimen_slice.child[sliceid]->child[1]->fs.CurrentTerm.what.c_str());
-					}
-					else {
-						// exp
-						isdimen = false;
-						newnode->addchild(new ParseNode(*dimen_slice.child[sliceid]));
-						sprintf(codegen_buf, "%s", dimen_slice.child[sliceid]->fs.CurrentTerm.what.c_str());
-					}
-					dimen_slice.fs.CurrentTerm.what += codegen_buf;
-				}
-				if (isdimen) {
-					//sprintf(codegen_buf, "%s", dimen_slice.fs.CurrentTerm.what.c_str());
-					sprintf(codegen_buf, "%%s.slice(%s)", dimen_slice.fs.CurrentTerm.what.c_str());
-					newnode->fs.CurrentTerm = Term{ TokenMeta::NT_ARGTABLE_DIMENSLICE, string(codegen_buf) };
-				}
-				else {
-					//sprintf(codegen_buf, "%%s(%s)", dimen_slice.fs.CurrentTerm.what.c_str());
-					sprintf(codegen_buf, "%s", dimen_slice.fs.CurrentTerm.what.c_str());
-					newnode->fs.CurrentTerm = Term{ TokenMeta::NT_ARGTABLE_PURE, string(codegen_buf) };
-				}
-#endif // !LAZY_GEN
-				$$ = *newnode;
+				$$ = gen_argtable($1);
 				update_pos($$);
 			}
 		|
 			{
 				// TODO : argtable can also be empty
-				ParseNode * newnode = new ParseNode();
-#ifndef LAZY_GEN
-				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_ARGTABLE_PURE, "" };
-#endif // !LAZY_GEN
-				$$ = *newnode;
+				$$ = gen_token(Term{ TokenMeta::NT_ARGTABLE_PURE, "" });
 				update_pos($$);
 			}
 
@@ -1238,7 +1179,7 @@ using namespace std;
 			{
 				ParseNode * newnode = new ParseNode();
 				newnode->addchild(new ParseNode($4)); //suite
-				sprintf(codegen_buf, "int main()\n{%s\treturn 0;\n}", tabber($4.fs.CurrentTerm.what).c_str());
+				sprintf(codegen_buf, "int main()\n{\n%s\treturn 0;\n}", tabber($4.fs.CurrentTerm.what).c_str());
 				newnode->fs.CurrentTerm = Term{ TokenMeta::META_NONTERMINAL, string(codegen_buf) };
 				$$ = *newnode;
 			}
@@ -1297,18 +1238,6 @@ void yyerror(const char* s)
 {
 	// fprintf(stderr, "%s", s);
 	print_error(string(s), yylval);
-}
-
-string tabber(string & src) {
-	string newline;
-	string ans = "";
-	std::istringstream f(src);
-	while (getline(f, newline) ) {
-		ans += '\t';
-		ans += newline;
-		ans += '\n';
-	}
-	return ans;
 }
 
 void update_pos(YYSTYPE & current_node) {

@@ -183,7 +183,7 @@ ParseNode gen_function(const ParseNode & variable_function, const ParseNode & pa
 														 // return value
 	newnode.addchild(new ParseNode(suite)); // trimed suite
 
-	sprintf(codegen_buf, "%s %s(%s)\n{%s\treturn %s;\n}"
+	sprintf(codegen_buf, "%s %s(%s)\n{\n%s\treturn %s;\n}"
 		, get<1>(param_name_typename[param_name_typename.size() - 1]).c_str() // return value type, "void" if subroutine
 		, variable_function.fs.CurrentTerm.what.c_str() // function name
 		, argtblstr.c_str() // argtable

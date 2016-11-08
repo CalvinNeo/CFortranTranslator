@@ -106,9 +106,10 @@ refer to [/grammar/for90.y](/grammar/for90.y) for all accepted grammar
 ## code generate
 when using immediate code generate(or using lazy gen), upper level non-terminal can channge generated codes by low level non-terminal, so `gen_` functions pass `ParseNode &` other than `const ParseNode &`:
 
-1. function_decl change suite(function body)
-2. all suite will be changed(`tabber` function)
-3. ~~dimen_slice will expand size == 1 slice to 2~~
+1. `function_decl` change `suite`(function body)
+2. all `suite` will be changed(`tabber` function)
+3. ~~`dimen_slice` will append 1 child to the end of size == 1 slice~~
+4. argtable will change `CurrentTerm.what` of `dimen_slice`
 
 child ParseNode may also be referred when generating upper level ParseNode, so do not change child index of:
 1. NT_VARIABLEINITIAL: referred by function_decl
@@ -124,8 +125,12 @@ all parse tree nodes are defined in [/Intent.h](/Intent.h) with an `NT_` prefix
 4. child
 
 ### rules explanation
-#### callable_head
-both type and function name are callable, so `type_nospec` and `variable` is `callable_head`
+#### callable_head, argtable, dimen_slice
+- `callable_head` and `argtable` are two parts of a function call
+- both type and function name are callable name, so both `type_nospec` and `variable` are `callable_head`
+- `argtable` **is reduced directly from** `dimen_slice`, because there is unable to differentiate them in for90 grammar, however this "rename strategy" do **NOT** mean `argtable` **is** `dimen_slice`. in `gen_argtable` function a `argtable` generate a `NT_ARGTABLE_PURE` node, and a `dimen_slice` generate a `NT_ARGTABLE_DIMENSLICE` node
+- `dimen_slice` is set of `slice`.
+
 #### type_spec, type_nospec
 you can use `REAL(x)` to get the float copy of x, however, you can also use `REAL(kind = 8)` to specify a floating number which is same to `long double` rather than `double`, so it may cause conflict. so a `type_nospec` is like `INTEGER` and a `type_spec` is like `INTEGER(kind = 4)`, `type_nospec` is `callable_head`, `type_spec` is not.
 

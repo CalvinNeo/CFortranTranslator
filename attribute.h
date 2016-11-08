@@ -48,8 +48,8 @@ struct ParseAttr {
 	ParseAttr(ParseNode * parsenode) : parsenode(parsenode) {}
 	ParseAttr(const ParseAttr & pa) = default;
 	virtual ParseAttr * clone() = 0; /* use clone because copy-constructor can not be virtual */
+	// virtual ParseAttr * merge() = 0;
 
-	//virtual void parse() = 0; // parse according to parsenode
 };
 
 struct TypeAttr : public ParseAttr {
@@ -60,7 +60,7 @@ struct TypeAttr : public ParseAttr {
 		// do not call `clone()` else will cause stackoverflow
 	}
 	ParseAttr * clone() { return new TypeAttr(*this); }
-
+	// void merge(const VariableDescAttr & pa) {  }
 };
 
 struct VariableAttr : public ParseAttr {
