@@ -169,11 +169,8 @@ using namespace std;
 				$$ = *newnode;
 				update_pos($$);
 			}
-		| YY_LEN '=' exp
-			{
-				// do nothing because we use std::string
-			}
-		| YY_KIND '=' YY_INTEGER
+
+	typecast_spec : YY_KIND '=' YY_INTEGER
 			{
 				int kind;
 				sscanf($3.fs.CurrentTerm.what.c_str(), "%d", &kind);
@@ -183,6 +180,10 @@ using namespace std;
 				dynamic_cast<VariableDescAttr *>(newnode->attr)->desc.kind = kind;
 				$$ = *newnode;
 				update_pos($$);
+			}
+		| YY_LEN '=' exp
+			{
+				// do nothing because we use std::string
 			}
 				
 	variable_desc : ',' variable_desc_elem
@@ -216,35 +217,6 @@ using namespace std;
 				update_pos($$);
 			}
 
-	dummy_variable_spec : variable_desc_elem
-			{
-				ParseNode * newnode = new ParseNode($1);
-				$$ = $1;
-				update_pos($$);
-			}
-		| variable_desc_elem dummy_variable_spec
-			{				
-				ParseNode * newnode = new ParseNode();
-				ParseNode * variable_iden = & $2;
-				/* target code of slice depend on context */
-				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_VARIABLEDESC, "NT_VARIABLEDESC" };
-				/* merge attrs */
-				newnode->attr = $1.attr->clone();
-				VariableDescAttr * new_a = dynamic_cast<VariableDescAttr *>(newnode->attr);
-				VariableDescAttr * var_a = dynamic_cast<VariableDescAttr *>(variable_iden->attr);
-				new_a->merge(*var_a);
-				// TODO do not add child
-				$$ = *newnode;
-				update_pos($$);
-			}
-		|
-			{
-				ParseNode * newnode = new ParseNode();
-				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_VARIABLEDESC, "NT_VARIABLEDESC" }; 
-				newnode->attr = new VariableDescAttr(newnode);
-				$$ = *newnode;
-				update_pos($$);
-			}
 
 	literal : YY_FLOAT
 			{
@@ -304,7 +276,7 @@ using namespace std;
 				string x = $1.fs.CurrentTerm.what;
 				$$ = $1;
 			}
-		| type_spec
+		| type_nospec
 			{
 				/* array index and function name and type cast */
 				string x = $1.fs.CurrentTerm.what;
@@ -829,83 +801,71 @@ using namespace std;
 				$$ = gen_read(io_info, argtable);
 				update_pos($$);
 			}
-				
-	_type_kind : '(' dummy_variable_spec ')'
+
+	type_nospec : YY_INTEGER_T 
 			{
-				$$ = $2;
+				$$ = gen_type($1);
 				update_pos($$);
 			}
-		| 
+        | YY_FLOAT_T 
 			{
-				ParseNode * newnode = new ParseNode();
-				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_VARIABLEDESC, "NT_VARIABLEDESC" };
-				newnode->attr = new VariableDescAttr(newnode);
-				$$ = *newnode;
+				$$ = gen_type($1);
+				update_pos($$);
+			}
+        | YY_STRING_T 
+			{
+				$$ = gen_type($1);
+				update_pos($$);
+			}
+        | YY_COMPLEX_T 
+			{
+				$$ = gen_type($1);
+				update_pos($$);
+			}
+        | YY_BOOL_T 
+			{
+				$$ = gen_type($1);
+				update_pos($$);
+			}
+        | YY_CHARACTER_T 
+			{
+				$$ = gen_type($1);
 				update_pos($$);
 			}
 
-    type_spec : YY_INTEGER_T _type_kind
+    type_spec : YY_INTEGER_T '(' typecast_spec ')'
 			{
 				// now translated in pre_map
 				//$1.fs.CurrentTerm.what = typename_map.at($1.fs.CurrentTerm.what);
-				$$ = $1;
-				ParseNode * newnode = &$$;
-				newnode->attr = $2.attr->clone();
-				VariableDescAttr * new_a = dynamic_cast<VariableDescAttr *>(newnode->attr);
-				VariableDescAttr * var_a = dynamic_cast<VariableDescAttr *>($2.attr);
-				new_a->merge(*var_a);
+				$$ = gen_type($1, $3);
 				update_pos($$);
 			}
-        | YY_FLOAT_T _type_kind
+        | YY_FLOAT_T '(' typecast_spec ')'
 			{
-				$$ = $1;
-				ParseNode * newnode = &$$;
-				newnode->attr = $2.attr->clone();
-				VariableDescAttr * new_a = dynamic_cast<VariableDescAttr *>(newnode->attr);
-				VariableDescAttr * var_a = dynamic_cast<VariableDescAttr *>($2.attr);
-				new_a->merge(*var_a);
+				$$ = gen_type($1, $3);
 				update_pos($$);
 			}
-        | YY_STRING_T _type_kind
+        | YY_STRING_T '(' typecast_spec ')'
 			{
-				$$ = $1;
-				ParseNode * newnode = &$$;
-				newnode->attr = $2.attr->clone();
-				VariableDescAttr * new_a = dynamic_cast<VariableDescAttr *>(newnode->attr);
-				VariableDescAttr * var_a = dynamic_cast<VariableDescAttr *>($2.attr);
-				new_a->merge(*var_a);
+				$$ = gen_type($1, $3);
 				update_pos($$);
 			}
-        | YY_COMPLEX_T _type_kind
+        | YY_COMPLEX_T '(' typecast_spec ')'
 			{
-				$$ = $1;
-				ParseNode * newnode = &$$;
-				newnode->attr = $2.attr->clone();
-				VariableDescAttr * new_a = dynamic_cast<VariableDescAttr *>(newnode->attr);
-				VariableDescAttr * var_a = dynamic_cast<VariableDescAttr *>($2.attr);
-				new_a->merge(*var_a);
+				$$ = gen_type($1, $3);
 				update_pos($$);
 			}
-        | YY_BOOL_T _type_kind
+        | YY_BOOL_T '(' typecast_spec ')'
 			{
-				$$ = $1;
-				ParseNode * newnode = &$$;
-				newnode->attr = $2.attr->clone();
-				VariableDescAttr * new_a = dynamic_cast<VariableDescAttr *>(newnode->attr);
-				VariableDescAttr * var_a = dynamic_cast<VariableDescAttr *>($2.attr);
-				new_a->merge(*var_a);
+				$$ = gen_type($1, $3);
 				update_pos($$);
 			}
-        | YY_CHARACTER_T _type_kind
+        | YY_CHARACTER_T '(' typecast_spec ')'
 			{
-				$$ = $1;
-				ParseNode * newnode = &$$;
-				newnode->attr = $2.attr->clone();
-				VariableDescAttr * new_a = dynamic_cast<VariableDescAttr *>(newnode->attr);
-				VariableDescAttr * var_a = dynamic_cast<VariableDescAttr *>($2.attr);
-				new_a->merge(*var_a);
+				$$ = gen_type($1, $3);
 				update_pos($$);
 			}
+		| type_nospec
 
 
     var_def : type_spec variable_desc YY_DOUBLECOLON paramtable

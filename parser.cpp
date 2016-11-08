@@ -21,7 +21,7 @@ ParseNode::ParseNode(const ParseNode & pn)
 { 
 	this->fs = pn.fs;
 	this->father = pn.father;
-	this->attr = pn.attr == nullptr ? nullptr: pn.attr->clone();
+	this->attr = (pn.attr == nullptr ? nullptr: pn.attr->clone());
 	for (int i = 0; i < pn.child.size(); i++)
 	{
 		this->addchild( new ParseNode(*pn.child[i]) );
@@ -42,7 +42,7 @@ ParseNode & ParseNode::operator= (const ParseNode & pn) {
 
 		this->fs = pn.fs;
 		this->father = pn.father;
-		this->attr = pn.attr == nullptr ? nullptr : pn.attr->clone();
+		this->attr = (pn.attr == nullptr ? nullptr : pn.attr->clone());
 		for (int i = 0; i < pn.child.size(); i++)
 		{
 			this->addchild( new ParseNode(*pn.child[i]) );

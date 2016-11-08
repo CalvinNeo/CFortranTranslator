@@ -42,3 +42,6 @@ ParseNode gen_keyvalue(const ParseNode & variable);
 ParseNode gen_keyvalue_from_exp(const ParseNode & variable, const ParseNode & initial);
 ParseNode gen_keyvalue_from_arraybuilder(const ParseNode & variable, const ParseNode & initial);
 ParseNode gen_paramtable(const ParseNode & keyvalue);
+
+ParseNode gen_type(const ParseNode & type, const ParseNode & _type_kind);
+ParseNode gen_type(const ParseNode & type);

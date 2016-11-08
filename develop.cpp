@@ -73,13 +73,15 @@ void debug() {
 	global_code = "recursive function main(A,B) result(C) \n integer::a , b , c \n a = empty() \n end function";
 	global_code = "recursive function main(A,B) result(C) \n integer::a, b, c\n a = abs(ahhhhh(c)) \n end function"; /* '(' exp ')' 和 callable_head归约冲突 */ /* IMPORTANT */
 	global_code = "recursive function main(A,B) result(C) \n integer::a, b, c\n a = abs(real(c)) \n end function"; /* _type_kind 和 type cast function call 冲突 */ /* IMPORTANT */
+	/* 和以上对比，给出冲突的另一边 */
+	global_code = "program \n integer(kind = 4)::a, b \n end program"; 
 
 	// array
 	global_code = "program integer,intent(out),dimension(5:7)::A=(/1, 2/) \n  end program"; // intent
 	
 	global_code = "program integer,dimension(5:7)::A=(/1, 2/) \n  end program";
 	global_code = "program integer,dimension(5:7, 6:8, 7:9)::A=(/1, 2, 3, 4, 5, 6/) \n  end program";
-	global_code = "program integer,dimension(5:7, 6:8)::A \n A(1:2, :) \n  end program"; // error
+	global_code = "program integer,dimension(5:7, 6:8)::A \n A(1:2, :) \n  end program"; // error, ok now
 
 	global_code = "program integer,dimension(5:7)::A=(/ int(i) + 1, i=1,4/) \n  end program";
 	global_code = "program integer,dimension(2, 3)::A=(/ (int(i) + 1, i=1,4) , j = 2, 3 /) \n  end program"; // not support
@@ -96,7 +98,8 @@ void debug() {
 	// paste here
 	global_code = "program integer,intent(out),dimension(5:7)::A=(/1, 2/) \n  end program"; // intent
 
-	global_code = "program integer,dimension(5:7, 6:8)::A \n A(1:2, :) \n  end program"; // error
+	global_code = "recursive function main(A,B) result(C) \n integer::a, b, c\n a = abs(real(c)) \n end function"; /* _type_kind 和 type cast function call 冲突 */ /* IMPORTANT */
+	// global_code = "program \n integer(kind = 4)::a, b \n end program";
 
 
 

@@ -1,6 +1,7 @@
 # CFortranTranslator
 A translator between C++ and Fortran90.
 
+# Usage
 ## Install
 My Configuration:
 
@@ -9,13 +10,7 @@ My Configuration:
 3. win_bison(win_flex_bison 2.4.5, bison 2.7)
 4. boost(1.60)
 
-## Debug
-### Configurations
-1. the **Debug** mode accept command line arguments `argv[]` which is set to default values in VS project configurations
-2. the **Develop** mode invoke the function `void debug()` which is defined in [develop.cpp](/develop.cpp)
-3. the **Release** is same as the **Debug** mode except for default values which is not set
-
-## grammar restrictions and translate rules
+## translation results and restrictions
 refer to [/grammar/for90.y](/grammar/for90.y) for all accepted grammar
 ### unsupported keywords
 
@@ -44,7 +39,7 @@ refer to [/grammar/for90.y](/grammar/for90.y) for all accepted grammar
 #### array
 1. `DIMENSION(a:b)` -> `forarray<T>(a, b + 1)`
 2. forarray default lower bound is **1**, which is different from cpp
-3. fortran use a 1d list to initialize a 2d(or higher) array, however, contrary to c++ and most other language does, it store them in a **conlumn-first order**. for a 2d array, it means you a order of a(1)(1) -> a(2)(1) -> a(lb_1)(1) -> a(1)(2) . you can `#undef USE_FORARRAY` to use c-style array .for details refer to array_builder rule in [/grammar/for90.y](/grammar/for90.y)
+3. fortran use a 1d list to initialize a 2d(or higher) array, however, contrary to c++ and most other language does, it store them in a **conlumn-first order**. for a 2d array, it means you a order of a(1)(1) -> a(2)(1) -> a(1)(2) -> a(1)(2) . you can `#undef USE_FORARRAY` to use c-style array .for details refer to array_builder rule in [/grammar/for90.y](/grammar/for90.y)
 
 ### variables
 1. all variables must be **explicitly** declared
@@ -55,8 +50,8 @@ refer to [/grammar/for90.y](/grammar/for90.y) for all accepted grammar
 2. remove all interface
 3. intent(out) variables will translate to `T & variable`
 
-#### inherit function mapping
-##### type cast
+### inherit function mapping
+#### type cast
 |for90|c++|
 |:-:|:-:|
 |INTEGER()|to_int|
@@ -65,30 +60,38 @@ refer to [/grammar/for90.y](/grammar/for90.y) for all accepted grammar
 |COMPLEX()|to_int|
 |CHARACTER()|forcomplex(constructor)|
 
-##### mathematical
+#### mathematical
 |for90|c++|
 |:-:|:-:|
 |min|min_n|
 |max|max_n|
 
-##### file
+#### file
 |for90|c++|
 |:-:|:-:|
 
-##### array
+#### array
 |for90|c++|
 |:-:|:-:|
 |reshape|not implemented yet|
 |spread|not implemented yet|
 |transpose|not implemented yet|
 
-### IO
+### IO function mapping
 |for90|c++|
 |:-:|:-:|
 |*|cin/cout|
 |(*,*)|cin/cout|
 |(*,formatter)|scanf/printf|
 |(device_id,formatter)|not implemented yet|
+
+# Develop
+
+## Debug
+### Configurations
+1. the **Debug** mode accept command line arguments `argv[]` which is set to default values in VS project configurations
+2. the **Develop** mode invoke the function `void debug()` which is defined in [develop.cpp](/develop.cpp)
+3. the **Release** is same as the **Debug** mode except for default values which is not set
 
 ## extend grammar
 1. declare new %token in [/grammar/for90.y](/grammar/for90.y)
@@ -112,13 +115,19 @@ child ParseNode may also be referred when generating upper level ParseNode, so d
 
 ## Parse Tree
 all parse tree nodes are defined in [/Intent.h](/Intent.h) with an `NT_` prefix
-### ParseNode
+### struct ParseNode
 1. father: parent node
 2. fs:
 	* fs.CurrentTerm.what: direct-gen code
 	* fs.CurrentTerm.token: refer [/Intent.h](/Intent.h)
 3. attr
 4. child
+
+### rules explanation
+#### callable_head
+both type and function name are callable, so `type_nospec` and `variable` is `callable_head`
+#### type_spec, type_nospec
+you can use `REAL(x)` to get the float copy of x, however, you can also use `REAL(kind = 8)` to specify a floating number which is same to `long double` rather than `double`, so it may cause conflict. so a `type_nospec` is like `INTEGER` and a `type_spec` is like `INTEGER(kind = 4)`, `type_nospec` is `callable_head`, `type_spec` is not.
 
 ### Parse Tree Layers
 
@@ -140,11 +149,23 @@ all parse tree nodes are defined in [/Intent.h](/Intent.h) with an `NT_` prefix
 | stmt | NT_STATEMENT | exp / var_def / compound_stmt / output_stmt / input_stmt / dummy_stmt / let_stmt / jump_stmt / interface_decl |
 | | NT_ARRAYBUILDER | NT_ARRAYBUILDER_VALUE + |
 | | NT_ARRAYBUILDER_VALUE | argtable / NT_ARRAYBUILDER_EXP / exp |
-| callable_head |  | variable / type_spec |
+| callable_head |  | variable / type_nospec |
+| type_spec |  | type_nospec / (type_nospec, typecast_spec) |
 
 ### Attributes
-`->` means `ParseAttr` attached to
+`->` means `ParseAttr` attached to：
 - VariableDesc -> NT_DECLAREDVARIABLE
+
+#### VariableDesc
+| item | rule |
+|:-:|:-:|
+| kind | typecast_spec |
+| len | typecast_spec |
+| dimension | variable_desc_elem |
+| intent | variable_desc_elem |
+| optional | variable_desc_elem |
+| parameter | variable_desc_elem |
+
 
 ## todolist(features)
 - lazygen(partial)
@@ -172,6 +193,7 @@ all parse tree nodes are defined in [/Intent.h](/Intent.h) with an `NT_` prefix
 - ~~error infomation include Intent name~~
 - allow named blocks
 - support function pointers, Parse `Interface` for function pointer
+- hidden do
 
 ## todolist(bugfix)
 - ~~if slice can be a scalar x and equal to (1: x + 1), there will be conflict in argtable~~
@@ -184,4 +206,4 @@ all parse tree nodes are defined in [/Intent.h](/Intent.h) with an `NT_` prefix
 - ~~handle error when can't find declaration of the variable listed in function paramtable~~
 - handle with empty line
 - ~~split keyvalue rules from paramtable rules, may cause bugs~~
-- _type_kind rules and type cast function call conflict
+- ~~_type_kind rules and type cast function call conflict~~
