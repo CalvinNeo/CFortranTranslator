@@ -24,6 +24,8 @@
 
 # Executables
 *.exe
+!win_bison.exe
+!win_flex.exe
 *.out
 *.app
 

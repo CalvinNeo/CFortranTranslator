@@ -112,6 +112,7 @@ when using immediate code generate(or using lazy gen), upper level non-terminal 
 4. argtable will change `CurrentTerm.what` of `dimen_slice`
 
 child ParseNode may also be referred when generating upper level ParseNode, so do not change child index of:
+
 1. NT_VARIABLEINITIAL: referred by function_decl
 
 ## Parse Tree
@@ -133,6 +134,10 @@ all parse tree nodes are defined in [/Intent.h](/Intent.h) with an `NT_` prefix
 
 #### type_spec, type_nospec
 you can use `REAL(x)` to get the float copy of x, however, you can also use `REAL(kind = 8)` to specify a floating number which is same to `long double` rather than `double`, so it may cause conflict. so a `type_nospec` is like `INTEGER` and a `type_spec` is like `INTEGER(kind = 4)`, `type_nospec` is `callable_head`, `type_spec` is not.
+
+#### stmt, suite
+- `stmt` is statement end with ';' or '\n'
+- `suite` is set of `stmt`
 
 ### Parse Tree Layers
 
@@ -199,6 +204,7 @@ you can use `REAL(x)` to get the float copy of x, however, you can also use `REA
 - allow named blocks
 - support function pointers, Parse `Interface` for function pointer
 - hidden do
+- ~~better error location~~
 
 ## todolist(bugfix)
 - ~~if slice can be a scalar x and equal to (1: x + 1), there will be conflict in argtable~~
@@ -207,7 +213,7 @@ you can use `REAL(x)` to get the float copy of x, however, you can also use `REA
 - ~~read statement undefined device~~
 - ~~minus 1 and negative 1 conflict(modify definition in .l)~~
 - either an `interface` or **forward declaraion of return value** is need when calling functions in fortran, so must remove all `interface` and ~~forward declaraion of function return value~~ in generated code in order to avoid repeat definition.
-- error message line info is always 0
+- ~~error message line info is always 0~~
 - ~~handle error when can't find declaration of the variable listed in function paramtable~~
 - handle with empty line
 - ~~split keyvalue rules from paramtable rules, may cause bugs~~

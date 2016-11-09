@@ -551,7 +551,7 @@ bool abandon = false;
 #define YYRTCOMPLEX(TOK) YYRTN(TOK, YY_COMPLEX) 
 // 规则中被定义的终结符, **包括ascii表内的单个字符**
 #define YYRTILLEGAL(TOK) update_yylval( Term{TOK, std::string(yytext)});  	 update_flex(1);	return yytext[0]; 
-#define YYRTCRLF()  update_yylval( Term{TokenMeta::CRLF, std::string(yytext)}); update_flex(yyleng); return YY_CRLF;
+#define YYRTCRLF()  update_yylval( Term{TokenMeta::CRLF, std::string(yytext)}); update_flex(yyleng, true); return YY_CRLF;
 #define YYRTNOP() update_yylval( Term{TokenMeta::Nop, std::string(yytext)},  true);  update_flex(yyleng);
 
 #define RTN(TOK, YYTOK) YYRTN(TOK, YYTOK) 

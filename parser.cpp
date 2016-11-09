@@ -121,18 +121,47 @@ std::string & repalce_all_my(std::string & str, const std::string & old_value, c
 		return str;
 }
 
+std::string compose_marker(std::string cont, int place) {
+	using namespace std;
+	string ret = "\n";
+	int len = cont.size();
+	for (int i = 0; i < len; i++)
+	{
+		if (i >= place - 1) {
+			break;
+		}
+		if (cont[i] == '\t') {
+			ret += "\t";
+		}
+		else if (cont[i] == '\n') {
+			ret += "\\n";
+		}
+		else {
+			ret += " ";
+		}
+	}
+	ret += "^\n";
+	return ret;
+}
+
 void print_error(const std::string & error_info, const ParseNode & yylval) {
 	using namespace std;
 	printf("\nError : %s\n", error_info.c_str());
-	printf("line %d from %d len %d, current token is %s(id = %d) : %s \n"
-		, get_flex_state().parse_line, get_flex_state().parse_pos, get_flex_state().parse_len, get_intent_name(yylval.fs.CurrentTerm.token).c_str(), yylval.fs.CurrentTerm.token, yylval.fs.CurrentTerm.what.c_str());
+	printf("(%d:%d, index = %d, len = %d), current token is %s(id = %d) : \"%s\" \n"
+		, get_flex_state().parse_line + 1, get_flex_state().line_pos, get_flex_state().parse_pos, get_flex_state().parse_len
+		, get_intent_name(yylval.fs.CurrentTerm.token).c_str(), yylval.fs.CurrentTerm.token, yylval.fs.CurrentTerm.what.c_str());
 	char buf[255];
-	sprintf(buf, "context : %s ^ %s"
-		, global_code.substr(max(0, get_flex_state().parse_pos - 10), 10).c_str()
-		, global_code.substr(get_flex_state().parse_pos, 10).c_str());
+	const int length = 20;
+	int left = max(0, get_flex_state().parse_pos - length);
+	int left_length = get_flex_state().parse_pos - left;
+	int right = min((int)global_code.size(), get_flex_state().parse_pos + length);
+	int right_length = right - get_flex_state().parse_pos;
+	sprintf(buf, "%s", global_code.substr(left, left_length + right_length).c_str());
 	string cont = string(buf);
+	string marker = compose_marker(cont, left_length);
 	replace_all_distinct(cont, "\n", "\\n");
-	printf("%s\n", cont.c_str());
+	cont += marker;
+	printf("%s", cont.c_str());
 }
 
 void print_error(const std::string & error_info) {

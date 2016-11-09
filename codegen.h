@@ -48,3 +48,6 @@ ParseNode gen_type(const ParseNode & type, const ParseNode & _type_kind);
 ParseNode gen_type(const ParseNode & type);
 
 ParseNode gen_argtable(ParseNode & dimen_slice);
+
+ParseNode gen_stmt(const ParseNode & content);
+ParseNode gen_stmt(const ParseNode & content, const std::string & rules);

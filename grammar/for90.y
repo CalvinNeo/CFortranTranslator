@@ -54,17 +54,14 @@ using namespace std;
 	crlf : YY_CRLF
 			{
 				$$.fs.CurrentTerm = Term{ TokenMeta::CRLF, "\n" };
-				update_pos($$);
 			}
 		| ';'
 			{
 				$$.fs.CurrentTerm = Term{ TokenMeta::Semicolon, ";" };
-				update_pos($$);
 			}
 		|
 			{
 				$$.fs.CurrentTerm = Term{ TokenMeta::Nop, "" };
-				update_pos($$);
 			}
 
 	dummy_function_iden : YY_RECURSIVE
@@ -79,7 +76,7 @@ using namespace std;
 				dynamic_cast<VariableDescAttr *>(newnode->attr)->desc.reference = true;
 				dynamic_cast<VariableDescAttr *>(newnode->attr)->desc.constant = true;
 				$$ = *newnode;
-				update_pos($$);
+				update_pos($$, $1, $4);
 			}
 		| YY_INTENT '(' YY_OUT ')'
 			{
@@ -89,7 +86,7 @@ using namespace std;
 				dynamic_cast<VariableDescAttr *>(newnode->attr)->desc.reference = true;
 				dynamic_cast<VariableDescAttr *>(newnode->attr)->desc.constant = false;
 				$$ = *newnode;
-				update_pos($$);
+				update_pos($$, $1, $4);
 			}
 
 		| YY_INTENT '(' YY_INOUT ')'
@@ -100,7 +97,7 @@ using namespace std;
 				dynamic_cast<VariableDescAttr *>(newnode->attr)->desc.reference = true;
 				dynamic_cast<VariableDescAttr *>(newnode->attr)->desc.constant = false;
 				$$ = *newnode;
-				update_pos($$);
+				update_pos($$, $1, $4);
 			}
 		| YY_DIMENSION '(' dimen_slice ')'
 			{
@@ -122,7 +119,7 @@ using namespace std;
 				newnode->attr = new VariableDescAttr(newnode);
 				dynamic_cast<VariableDescAttr *>(newnode->attr)->desc.slice = dimen;
 				$$ = *newnode;
-				update_pos($$);
+				update_pos($$, $1, $4);
 			}
 		| YY_DIMENSION '(' exp ')'
 			{
@@ -148,7 +145,7 @@ using namespace std;
 				newnode->attr = new VariableDescAttr(newnode);
 				dynamic_cast<VariableDescAttr *>(newnode->attr)->desc.slice = dimen;
 				$$ = *newnode;
-				update_pos($$);
+				update_pos($$, $1, $4);
 			}
 		| YY_OPTIONAL
 			{
@@ -157,7 +154,7 @@ using namespace std;
 				newnode->attr = new VariableDescAttr(newnode);
 				dynamic_cast<VariableDescAttr *>(newnode->attr)->desc.optional = true;
 				$$ = *newnode;
-				update_pos($$);
+				update_pos($$, $1, $1);
 			}
 		| YY_PARAMETER
 			{
@@ -167,7 +164,7 @@ using namespace std;
 				newnode->attr = new VariableDescAttr(newnode);
 				dynamic_cast<VariableDescAttr *>(newnode->attr)->desc.constant = true;
 				$$ = *newnode;
-				update_pos($$);
+				update_pos($$, $1, $1);
 			}
 
 	typecast_spec : YY_KIND '=' YY_INTEGER
@@ -179,18 +176,19 @@ using namespace std;
 				newnode->attr = new VariableDescAttr(newnode);
 				dynamic_cast<VariableDescAttr *>(newnode->attr)->desc.kind = kind;
 				$$ = *newnode;
-				update_pos($$);
+				update_pos($$, $1, $3);
 			}
 		| YY_LEN '=' exp
 			{
 				// do nothing because we use std::string
+				update_pos($$, $1, $3);
 			}
 				
 	variable_desc : ',' variable_desc_elem
 			{
 				ParseNode * newnode = new ParseNode($1);
 				$$ = $2;
-				update_pos($$);
+				update_pos($$, $1, $2);
 			}
 		| ',' variable_desc_elem variable_desc
 			{
@@ -203,7 +201,7 @@ using namespace std;
 				(dynamic_cast<VariableDescAttr *>(newnode.attr))->merge(*dynamic_cast<VariableDescAttr *>(variable_iden->attr));
 				// TODO do not add child
 				$$ = newnode;
-				update_pos($$);
+				update_pos($$, $1, $3);
 			}
 		|
 			{
@@ -249,9 +247,9 @@ using namespace std;
 
 	variable : YY_WORD
 			{
-				ParseNode * newnode = new ParseNode();
-				newnode->fs.CurrentTerm = Term{ TokenMeta::UnknownVariant, $1.fs.CurrentTerm.what }; // variant
-				$$ = *newnode;
+				ParseNode newnode = ParseNode(gen_flex(Term{ TokenMeta::UnknownVariant, $1.fs.CurrentTerm.what }), nullptr);// variant
+				$$ = newnode;
+				update_pos($$, $1, $1);
 			}
 
 	callable_head : variable 
@@ -274,7 +272,7 @@ using namespace std;
 				ParseNode & exp2 = $3;
 				/* target code of slice depend on context */
 				$$ = gen_slice(exp1, exp2);
-				update_pos($$);
+				update_pos($$, $1, $3);
 			}
 		| exp ':' exp ':' exp
 			{
@@ -284,7 +282,7 @@ using namespace std;
 				ParseNode & exp3 = $5;
 				/* target code of slice depend on context */
 				$$ = gen_slice(exp1, exp2, exp3);
-				update_pos($$);
+				update_pos($$, $1, $5);
 			}
 		| ':'
 			{
@@ -293,7 +291,7 @@ using namespace std;
 				ParseNode & ub = gen_exp(gen_token(Term{ TokenMeta::META_INTEGER, "-1" }));
 				/* target code of slice depend on context */
 				$$ = gen_slice(lb, ub);
-				update_pos($$);
+				update_pos($$, $1, $1);
 			}
 
 	dimen_slice : slice 
@@ -304,7 +302,7 @@ using namespace std;
 				ParseNode & slice = $1;
 				// only 1 slice
 				$$ = gen_dimenslice_from_slice(slice);
-				update_pos($$);
+				update_pos($$, $1, $1);
 			}
 		| slice ',' dimen_slice
 			{
@@ -315,14 +313,14 @@ using namespace std;
 				ParseNode & dimen_slice = $3;
 				// gen_dimenslice(slice, dimen_slice);
 				$$ = gen_flattern(slice, dimen_slice, "%s, %s", TokenMeta::NT_DIMENSLICE);
-				update_pos($$);
+				update_pos($$, $1, $3);
 			}
 		| exp
 			{
 				/* argtable is used in function call */
 				ParseNode & exp = $1;
 				$$ = gen_argtable_from_exp(exp);
-				update_pos($$);
+				update_pos($$, $1, $1);
 			}
         | exp ',' argtable
 			{
@@ -330,7 +328,7 @@ using namespace std;
 				ParseNode & argtable = $3;
 				// gen_argtable(exp, argtable);
 				$$ = gen_flattern(exp, argtable, "%s, %s", TokenMeta::NT_ARGTABLE);
-				update_pos($$);
+				update_pos($$, $1, $3);
 			}
 				
 	function_array_body : callable_head '(' argtable ')'
@@ -340,7 +338,7 @@ using namespace std;
 				ParseNode & callable_head = $1;
 				ParseNode & argtable = $3;
 				$$ = gen_function_array(callable_head, argtable);
-				update_pos($$);
+				update_pos($$, $1, $4);
 			}
 
 	function_array : function_array_body
@@ -357,7 +355,7 @@ using namespace std;
 				/* function call OR array index */
 				ParseNode & function_array = $1;
 				$$ = gen_exp(function_array);
-				update_pos($$);
+				update_pos($$, $1, $1);
 			}
 
 		| '(' exp ')' 
@@ -366,7 +364,7 @@ using namespace std;
 				ParseNode & exp = $2;
 				ParseNode op = gen_token(Term{ TokenMeta::LB, "(" });
 				$$ = gen_exp(exp, op, "( %s )");
-				update_pos($$);
+				update_pos($$, $1, $3);
 			}
 		| exp '+' exp 
 			{
@@ -374,7 +372,7 @@ using namespace std;
 				ParseNode & op = $2;
 				ParseNode & exp2 = $3;
 				$$ = gen_exp(exp1, op, exp2, "%s + %s");
-				update_pos($$);
+				update_pos($$, $1, $3);
 			}
 		| exp '-' exp 
 			{
@@ -382,7 +380,7 @@ using namespace std;
 				ParseNode & op = $2;
 				ParseNode & exp2 = $3;
 				$$ = gen_exp(exp1, op, exp2, "%s - %s");
-				update_pos($$);
+				update_pos($$, $1, $3);
 			}
 		| exp '*' exp 
 			{
@@ -390,7 +388,7 @@ using namespace std;
 				ParseNode & op = $2;
 				ParseNode & exp2 = $3;
 				$$ = gen_exp(exp1, op, exp2, "%s * %s");
-				update_pos($$);
+				update_pos($$, $1, $3);
 			}
 		| exp '/' exp 
 			{
@@ -398,7 +396,7 @@ using namespace std;
 				ParseNode & op = $2;
 				ParseNode & exp2 = $3;
 				$$ = gen_exp(exp1, op, exp2, "%s / %s");
-				update_pos($$);
+				update_pos($$, $1, $3);
 			}
 		| exp YY_POWER exp 
 			{
@@ -406,21 +404,21 @@ using namespace std;
 				ParseNode & op = $2;
 				ParseNode & exp2 = $3;
 				$$ = gen_exp(exp1, op, exp2, "power(%s, %s)");
-				update_pos($$);
+				update_pos($$, $1, $3);
 			}
         | '-' %prec YY_NEG exp 
 			{
 				ParseNode & exp1 = $2;
 				ParseNode & op = $1;
 				$$ = gen_exp(exp1, op,  "(-%s)");
-				update_pos($$);
+				update_pos($$, $1, $2);
 			}
         | '+' %prec YY_NEG exp 
 			{
 				ParseNode & exp1 = $2;
 				ParseNode & op = $1;
 				$$ = gen_exp(exp1, op,  "%s");
-				update_pos($$);
+				update_pos($$, $1, $2);
 			}
 		| exp YY_NEQ exp 
 			{
@@ -428,7 +426,7 @@ using namespace std;
 				ParseNode & op = $2;
 				ParseNode & exp2 = $3;
 				$$ = gen_exp(exp1, op, exp2, "%s != %s");
-				update_pos($$);
+				update_pos($$, $1, $3);
 			}
 		| exp YY_NEQV exp 
 			{
@@ -436,7 +434,7 @@ using namespace std;
 				ParseNode & op = $2;
 				ParseNode & exp2 = $3;
 				$$ = gen_exp(exp1, op, exp2, "%s != %s");
-				update_pos($$);
+				update_pos($$, $1, $3);
 			}
 		| exp YY_EQ exp 
 			{
@@ -444,7 +442,7 @@ using namespace std;
 				ParseNode & op = $2;
 				ParseNode & exp2 = $3;
 				$$ = gen_exp(exp1, op, exp2, "%s == %s");
-				update_pos($$);
+				update_pos($$, $1, $3);
 			}
 		| exp YY_EQV exp 
 			{
@@ -452,7 +450,7 @@ using namespace std;
 				ParseNode & op = $2;
 				ParseNode & exp2 = $3;
 				$$ = gen_exp(exp1, op, exp2, "%s == %s");
-				update_pos($$);
+				update_pos($$, $1, $3);
 			}
 		| exp YY_ANDAND exp 
 			{
@@ -460,7 +458,7 @@ using namespace std;
 				ParseNode & op = $2;
 				ParseNode & exp2 = $3;
 				$$ = gen_exp(exp1, op, exp2, "%s && %s");
-				update_pos($$);
+				update_pos($$, $1, $3);
 			}
 		| exp YY_OROR exp 
 			{
@@ -468,14 +466,14 @@ using namespace std;
 				ParseNode & op = $2;
 				ParseNode & exp2 = $3;
 				$$ = gen_exp(exp1, op, exp2, "%s || %s");
-				update_pos($$);
+				update_pos($$, $1, $3);
 			}
 		| YY_NOT exp 
 			{
 				ParseNode & exp1 = $2;
 				ParseNode & op = $1;
 				$$ = gen_exp(exp1, op, "!(%s)");
-				update_pos($$);
+				update_pos($$, $1, $2);
 			}
 		| exp YY_GT exp 
 			{
@@ -483,7 +481,7 @@ using namespace std;
 				ParseNode & op = $2;
 				ParseNode & exp2 = $3;
 				$$ = gen_exp(exp1, op, exp2, "%s > %s");
-				update_pos($$);
+				update_pos($$, $1, $3);
 			}
 		| exp YY_GE exp 
 			{
@@ -491,7 +489,7 @@ using namespace std;
 				ParseNode & op = $2;
 				ParseNode & exp2 = $3;
 				$$ = gen_exp(exp1, op, exp2, "%s >= %s");
-				update_pos($$);
+				update_pos($$, $1, $3);
 			}
 		| exp YY_LE exp 
 			{
@@ -499,7 +497,7 @@ using namespace std;
 				ParseNode & op = $2;
 				ParseNode & exp2 = $3;
 				$$ = gen_exp(exp1, op, exp2, "%s <= %s");
-				update_pos($$);
+				update_pos($$, $1, $3);
 			}
 		| exp YY_LT exp 
 			{
@@ -507,26 +505,23 @@ using namespace std;
 				ParseNode & op = $2;
 				ParseNode & exp2 = $3;
 				$$ = gen_exp(exp1, op, exp2, "%s < %s");
-				update_pos($$);
+				update_pos($$, $1, $3);
 			}
 		| literal 
             { 
-				// 
-				ParseNode & exp = $1;
 				$$ = $1;
 			}
 		| callable_head
 			{
 				// may cause reduction-reduction conflict when use `variable` instead of `callable_head`
 				// TODO : i am a little strange that `integer::a, b, c` works well because i am afraid that callable_head will reduce to exp from here. however according to LR(1), `::` is not in FOLLOW(exp)
-				ParseNode & exp = $1;
 				$$ = $1;
 			}
 
     argtable : dimen_slice
 			{
 				$$ = gen_argtable($1);
-				update_pos($$);
+				update_pos($$, $1, $1);
 			}
 		|
 			{
@@ -546,27 +541,14 @@ using namespace std;
 					但是考虑到在cpp等语言中可能出现使用,分隔多个语句的情况(这种情况是有作用的, 表明编译器可以按照自己的顺序求值)
 					所以单独建立stmt节点兵添加$1位stmt节点的唯一的儿子
 				*/
-				ParseNode * newnode = new ParseNode();
-				ParseNode & exp = $1;
-				//(crlf.fs.CurrentTerm.token == TokenMeta::CRLF ? ";" : "")
-				sprintf(codegen_buf, "%s ;", exp.fs.CurrentTerm.what.c_str());
-				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_STATEMENT, string(codegen_buf) };
-				newnode->addchild(new ParseNode(exp)); // exp
-				$$ = *newnode;
-				update_pos($$);
+				$$ = gen_stmt($1, "%s ;");
+				update_pos($$, $1, $2);
 			}
 		| var_def _crlf_semicolon
 			{
-				ParseNode * newnode = new ParseNode();
-				ParseNode & var_def = $1;
 				/* 因为var_def本身可能生成多行代码, 因此此处生成代码不应当带分号`;` */
-#ifndef LAZY_GEN
-				sprintf(codegen_buf, "%s ", var_def.fs.CurrentTerm.what.c_str());
-				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_STATEMENT, string(codegen_buf) };
-#endif // !LAZY_GEN
-				newnode->addchild(new ParseNode(var_def)); // var_def
-				$$ = *newnode;
-				update_pos($$);
+				$$ = gen_stmt($1, "%s ");
+				update_pos($$, $1, $2);
 			}
         | compound_stmt
         | output_stmt 
@@ -574,23 +556,13 @@ using namespace std;
 		| dummy_stmt
 		| let_stmt
 			{
-				ParseNode * newnode = new ParseNode();
-				ParseNode & let = $1;
-				sprintf(codegen_buf, "%s ;", let.fs.CurrentTerm.what.c_str());
-				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_STATEMENT, string(codegen_buf) };
-				newnode->addchild(new ParseNode(let)); // let
-				$$ = *newnode;
-				update_pos($$);
+				$$ = gen_stmt($1);
+				update_pos($$, $1, $1);
 			}
 		| jump_stmt
 			{
-				ParseNode * newnode = new ParseNode();
-				ParseNode & jmp = $1;
-				sprintf(codegen_buf, "%s ;", jmp.fs.CurrentTerm.what.c_str());
-				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_STATEMENT, string(codegen_buf) };
-				newnode->addchild(new ParseNode(jmp)); // jmp
-				$$ = *newnode;
-				update_pos($$);
+				$$ = gen_stmt($1);
+				update_pos($$, $1, $1);
 			}
 		| interface_decl
 
@@ -623,7 +595,7 @@ using namespace std;
 				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_STATEMENT, "" };
 				// dummy stmt
 				$$ = *newnode;
-				update_pos($$);
+				update_pos($$, $1, $3);
 			}
 
 	suite : stmt
@@ -634,7 +606,7 @@ using namespace std;
 				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_SUITE, string(codegen_buf) };
 				newnode->addchild(new ParseNode(stmt)); // stmt
 				$$ = *newnode;
-				update_pos($$);
+				update_pos($$, $1, $1);
 			}
 		| stmt suite
 			{
@@ -647,7 +619,7 @@ using namespace std;
 				newnode->addchild(new ParseNode(suite)); // suite
 				newnode = flattern_bin(newnode);
 				$$ = *newnode;
-				update_pos($$);
+				update_pos($$, $1, $2);
 			}
 		|
 			{
@@ -671,24 +643,20 @@ using namespace std;
 	_optional_device : '*'
 			{
 				$$.fs.CurrentTerm = Term{ TokenMeta::META_NONTERMINAL, "" };
-				update_pos($$);
 			}
 		| YY_INTEGER
 			{
 				$$.fs.CurrentTerm = Term{ TokenMeta::META_NONTERMINAL, $1.fs.CurrentTerm.what };
-				update_pos($$);
 			}
 	_optional_formatter : '*'
 			{
 				$$.fs.CurrentTerm = Term{ TokenMeta::NT_AUTOFORMATTER, "" };
-				update_pos($$);
 			}
 		| YY_STRING
 			{
 				// replace `'` with `"`
 				string modified = "\"" + $1.fs.CurrentTerm.what.substr(1, $1.fs.CurrentTerm.what.size() - 2) + "\"";
 				$$.fs.CurrentTerm = Term{ TokenMeta::NT_FORMATTER, modified };
-				update_pos($$);
 			}
 
 	io_info : '(' _optional_device ',' _optional_formatter ')'
@@ -701,7 +669,7 @@ using namespace std;
 				newnode->addchild(new ParseNode(_optional_device)); // _optional_device
 				newnode->addchild(new ParseNode(_optional_formatter)); // _optional_formatter
 				$$ = *newnode;
-				update_pos($$);
+				update_pos($$, $1, $5);
 			}
 		| _optional_formatter _optional_comma
 			{
@@ -714,7 +682,7 @@ using namespace std;
 				newnode->addchild(new ParseNode(_optional_device)); // _optional_device
 				newnode->addchild(new ParseNode(_optional_formatter)); // _optional_formatter
 				$$ = *newnode;
-				update_pos($$);
+				update_pos($$, $1, $2);
 			}
 
 
@@ -723,7 +691,7 @@ using namespace std;
 				ParseNode & io_info = $2;
 				ParseNode & argtable = $3;
 				$$ = gen_write(io_info, argtable);
-				update_pos($$);
+				update_pos($$, $1, $3);
 			}
 
 	print : YY_PRINT io_info argtable 
@@ -731,7 +699,7 @@ using namespace std;
 				ParseNode & io_info = $2;
 				ParseNode & argtable = $3;
 				$$ = gen_print(io_info, argtable);
-				update_pos($$);
+				update_pos($$, $1, $3);
 			}
 
 
@@ -740,38 +708,38 @@ using namespace std;
 				ParseNode & io_info = $2;
 				ParseNode & argtable = $3;
 				$$ = gen_read(io_info, argtable);
-				update_pos($$);
+				update_pos($$, $1, $3);
 			}
 
 	type_nospec : YY_INTEGER_T 
 			{
 				$$ = gen_type($1);
-				update_pos($$);
+				update_pos($$, $1, $1);
 			}
         | YY_FLOAT_T 
 			{
 				$$ = gen_type($1);
-				update_pos($$);
+				update_pos($$, $1, $1);
 			}
         | YY_STRING_T 
 			{
 				$$ = gen_type($1);
-				update_pos($$);
+				update_pos($$, $1, $1);
 			}
         | YY_COMPLEX_T 
 			{
 				$$ = gen_type($1);
-				update_pos($$);
+				update_pos($$, $1, $1);
 			}
         | YY_BOOL_T 
 			{
 				$$ = gen_type($1);
-				update_pos($$);
+				update_pos($$, $1, $1);
 			}
         | YY_CHARACTER_T 
 			{
 				$$ = gen_type($1);
-				update_pos($$);
+				update_pos($$, $1, $1);
 			}
 
     type_spec : YY_INTEGER_T '(' typecast_spec ')'
@@ -779,32 +747,32 @@ using namespace std;
 				// now translated in pre_map
 				//$1.fs.CurrentTerm.what = typename_map.at($1.fs.CurrentTerm.what);
 				$$ = gen_type($1, $3);
-				update_pos($$);
+				update_pos($$, $1, $4);
 			}
         | YY_FLOAT_T '(' typecast_spec ')'
 			{
 				$$ = gen_type($1, $3);
-				update_pos($$);
+				update_pos($$, $1, $4);
 			}
         | YY_STRING_T '(' typecast_spec ')'
 			{
 				$$ = gen_type($1, $3);
-				update_pos($$);
+				update_pos($$, $1, $4);
 			}
         | YY_COMPLEX_T '(' typecast_spec ')'
 			{
 				$$ = gen_type($1, $3);
-				update_pos($$);
+				update_pos($$, $1, $4);
 			}
         | YY_BOOL_T '(' typecast_spec ')'
 			{
 				$$ = gen_type($1, $3);
-				update_pos($$);
+				update_pos($$, $1, $4);
 			}
         | YY_CHARACTER_T '(' typecast_spec ')'
 			{
 				$$ = gen_type($1, $3);
-				update_pos($$);
+				update_pos($$, $1, $4);
 			}
 		| type_nospec
 
@@ -817,7 +785,7 @@ using namespace std;
 				ParseNode & paramtable = $4;
 
 				$$ = gen_vardef(type_spec, variable_desc, paramtable);
-				update_pos($$);
+				update_pos($$, $1, $4);
 			}
 
     keyvalue : variable
@@ -826,14 +794,14 @@ using namespace std;
 				/* this paramtable has only one value */
 				ParseNode & variable = $1;
 				$$ = gen_keyvalue(variable);
-				update_pos($$);
+				update_pos($$, $1, $1);
 			}
         | variable '=' exp
 			{
 				/* initial value is required in parse tree because it can be an non-terminal `exp` */
 				/* non-array initial values */
 				$$ = gen_keyvalue_from_exp($1, $3);
-				update_pos($$);
+				update_pos($$, $1, $3);
 			}
 		| variable '=' array_builder
 			{
@@ -841,7 +809,7 @@ using namespace std;
 				/* array initial values */;
 				/* 因为使用forarray作为数组, 故需要知道类型信息, 不在此处赋值, 在上层的var_def赋初值 */
 				$$ = gen_keyvalue_from_arraybuilder($1, $3);
-				update_pos($$);
+				update_pos($$, $1, $3);
 			}
 
 	paramtable : keyvalue
@@ -850,7 +818,7 @@ using namespace std;
 				//update_pos($$);
 
 				$$ = gen_paramtable($1);
-				update_pos($$);
+				update_pos($$, $1, $1);
 			}
 		| keyvalue ',' paramtable
 			{
@@ -865,7 +833,7 @@ using namespace std;
 				//}
 
 				$$ = gen_flattern($1, $3, "%s, %s", TokenMeta::NT_PARAMTABLE);
-				update_pos($$);
+				update_pos($$, $1, $3);
 			}
 		|
 			{
@@ -885,7 +853,7 @@ using namespace std;
 				newnode->addchild(new ParseNode($5)); // exp_from
 				newnode->addchild(new ParseNode($7)); // exp_to
 				$$ = *newnode;
-				update_pos($$);
+				update_pos($$, $1, $7);
 			}
 
 	array_builder_elem : YY_ARRAYINITIAL_START argtable YY_ARRAYINITIAL_END
@@ -901,7 +869,7 @@ using namespace std;
 				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_ARRAYBUILDER_VALUE, string(codegen_buf) };
 				newnode->addchild(new ParseNode(argtable)); // argtable
 				$$ = *newnode;
-				update_pos($$);
+				update_pos($$, $1, $3);
 			}
 		| YY_ARRAYINITIAL_START _generate_stmt YY_ARRAYINITIAL_END
 			{
@@ -920,14 +888,16 @@ using namespace std;
 				newnode->addchild(new ParseNode(*from)); // exp_from
 				newnode->addchild(new ParseNode(*to)); // exp_to
 				$$ = *newnode;
-				update_pos($$);
+				update_pos($$, $1, $3);
 				// TODO 
 				/* rule `YY_ARRAYINITIAL_START variable '(' dimen_slice ')' YY_ARRAYINITIAL_END ` is included in this rule*/
 				/* note that this two rules can not be splitted because `exp` and `variable` + '(' can cause reduction conflict */
 				/* note either that `variable '(' dimen_slice ')'` is an `exp` */
 			}
+
 	_optional_then : YY_THEN
 		|
+
 	array_builder : array_builder_elem
 			{
 				ParseNode * newnode = new ParseNode();
@@ -935,7 +905,7 @@ using namespace std;
 				sprintf(codegen_buf, "%s", $1.fs.CurrentTerm.what.c_str());
 				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_ARRAYBUILDER, string(codegen_buf) };
 				$$ = *newnode;
-				update_pos($$);
+				update_pos($$, $1, $1);
 			}
 		| array_builder_elem ',' array_builder
 			{
@@ -946,7 +916,7 @@ using namespace std;
 				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_ARRAYBUILDER, string(codegen_buf) };
 				newnode = flattern_bin(newnode);
 				$$ = *newnode;
-				update_pos($$);
+				update_pos($$, $1, $3);
 			}
 
 	if_stmt : YY_IF exp YY_THEN crlf suite YY_END YY_IF crlf
@@ -963,7 +933,7 @@ using namespace std;
 				newnode->addchild(new ParseNode(exp)); // exp
 				newnode->addchild(new ParseNode(suite_true)); // suite
 				$$ = *newnode;
-				update_pos($$);
+				update_pos($$, $1, $8);
 			}
 		| YY_IF exp YY_THEN crlf suite YY_ELSE crlf suite YY_END YY_IF crlf
 			{
@@ -982,7 +952,7 @@ using namespace std;
 				newnode->addchild(new ParseNode($6)); // else
 				newnode->addchild(new ParseNode(suite_else)); // else-stmt
 				$$ = *newnode;
-				update_pos($$);
+				update_pos($$, $1, $11);
 			}
 		| YY_IF exp YY_THEN crlf suite elseif_stmt YY_END YY_IF crlf
 			{
@@ -1000,7 +970,7 @@ using namespace std;
 				newnode->addchild(new ParseNode(suite_true)); // suite
 				newnode->addchild(new ParseNode(elseif)); // recursive elseif-stmt
 				$$ = *newnode;
-				update_pos($$);
+				update_pos($$, $1, $9);
 			}
 		| YY_IF exp YY_THEN crlf suite elseif_stmt YY_ELSE crlf suite YY_END YY_IF crlf
 			{
@@ -1021,7 +991,7 @@ using namespace std;
 				newnode->addchild(new ParseNode(elseif)); // recursive elseif-stmt
 				newnode->addchild(new ParseNode(suite_else)); // else-stmt
 				$$ = *newnode;
-				update_pos($$);
+				update_pos($$, $1, $12);
 			}
 		|  YY_IF exp _optional_then stmt
 			{
@@ -1037,7 +1007,7 @@ using namespace std;
 				newnode->addchild(new ParseNode(exp)); // exp
 				newnode->addchild(new ParseNode(stmt_true)); // stmt
 				$$ = *newnode;
-				update_pos($$);
+				update_pos($$, $1, $4);
 			}
 	elseif_stmt : YY_ELSEIF exp YY_THEN crlf suite
 			{
@@ -1053,33 +1023,32 @@ using namespace std;
 				newnode->addchild(new ParseNode(exp)); // exp
 				newnode->addchild(new ParseNode(suite_true)); // suite
 				$$ = *newnode;
-				update_pos($$);
+				update_pos($$, $1, $5);
 			}
 
 		| YY_ELSEIF exp YY_THEN crlf suite elseif_stmt
 			{
-				ParseNode * newnode = new ParseNode();
+				ParseNode newnode = ParseNode();
 				ParseNode & exp = $2;
 				ParseNode & suite_true = $5; suite_true.fs.CurrentTerm.what = tabber(suite_true.fs.CurrentTerm.what);
 				ParseNode & elseif = $6;
-#ifndef LAZY_GEN
-				sprintf(codegen_buf, "else if{\n%s}\n%s", exp.fs.CurrentTerm.what.c_str(), suite_true.fs.CurrentTerm.what.c_str(), elseif.fs.CurrentTerm.what.c_str());
-				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_ELSEIF, string(codegen_buf) };
-#endif // !LAZY_GEN
 
-				newnode->addchild(new ParseNode($1)); // elseif
-				newnode->addchild(new ParseNode(exp)); // exp
-				newnode->addchild(new ParseNode(suite_true)); // suite
-				newnode->addchild(new ParseNode(elseif)); // another elseif-stmt
-				$$ = *newnode;
-				update_pos($$);
+				sprintf(codegen_buf, "else if{\n%s}\n%s", exp.fs.CurrentTerm.what.c_str(), suite_true.fs.CurrentTerm.what.c_str(), elseif.fs.CurrentTerm.what.c_str());
+				newnode.fs.CurrentTerm = Term{ TokenMeta::NT_ELSEIF, string(codegen_buf) };
+
+				newnode.addchild(new ParseNode($1)); // elseif
+				newnode.addchild(new ParseNode(exp)); // exp
+				newnode.addchild(new ParseNode(suite_true)); // suite
+				newnode.addchild(new ParseNode(elseif)); // another elseif-stmt
+				$$ = newnode;
+				update_pos($$, $1, $6);
 			}
 
 	do_stmt : YY_DO crlf suite YY_END YY_DO crlf
 			{
 				ParseNode & suite = $3; 
 				$$ = gen_do(suite);
-				update_pos($$);
+				update_pos($$, $1, $6);
 			}
 		| YY_DO variable '=' exp ',' exp crlf suite YY_END YY_DO crlf
 			{
@@ -1089,7 +1058,7 @@ using namespace std;
 				ParseNode & step = gen_exp(gen_token(Term{ TokenMeta::META_INTEGER , "1" }));
 				ParseNode & suite = $8; 
 				$$ = gen_do_range(exp_from, exp_from, exp_to, step, suite);
-				update_pos($$);
+				update_pos($$, $1, $11);
 			}
 		| YY_DO variable '=' exp ',' exp ',' exp crlf suite YY_END YY_DO crlf
 			{
@@ -1099,14 +1068,14 @@ using namespace std;
 				ParseNode & exp3 = $8;
 				ParseNode & suite = $10;
 				$$ = gen_do_range(loop_variable, exp1, exp2, exp3, suite);
-				update_pos($$);
+				update_pos($$, $1, $13);
 			}
 		| YY_DOWHILE exp crlf suite YY_END YY_DO crlf
 			{
 				ParseNode & exp = $2;
 				ParseNode & suite = $4; 
 				$$ = gen_do_while(exp, suite);
-				update_pos($$);
+				update_pos($$, $1, $7);
 			}
 
 	select_stmt : YY_SELECT YY_CASE _optional_lbrace exp _optional_rbrace crlf case_stmt YY_END YY_SELECT crlf
@@ -1115,7 +1084,7 @@ using namespace std;
 				ParseNode & exp = $4;
 				ParseNode & case_stmt = $7;
 				$$ = gen_select(exp, case_stmt);
-				update_pos($$);
+				update_pos($$, $1, $10);
 			}
 	case_stmt_elem : YY_CASE _optional_lbrace dimen_slice _optional_rbrace crlf suite
 			{
@@ -1123,37 +1092,37 @@ using namespace std;
 				ParseNode & dimen_slice = $3;
 				ParseNode & suite = $6; 
 				$$ = gen_case(dimen_slice, suite);
-				update_pos($$);
+				update_pos($$, $1, $6);
 			}
 	case_stmt : case_stmt_elem
 			{
-				ParseNode * newnode = new ParseNode();
 				ParseNode & case_stmt_elem = $1;
-				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_CASES, "" };
-				newnode->addchild(new ParseNode(case_stmt_elem)); // case_stmt_elem
-				$$ = *newnode;
-				update_pos($$);
+				ParseNode newnode = ParseNode(gen_flex(Term{ TokenMeta::NT_CASES, "" }), nullptr);
+				newnode.addchild(new ParseNode(case_stmt_elem)); // case_stmt_elem
+				$$ = newnode;
+				update_pos($$, $1, $1);
 			}
 	case_stmt : case_stmt_elem case_stmt
 			{
 				ParseNode & case_stmt_elem = $1;
 				ParseNode & case_stmt = $2;
-				ParseNode * newnode = new ParseNode(case_stmt);
-				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_CASES, "" };
-				newnode->addchild(new ParseNode(case_stmt_elem), false /* add to the front of the vector */); // case_stmt_elem
-				$$ = *newnode;
-				update_pos($$);
+				ParseNode newnode = ParseNode(case_stmt);
+				newnode.fs.CurrentTerm = Term{ TokenMeta::NT_CASES, "" };
+				newnode.addchild(new ParseNode(case_stmt_elem), false /* add to the front of the vector */); // case_stmt_elem
+				$$ = newnode;
+				update_pos($$, $1, $2);
 			}
 	
 	_optional_result : YY_RESULT '(' variable ')'
 			{
 				$$ = $3;
+				update_pos($$, $1, $4);
 			}
 		|
 			{
-				ParseNode * newnode = new ParseNode();
-				newnode->fs.CurrentTerm = Term{ TokenMeta::UnknownVariant, "" }; // return nothing
-				$$ = *newnode;
+				ParseNode newnode = ParseNode(gen_flex(Term{ TokenMeta::UnknownVariant, "" }), nullptr); // return nothing
+				$$ = newnode;
+				update_pos($$);
 			}
 
 	_optional_function : YY_FUNCTION
@@ -1169,7 +1138,7 @@ using namespace std;
 				ParseNode & suite = $9;
 
 				$$ = gen_function(variable_function, paramtable, variable_result, suite);
-				update_pos($$);
+				update_pos($$, $1, $12);
 			}
 	
 	_optional_name : YY_WORD
@@ -1177,11 +1146,11 @@ using namespace std;
 
     program : YY_PROGRAM _optional_name crlf suite YY_END YY_PROGRAM _optional_name crlf
 			{
-				ParseNode * newnode = new ParseNode();
-				newnode->addchild(new ParseNode($4)); //suite
 				sprintf(codegen_buf, "int main()\n{\n%s\treturn 0;\n}", tabber($4.fs.CurrentTerm.what).c_str());
-				newnode->fs.CurrentTerm = Term{ TokenMeta::META_NONTERMINAL, string(codegen_buf) };
-				$$ = *newnode;
+				ParseNode newnode = ParseNode(gen_flex(Term{ TokenMeta::META_NONTERMINAL, string(codegen_buf) }), nullptr);
+				newnode.addchild(new ParseNode($4)); //suite
+				$$ = newnode;
+				update_pos($$, $1, $8);
 			}
 
 
@@ -1189,13 +1158,11 @@ using namespace std;
 			{
 				sprintf(codegen_buf, "%s", $1.fs.CurrentTerm.what.c_str());
 				$$ = $1;
-				update_pos($$);
 			}
 		| program
 			{
 				sprintf(codegen_buf, "%s", $1.fs.CurrentTerm.what.c_str());
 				$$ = $1;
-				update_pos($$);
 			}	
 
 	wrappers : wrapper
@@ -1205,6 +1172,7 @@ using namespace std;
 				sprintf(codegen_buf, "%s", $1.fs.CurrentTerm.what.c_str());
 				newnode->fs.CurrentTerm = Term{ TokenMeta::META_NONTERMINAL, string(codegen_buf) };
 				$$ = *newnode;
+				update_pos($$, $1, $1);
 			}
 		| wrapper wrappers
 			{
@@ -1215,15 +1183,16 @@ using namespace std;
 				newnode = flattern_bin(newnode);
 				newnode->fs.CurrentTerm = Term{ TokenMeta::META_NONTERMINAL, string(codegen_buf) };
 				$$ = *newnode;
+				update_pos($$, $1, $2);
 			}
 
 	interface_decl : YY_INTERFACE crlf wrappers crlf YY_END YY_INTERFACE crlf
 			{
 				// drop interface directly
-				ParseNode * newnode = new ParseNode();
+				ParseNode newnode = ParseNode(gen_flex(Term{ TokenMeta::META_NONTERMINAL, "" }), nullptr);
 				// no child
-				newnode->fs.CurrentTerm = Term{ TokenMeta::META_NONTERMINAL, "" };
-				$$ = *newnode;
+				$$ = newnode;
+				update_pos($$, $1, $7);
 			}
 
 	fortran_program : wrappers
@@ -1240,26 +1209,51 @@ void yyerror(const char* s)
 	print_error(string(s), yylval);
 }
 
-void update_pos(YYSTYPE & current_node) {
-	if (current_node.child.size() == 0) {
+void update_pos(YYSTYPE & current) {
+	if (current.child.size() == 0) {
 		/* do nothing */
+		current.fs.parse_pos = 0;
+		current.fs.parse_line = 0;
+		current.fs.parse_len = 0;
+		current.fs.line_pos = 0;
 	}
-	else if (current_node.child.size() == 1) {
-		current_node.fs.parse_pos = current_node.child[0]->fs.parse_pos;
-		current_node.fs.parse_line = current_node.child[0]->fs.parse_line;
-		current_node.fs.parse_len = current_node.child[0]->fs.parse_len;
-		current_node.fs.line_pos = current_node.child[0]->fs.line_pos;
+	else if (current.child.size() == 1) {
+		current.fs.parse_pos = current.child[0]->fs.parse_pos;
+		current.fs.parse_line = current.child[0]->fs.parse_line;
+		current.fs.parse_len = current.child[0]->fs.parse_len;
+		current.fs.line_pos = current.child[0]->fs.line_pos;
 	}
 	else {
 		int tot_len = 0;
-		for (int i = 0; i < current_node.child.size(); i++)
+		for (int i = 0; i < current.child.size(); i++)
 		{
-			tot_len += current_node.child[i]->fs.parse_len;
+			tot_len += current.child[i]->fs.parse_len;
 		}
-		current_node.fs.parse_pos = current_node.child[0]->fs.parse_pos;
-		current_node.fs.parse_line = current_node.child[0]->fs.parse_line;
-		current_node.fs.parse_len = tot_len;
-		current_node.fs.line_pos = current_node.child[0]->fs.line_pos;
+		current.fs.parse_pos = current.child[0]->fs.parse_pos;
+		current.fs.parse_line = current.child[0]->fs.parse_line;
+		current.fs.parse_len = tot_len;
+		current.fs.line_pos = current.child[0]->fs.line_pos;
+	}
+}
+void update_pos(YYSTYPE & current, YYSTYPE & start, YYSTYPE & end) {
+	// if replace $$ with newnode then need to update_pos
+	if (start.fs.parse_len == 0) {
+		current.fs.parse_pos = end.fs.parse_pos;
+		current.fs.parse_line = end.fs.parse_line;
+		current.fs.parse_len = end.fs.parse_len;
+		current.fs.line_pos = end.fs.line_pos;
+	}
+	else if (end.fs.parse_len == 0) {
+		current.fs.parse_pos = start.fs.parse_pos;
+		current.fs.parse_line = start.fs.parse_line;
+		current.fs.parse_len = start.fs.parse_len;
+		current.fs.line_pos = start.fs.line_pos;
+	}
+	else {
+		current.fs.parse_pos = start.fs.parse_pos;
+		current.fs.parse_line = start.fs.parse_line;
+		current.fs.parse_len = end.fs.parse_len + end.fs.parse_pos - start.fs.parse_pos;
+		current.fs.line_pos = start.fs.line_pos;
 	}
 }
 
