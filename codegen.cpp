@@ -17,6 +17,10 @@ ParseNode gen_token(Term term) {
 	return newnode;
 }
 
+ParseNode gen_dummy() {
+	return ParseNode(gen_flex(Term{ TokenMeta::NT_DUMMY, "" }), nullptr);
+}
+
 FlexState gen_flex(Term term) {
 	FlexState f;
 	f.CurrentTerm = term;

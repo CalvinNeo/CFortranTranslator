@@ -1,11 +1,14 @@
 program
-	real:;x, y
-	read *, x
-	select case (x >= 0)
-		case (.true.)
-			y = x + 5.0
-		case (.false.)
-			y = -x
-	end select
-	print *, x, y
-end program
+	implicit none
+	real::x, y, z
+	write (*,*) 'INPUT X'
+	read (*,*) x
+	if (x > 0) then
+		y = sin(x)
+		z = sqrt(x)
+	else if(x == 0) then
+		y = 0
+		z = 0
+	end if
+	write (*,*) 'X=', x, 'Y=', Y, 'Z=', z
+end  program

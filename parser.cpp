@@ -121,11 +121,12 @@ std::string & repalce_all_my(std::string & str, const std::string & old_value, c
 		return str;
 }
 
-std::string compose_marker(std::string cont, int place) {
+std::string compose_marker(std::string cont, int place, int end) {
 	using namespace std;
 	string ret = "\n";
 	int len = cont.size();
-	for (int i = 0; i < len; i++)
+	int i;
+	for (i = 0; i < len; i++)
 	{
 		if (i >= place - 1) {
 			break;
@@ -140,7 +141,25 @@ std::string compose_marker(std::string cont, int place) {
 			ret += " ";
 		}
 	}
-	ret += "^\n";
+	ret += "^";
+	if (place < end) {
+		for (i = place; i < len; i++) {
+			if (i >= end - 1) {
+				break;
+			}
+			if (cont[i] == '\t') {
+				ret += "\t";
+			}
+			else if (cont[i] == '\n') {
+				ret += "\\n";
+			}
+			else {
+				ret += " ";
+			}
+		}
+	}
+	ret += "$";
+	ret += "\n";
 	return ret;
 }
 
@@ -158,7 +177,7 @@ void print_error(const std::string & error_info, const ParseNode & yylval) {
 	int right_length = right - get_flex_state().parse_pos;
 	sprintf(buf, "%s", global_code.substr(left, left_length + right_length).c_str());
 	string cont = string(buf);
-	string marker = compose_marker(cont, left_length);
+	string marker = compose_marker(cont, left_length, left_length + get_flex_state().parse_len);
 	replace_all_distinct(cont, "\n", "\\n");
 	cont += marker;
 	printf("%s", cont.c_str());

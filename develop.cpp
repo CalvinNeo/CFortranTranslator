@@ -45,6 +45,8 @@ void debug() {
 	global_code = "program do i = 1, 5 \n if (a == 0) then cycle else exit end if end do end program";
 	global_code = "program do while (i < 8) \n conditional_loop() end do end program";
 	global_code = "program do i = 2, n-1 \n count_loop() end do end program";
+	/* hidden do */
+	global_code = "program \n ((abs(i + j), i = 1, 4), j = 5, 6) \n end program";
 
 	// type
 	global_code = "program real::a, b, c \n end program";
@@ -98,8 +100,14 @@ void debug() {
 	// paste here
 	global_code = "program integer,intent(out),dimension(5:7)::A=(/1, 2/) \n  end program"; // intent
 
-	//global_code = "recursive function main(A,B) result(C) \n integer::a, b, c\n a = abs(real(c)) \n end function"; /* _type_kind ºÍ type cast function call ³åÍ» */ /* IMPORTANT */
-	 global_code = "program \n integer(kind = 4)::a, b \n end program";
+	global_code = "program if a .eqv. b then 2 else c end if end program";
+	global_code = "program if a .eqv. b then 2 else if a >= b then b <= a end if end program";
+	global_code = "program if (a .eqv. b) then 2 else if a >= b then b <= a else c end if end program";
+	global_code = "program if 1 then if 2 then 3 end if end if end program";
+	global_code = "program if 1 then if 11 then 22 else if 33 then 44 else 4 end if end if end program";
+	global_code = "program if 1 then if 11 then 22 else if 33 then 44 end if else 4 end if end program";
+	global_code = "program if 1 then if 11 then 22 else if 33 then 44 else 55 end if else if 3 then 4 else 5 end if end program";
+
 
 
 

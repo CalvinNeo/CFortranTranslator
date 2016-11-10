@@ -214,6 +214,7 @@
 		CommentLine = -1010,// //
 		Include = -1011,
 
+
 		NT_PARAMTABLE = -2001,
 		NT_FORMATTER = -2002,
 		NT_AUTOFORMATTER = -2003, /* the second `*` sign of write (*,*), xxx */
@@ -246,6 +247,10 @@
 		NT_CASE = -2028,
 		NT_CASES = -2029,
 		NT_KEYVALUE = NT_VARIABLEINITIAL,
+		NT_HIDDENDO = -2030,
+		NT_WHILE = -2031,
+
+		NT_DUMMY = -9999,
 };
 //}
 

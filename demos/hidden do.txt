@@ -1,0 +1,5 @@
+program
+	implicit none
+	integer::r
+	r = ((abs(i + j), i = 1, 4), j = 5, 6)
+end program

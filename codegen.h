@@ -8,6 +8,7 @@ ParseNode * flattern_bin(ParseNode * pn);
 std::string tabber(std::string & src);
 
 ParseNode gen_token(Term term);
+ParseNode gen_dummy();
 FlexState gen_flex(Term term);
 ParseNode gen_flattern(const ParseNode & item, const ParseNode & list, std::string merge_rule, int merged_token_meta = -1);
 
@@ -27,10 +28,12 @@ ParseNode gen_function(const ParseNode & variable_function, const ParseNode & pa
 ParseNode gen_select(const ParseNode & exp, const ParseNode & case_stmt);
 ParseNode gen_case(const ParseNode & dimen_slice, ParseNode & suite);
 
+ParseNode gen_if(const ParseNode & exp, ParseNode & suite_true, const ParseNode & elseif, ParseNode & suite_else);
 
 ParseNode gen_do(ParseNode & suite);
 ParseNode gen_do_range(const ParseNode & loop_variable, const ParseNode & exp1, const ParseNode & exp2, const ParseNode & exp3, ParseNode & suite);
 ParseNode gen_do_while(const ParseNode & exp, ParseNode & suite);
+ParseNode gen_hiddendo(const ParseNode & _generate_stmt);
 
 ParseNode gen_function_array(const ParseNode & callable_head, const ParseNode & argtable); // callable, function call or array
 
@@ -51,3 +54,6 @@ ParseNode gen_argtable(ParseNode & dimen_slice);
 
 ParseNode gen_stmt(const ParseNode & content);
 ParseNode gen_stmt(const ParseNode & content, const std::string & rules);
+
+ParseNode gen_array_generate_stmt(const ParseNode & _generate_stmt);
+

@@ -135,6 +135,10 @@ all parse tree nodes are defined in [/Intent.h](/Intent.h) with an `NT_` prefix
 #### type_spec, type_nospec
 you can use `REAL(x)` to get the float copy of x, however, you can also use `REAL(kind = 8)` to specify a floating number which is same to `long double` rather than `double`, so it may cause conflict. so a `type_nospec` is like `INTEGER` and a `type_spec` is like `INTEGER(kind = 4)`, `type_nospec` is `callable_head`, `type_spec` is not.
 
+#### hidden_do, _generate_stmt
+- `_generate_stmt` is for `array_builder`, `hidden_do` is for `exp`
+- `hidder_do` is wrapped by "( )", `_generate_stmt` is wrapped by "(/ /)"
+
 #### stmt, suite
 - `stmt` is statement end with ';' or '\n'
 - `suite` is set of `stmt`
@@ -204,11 +208,10 @@ you can use `REAL(x)` to get the float copy of x, however, you can also use `REA
 - allow named blocks
 - support function pointers, Parse `Interface` for function pointer
 - hidden do
-- ~~better error location~~
+- ~~more precise code/error location~~
 
 ## todolist(bugfix)
 - ~~if slice can be a scalar x and equal to (1: x + 1), there will be conflict in argtable~~
-- more precise code location (update_pos parse_len)
 - more specific type cast functions(char, int, long long)
 - ~~read statement undefined device~~
 - ~~minus 1 and negative 1 conflict(modify definition in .l)~~

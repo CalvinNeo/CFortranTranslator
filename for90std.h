@@ -83,27 +83,48 @@ struct for1array {
 				nvec.push_back(m_arr[i - lb]);
 			}
 		}
+		return for1array<T>(nvec, fr, to);
 	};
-	int lower_bound() { return lb; };
-	int upper_bound() { return ub; };
+	int LBound() const {
+		return lb; 
+	};
+	int UBound() const { 
+		return ub; 
+	};
 	T * c_array() {
 
 	};
-	std::vector<T> c_vector() {
+	std::vector<T> c_vector() const {
 		return m_arr;
 	}
-	T & operator()(int i) {
-		if (i - lb >= m_arr.size()) {
-			m_arr.resize(i - lb + 1);
-			return m_arr[i - lb];
+
+	const T & get_const(int i) const {
+		if (i - lb >= m_arr.size() || i - lb < 0 ) {
+			throw 0;
 		}
 		else {
 			return m_arr[i - lb];
 		}
+	}
+	T & get(int i) {
+		if (i - lb >= m_arr.size() || i - lb < 0) {
+			m_arr.resize(i - lb + 1);
+			return m_arr[i - lb];
+			//throw 0;
+		}
+		else {
+			return m_arr[i - lb];
+		}
+	}
+	T & operator()(int i) {
+		return get(i);
 	};
+	T & operator[](int i) {
+		return get(i);
+	}
 
 	template<class ... Args>
-	void addrange(const T & x, Args ... args) {
+	void add_list(const T & x, Args ... args) {
 		add(x);
 		addrange(forward<Args>(args)...);
 	}
@@ -134,7 +155,7 @@ struct for1array {
 	}
 
 	for1array(int l, int u) : lb(l), ub(u) {
-
+		m_arr.resize(u - l);
 	};
 	for1array() : lb(0), ub(0) {
 
@@ -146,15 +167,18 @@ struct for1array {
 			m_arr.push_back(x);
 		}
 	};
-	//for1array(const for1array<T> & x) {
-	//	m_arr.clear();
-	//	this.lb = x.lower_bound();
-	//	this.ub = x.upper_bound();
-	//	for (int i = lb; i < ub; i++)
-	//	{
-	//		m_arr.push_back(x(i));
-	//	}
-	//}
+	for1array(const std::vector<T> & arr, int l, int u) : lb(l), ub(u) {
+		m_arr = arr;
+	};
+	for1array(const for1array<T> & x) {
+		m_arr.clear();
+		(this->lb) = x.LBound();
+		(this->ub) = x.UBound();
+		for (int i = lb; i < ub; i++)
+		{
+			m_arr.push_back(x.get_const(i));
+		}
+	}
 protected:
 	std::vector<T> m_arr;
 	T * carr;
@@ -228,6 +252,15 @@ void init_for1array(for1array<_Container_value_type> & farr, const std::vector<i
 #endif // !USE_FORARRAY
 	typedef std::conditional<std::is_same<_Container_value_type, T>::value, T, _Container_value_type >::type _New_value_type;
 	init_for1array_layer<T, _New_value_type, std::vector<T>::const_iterator >(farr, lower_bound, 0, size, accumulated, values.begin(), values.end());
+}
+
+template<typename T>
+for1array<T> init_for1array_hiddendo(int start, int end, std::function<const T &(int)> get_T) {
+	std::vector<T> nvec;
+	for (int i = start; i < end; i++) {
+		nvec.push_back(get_T(i));
+	}
+	return for1array<T>(nvec, start, end);
 }
 
 typedef std::complex<double> forcomplex;

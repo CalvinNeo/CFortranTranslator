@@ -33,9 +33,27 @@ ParseNode gen_do_while(const ParseNode & exp, ParseNode & suite) {
 	ParseNode newnode = ParseNode();
 	suite.fs.CurrentTerm.what = tabber(suite.fs.CurrentTerm.what);
 	sprintf(codegen_buf, "while(%s){\n%s}", exp.fs.CurrentTerm.what.c_str(), suite.fs.CurrentTerm.what.c_str());
-	newnode.fs.CurrentTerm = Term{ TokenMeta::While, string(codegen_buf) };
+	newnode.fs.CurrentTerm = Term{ TokenMeta::NT_WHILE, string(codegen_buf) };
 	newnode.addchild(new ParseNode()); // while
 	newnode.addchild(new ParseNode(exp)); // exp
 	newnode.addchild(new ParseNode(suite)); // suite
+	return newnode;
+}
+
+ParseNode gen_hiddendo(const ParseNode & _generate_stmt) {
+	/* give generate stmt */
+	ParseNode newnode = ParseNode();
+	ParseNode * exp = _generate_stmt.child[0];
+	ParseNode * index = _generate_stmt.child[1];
+	ParseNode * from = _generate_stmt.child[2];
+	ParseNode * to = _generate_stmt.child[3];
+	sprintf(codegen_buf, "init_for1array_hiddendo(%%s, %%s, [](int %s){return %s ;})", index->fs.CurrentTerm.what.c_str(), exp->fs.CurrentTerm.what.c_str());
+	std::string m1 = string(codegen_buf);
+	sprintf(codegen_buf, m1.c_str(), from->fs.CurrentTerm.what.c_str()/* exp_from */, to->fs.CurrentTerm.what.c_str()/* exp_to */);
+	newnode.fs.CurrentTerm = Term{ TokenMeta::NT_HIDDENDO, string(codegen_buf) };
+	newnode.addchild(new ParseNode(*exp)); // exp
+	newnode.addchild(new ParseNode(*index)); // index variable
+	newnode.addchild(new ParseNode(*from)); // exp_from
+	newnode.addchild(new ParseNode(*to)); // exp_to
 	return newnode;
 }

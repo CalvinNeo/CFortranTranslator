@@ -99,6 +99,9 @@
     <ClCompile Include="..\..\gen_describer.cpp">
       <Filter>target</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\gen_arraybuilder.cpp">
+      <Filter>target</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\grammar\for90.tab.h">
