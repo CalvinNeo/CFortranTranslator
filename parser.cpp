@@ -135,7 +135,7 @@ std::string compose_marker(std::string cont, int place, int end) {
 			ret += "\t";
 		}
 		else if (cont[i] == '\n') {
-			ret += "\\n";
+			ret += "  ";
 		}
 		else {
 			ret += " ";
@@ -151,7 +151,7 @@ std::string compose_marker(std::string cont, int place, int end) {
 				ret += "\t";
 			}
 			else if (cont[i] == '\n') {
-				ret += "\\n";
+				ret += "  ";
 			}
 			else {
 				ret += " ";

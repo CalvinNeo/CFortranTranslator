@@ -13,3 +13,13 @@ ParseNode gen_stmt(const ParseNode & content, const std::string & rules) {
 	newnode.addchild(new ParseNode(content)); // let
 	return newnode;
 }
+
+ParseNode gen_empty_suite() {
+	
+	ParseNode * newnode = new ParseNode();
+	ParseNode & stmt = ParseNode(gen_flex(Term{ TokenMeta::NT_SUITE, "\n" }), newnode);
+	newnode->fs.CurrentTerm = Term{ TokenMeta::NT_SUITE, "\n" };
+	newnode->addchild(new ParseNode(stmt)); // stmt
+	newnode = flattern_bin(newnode);
+	return *newnode;
+}

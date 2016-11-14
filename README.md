@@ -120,7 +120,7 @@ all parse tree nodes are defined in [/Intent.h](/Intent.h) with an `NT_` prefix
 ### struct ParseNode
 1. father: parent node
 2. fs:
-	* fs.CurrentTerm.what: direct-gen code
+	* fs.CurrentTerm.what: immediate-gen code
 	* fs.CurrentTerm.token: refer [/Intent.h](/Intent.h)
 3. attr
 4. child
@@ -207,7 +207,7 @@ you can use `REAL(x)` to get the float copy of x, however, you can also use `REA
 - ~~error infomation include Intent name~~
 - allow named blocks
 - support function pointers, Parse `Interface` for function pointer
-- hidden do
+- ~~hidden do~~
 - ~~more precise code/error location~~
 
 ## todolist(bugfix)
@@ -218,6 +218,6 @@ you can use `REAL(x)` to get the float copy of x, however, you can also use `REA
 - either an `interface` or **forward declaraion of return value** is need when calling functions in fortran, so must remove all `interface` and ~~forward declaraion of function return value~~ in generated code in order to avoid repeat definition.
 - ~~error message line info is always 0~~
 - ~~handle error when can't find declaration of the variable listed in function paramtable~~
-- handle with empty line
+- ~~handle with empty line~~
 - ~~split keyvalue rules from paramtable rules, may cause bugs~~
 - ~~_type_kind rules and type cast function call conflict~~

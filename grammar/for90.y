@@ -536,8 +536,17 @@ using namespace std;
 				update_pos($$);
 			}
 
-	_crlf_semicolon : crlf
+	_crlf_semicolon: crlf
 		| ';' crlf
+
+	semicolon : ';'
+			{
+				$$ = $1;
+			}
+		|
+			{
+				$$.fs.CurrentTerm = Term{ TokenMeta::Nop, "" };
+			}
 
 	stmt : exp _crlf_semicolon
 			{
@@ -557,9 +566,21 @@ using namespace std;
 				update_pos($$, $1, $2);
 			}
         | compound_stmt
-        | output_stmt 
-		| input_stmt 
+			{
+				$$ = $1;
+			}
+        | output_stmt
+			{
+				$$ = $1;
+			}
+		| input_stmt
+			{
+				$$ = $1;
+			}
 		| dummy_stmt
+			{
+				$$ = $1;
+			}
 		| let_stmt
 			{
 				$$ = gen_stmt($1);
@@ -571,6 +592,14 @@ using namespace std;
 				update_pos($$, $1, $1);
 			}
 		| interface_decl
+			{
+				$$ = $1;
+			}
+		| semicolon YY_CRLF
+			{
+				ParseNode & xx = $1;
+				update_pos($$, $1, $2);
+			}
 
 
     output_stmt : write _crlf_semicolon
@@ -606,12 +635,12 @@ using namespace std;
 
 	suite : stmt
 			{
-				ParseNode * newnode = new ParseNode();
+				ParseNode newnode = ParseNode();
 				ParseNode & stmt = $1;
 				sprintf(codegen_buf, "%s\n", stmt.fs.CurrentTerm.what.c_str());
-				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_SUITE, string(codegen_buf) };
-				newnode->addchild(new ParseNode(stmt)); // stmt
-				$$ = *newnode;
+				newnode.fs.CurrentTerm = Term{ TokenMeta::NT_SUITE, string(codegen_buf) };
+				newnode.addchild(new ParseNode(stmt)); // stmt
+				$$ = newnode;
 				update_pos($$, $1, $1);
 			}
 		| stmt suite
@@ -627,18 +656,7 @@ using namespace std;
 				$$ = *newnode;
 				update_pos($$, $1, $2);
 			}
-		|
-			{
-				/* suite can be empty but stmt can not */
-				ParseNode * newnode = new ParseNode();
-				FlexState fs; fs.CurrentTerm = Term{ TokenMeta::NT_SUITE, "\n" };
-				ParseNode & stmt = ParseNode(fs, newnode, nullptr);
-				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_SUITE, "\n" };
-				newnode->addchild(new ParseNode(stmt)); // stmt
-				newnode = flattern_bin(newnode);
-				$$ = *newnode;
-				update_pos($$);
-			}
+
 
 	_optional_lbrace : 
 		| '('
@@ -667,27 +685,26 @@ using namespace std;
 
 	io_info : '(' _optional_device ',' _optional_formatter ')'
 			{
-				ParseNode * newnode = new ParseNode();
+				ParseNode newnode = ParseNode(gen_flex(Term{ TokenMeta::META_NONTERMINAL, "" }), nullptr);
 				ParseNode & _optional_device = $2;
 				ParseNode & _optional_formatter = $4;
 				/* target code of io_info depend on context, can be either iostream/cstdio */
-				newnode->fs.CurrentTerm = Term{ TokenMeta::META_NONTERMINAL, "" };
-				newnode->addchild(new ParseNode(_optional_device)); // _optional_device
-				newnode->addchild(new ParseNode(_optional_formatter)); // _optional_formatter
-				$$ = *newnode;
+				newnode.addchild(new ParseNode(_optional_device)); // _optional_device
+				newnode.addchild(new ParseNode(_optional_formatter)); // _optional_formatter
+				$$ = newnode;
 				update_pos($$, $1, $5);
 			}
 		| _optional_formatter _optional_comma
 			{
-				ParseNode * newnode = new ParseNode();
+				ParseNode newnode = ParseNode();
 				ParseNode _optional_device = ParseNode();
 				_optional_device.fs.CurrentTerm = Term{ TokenMeta::META_NONTERMINAL, "" };
 				ParseNode _optional_formatter = $1;
 				/* target code of io_info depend on context */
-				newnode->fs.CurrentTerm = Term{ TokenMeta::META_NONTERMINAL, "" };
-				newnode->addchild(new ParseNode(_optional_device)); // _optional_device
-				newnode->addchild(new ParseNode(_optional_formatter)); // _optional_formatter
-				$$ = *newnode;
+				newnode.fs.CurrentTerm = Term{ TokenMeta::META_NONTERMINAL, "" };
+				newnode.addchild(new ParseNode(_optional_device)); // _optional_device
+				newnode.addchild(new ParseNode(_optional_formatter)); // _optional_formatter
+				$$ = newnode;
 				update_pos($$, $1, $2);
 			}
 
@@ -960,52 +977,25 @@ using namespace std;
 			}
 		|  YY_IF exp _optional_then stmt
 			{
-				ParseNode * newnode = new ParseNode();
 				ParseNode & exp = $2;
 				ParseNode & stmt_true = $4; 
-#ifndef LAZY_GEN
-				sprintf(codegen_buf, "if (%s) %s", exp.fs.CurrentTerm.what.c_str(), stmt_true.fs.CurrentTerm.what.c_str());
-				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_IF, string(codegen_buf) };
-#endif // !LAZY_GEN
-
-				newnode->addchild(new ParseNode($1)); // if
-				newnode->addchild(new ParseNode(exp)); // exp
-				newnode->addchild(new ParseNode(stmt_true)); // stmt
-				$$ = *newnode;
+				$$ = gen_if_oneline(exp, stmt_true);
 				update_pos($$, $1, $4);
 			}
 	elseif_stmt : YY_ELSEIF exp YY_THEN crlf suite
 			{
-				ParseNode * newnode = new ParseNode();
 				ParseNode & exp = $2;
-				ParseNode & suite_true = $5; suite_true.fs.CurrentTerm.what = tabber(suite_true.fs.CurrentTerm.what);
-#ifndef LAZY_GEN
-				sprintf(codegen_buf, "else if(%s) {\n%s}", exp.fs.CurrentTerm.what.c_str(), suite_true.fs.CurrentTerm.what.c_str());
-				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_ELSEIF, string(codegen_buf) };
-#endif // !LAZY_GEN
-
-				newnode->addchild(new ParseNode($1)); // elseif
-				newnode->addchild(new ParseNode(exp)); // exp
-				newnode->addchild(new ParseNode(suite_true)); // suite
-				$$ = *newnode;
+				ParseNode & suite_true = $5;
+				$$ = gen_elseif(exp, suite_true, gen_dummy());;
 				update_pos($$, $1, $5);
 			}
 
 		| YY_ELSEIF exp YY_THEN crlf suite elseif_stmt
 			{
-				ParseNode newnode = ParseNode();
 				ParseNode & exp = $2;
-				ParseNode & suite_true = $5; suite_true.fs.CurrentTerm.what = tabber(suite_true.fs.CurrentTerm.what);
+				ParseNode & suite_true = $5;
 				ParseNode & elseif = $6;
-
-				sprintf(codegen_buf, "else if{\n%s}\n%s", exp.fs.CurrentTerm.what.c_str(), suite_true.fs.CurrentTerm.what.c_str(), elseif.fs.CurrentTerm.what.c_str());
-				newnode.fs.CurrentTerm = Term{ TokenMeta::NT_ELSEIF, string(codegen_buf) };
-
-				newnode.addchild(new ParseNode($1)); // elseif
-				newnode.addchild(new ParseNode(exp)); // exp
-				newnode.addchild(new ParseNode(suite_true)); // suite
-				newnode.addchild(new ParseNode(elseif)); // another elseif-stmt
-				$$ = newnode;
+				$$ = gen_elseif(exp, suite_true, elseif);
 				update_pos($$, $1, $6);
 			}
 
@@ -1132,11 +1122,11 @@ using namespace std;
 
 	wrappers : wrapper
 			{
-				ParseNode * newnode = new ParseNode();
-				newnode->addchild(new ParseNode($1)); // wrapper
+				ParseNode newnode = ParseNode();
+				newnode.addchild(new ParseNode($1)); // wrapper
 				sprintf(codegen_buf, "%s", $1.fs.CurrentTerm.what.c_str());
-				newnode->fs.CurrentTerm = Term{ TokenMeta::META_NONTERMINAL, string(codegen_buf) };
-				$$ = *newnode;
+				newnode.fs.CurrentTerm = Term{ TokenMeta::META_NONTERMINAL, string(codegen_buf) };
+				$$ = newnode;
 				update_pos($$, $1, $1);
 			}
 		| wrapper wrappers

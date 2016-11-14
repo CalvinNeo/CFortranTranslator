@@ -29,6 +29,9 @@ ParseNode gen_select(const ParseNode & exp, const ParseNode & case_stmt);
 ParseNode gen_case(const ParseNode & dimen_slice, ParseNode & suite);
 
 ParseNode gen_if(const ParseNode & exp, ParseNode & suite_true, const ParseNode & elseif, ParseNode & suite_else);
+ParseNode gen_if_oneline(const ParseNode & exp, const ParseNode & stmt_true);
+
+ParseNode gen_elseif(const ParseNode & exp, ParseNode & suite_true, const ParseNode & elseif);
 
 ParseNode gen_do(ParseNode & suite);
 ParseNode gen_do_range(const ParseNode & loop_variable, const ParseNode & exp1, const ParseNode & exp2, const ParseNode & exp3, ParseNode & suite);
