@@ -9,6 +9,7 @@ std::string tabber(std::string & src);
 
 ParseNode gen_token(Term term);
 ParseNode gen_dummy();
+ParseNode gen_promote(std::string rule, int merged_token_meta, const ParseNode & lower);
 FlexState gen_flex(Term term);
 ParseNode gen_flattern(const ParseNode & item, const ParseNode & list, std::string merge_rule, int merged_token_meta = -1);
 
@@ -60,3 +61,5 @@ ParseNode gen_stmt(const ParseNode & content, const std::string & rules);
 
 ParseNode gen_array_generate_stmt(const ParseNode & _generate_stmt);
 
+void set_variabledesc_attr(ParseNode * newnode, optionalparam<bool> reference, optionalparam<bool> constant, optionalparam<bool> optional, optionalparam<struct ParseNode *> slice, optionalparam<int> kind);
+ParseNode gen_variabledesc_from_dimenslice(const ParseNode & dimen_slice);

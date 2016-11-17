@@ -1,7 +1,7 @@
-program
+program TEST
 		y = sin(x)
 		
 		
 		;
 		z = sqrt(x)
-end  program
+end program TEST

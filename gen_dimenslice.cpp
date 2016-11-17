@@ -47,6 +47,8 @@ ParseNode gen_argtable_from_exp(ParseNode & exp) {
 	return newnode;
 }
 
+// 下面多个的用gen_flattern
+
 //ParseNode gen_dimenslice(ParseNode & slice, const ParseNode & dimen_slice) {
 //	/* arr[from : to] */
 //	/* target code of slice depend on context */

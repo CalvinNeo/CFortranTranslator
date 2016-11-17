@@ -158,6 +158,7 @@ you can use `REAL(x)` to get the float copy of x, however, you can also use `REA
 | function_array_body | NT_ARGTABLE_DIMENSLICE | NT_DIMENSLICE |
 | dimen_slice | NT_DIMENSLICE | NT_SLICE |
 | dimen_slice | NT_ARGTABLE_PURE | NT_EXPRESSION |
+| variable_desc_elem | NT_VARIABLEDESC | dimen_slice |
 | argtable | NT_ARGTABLE_PURE | dimen_slice |
 | suite | NT_SUITE | NT_STATEMENT \* |
 | stmt | NT_STATEMENT | exp / var_def / compound_stmt / output_stmt / input_stmt / dummy_stmt / let_stmt / jump_stmt / interface_decl |

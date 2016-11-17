@@ -301,31 +301,37 @@ struct foroptional
 	} 
 
 	T & operator= (const T & newv) {
-		dirty = true;
+		// 赋值运算符
+		invalid = true;
 		value = newv;
 		return value;
 	}
 	foroptional(const T & newv) {
-		dirty = true;
+		// 给定值初始化，说明不是默认初始化
+		invalid = true;
 		value = newv;
 	}
 	foroptional(T & newv) {
-		dirty = true;
+		// 给定值初始化，说明不是默认初始化
+		invalid = true;
 		value = newv;
 	}
 	foroptional(const foroptional<T> & newv) {
-		dirty = true;
+		// 复制构造函数
+		invalid = true;
 		value = newv.const_get();
 	}
 	foroptional(foroptional<T> & newv) {
-		dirty = true;
+		// 复制构造函数
+		invalid = true;
 		value = newv.get();
 	}
 	foroptional() {
-		dirty = false;
+		// 默认初始化
+		invalid = false;
 	}
 	bool inited() const {
-		return dirty;
+		return invalid;
 	}
 	T get() {
 		return value;
@@ -335,7 +341,7 @@ struct foroptional
 	}
 private:
 	T value;
-	bool dirty = false;
+	bool invalid = false;
 };
 
 template <class T>

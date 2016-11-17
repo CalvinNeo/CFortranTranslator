@@ -1,31 +1,95 @@
 #pragma once
 #include "parser.h"
 
-//
+// 在初始化之后是否值是否被修改
 template<class T>
 struct dirty{
 	T & operator= (const T & newv) {
+		// 赋值是赋值
 		changed = true;
 		value = newv;
 		return value;
 	}
-	operator T() {
+	operator T() const {
 		return value;
 	}
 	dirty(const T & newv) {
+		// 初始化是初始化
 		changed = false;
 		value = newv;
 	}
 	dirty(const dirty & d) {
-		changed = d->isdirty();
-		value = d->value;
+		// 复制构造函数
+		// 初始化是初始化
+		changed = false;
+		changed = d.isdirty();
+		value = d;
 	}
 	bool isdirty() const{
 		return changed;
 	}
+	T get() {
+		return value;
+	}
+	const T & const_get() const {
+		return value;
+	}
 private:
 	T value;
 	bool changed = false;
+};
+
+// for90std.h中foroptional的副本
+// 传入optionalparam<T>()表示不传参
+template <class T>
+struct optionalparam
+{
+	operator T() const {
+		return value;
+	}
+
+	T & operator= (const T & newv) {
+		// 赋值运算符
+		invalid = true;
+		value = newv;
+		return value;
+	}
+	optionalparam(const T & newv) {
+		// 给定值初始化，说明不是默认初始化
+		invalid = true;
+		value = newv;
+	}
+	optionalparam(T & newv) {
+		// 给定值初始化，说明不是默认初始化
+		invalid = true;
+		value = newv;
+	}
+	optionalparam(const optionalparam<T> & newv) {
+		// 复制构造函数
+		invalid = true;
+		value = newv.const_get();
+	}
+	optionalparam(optionalparam<T> & newv) {
+		// 复制构造函数
+		invalid = true;
+		value = newv.get();
+	}
+	optionalparam() {
+		// 默认初始化
+		invalid = false;
+	}
+	bool inited() const {
+		return invalid;
+	}
+	T get() {
+		return value;
+	}
+	const T & const_get() const {
+		return value;
+	}
+private:
+	T value;
+	bool invalid = false;
 };
 
 // Parse时候记录性质

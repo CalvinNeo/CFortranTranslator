@@ -21,6 +21,14 @@ ParseNode gen_dummy() {
 	return ParseNode(gen_flex(Term{ TokenMeta::NT_DUMMY, "" }), nullptr);
 }
 
+ParseNode gen_promote(std::string rule, int merged_token_meta, const ParseNode & lower) {
+	ParseNode newnode = ParseNode();
+	sprintf(codegen_buf, rule.c_str(), lower.fs.CurrentTerm.what.c_str());
+	newnode.fs.CurrentTerm = Term{ merged_token_meta, string(codegen_buf) };
+	newnode.addchild(new ParseNode(lower)); 
+	return newnode;
+}
+
 FlexState gen_flex(Term term) {
 	FlexState f;
 	f.CurrentTerm = term;
@@ -58,6 +66,9 @@ ParseNode * flattern_bin(ParseNode * pn) {
 		}
 		newp->fs = pn->fs;
 		newp->father = pn->father;
+		if (pn->attr != nullptr) {
+			newp->attr = pn->attr->clone();
+		}
 		delete pn;
 		return newp;
 	}

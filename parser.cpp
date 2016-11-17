@@ -33,7 +33,7 @@ ParseNode & ParseNode::operator= (const ParseNode & pn) {
 		return *this;
 	}
 	else {
-		delete attr;
+		delete this->attr;
 		for (int i = 0; i < child.size(); i++)
 		{
 			delete child[i];
