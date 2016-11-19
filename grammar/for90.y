@@ -34,7 +34,7 @@ using namespace std;
 %token _YY_DELIM YY_PROGRAM YY_ENDPROGRAM YY_FUNCTION YY_ENDFUNCTION YY_RECURSIVE YY_RESULT YY_SUBROUTINE YY_ENDSUBROUTINE YY_MODULE YY_ENDMODULE YY_BLOCK YY_ENDBLOCK YY_INTERFACE YY_ENDINTERFACE
 %token _YY_DESCRIBER YY_IMPLICIT YY_NONE YY_USE YY_PARAMETER YY_FORMAT YY_ENTRY YY_DIMENSION YY_ARRAYINITIAL_START YY_ARRAYINITIAL_END YY_INTENT YY_IN YY_OUT YY_INOUT YY_OPTIONAL YY_LEN YY_KIND
 %token _YY_TYPEDEF YY_INTEGER_T YY_FLOAT_T YY_STRING_T YY_COMPLEX_T YY_BOOL_T YY_CHARACTER_T
-%token _YY_COMMAND YY_WRITE YY_READ YY_PRINT YY_OPEN YY_CLOSE YY_CALL
+%token _YY_COMMAND YY_WRITE YY_READ YY_PRINT YY_OPEN YY_CLOSE YY_CALL YY_OPEN YY_CLOSE
 
 
 %left '='
@@ -311,7 +311,9 @@ using namespace std;
 				$$ = gen_flattern(exp, argtable, "%s, %s", TokenMeta::NT_ARGTABLE);
 				update_pos($$, $1, $3);
 			}
-				
+
+	_optional_comma : ','
+		|
 	function_array_body : callable_head '(' argtable ')'
 			{
 				/* function call OR array index */
@@ -338,7 +340,14 @@ using namespace std;
 				$$ = gen_exp(function_array);
 				update_pos($$, $1, $1);
 			}
-
+		| exp '(' exp ')'
+			{
+				/* hyper-function or multi-dimension array like A(2)(3)  */
+				ParseNode & exp1 = $1;
+				ParseNode & op = $2;
+				ParseNode & exp2 = $3;
+				$$ = gen_exp(exp1, op, exp2, "%s(%s)");
+			}
 		| '(' exp ')' 
 			{
 				/* `function_array` rule has priority over this rule  */
@@ -1105,13 +1114,13 @@ using namespace std;
 				update_pos($$, $1, $2);
 			}
 
-	interface_decl : YY_INTERFACE crlf wrappers crlf YY_END YY_INTERFACE crlf
+	interface_decl : YY_INTERFACE _optional_name crlf wrappers crlf YY_END YY_INTERFACE _optional_name crlf
 			{
 				// drop interface directly
 				ParseNode newnode = ParseNode(gen_flex(Term{ TokenMeta::META_NONTERMINAL, "" }), nullptr);
 				// no child
 				$$ = newnode;
-				update_pos($$, $1, $7);
+				update_pos($$, $1, $9);
 			}
 
 	fortran_program : wrappers

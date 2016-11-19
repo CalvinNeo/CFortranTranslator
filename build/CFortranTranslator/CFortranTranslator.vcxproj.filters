@@ -16,6 +16,9 @@
     <Filter Include="parser">
       <UniqueIdentifier>{607de490-a2ce-4aee-abdf-12b812fc8080}</UniqueIdentifier>
     </Filter>
+    <Filter Include="for90std">
+      <UniqueIdentifier>{76832b9e-16a1-453a-bbc2-bd7d5366a598}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\main.cpp" />
@@ -36,9 +39,6 @@
     </ClCompile>
     <ClCompile Include="..\..\Variable.cpp">
       <Filter>NuclearLang</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\for90std.cpp">
-      <Filter>target</Filter>
     </ClCompile>
     <ClCompile Include="..\..\attribute.cpp">
       <Filter>parser</Filter>
@@ -102,6 +102,13 @@
     <ClCompile Include="..\..\gen_arraybuilder.cpp">
       <Filter>target</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\for90std\for90std.cpp">
+      <Filter>for90std</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\for90std\forfilesys.h">
+      <Filter>for90std</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\gen_interface.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\grammar\for90.tab.h">
@@ -122,9 +129,6 @@
     <ClInclude Include="..\..\Variable.h">
       <Filter>NuclearLang</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\for90std.h">
-      <Filter>target</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\attribute.h">
       <Filter>parser</Filter>
     </ClInclude>
@@ -144,6 +148,21 @@
     </ClInclude>
     <ClInclude Include="..\..\gen_common.h">
       <Filter>target</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\for90std\for1array.h">
+      <Filter>for90std</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\for90std\fornarray.h">
+      <Filter>for90std</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\for90std\formath.h">
+      <Filter>for90std</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\for90std\forlang.h">
+      <Filter>for90std</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\for90std\for90std.h">
+      <Filter>for90std</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

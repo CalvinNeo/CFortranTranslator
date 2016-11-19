@@ -4,7 +4,7 @@
 #include "parser.h"
 #include <stdio.h>
 #include "gen_config.h"
-#include "for90std.h"
+#include "for90std/for90std.h"
 #include <numeric>
 #include "develop.h"
 #include "getopt.h"
@@ -45,6 +45,7 @@ int main(int argc, char* argv[], char* env[])
 	}
 	else {
 		do_trans(code);
+		cout << "#include \"lib/for90std.h\"" << endl;
 		cout << program_tree.fs.CurrentTerm.what << endl;
 		//preorder(&program_tree);
 	}

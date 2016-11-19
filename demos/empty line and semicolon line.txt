@@ -10,5 +10,12 @@ program
 	do i = 3, 10
 		a(i) = a(i - 2) + a(i - 1)
 	end do
+	
+	
+			y = sin(x)
+		
+		
+		;
+		z = sqrt(x)
 	write (*, '1X, 5I8') a
 end program

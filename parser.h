@@ -52,4 +52,4 @@ ParseNode * flattern_bin(ParseNode *); // eliminate right recursion of an binary
 
 /* lazygen */
 
-#define MAX_CODE_LENGTH 65535
+#define MAX_CODE_LENGTH 32767

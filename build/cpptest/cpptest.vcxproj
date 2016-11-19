@@ -110,10 +110,10 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\for90std.h" />
+    <ClCompile Include="..\..\cpptest\main.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\cpptest\main.cpp" />
+    <ClInclude Include="..\..\for90std\for90std.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

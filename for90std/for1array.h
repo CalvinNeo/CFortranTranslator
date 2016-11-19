@@ -1,73 +1,8 @@
 #pragma once
 #include <vector>
-#include <cmath>
 #include <algorithm>
 #include <functional>
-#include <numeric>
 #include <type_traits>
-#include <complex>
-
-//#define USE_FORARRAY
-
-template<class T>
-struct fornarray {
-	template<class ... Args>
-	fornarray slice(int l, int r, Args ... args) {
-		
-		init_value(std::forward<Args>(args)...);
-	}
-	template<class ... Args>
-	fornarray slice(int l, int r) {
-
-	}
-
-	int lower_bound(int dimen) { return lb[dimen]; };
-	int upper_bound(int dimen) { return ub[dimen]; };
-
-	T & operator()(int i) {
-		if (i - lb >= m_arr.size()) {
-			m_arr.resize(i - lb);
-			return m_arr[i - lb];
-		}
-		else {
-			return m_arr[i - lb];
-		}
-	};
-
-	template<class ... Args>
-	void addrange(const T & x, Args ... args) {
-		add(x);
-		addrange(forward<Args>(args)...);
-	}
-	void add(const T & x) {
-		m_arr.push_back(x)
-	}
-	template<class ... Args>
-	void init(const T & x, Args ... args) {
-		m_arr.clear();
-		init_value(x, forward<Args>(args)...);
-	}
-	template<class ... Args>
-	void init() {
-		m_arr.clear();
-	}
-	template<class ... Args>
-	void init_value(const T & x, Args ... args) {
-		m_arr.push_back(x);
-		init_value(std::forward<Args>(args)...);
-	}
-	template<class ... Args>
-	void init_value() {
-		m_arr.push_back(x);
-	}
-
-	fornarray(const std::vector<int> & l, const std::vector<int> & u) : lb(l), ub(u) {
-
-	};
-protected:
-	std::vector<T> m_arr;
-	std::vector<int> lb, ub;
-};
 
 template<class T>
 struct for1array {
@@ -86,10 +21,10 @@ struct for1array {
 		return for1array<T>(nvec, fr, to);
 	};
 	int LBound() const {
-		return lb; 
+		return lb;
 	};
-	int UBound() const { 
-		return ub; 
+	int UBound() const {
+		return ub;
 	};
 	T * c_array() {
 
@@ -99,7 +34,7 @@ struct for1array {
 	}
 
 	const T & get_const(int i) const {
-		if (i - lb >= m_arr.size() || i - lb < 0 ) {
+		if (i - lb >= m_arr.size() || i - lb < 0) {
 			throw 0;
 		}
 		else {
@@ -185,6 +120,7 @@ protected:
 	int lb, ub;
 };
 
+
 #ifndef USE_FORARRAY
 template<typename T
 	, class _Container_value_type
@@ -239,6 +175,7 @@ template<typename T
 #endif // !USE_FORARRAY
 
 
+
 template<typename T, class _Container_value_type>
 void init_for1array(for1array<_Container_value_type> & farr, const std::vector<int> & lower_bound, const std::vector<int> & size, const std::vector<T> & values) {
 	/* NOTE: assume the array is already allocated and no need to clear */
@@ -263,100 +200,7 @@ for1array<T> init_for1array_hiddendo(int start, int end, std::function<const T &
 	return for1array<T>(nvec, start, end);
 }
 
-typedef std::complex<double> forcomplex;
 
-//struct forcomplex {
-//	
-//	const forcomplex operator+(const forcomplex & rhs);
-//
-//	forcomplex(double real, double imagine);
-//	forcomplex(std::string);
-//protected:
-//	double m_real;
-//	double m_imagine;
-//};
-
-template <class T, class ... Args>
-T min_n(T x, Args... args) {
-	return min(x, args);
-}
-template <class T, class ... Args>
-T min_n(T x, T y) {
-	return min(x, y);
-}
-template <class T, class ... Args>
-T max_n(T x, Args... args) {
-	return max(x, args);
-}
-template <class T, class ... Args>
-T max_n(T x, T y) {
-	return max(x, y);
-}
-
-template <class T>
-struct foroptional
-{
-	operator T() const {
-		return value;
-	} 
-
-	T & operator= (const T & newv) {
-		// 赋值运算符
-		invalid = true;
-		value = newv;
-		return value;
-	}
-	foroptional(const T & newv) {
-		// 给定值初始化，说明不是默认初始化
-		invalid = true;
-		value = newv;
-	}
-	foroptional(T & newv) {
-		// 给定值初始化，说明不是默认初始化
-		invalid = true;
-		value = newv;
-	}
-	foroptional(const foroptional<T> & newv) {
-		// 复制构造函数
-		invalid = true;
-		value = newv.const_get();
-	}
-	foroptional(foroptional<T> & newv) {
-		// 复制构造函数
-		invalid = true;
-		value = newv.get();
-	}
-	foroptional() {
-		// 默认初始化
-		invalid = false;
-	}
-	bool inited() const {
-		return invalid;
-	}
-	T get() {
-		return value;
-	}
-	const T & const_get() const {
-		return value;
-	}
-private:
-	T value;
-	bool invalid = false;
-};
-
-template <class T>
-bool forpresent(foroptional<T> x) {
-	return x.inited();
-}
-
-template<class T1, class T2>
-long double power(T1 x, T2 y) {
-	return powl(x, y);
-}
-
-#define mod modfl
 
 #define forarray for1array
 #define init_forarray init_for1array
-
-using namespace std;

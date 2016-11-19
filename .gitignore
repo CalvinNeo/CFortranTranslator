@@ -26,6 +26,7 @@
 *.exe
 !win_bison.exe
 !win_flex.exe
+!CFortranTranslator.exe
 *.out
 *.app
 
@@ -44,6 +45,7 @@ build/.vs/
 build/x64/
 build/Debug/
 build/Release/
+presentation/
 *.opendb
 *.db
 *.lnk

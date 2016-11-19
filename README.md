@@ -10,11 +10,13 @@ My Configuration:
 3. win_bison(win_flex_bison 2.4.5, bison 2.7)
 4. boost(1.60)
 
+## for90 std
+include [for90std/for90std.h](/for90std/for90std.h) to use c++ implementation of fortran intrinsic functions
+
 ## translation results and restrictions
 refer to [/grammar/for90.y](/grammar/for90.y) for all accepted grammar
 ### unsupported keywords
 
-1. no named blocks(supported soon)
 
 ### INTERFACE block
 `INTERFACE` block will be skipped during parsing, so avoid:
@@ -40,6 +42,7 @@ refer to [/grammar/for90.y](/grammar/for90.y) for all accepted grammar
 1. `DIMENSION(a:b)` -> `forarray<T>(a, b + 1)`
 2. forarray default lower bound is **1**, which is different from cpp
 3. fortran use a 1d list to initialize a 2d(or higher) array, however, contrary to c++ and most other language does, it store them in a **conlumn-first order**. for a 2d array, it means you a order of a(1)(1) -> a(2)(1) -> a(1)(2) -> a(1)(2) . you can `#undef USE_FORARRAY` to use c-style array .for details refer to array_builder rule in [/grammar/for90.y](/grammar/for90.y)
+4. hidden do will be translated to `init_for1array_hiddendo` in [/for90std/for1array.h](/for90std/for1array.h)
 
 ### variables
 1. all variables must be **explicitly** declared
@@ -101,7 +104,7 @@ refer to [/grammar/for90.y](/grammar/for90.y) for all accepted grammar
 5. update IntentName in [/IntentHelper.cpp](/IntentHelper.cpp)
 6. register keyword in [/tokenizer.cpp](/tokenizer.cpp)(if this token is keyword)
 7. if this keyword takes more than 1 word and can cause reduction conflicts between itself and its prefix like `else if`, update forward1 in [/tokenizer.cpp](/tokenizer.cpp)
-8. update translation rules in [/cgen.h](/cgen.h)
+8. update translation rules in [/gen_config.h.h](/gen_config.h.h)
 
 ## code generate
 when using immediate code generate(or using lazy gen), upper level non-terminal can channge generated codes by low level non-terminal, so `gen_` functions pass `ParseNode &` other than `const ParseNode &`:
@@ -155,11 +158,11 @@ you can use `REAL(x)` to get the float copy of x, however, you can also use `REA
 | | NT_DECLAREDVARIABLE | no rules, renamed from keyvalue |
 | keyvalue | NT_VARIABLEINITIAL(namely NT_KEYVALUE) | variable, NT_EXPRESSION / NT_VARIABLEINITIALDUMMY |
 | | NT_VARIABLEINITIAL | variable, exp / array_builder |
-| function_array_body | NT_ARGTABLE_DIMENSLICE | NT_DIMENSLICE |
+| function_array_body | NT_FUCNTIONARRAY | NT_ARGTABLE_DIMENSLICE / NT_ARGTABLE_PURE |
 | dimen_slice | NT_DIMENSLICE | NT_SLICE |
 | dimen_slice | NT_ARGTABLE_PURE | NT_EXPRESSION |
 | variable_desc_elem | NT_VARIABLEDESC | dimen_slice |
-| argtable | NT_ARGTABLE_PURE | dimen_slice |
+| argtable | NT_ARGTABLE_DIMENSLICE / NT_ARGTABLE_PURE | dimen_slice |
 | suite | NT_SUITE | NT_STATEMENT \* |
 | stmt | NT_STATEMENT | exp / var_def / compound_stmt / output_stmt / input_stmt / dummy_stmt / let_stmt / jump_stmt / interface_decl |
 | | NT_ARRAYBUILDER | NT_ARRAYBUILDER_VALUE + |
@@ -206,7 +209,7 @@ you can use `REAL(x)` to get the float copy of x, however, you can also use `REA
 - file functions
 - ~~one-line if~~
 - ~~error infomation include Intent name~~
-- allow named blocks
+- ~~allow named blocks~~
 - support function pointers, Parse `Interface` for function pointer
 - ~~hidden do~~
 - ~~more precise code/error location~~
@@ -222,3 +225,6 @@ you can use `REAL(x)` to get the float copy of x, however, you can also use `REA
 - ~~handle with empty line~~
 - ~~split keyvalue rules from paramtable rules, may cause bugs~~
 - ~~_type_kind rules and type cast function call conflict~~
+- solve `paramtable : exp`, `argtable : exp` conflict by merging argtable to paramtable
+	1. merge `argtable` and `dimen_slice` to paramtable
+	2. only change reduce rules

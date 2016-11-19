@@ -1,5 +1,5 @@
 ﻿  main.cpp
-f:\codes\c++\cfortrantranslator\for90std.h(306): warning C4521: “foroptional<double>”: 指定了多个复制构造函数
+f:\codes\c++\cfortrantranslator\for90std\forlang.h(56): warning C4521: “foroptional<double>”: 指定了多个复制构造函数
   f:\codes\c++\cfortrantranslator\cpptest\main.cpp(7): note: 参见对正在编译的类 模板 实例化“foroptional<double>”的引用
   cpptest.vcxproj -> F:\Codes\C++\CFortranTranslator\build\x64\Debug\cpptest.exe
   cpptest.vcxproj -> F:\Codes\C++\CFortranTranslator\build\x64\Debug\cpptest.pdb (Partial PDB)

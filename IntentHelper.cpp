@@ -229,6 +229,8 @@ std::map<int, std::string> IntentName = {
 	,{ -2029, "NT_CASES" }
 	,{ -2030, "NT_HIDDENDO" }
 	,{ -2031, "NT_WHILE"}
+	,{ -2032, "NT_OPEN" }
+	,{ -2033, "NT_CLOSE" }
 	,{ -9999, "NT_DUMMY"}
 };
 

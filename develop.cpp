@@ -4,7 +4,7 @@
 #include "parser.h"
 #include <stdio.h>
 #include "gen_config.h"
-#include "for90std.h"
+#include "for90std/for90std.h"
 #include <numeric>
 
 using namespace std;
@@ -77,6 +77,7 @@ void debug() {
 	global_code = "recursive function main(A,B) result(C) \n integer::a, b, c\n a = abs(real(c)) \n end function"; /* _type_kind 和 type cast function call 冲突 */ /* IMPORTANT */ // now ok
 	/* 和以上对比，给出冲突的另一边 */
 	global_code = "program \n integer(kind = 4)::a, b \n end program"; // now ok
+	global_code = "program \n kwargs(1, b = 3, c = 3) \n end program";
 
 	// array
 	global_code = "program integer,intent(out),dimension(5:7)::A=(/1, 2/) \n  end program"; // intent
@@ -100,13 +101,7 @@ void debug() {
 	// paste here
 	global_code = "program integer,intent(out),dimension(5:7)::A=(/1, 2/) \n  end program"; // intent
 
-	global_code = "program if a .eqv. b then 2 else c end if end program";
-	global_code = "program if a .eqv. b then 2 else if a >= b then b <= a end if end program";
-	global_code = "program if (a .eqv. b) then 2 else if a >= b then b <= a else c end if end program";
-	global_code = "program if 1 then if 2 then 3 end if end if end program";
-	global_code = "program if 1 then if 11 then 22 else if 33 then 44 else 4 end if end if end program";
-	global_code = "program if 1 then if 11 then 22 else if 33 then 44 end if else 4 end if end program";
-	global_code = "program if 1 then if 11 then 22 else if 33 then 44 else 55 end if else if 3 then 4 else 5 end if end program";
+	global_code = "program \n kwargs(1, b = 3, c = 3) \n end program";
 
 
 

@@ -167,4 +167,18 @@ struct VariableDescAttr : public ParseAttr {
 	}
 };
 
+struct KwArgsDescAttr : public ParseAttr {
+	std::map<std::string, std::string> key_value;
+
+	KwArgsDescAttr(ParseNode * parsenode) : ParseAttr(parsenode) {}
+	KwArgsDescAttr(const KwArgsDescAttr & va) {
+		// do not call `clone()` else will cause stackoverflow
+		this->key_value = va.key_value;
+	}
+	ParseAttr * clone() { return new KwArgsDescAttr(*this); }
+
+	void merge(const KwArgsDescAttr & x2) {
+		
+	}
+};
 // struct ArrayAttr FormatterAttr
