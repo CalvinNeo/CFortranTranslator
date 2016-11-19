@@ -63,7 +63,7 @@ void debug() {
 	global_code = "program write *,* a, b \n  end program"; // syntax error, must wrapped with ()
 	global_code = "program write (*,*) 'L=', L \n  end program";
 	global_code = "program print '2(a,f)' \n  end program";
-	global_code = "program write *,\"1X,F10.3,F8.4\" x, y \n  end program";
+	global_code = "program write (*,\"1X,F10.3,F8.4\") x, y \n  end program";
 	global_code = "program read *, x, y \n  end program";
 	global_code = "program read (*,*) x, y \n  end program";
 	global_code = "program read (*,\"F, F\") x, y \n  end program";
@@ -83,8 +83,8 @@ void debug() {
 	global_code = "program integer,intent(out),dimension(5:7)::A=(/1, 2/) \n  end program"; // intent
 	
 	global_code = "program integer,dimension(5:7)::A=(/1, 2/) \n  end program";
-	global_code = "program integer,dimension(5:7, 6:8, 7:9)::A=(/1, 2, 3, 4, 5, 6/) \n  end program";
-	global_code = "program integer,dimension(5:7, 6:8)::A \n A(1:2, :) \n  end program"; // error, ok now
+	global_code = "program integer,dimension(5:7, 6:8, 7:9)::A=(/1, 2, 3, 4, 5, 6/) \n  end program"; 
+	global_code = "program integer,dimension(5:7, 6:8)::A \n A(1:2, :) \n  end program"; 
 
 	global_code = "program integer,dimension(5:7)::A=(/ int(i) + 1, i=1,4/) \n  end program";
 	global_code = "program integer,dimension(2, 3)::A=(/ (int(i) + 1, i=1,4) , j = 2, 3 /) \n  end program"; // not support
@@ -93,6 +93,7 @@ void debug() {
 
 	global_code = "program integer,dimension(5:7)::A=(/ a(1:2) , b(3:4) /) \n  end program";
 	global_code = "program integer,dimension(5:7)::A=(/ a(1:2) , b(3:4) , (int(i) + 1, i=1,4) /) \n  end program"; // error
+	global_code = "program print *, B(5), A(1)(2)(3) \n  end program";
 
 	// select
 	global_code = "program select case abs(i) \n case 1 \n a = 3 \n case 2 : 3 \n a = 4  end select end program";
@@ -102,6 +103,13 @@ void debug() {
 	global_code = "program integer,intent(out),dimension(5:7)::A=(/1, 2/) \n  end program"; // intent
 
 	global_code = "program \n kwargs(1, b = 3, c = 3) \n end program";
+	global_code = "program integer, dimension(5:7)::A = (/ int(i) + 1, i = 1, 4 /) \n  end program";
+	global_code = "program integer, dimension(5:7)::A = (/ int(i) + 1, i = 1, 4 /) \n  end program";
+	global_code = "program integer, dimension(5:7, 6 : 8, 7 : 9)::A = (/ 11, 12, 13, 14, 15, 16 /) \n  end program";
+	global_code = "program print *, B(5), A(1)(2)(3) \n  end program";
+	
+		
+		
 
 
 

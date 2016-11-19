@@ -64,6 +64,11 @@ void ParseNode::addchild(ParseNode * ptrn, bool add_back) {
 	}
 }
 
+void ParseNode::replace(int childid, const ParseNode & pn) {
+	delete this->child[childid];
+	this->child[childid] = new ParseNode(pn);
+}
+
 ParseNode program_tree;
 ParseNode * curnode;
 

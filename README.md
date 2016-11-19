@@ -17,7 +17,6 @@ include [for90std/for90std.h](/for90std/for90std.h) to use c++ implementation of
 refer to [/grammar/for90.y](/grammar/for90.y) for all accepted grammar
 ### unsupported keywords
 
-
 ### INTERFACE block
 `INTERFACE` block will be skipped during parsing, so avoid:
 
@@ -118,6 +117,14 @@ child ParseNode may also be referred when generating upper level ParseNode, so d
 
 1. NT_VARIABLEINITIAL: referred by function_decl
 
+### name mapping
+many type names and function names are mapped, they are defined in in [/gen_config.h](/gen_config.h)
+their replacement occur in following stages:
+
+1. mappings defined in `pre_map` is replacement in tokenizing stage in [/grammar/for90.l](/grammar/for90.l)
+
+2. function name mapping in `funcname_map` is replacement in parse stage in function `gen_function_array` [/gen_callable.cpp](/gen_callable.cpp)
+
 ## Parse Tree
 all parse tree nodes are defined in [/Intent.h](/Intent.h) with an `NT_` prefix
 ### struct ParseNode
@@ -129,11 +136,13 @@ all parse tree nodes are defined in [/Intent.h](/Intent.h) with an `NT_` prefix
 4. child
 
 ### rules explanation
-#### callable_head, argtable, dimen_slice
+#### callable_head, argtable, dimen_slice, paramtable
 - `callable_head` and `argtable` are two parts of a function call
 - both type and function name are callable name, so both `type_nospec` and `variable` are `callable_head`
-- `argtable` **is reduced directly from** `dimen_slice`, because there is unable to differentiate them in for90 grammar, however this "rename strategy" do **NOT** mean `argtable` **is** `dimen_slice`. in `gen_argtable` function a `argtable` generate a `NT_ARGTABLE_PURE` node, and a `dimen_slice` generate a `NT_ARGTABLE_DIMENSLICE` node
-- `dimen_slice` is set of `slice`.
+- in `gen_argtable` function a `NT_ARGTABLE_PURE` generate a `NT_ARGTABLE_PURE` node, and a `NT_DIMENSLICE` generate a `NT_ARGTABLE_DIMENSLICE` node
+- in `dimen_slice` rule, appending a `NT_SLICE` to a `NT_ARGTABLE_PURE` will generate a `NT_DIMENSLICE`, otherwise it will remain `NT_ARGTABLE_PURE`.
+- as a result, `dimen_slice` is a set of `slice`(`NT_DIMENSLICE`), or a set of both `exp` and `slice`(`NT_DIMENSLICE`), or a set of `exp`(`NT_ARGTABLE_PURE`) .
+- `NT_ARGTABLE_DIMENSLICE` is from rule `argtable`, `NT_DIMENSLICE` is from rule `dimen_slice`. 
 
 #### type_spec, type_nospec
 you can use `REAL(x)` to get the float copy of x, however, you can also use `REAL(kind = 8)` to specify a floating number which is same to `long double` rather than `double`, so it may cause conflict. so a `type_nospec` is like `INTEGER` and a `type_spec` is like `INTEGER(kind = 4)`, `type_nospec` is `callable_head`, `type_spec` is not.
@@ -154,7 +163,8 @@ you can use `REAL(x)` to get the float copy of x, however, you can also use `REA
 | wrappers | META_NONTERMINAL | wrapper + |
 | wrapper | / | function_decl / program |
 | var_def | NT_VARIABLEDEFINE | typeinfo, NT_DIMENSLICE / dummy, NT_PARAMTABLE |
-| paramtable | NT_PARAMTABLE | (keyvalue / NT_DECLAREDVARIABLE) + |
+| paramtable_elem | / | dimen_slice / keyvalue / NT_DECLAREDVARIABLE |
+| paramtable | NT_PARAMTABLE | paramtable_elem + |
 | | NT_DECLAREDVARIABLE | no rules, renamed from keyvalue |
 | keyvalue | NT_VARIABLEINITIAL(namely NT_KEYVALUE) | variable, NT_EXPRESSION / NT_VARIABLEINITIALDUMMY |
 | | NT_VARIABLEINITIAL | variable, exp / array_builder |
@@ -162,13 +172,15 @@ you can use `REAL(x)` to get the float copy of x, however, you can also use `REA
 | dimen_slice | NT_DIMENSLICE | NT_SLICE |
 | dimen_slice | NT_ARGTABLE_PURE | NT_EXPRESSION |
 | variable_desc_elem | NT_VARIABLEDESC | dimen_slice |
-| argtable | NT_ARGTABLE_DIMENSLICE / NT_ARGTABLE_PURE | dimen_slice |
+| ~~argtable~~ | NT_ARGTABLE_DIMENSLICE / NT_ARGTABLE_PURE | dimen_slice |
 | suite | NT_SUITE | NT_STATEMENT \* |
 | stmt | NT_STATEMENT | exp / var_def / compound_stmt / output_stmt / input_stmt / dummy_stmt / let_stmt / jump_stmt / interface_decl |
 | | NT_ARRAYBUILDER | NT_ARRAYBUILDER_VALUE + |
 | | NT_ARRAYBUILDER_VALUE | argtable / NT_ARRAYBUILDER_EXP / exp |
 | callable_head |  | variable / type_nospec |
 | type_spec |  | type_nospec / (type_nospec, typecast_spec) |
+
+note that argtable is now alias of paramtable
 
 ### Attributes
 `->` means `ParseAttr` attached to：
@@ -193,7 +205,7 @@ you can use `REAL(x)` to get the float copy of x, however, you can also use `REA
 - for90std functions(partial)
 - ~~io formatter~~
 - optional parameters
-- keyword parameter list
+- ~~keyword parameter list~~
 - ~~reference in parameter list~~
 - ~~rewrite paramtable and var_def(simplify right-recursive rules, move dimension to dummy_variale_iden)~~
 - ~~more elegant multi-word keyword handler(instead of defined in regular expression)~~

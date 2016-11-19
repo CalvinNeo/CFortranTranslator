@@ -303,18 +303,17 @@ using namespace std;
 				$$ = gen_argtable_from_exp(exp);
 				update_pos($$, $1, $1);
 			}
-        | exp ',' argtable
+        | exp ',' paramtable
 			{
 				ParseNode & exp = $1;
 				ParseNode & argtable = $3;
 				// gen_argtable(exp, argtable);
-				$$ = gen_flattern(exp, argtable, "%s, %s", TokenMeta::NT_ARGTABLE);
+				$$ = gen_flattern(exp, argtable, "%s, %s", TokenMeta::NT_ARGTABLE_PURE);
 				update_pos($$, $1, $3);
 			}
 
-	_optional_comma : ','
-		|
-	function_array_body : callable_head '(' argtable ')'
+
+	function_array_body : callable_head '(' paramtable ')'
 			{
 				/* function call OR array index */
 				/* NOTE that array index can be A(1:2, 3:4) */
@@ -514,7 +513,8 @@ using namespace std;
 				$$ = $1;
 			}
 
-    argtable : dimen_slice
+/* 
+	argtable : dimen_slice
 			{
 				$$ = gen_argtable($1);
 				update_pos($$, $1, $1);
@@ -525,6 +525,7 @@ using namespace std;
 				$$ = gen_token(Term{ TokenMeta::NT_ARGTABLE_PURE, "" });
 				update_pos($$);
 			}
+*/
 
 	_crlf_semicolon: crlf
 		| ';' crlf
@@ -684,7 +685,7 @@ using namespace std;
 			}
 
 
-    write : YY_WRITE io_info argtable 
+    write : YY_WRITE io_info paramtable 
 			{
 				ParseNode & io_info = $2;
 				ParseNode & argtable = $3;
@@ -692,7 +693,7 @@ using namespace std;
 				update_pos($$, $1, $3);
 			}
 
-	print : YY_PRINT io_info argtable 
+	print : YY_PRINT io_info paramtable
 			{
 				ParseNode & io_info = $2;
 				ParseNode & argtable = $3;
@@ -701,7 +702,7 @@ using namespace std;
 			}
 
 
-	read: YY_READ io_info argtable 
+	read: YY_READ io_info paramtable
 			{
 				ParseNode & io_info = $2;
 				ParseNode & argtable = $3;
@@ -809,28 +810,24 @@ using namespace std;
 				$$ = gen_keyvalue_from_arraybuilder($1, $3);
 				update_pos($$, $1, $3);
 			}
-
-	paramtable : keyvalue
+	paramtable_elem : keyvalue
 			{
-				//$$ = $1;
-				//update_pos($$);
+			}
+		| dimen_slice
+			{
+			}
 
-				$$ = gen_paramtable($1);
+	paramtable : paramtable_elem
+			{
+				ParseNode & paramtable_elem = $1;
+				$$ = gen_paramtable(paramtable_elem);
 				update_pos($$, $1, $1);
 			}
-		| keyvalue ',' paramtable
+		| paramtable_elem ',' paramtable
 			{
-				//ParseNode * newnode = new ParseNode(); 
-				//newnode->addchild($1.child[0]); // keyvalue
-				//sprintf(codegen_buf, "%s, %s", $1.fs.CurrentTerm.what.c_str(), $3.fs.CurrentTerm.what.c_str());
-				//newnode->fs.CurrentTerm = Term{ TokenMeta::NT_PARAMTABLE, string(codegen_buf) };
-				//ParseNode & pn = $3;
-				//for (int i = 0; i < pn.child.size(); i++)
-				//{
-				//	newnode->addchild(new ParseNode(*pn.child[i])); // paramtable
-				//}
-
-				$$ = gen_flattern($1, $3, "%s, %s", TokenMeta::NT_PARAMTABLE);
+				ParseNode & paramtable_elem = $1;
+				ParseNode & paramtable = $3;
+				$$ = gen_flattern(paramtable_elem, paramtable, "%s, %s", TokenMeta::NT_PARAMTABLE);
 				update_pos($$, $1, $3);
 			}
 		|
@@ -861,7 +858,7 @@ using namespace std;
 				update_pos($$, $1, $3);
 			}
 
-	array_builder_elem : YY_ARRAYINITIAL_START argtable YY_ARRAYINITIAL_END
+	array_builder_elem : YY_ARRAYINITIAL_START paramtable YY_ARRAYINITIAL_END
 			{
 				/* give initial value */
 				/* NOTE that `B(1:2:3)` can be either a single-element argtable or a exp, this can probably lead to reduction conflicts, NOW we merge rules */

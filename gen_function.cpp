@@ -101,15 +101,15 @@ ParseNode gen_function(const ParseNode & variable_function, const ParseNode & pa
 			}
 			else {
 			}
-		}
-		if (vardescattr->desc.optional)
-		{
-			argtblstr += "foroptional<";
-			argtblstr += get<1>(param_name_typename[i]);
-			argtblstr += ">";
-		}
-		else {
-			argtblstr += get<1>(param_name_typename[i]);
+			if (vardescattr->desc.optional)
+			{
+				argtblstr += "foroptional<";
+				argtblstr += get<1>(param_name_typename[i]);
+				argtblstr += ">";
+			}
+			else {
+				argtblstr += get<1>(param_name_typename[i]);
+			}
 		}
 		argtblstr += " ";
 		if (vardescattr != nullptr)

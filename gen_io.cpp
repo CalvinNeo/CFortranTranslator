@@ -78,13 +78,6 @@ ParseNode gen_write(const ParseNode & io_info, const ParseNode & argtable) {
 ParseNode gen_print(const ParseNode & io_info, const ParseNode & argtable) {
 
 	ParseNode newnode = ParseNode();
-	//ParseNode & io_info = ParseNode();	
-	//ParseNode _optional_device = ParseNode();
-	//_optional_device.fs.CurrentTerm = Term{ TokenMeta::META_NONTERMINAL, "" };
-	//ParseNode _optional_formatter = $2;
-	//io_info.fs.CurrentTerm = Term{ TokenMeta::META_NONTERMINAL, "" };
-	//io_info.addchild(new ParseNode(_optional_device));
-	//io_info.addchild(new ParseNode(_optional_formatter)); 
 	const ParseNode * argtbl = &argtable;
 	ParseNode * formatter = io_info.child[1];
 	if (formatter->fs.CurrentTerm.token == TokenMeta::NT_FORMATTER) {

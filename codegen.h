@@ -50,7 +50,10 @@ ParseNode gen_argtable_from_exp(ParseNode & exp);
 ParseNode gen_keyvalue(const ParseNode & variable);
 ParseNode gen_keyvalue_from_exp(const ParseNode & variable, const ParseNode & initial);
 ParseNode gen_keyvalue_from_arraybuilder(const ParseNode & variable, const ParseNode & initial);
-ParseNode gen_paramtable(const ParseNode & keyvalue);
+ParseNode gen_paramtable(ParseNode & paramtable_elem);
+ParseNode gen_paramtable(ParseNode & paramtable_elem, ParseNode & paramtable);
+ParseNode gen_promote_exp_to_keyvalue(const ParseNode & paramtable_elem);
+ParseNode gen_promote_paramtable(const ParseNode paramtable);
 
 ParseNode gen_type(const ParseNode & type, const ParseNode & _type_kind);
 ParseNode gen_type(const ParseNode & type);

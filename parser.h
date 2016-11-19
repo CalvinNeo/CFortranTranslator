@@ -20,6 +20,7 @@ struct ParseNode {
 	struct ParseAttr * attr = nullptr;
 
 	void addchild(ParseNode * ptrn, bool add_back = true);
+	void replace(int childid, const ParseNode & pn);
 
 	ParseNode(const ParseNode &);
 	ParseNode & operator= (const ParseNode &) ;

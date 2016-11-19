@@ -21,12 +21,18 @@ ParseNode gen_argtable(ParseNode & dimen_slice) {
 			// dimen_slice
 			isdimen = true;
 			newnode.addchild(new ParseNode(*dimen_slice.child[sliceid]));
-			sprintf(codegen_buf, "%s, %s"
+			if (dimen_slice.child[sliceid]->child.size() == 2) {
 				/* from, to */
-				, dimen_slice.child[sliceid]->child[0]->fs.CurrentTerm.what.c_str()
-				, dimen_slice.child[sliceid]->child[1]->fs.CurrentTerm.what.c_str());
+				sprintf(codegen_buf, "%s, %s", dimen_slice.child[sliceid]->child[0]->fs.CurrentTerm.what.c_str()
+					, dimen_slice.child[sliceid]->child[1]->fs.CurrentTerm.what.c_str());
+			}
+			else {
+				// size
+				sprintf(codegen_buf, "%s", dimen_slice.child[sliceid]->child[0]->fs.CurrentTerm.what.c_str());
+			}
 		}
 		else {
+			// NT_ARGTABLE_PURE
 			// exp
 			isdimen = false;
 			newnode.addchild(new ParseNode(*dimen_slice.child[sliceid]));

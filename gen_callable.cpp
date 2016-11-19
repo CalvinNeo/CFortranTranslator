@@ -20,7 +20,7 @@ ParseNode gen_function_array(const ParseNode & callable_head, const ParseNode & 
 		sprintf(codegen_buf, argtable.fs.CurrentTerm.what.c_str(), name.c_str());
 		newnode.fs.CurrentTerm = Term{ TokenMeta::NT_FUCNTIONARRAY,  string(codegen_buf) };
 	}
-	else {
+	else /*if(argtable.fs.CurrentTerm.token == TokenMeta::NT_ARGTABLE_PURE)*/{
 		args += name;
 		args += "(";
 		args += argtable.fs.CurrentTerm.what;
