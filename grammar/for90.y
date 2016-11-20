@@ -810,6 +810,7 @@ using namespace std;
 				$$ = gen_keyvalue_from_arraybuilder($1, $3);
 				update_pos($$, $1, $3);
 			}
+
 	paramtable_elem : keyvalue
 			{
 			}

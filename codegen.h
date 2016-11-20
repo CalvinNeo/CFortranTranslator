@@ -1,7 +1,7 @@
 #pragma once
 
 #include "parser.h"
-#include "tokenizer.h"
+#include "attribute.h"
 
 std::string for2cpp(std::string for_code);
 ParseNode * flattern_bin(ParseNode * pn);
@@ -67,3 +67,9 @@ ParseNode gen_array_generate_stmt(const ParseNode & _generate_stmt);
 
 void set_variabledesc_attr(ParseNode * newnode, optionalparam<bool> reference, optionalparam<bool> constant, optionalparam<bool> optional, optionalparam<struct ParseNode *> slice, optionalparam<int> kind);
 ParseNode gen_variabledesc_from_dimenslice(const ParseNode & dimen_slice);
+
+
+std::string gen_rights(std::string filename, std::string author);
+ParseNode gen_header();
+
+void do_trans(const std::string & src);

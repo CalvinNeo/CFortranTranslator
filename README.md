@@ -40,7 +40,7 @@ refer to [/grammar/for90.y](/grammar/for90.y) for all accepted grammar
 #### array
 1. `DIMENSION(a:b)` -> `forarray<T>(a, b + 1)`
 2. forarray default lower bound is **1**, which is different from cpp
-3. fortran use a 1d list to initialize a 2d(or higher) array, however, contrary to c++ and most other language does, it store them in a **conlumn-first order**. for a 2d array, it means you a order of a(1)(1) -> a(2)(1) -> a(1)(2) -> a(1)(2) . you can `#undef USE_FORARRAY` to use c-style array .for details refer to array_builder rule in [/grammar/for90.y](/grammar/for90.y)
+3. fortran use a 1d list to initialize a 2d(or higher) array, however, contrary to c++ and most other language, fortran store them in a **column-first order**. for a 2d array, it means you a order of `a(1)(1) -> a(2)(1) -> a(1)(2) -> a(1)(2)` . you can `#undef USE_FORARRAY` to use c-style array. for details refer to `array_builder` rule in [/grammar/for90.y](/grammar/for90.y)
 4. hidden do will be translated to `init_for1array_hiddendo` in [/for90std/for1array.h](/for90std/for1array.h)
 
 ### variables
@@ -48,7 +48,7 @@ refer to [/grammar/for90.y](/grammar/for90.y) for all accepted grammar
 2. since variable names in fortran is **case-insensitive**, all variables will be in lower case in generated cpp code
 
 ### functions and subroutines
-1. remove all difinition of local variables which is also in parameter list
+1. remove all definition of local variables which is also in parameter list
 2. remove all interface
 3. intent(out) variables will translate to `T & variable`
 
@@ -168,7 +168,7 @@ you can use `REAL(x)` to get the float copy of x, however, you can also use `REA
 | | NT_DECLAREDVARIABLE | no rules, renamed from keyvalue |
 | keyvalue | NT_VARIABLEINITIAL(namely NT_KEYVALUE) | variable, NT_EXPRESSION / NT_VARIABLEINITIALDUMMY |
 | | NT_VARIABLEINITIAL | variable, exp / array_builder |
-| function_array_body | NT_FUCNTIONARRAY | NT_ARGTABLE_DIMENSLICE / NT_ARGTABLE_PURE |
+| function_array_body | NT_FUCNTIONARRAY | NT_ARGTABLE_DIMENSLICE / NT_PARAMTABLE |
 | dimen_slice | NT_DIMENSLICE | NT_SLICE |
 | dimen_slice | NT_ARGTABLE_PURE | NT_EXPRESSION |
 | variable_desc_elem | NT_VARIABLEDESC | dimen_slice |
@@ -202,9 +202,11 @@ note that argtable is now alias of paramtable
 - ~~function-array reduction-reduction conflict~~
 - ~~multi-dimension forarray~~
 - ~~multi-dimension forarray array-builder~~
-- for90std functions(partial)
+- for90std functions
+	- file
+	- array(reshape, spread, transpose)
 - ~~io formatter~~
-- optional parameters
+- ~~optional parameters~~
 - ~~keyword parameter list~~
 - ~~reference in parameter list~~
 - ~~rewrite paramtable and var_def(simplify right-recursive rules, move dimension to dummy_variale_iden)~~
@@ -214,17 +216,15 @@ note that argtable is now alias of paramtable
 - variable with type
 - ~~enable crlf rule~~(may cause bugs)
 - mixed array_builder
-- array functions(reshape, spread, transpose)
 - ~~more specific type(char, int, long long)~~
 - type stmt
 - ~~comments~~
-- file functions
 - ~~one-line if~~
 - ~~error infomation include Intent name~~
 - ~~allow named blocks~~
 - support function pointers, Parse `Interface` for function pointer
 - ~~hidden do~~
-- ~~more precise code/error location~~
+- ~~more precise code/error location, start/end~~
 
 ## todolist(bugfix)
 - ~~if slice can be a scalar x and equal to (1: x + 1), there will be conflict in argtable~~
@@ -237,6 +237,6 @@ note that argtable is now alias of paramtable
 - ~~handle with empty line~~
 - ~~split keyvalue rules from paramtable rules, may cause bugs~~
 - ~~_type_kind rules and type cast function call conflict~~
-- solve `paramtable : exp`, `argtable : exp` conflict by merging argtable to paramtable
+- ~~solve `paramtable : exp`, `argtable : exp` conflict by merging argtable to paramtable~~
 	1. merge `argtable` and `dimen_slice` to paramtable
 	2. only change reduce rules

@@ -9,23 +9,22 @@
 #include "develop.h"
 #include "getopt.h"
 #include "IntentHelper.h"
+#include "codegen.h"
 
 using namespace std;
 
-void do_trans(const std::string & src) {
-	global_code = src;
-	parse(global_code);
-}
 
 int main(int argc, char* argv[], char* env[])
 {
 	int opt;
 	bool for90 = true;
-	bool isdebug = false; 
+	bool isdebug = false;
+	bool hasfile = false;
 	std::string code;
 	while ((opt = getopt(argc, argv, "df:Fp")) != -1) {
 		if (opt == 'f')
 		{
+			hasfile = true;
 			fstream f;
 			f.open(optarg, ios::in);
 			code = std::string((std::istreambuf_iterator<char>(f)), std::istreambuf_iterator<char>());
@@ -43,11 +42,13 @@ int main(int argc, char* argv[], char* env[])
 	if (isdebug) {
 		debug();
 	}
-	else {
+	else if(hasfile){
 		do_trans(code);
-		cout << "#include \"lib/for90std.h\"" << endl;
 		cout << program_tree.fs.CurrentTerm.what << endl;
 		//preorder(&program_tree);
+	}
+	else {
+
 	}
 	system("pause");
 	return 0;

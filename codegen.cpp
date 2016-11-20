@@ -3,6 +3,19 @@
 #include <sstream>
 //char codegen_buf[MAX_CODE_LENGTH];
 
+void do_trans(const std::string & src) {
+	global_code = src;
+	parse(global_code);
+	program_tree.addchild(new ParseNode(gen_header()), false);
+	string x;
+	for (int i = 0; i < program_tree.child.size(); i++)
+	{
+		x += program_tree.child[i]->fs.CurrentTerm.what;
+		x += "\n";
+	}
+	program_tree.fs.CurrentTerm.what = x;
+}
+
 std::string for2cpp(std::string for_code) {
 	using namespace std;
 	string cpp_code = cpp_header;
