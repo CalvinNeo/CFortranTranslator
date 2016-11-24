@@ -530,8 +530,8 @@ int word_parse();
 void update_flex(int len, bool newline = false); // do not update CurrentTerm
 void update_yylval(Term & current_term, bool empty = false);
 extern std::string global_code;
-int make_term_flex(const TokenMeta & token, const char * w);
-bool abandon = false;
+int make_term_flex(const TokenMeta_T & token, const char * w);
+static bool abandon = false;
 
 #ifdef USE_YACC
 // yacc
@@ -2003,7 +2003,8 @@ int yywrap()
    return(1); 
 }
 
-int make_term_flex(const TokenMeta & token, const char * w) {
+int make_term_flex(const TokenMeta_T & token, const char * w) {
+	// same as gen_flex in codegen.h
 	flex_state.CurrentTerm = Term{ token, std::string(w) };
 	return token;
 }
@@ -2020,6 +2021,7 @@ FlexState & get_flex_state() {
 }
 #ifdef USE_YACC
 
+
 void update_yylval(Term & current_term, bool empty) {
 	// YYRTWORD 不会调用该函数
 	if (empty) {
@@ -2028,22 +2030,19 @@ void update_yylval(Term & current_term, bool empty) {
 	else {
 		yylval.fs = FlexState(flex_state);
 		yylval.fs.CurrentTerm = current_term;
-		//yylval.fs.CurrentTerm = Term{current_term.token, global_code.substr(flex_state.parse_pos, yyleng) };
-		//std::cout << global_code.substr(flex_state.parse_pos, yyleng) << std::endl;
-
 	}
 }
 int word_parse() {
 	using namespace std;
-	FlexState & fs = flex_state;
+	const FlexState & fs = flex_state;
 	if (abandon) {
 		abandon = false;
 		return YY_REQ_MORE;
 	}
 	string yytextstr = string(yytext);
 	transform(yytextstr.begin(), yytextstr.end(), yytextstr.begin(), tolower); // tolower
-	//yytextstr.erase(remove_if(yytextstr.begin(), yytextstr.end(), isspace), yytextstr.end()); // remove all space
-	FIND_AGAIN:
+																			   //yytextstr.erase(remove_if(yytextstr.begin(), yytextstr.end(), isspace), yytextstr.end()); // remove all space
+FIND_AGAIN:
 	for (int i = 0; i < keywords.size(); i++)
 	{
 		if (keywords[i].what == yytextstr) {
@@ -2051,7 +2050,7 @@ int word_parse() {
 			{
 				if (iter->first == yytextstr) {
 					// not a valid yylval
-					std::string next = CutString(global_code.begin() + fs.parse_pos + yyleng /* yyleng != fs.parse_len because RTNWORD do not update_flex before */ , global_code.end(), false);
+					std::string next = CutString(global_code.begin() + fs.parse_pos + yyleng /* yyleng != fs.parse_len because RTNWORD do not update_flex before */, global_code.end(), false);
 					for (int j = 0; j < iter->second.size(); j++)
 					{
 						if (iter->second[j] == next) {
@@ -2067,7 +2066,7 @@ int word_parse() {
 			if (pre_map.find(yytextstr) != pre_map.end()) {
 				yytextstr = pre_map.at(yytextstr);
 			}
-			update_yylval( Term{ keywords[i].token , std::string(yytextstr) });
+			update_yylval(Term{ keywords[i].token , std::string(yytextstr) });
 			return keywords[i].yytoken;
 		}
 	}
@@ -2077,6 +2076,7 @@ int word_parse() {
 	update_yylval(Term{ TokenMeta::META_WORD , std::string(yytextstr) });
 	return YY_WORD;
 }
+
 char * iter_buff = nullptr;
 YY_BUFFER_STATE yy_buffer = nullptr;
 void set_buff(const std::string & code) {

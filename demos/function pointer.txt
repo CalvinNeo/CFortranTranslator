@@ -30,7 +30,7 @@ program
 			integer::minu_result
 		end function
 	end interface
-	interget::a, b
+	integer::a, b
 	read *, a, b
 	call proc(a, b, sum)
 	call proc(a, b, minu)

@@ -2,6 +2,7 @@
 #include "forlang.h"
 #include "for1array.h"
 #include "formath.h"
+#include "forstdio.h"
 //#define USE_FORARRAY
 
 

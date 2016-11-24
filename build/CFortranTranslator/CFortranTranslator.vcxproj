@@ -68,6 +68,7 @@
     <ClInclude Include="..\..\for90std\forlang.h" />
     <ClInclude Include="..\..\for90std\formath.h" />
     <ClInclude Include="..\..\for90std\fornarray.h" />
+    <ClInclude Include="..\..\for90std\forstdio.h" />
     <ClInclude Include="..\..\gen_common.h" />
     <ClInclude Include="..\..\gen_config.h" />
     <ClInclude Include="..\..\codegen.h" />
@@ -83,13 +84,13 @@
     <ClInclude Include="..\..\Variable.h" />
   </ItemGroup>
   <ItemGroup>
-    <Flex Include="..\..\grammar\for90.l" />
-  </ItemGroup>
-  <ItemGroup>
     <Bison Include="..\..\grammar\for90.y" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\README.md" />
+  </ItemGroup>
+  <ItemGroup>
+    <Flex Include="..\..\grammar\for90.l" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{EEFFE8C1-37FF-4F41-9113-5996FEA58436}</ProjectGuid>

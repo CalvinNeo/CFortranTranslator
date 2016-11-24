@@ -42,6 +42,13 @@ ParseNode gen_promote(std::string rule, int merged_token_meta, const ParseNode &
 	return newnode;
 }
 
+ParseNode gen_promote(int merged_token_meta, const ParseNode & lower) {
+	ParseNode newnode = ParseNode();
+	newnode.fs.CurrentTerm = Term{ merged_token_meta, "" };
+	newnode.addchild(new ParseNode(lower));
+	return newnode;
+}
+
 FlexState gen_flex(Term term) {
 	FlexState f;
 	f.CurrentTerm = term;

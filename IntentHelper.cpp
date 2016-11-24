@@ -1,5 +1,6 @@
 #include "IntentHelper.h"
 #include "Intent.h"
+#include "tokenizer.h"
 /*
 ([\w-]+) *= *([+-\d]+),
 , {$2, "$1"}
@@ -152,19 +153,19 @@ std::map<int, std::string> IntentName = {
 	,{ -331, "Complex" }
 	,{ -332, "Short" }
 
-	,{ Void - 100, "Void_Def" }
-	,{ Obj - 100, "Obj_Def" }
-	,{ Int - 100, "Int_Def" }
-	,{ Char - 100, "Char_Def" }
-	,{ String - 100, "String_Def" }
-	,{ Double - 100, "Double_Def" }
-	,{ Dynamic - 100, "Dynamic_Def" }
-	,{ Bool - 100, "Bool_Def" }
-	,{ Pointer - 100, "Pointer_Def" }
-	,{ Float - 100, "Float_Def" }
-	,{ Long - 100, "Long_Def" }
-	,{ Complex - 100, "Complex_Def" }
-	,{ Short - 100, "Short_Def" }
+	,{ TokenMeta::Void - 100, "Void_Def" }
+	,{ TokenMeta::Obj - 100, "Obj_Def" }
+	,{ TokenMeta::Int - 100, "Int_Def" }
+	,{ TokenMeta::Char - 100, "Char_Def" }
+	,{ TokenMeta::String - 100, "String_Def" }
+	,{ TokenMeta::Double - 100, "Double_Def" }
+	,{ TokenMeta::Dynamic - 100, "Dynamic_Def" }
+	,{ TokenMeta::Bool - 100, "Bool_Def" }
+	,{ TokenMeta::Pointer - 100, "Pointer_Def" }
+	,{ TokenMeta::Float - 100, "Float_Def" }
+	,{ TokenMeta::Long - 100, "Long_Def" }
+	,{ TokenMeta::Complex - 100, "Complex_Def" }
+	,{ TokenMeta::Short - 100, "Short_Def" }
 
 	,{ -600, "If" }
 	,{ -601, "Else or ElseIf" }
@@ -231,6 +232,9 @@ std::map<int, std::string> IntentName = {
 	,{ -2031, "NT_WHILE"}
 	,{ -2032, "NT_OPEN" }
 	,{ -2033, "NT_CLOSE" }
+	, {-2034, "NT_PROGRAM"}
+	, {-2035, "NT_INTERFACE"}
+	, {-2036, "NT_WRAPPERS"}
 	,{ -9999, "NT_DUMMY"}
 };
 

@@ -169,11 +169,9 @@
     <ClInclude Include="..\..\for90std\for90std.h">
       <Filter>for90std</Filter>
     </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
-    <Flex Include="..\..\grammar\for90.l">
-      <Filter>grammar</Filter>
-    </Flex>
+    <ClInclude Include="..\..\for90std\forstdio.h">
+      <Filter>for90std</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Bison Include="..\..\grammar\for90.y">
@@ -182,5 +180,10 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\README.md" />
+  </ItemGroup>
+  <ItemGroup>
+    <Flex Include="..\..\grammar\for90.l">
+      <Filter>grammar</Filter>
+    </Flex>
   </ItemGroup>
 </Project>

@@ -116,6 +116,7 @@ when using immediate code generate(or using lazy gen), upper level non-terminal 
 child ParseNode may also be referred when generating upper level ParseNode, so do not change child index of:
 
 1. NT_VARIABLEINITIAL: referred by function_decl
+2. NT_FUNCTIONDECLARE：referred by interface of paramtable
 
 ### name mapping
 many type names and function names are mapped, they are defined in in [/gen_config.h](/gen_config.h)
@@ -160,8 +161,9 @@ you can use `REAL(x)` to get the float copy of x, however, you can also use `REA
 |rules|left NT|right(included)|
 |:-:|:-:|:-:|
 | fortran_program | root | wrappers |
-| wrappers | META_NONTERMINAL | wrapper + |
+| wrappers | NT_WRAPPERS | wrapper + |
 | wrapper | / | function_decl / program |
+| function_decl | NT_FUNCTIONDECLARE |  |
 | var_def | NT_VARIABLEDEFINE | typeinfo, NT_DIMENSLICE / dummy, NT_PARAMTABLE |
 | paramtable_elem | / | dimen_slice / keyvalue / NT_DECLAREDVARIABLE |
 | paramtable | NT_PARAMTABLE | paramtable_elem + |
@@ -240,3 +242,4 @@ note that argtable is now alias of paramtable
 - ~~solve `paramtable : exp`, `argtable : exp` conflict by merging argtable to paramtable~~
 	1. merge `argtable` and `dimen_slice` to paramtable
 	2. only change reduce rules
+- `printf` array

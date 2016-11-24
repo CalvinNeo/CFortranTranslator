@@ -3,6 +3,7 @@
 #include <string>
 #include <vector>
 #include <map>
+#include "gen_config.h"
 
 using namespace std;
 

@@ -4,7 +4,9 @@
 #include <vector>
 #include "Intent.h"
 
-typedef IntentMeta TokenMeta;
+#define TokenMeta IntentMeta
+#define TokenMeta_T int
+
 struct Term {
 	//TokenMeta token;
 	int token;
@@ -37,4 +39,7 @@ FlexState next_token(const std::string & in_str, int start = 0);
 FlexState iter_token(const std::string & in_str, int start);
 std::string CutString(std::string::iterator & b, std::string::iterator e, bool save, char jmp = ' ');
 
+
+// for90.l
+//void update_yylval(Term & current_term, bool empty);
 

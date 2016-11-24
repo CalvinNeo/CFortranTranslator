@@ -632,6 +632,17 @@ using namespace std;
 				$$ = gen_flattern($1, $2, "%s\n%s", TokenMeta::NT_SUITE);;
 				update_pos($$, $1, $2);
 			}
+		| interface_decl
+			{
+				$$ = gen_promote("%s\n", TokenMeta::NT_SUITE, $1);
+				update_pos($$, $1, $1);
+			}
+		| interface_decl suite
+			{
+				$$ = gen_flattern($1, $2, "%s\n%s", TokenMeta::NT_SUITE);
+				//$$.fs.CurrentTerm.what = $2.fs.CurrentTerm.what;
+				update_pos($$, $1, $2);
+			}
 
 
 	_optional_lbrace : 
@@ -672,12 +683,11 @@ using namespace std;
 			}
 		| _optional_formatter _optional_comma
 			{
-				ParseNode newnode = ParseNode();
+				ParseNode newnode = ParseNode(gen_flex(Term{ TokenMeta::META_NONTERMINAL, "" }), nullptr);
 				ParseNode _optional_device = ParseNode();
 				_optional_device.fs.CurrentTerm = Term{ TokenMeta::META_NONTERMINAL, "" };
-				ParseNode _optional_formatter = $1;
+				ParseNode & _optional_formatter = $1;
 				/* target code of io_info depend on context */
-				newnode.fs.CurrentTerm = Term{ TokenMeta::META_NONTERMINAL, "" };
 				newnode.addchild(new ParseNode(_optional_device)); // _optional_device
 				newnode.addchild(new ParseNode(_optional_formatter)); // _optional_formatter
 				$$ = newnode;
@@ -982,7 +992,7 @@ using namespace std;
 				ParseNode & exp_to = $6;
 				ParseNode & step = gen_exp(gen_token(Term{ TokenMeta::META_INTEGER , "1" }));
 				ParseNode & suite = $8; 
-				$$ = gen_do_range(exp_from, exp_from, exp_to, step, suite);
+				$$ = gen_do_range(loop_variable, exp_from, exp_to, step, suite);
 				update_pos($$, $1, $11);
 			}
 		| YY_DO variable '=' exp ',' exp ',' exp crlf suite YY_END YY_DO crlf
@@ -1073,7 +1083,7 @@ using namespace std;
 			{
 				ParseNode & suite = $4;
 				sprintf(codegen_buf, "int main()\n{\n%s\treturn 0;\n}", tabber(suite.fs.CurrentTerm.what).c_str());
-				ParseNode newnode = ParseNode(gen_flex(Term{ TokenMeta::META_NONTERMINAL, string(codegen_buf) }), nullptr);
+				ParseNode newnode = ParseNode(gen_flex(Term{ TokenMeta::NT_PROGRAM, string(codegen_buf) }), nullptr);
 				newnode.addchild(new ParseNode(suite)); //suite
 				$$ = newnode;
 				update_pos($$, $1, $8);
@@ -1096,7 +1106,7 @@ using namespace std;
 				ParseNode newnode = ParseNode();
 				newnode.addchild(new ParseNode($1)); // wrapper
 				sprintf(codegen_buf, "%s", $1.fs.CurrentTerm.what.c_str());
-				newnode.fs.CurrentTerm = Term{ TokenMeta::META_NONTERMINAL, string(codegen_buf) };
+				newnode.fs.CurrentTerm = Term{ TokenMeta::NT_WRAPPERS, string(codegen_buf) };
 				$$ = newnode;
 				update_pos($$, $1, $1);
 			}
@@ -1107,7 +1117,7 @@ using namespace std;
 				newnode->addchild(new ParseNode($2)); // wrappers
 				sprintf(codegen_buf, "%s\n%s", $1.fs.CurrentTerm.what.c_str(), $2.fs.CurrentTerm.what.c_str());
 				newnode = flattern_bin(newnode);
-				newnode->fs.CurrentTerm = Term{ TokenMeta::META_NONTERMINAL, string(codegen_buf) };
+				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_WRAPPERS, string(codegen_buf) };
 				$$ = *newnode;
 				update_pos($$, $1, $2);
 			}
@@ -1115,9 +1125,9 @@ using namespace std;
 	interface_decl : YY_INTERFACE _optional_name crlf wrappers crlf YY_END YY_INTERFACE _optional_name crlf
 			{
 				// drop interface directly
-				ParseNode newnode = ParseNode(gen_flex(Term{ TokenMeta::META_NONTERMINAL, "" }), nullptr);
+				//ParseNode newnode = ParseNode(gen_flex(Term{ TokenMeta::META_NONTERMINAL, "" }), nullptr);
 				// no child
-				$$ = newnode;
+				$$ = gen_interface($4);
 				update_pos($$, $1, $9);
 			}
 

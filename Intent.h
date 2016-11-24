@@ -2,7 +2,7 @@
 #include "IntentHelper.h"
 #include <string>
 
-//namespace IntentMeta {
+namespace IntentMeta {
 	//enum class IntentMeta {
 	enum IntentMeta {
 
@@ -251,10 +251,13 @@
 		NT_WHILE = -2031,
 		NT_OPEN = -2032,
 		NT_CLOSE = -2033,
+		NT_PROGRAM = -2034,
+		NT_INTERFACE = -2035,
+		NT_WRAPPERS = -2036,
 
 		NT_DUMMY = -9999,
 };
-//}
+}
 
 
 struct KeywordMeta {
