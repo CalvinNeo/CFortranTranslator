@@ -2839,7 +2839,7 @@ yyreduce:
 /* Line 1792 of yacc.c  */
 #line 636 "for90.y"
     {
-				(yyval) = gen_promote("%s\n", TokenMeta::NT_SUITE, (yyvsp[(1) - (1)]));
+				(yyval) = gen_promote("", TokenMeta::NT_SUITE, (yyvsp[(1) - (1)]));
 				update_pos((yyval), (yyvsp[(1) - (1)]), (yyvsp[(1) - (1)]));
 			}
     break;
@@ -2848,7 +2848,7 @@ yyreduce:
 /* Line 1792 of yacc.c  */
 #line 641 "for90.y"
     {
-				(yyval) = gen_flattern((yyvsp[(1) - (2)]), (yyvsp[(2) - (2)]), "%s\n%s", TokenMeta::NT_SUITE);
+				(yyval) = gen_flattern((yyvsp[(1) - (2)]), (yyvsp[(2) - (2)]), "%s%s", TokenMeta::NT_SUITE);
 				//$$.fs.CurrentTerm.what = $2.fs.CurrentTerm.what;
 				update_pos((yyval), (yyvsp[(1) - (2)]), (yyvsp[(2) - (2)]));
 			}

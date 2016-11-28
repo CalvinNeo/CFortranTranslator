@@ -36,9 +36,10 @@
     <ClCompile Include="..\..\gen_argtable.cpp" />
     <ClCompile Include="..\..\gen_arraybuilder.cpp" />
     <ClCompile Include="..\..\gen_callable.cpp" />
-    <ClCompile Include="..\..\gen_describer.cpp" />
+    <ClCompile Include="..\..\gen_attr_describer.cpp" />
     <ClCompile Include="..\..\gen_do.cpp" />
     <ClCompile Include="..\..\gen_exp.cpp" />
+    <ClCompile Include="..\..\gen_forward.cpp" />
     <ClCompile Include="..\..\gen_function.cpp" />
     <ClCompile Include="..\..\gen_header.cpp" />
     <ClCompile Include="..\..\gen_if.cpp" />
@@ -50,6 +51,7 @@
     <ClCompile Include="..\..\gen_stmt_suite.cpp" />
     <ClCompile Include="..\..\gen_type.cpp" />
     <ClCompile Include="..\..\gen_vardef.cpp" />
+    <ClCompile Include="..\..\gen_variable.cpp" />
     <ClCompile Include="..\..\getopt.cpp" />
     <ClCompile Include="..\..\grammar\for90.flex.cpp" />
     <ClCompile Include="..\..\grammar\for90.tab.cpp" />

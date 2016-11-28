@@ -24,7 +24,12 @@ ParseNode::ParseNode(const ParseNode & pn)
 	this->attr = (pn.attr == nullptr ? nullptr: pn.attr->clone());
 	for (int i = 0; i < pn.child.size(); i++)
 	{
-		this->addchild( new ParseNode(*pn.child[i]) );
+		if (pn.child[i] != nullptr) {
+			this->addchild(new ParseNode(*pn.child[i]));
+		}
+		else {
+			this->addchild(nullptr);
+		}
 	}
 }
 

@@ -121,7 +121,6 @@ std::map<int, std::string> IntentName = {
 	,{ -207, "Friend" }
 	,{ -208, "Class" }
 	,{ -209, "NameSpace" }
-	,{ -210, "Function" }
 	,{ -211, "Extern" }
 	,{ -212, "Partial" }
 	,{ -213, "Final" }
@@ -152,6 +151,7 @@ std::map<int, std::string> IntentName = {
 	,{ -330, "Long" }
 	,{ -331, "Complex" }
 	,{ -332, "Short" }
+	, { -333, "Function" }
 
 	,{ TokenMeta::Void - 100, "Void_Def" }
 	,{ TokenMeta::Obj - 100, "Obj_Def" }
@@ -166,6 +166,7 @@ std::map<int, std::string> IntentName = {
 	,{ TokenMeta::Long - 100, "Long_Def" }
 	,{ TokenMeta::Complex - 100, "Complex_Def" }
 	,{ TokenMeta::Short - 100, "Short_Def" }
+		, { TokenMeta::Function - 100, "Function_Def" }
 
 	,{ -600, "If" }
 	,{ -601, "Else or ElseIf" }

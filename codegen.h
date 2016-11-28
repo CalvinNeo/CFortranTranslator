@@ -56,8 +56,9 @@ ParseNode gen_paramtable(ParseNode & paramtable_elem, ParseNode & paramtable);
 ParseNode gen_promote_exp_to_keyvalue(const ParseNode & paramtable_elem);
 ParseNode gen_promote_paramtable(const ParseNode paramtable);
 
-ParseNode gen_type(const ParseNode & type, const ParseNode & _type_kind);
-ParseNode gen_type(const ParseNode & type);
+ParseNode gen_type(const ParseNode & type_nospec, const ParseNode & _type_kind);
+ParseNode gen_type(const ParseNode & type_nospec);
+ParseNode gen_type(Term typeterm);
 
 ParseNode gen_argtable(ParseNode & dimen_slice);
 
@@ -70,6 +71,10 @@ void set_variabledesc_attr(ParseNode * newnode, optionalparam<bool> reference, o
 ParseNode gen_variabledesc_from_dimenslice(const ParseNode & dimen_slice);
 
 ParseNode gen_interface(const ParseNode & wrappers);
+
+void add_function_forward(const ParseNode & function_decl);
+
+ParseNode gen_vardef_simple(const ParseNode & type, std::string name);
 
 
 std::string gen_rights(std::string filename, std::string author);

@@ -18,4 +18,20 @@ subroutine proc(a, b, fun)
 	integer,intent(in)::a, b
 	print *, fun(a, b) 
 end subroutine
-
+program
+	implicit none
+	interface
+		function sum(x,y) result (sum_result)
+			integer,intent(in)::x, y
+			integer::sum_result
+		end function
+		function minu(x,y) result(minu_result)
+			integer,intent(in)::x, y
+			integer::minu_result
+		end function
+	end interface
+	integer::a, b
+	read *, a, b
+	call proc(a, b, sum)
+	call proc(a, b, minu)
+end program

@@ -18,9 +18,8 @@ refer to [/grammar/for90.y](/grammar/for90.y) for all accepted grammar
 ### unsupported keywords
 
 ### INTERFACE block
-`INTERFACE` block will be skipped during parsing, so avoid:
 
-1. rename kwyword parameter
+1. now you can rename keyword parameter
 
 ### types
 #### type mapping
@@ -224,7 +223,7 @@ note that argtable is now alias of paramtable
 - ~~one-line if~~
 - ~~error infomation include Intent name~~
 - ~~allow named blocks~~
-- support function pointers, Parse `Interface` for function pointer
+- ~~support function pointers, Parse `Interface` for function pointer~~
 - ~~hidden do~~
 - ~~more precise code/error location, start/end~~
 
@@ -240,6 +239,6 @@ note that argtable is now alias of paramtable
 - ~~split keyvalue rules from paramtable rules, may cause bugs~~
 - ~~_type_kind rules and type cast function call conflict~~
 - ~~solve `paramtable : exp`, `argtable : exp` conflict by merging argtable to paramtable~~
-	1. merge `argtable` and `dimen_slice` to paramtable
-	2. only change reduce rules
+	~~1. merge `argtable` and `dimen_slice` to paramtable~~
+	~~2. only change reduce rules~~
 - `printf` array

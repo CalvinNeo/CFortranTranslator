@@ -112,7 +112,7 @@ ParseNode gen_paramtable(ParseNode & paramtable_elem, ParseNode & paramtable) {
 }
 
 ParseNode gen_promote_exp_to_keyvalue(const ParseNode & paramtable_elem) {
-	if (paramtable_elem.fs.CurrentTerm.token == TokenMeta::NT_PARAMTABLE) {
+	if (paramtable_elem.fs.CurrentTerm.token == TokenMeta::NT_KEYVALUE) {
 		// keyvalue pair
 		return paramtable_elem;
 	}

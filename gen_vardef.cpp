@@ -1,15 +1,20 @@
 #include "gen_common.h"
 
-ParseNode gen_vardef(const ParseNode & type_spec, const ParseNode & variable_desc, const ParseNode & paramtable) {
-	ParseNode newnode = ParseNode();
-	string arr_decl = ""; string var_decl = ""; bool do_arr = false;
+ParseNode gen_vardef_simple(const ParseNode & type, std::string name) {
+	ParseNode newnode = ParseNode(gen_flex(Term{ TokenMeta::NT_VARIABLEDEFINE, name }), nullptr);
+	newnode.addchild(new ParseNode(type)); // type
+	newnode.addchild(new ParseNode(gen_flex(Term{ TokenMeta::NT_VOID, "" }), nullptr)); // variable_desc
+	ParseNode kv = gen_keyvalue(gen_token(Term{ TokenMeta::UnknownVariant, name }));
+	ParseNode pt = gen_paramtable(kv);
+	newnode.addchild(new ParseNode(pt)); // type
+	return newnode;
+}
+
+
+ParseNode * promote_type(const ParseNode & type_spec, VariableDescAttr * vardescattr) {
 	ParseNode * ty = new ParseNode(type_spec); // type
-	VariableDescAttr * vardescattr = dynamic_cast<VariableDescAttr *>(variable_desc.attr);
-	ParseNode * slice = vardescattr->desc.slice;
-	newnode.addchild(ty); // type
-						   // specify type
-						   /* merge type_spec and dummy_variable_iden attr */
 	VariableDescAttr * ty_a = dynamic_cast<VariableDescAttr *>(type_spec.attr);
+	/* merge type_spec and variable_desc attr */
 	vardescattr->merge(*ty_a);
 	if (vardescattr->desc.kind != 0) {
 		if (type_spec.fs.CurrentTerm.token == TokenMeta::Int_Def) {
@@ -41,18 +46,28 @@ ParseNode gen_vardef(const ParseNode & type_spec, const ParseNode & variable_des
 			}
 		}
 	}
+	return ty;
+}
+
+ParseNode gen_vardef(const ParseNode & type_spec, const ParseNode & variable_desc, const ParseNode & paramtable) {
+	ParseNode newnode = ParseNode();
+	string arr_decl = ""; string var_decl = ""; bool do_arr = false;
+	VariableDescAttr * vardescattr = dynamic_cast<VariableDescAttr *>(variable_desc.attr);
+	ParseNode * slice = vardescattr->desc.slice;
+	ParseNode * ty = promote_type(type_spec, vardescattr);
 	if (slice == nullptr) {
 		// slice == nullptr if this is not array
 		/* must assure no ParseNode * is nullptr */
-		slice = new ParseNode();
-		newnode.fs.CurrentTerm = Term{ TokenMeta::NT_VOID, "" };
+		slice = new ParseNode(gen_flex(Term{ TokenMeta::NT_VOID, "" }), nullptr);
 	}
 	else {
 		do_arr = true;
 	}
-	newnode.addchild(slice);
-	ParseNode * pn = new ParseNode(gen_promote_paramtable(paramtable)); // paramtable
+	newnode.addchild(ty); // type
+	newnode.addchild(slice); // variable_desc
+	ParseNode * pn = new ParseNode(gen_promote_paramtable(paramtable));
 	newnode.addchild(pn); // paramtable
+	newnode.attr = new VariableDescAttr(*dynamic_cast<VariableDescAttr *>(variable_desc.attr)); // attr
 	if (do_arr)
 	{
 		// ARRAY
@@ -67,7 +82,7 @@ ParseNode gen_vardef(const ParseNode & type_spec, const ParseNode & variable_des
 			string type_str(codegen_buf);
 			// init high dimension array
 			/* though using for-loop to init a high-dimension array is verbose comparing to using constructors, i use this form because it is more clear and it can remind users of the cost of using a high dimension array */
-			vector<string> this_major; /* if you want to set value of a(i0)(i1)(i2) then this major is a(i0)(i1) */
+			vector<string> this_major; /* if you want to set value of a(i0)(i1)(i2) then this_major is a(i0)(i1) */
 			this_major.push_back(pn->child[i]->child[0]->fs.CurrentTerm.what /* array name */);
 			for (int i = 1; i < slice->child.size(); i++)
 			{

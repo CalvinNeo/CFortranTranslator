@@ -96,9 +96,6 @@
     <ClCompile Include="..\..\gen_argtable.cpp">
       <Filter>target</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\gen_describer.cpp">
-      <Filter>target</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\gen_arraybuilder.cpp">
       <Filter>target</Filter>
     </ClCompile>
@@ -112,6 +109,15 @@
       <Filter>target</Filter>
     </ClCompile>
     <ClCompile Include="..\..\gen_header.cpp">
+      <Filter>target</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\gen_forward.cpp">
+      <Filter>target</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\gen_attr_describer.cpp">
+      <Filter>target</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\gen_variable.cpp">
       <Filter>target</Filter>
     </ClCompile>
   </ItemGroup>

@@ -1,7 +1,3 @@
 ﻿  main.cpp
-f:\codes\c++\cfortrantranslator\cpptest\main.cpp(41): warning C4477: “printf”: 格式字符串“%8d”需要类型“int”的参数，但可变参数 1 拥有了类型“for1array<int>”
-f:\codes\c++\cfortrantranslator\cpptest\main.cpp(41): warning C4473: “printf”: 没有为格式字符串传递足够的参数
-  f:\codes\c++\cfortrantranslator\cpptest\main.cpp(41): note: 占位符和其参数预计 5 可变参数，但提供的却是 1 参数
-  f:\codes\c++\cfortrantranslator\cpptest\main.cpp(41): note: 缺失的可变参数 2 为格式字符串“%8d”所需
   cpptest.vcxproj -> F:\Codes\C++\CFortranTranslator\build\x64\Debug\cpptest.exe
   cpptest.vcxproj -> F:\Codes\C++\CFortranTranslator\build\x64\Debug\cpptest.pdb (Partial PDB)

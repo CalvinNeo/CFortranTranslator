@@ -167,18 +167,34 @@ struct VariableDescAttr : public ParseAttr {
 	}
 };
 
-struct KwArgsDescAttr : public ParseAttr {
+struct KwArgsAttr : public ParseAttr {
 	std::map<std::string, std::string> key_value;
 
-	KwArgsDescAttr(ParseNode * parsenode) : ParseAttr(parsenode) {}
-	KwArgsDescAttr(const KwArgsDescAttr & va) {
+	KwArgsAttr(ParseNode * parsenode) : ParseAttr(parsenode) {}
+	KwArgsAttr(const KwArgsAttr & va) {
 		// do not call `clone()` else will cause stackoverflow
 		this->key_value = va.key_value;
 	}
-	ParseAttr * clone() { return new KwArgsDescAttr(*this); }
+	ParseAttr * clone() { return new KwArgsAttr(*this); }
 
-	void merge(const KwArgsDescAttr & x2) {
+	void merge(const KwArgsAttr & x2) {
 		
+	}
+};
+
+struct FunctionAttr : public ParseAttr {
+	std::vector<ParseNode *> param_definition;
+	std::vector<std::tuple<std::string, ParseNode, struct ParseNode *>> param_name_typename;
+	FunctionAttr(ParseNode * parsenode) : ParseAttr(parsenode) {}
+	FunctionAttr(const FunctionAttr & va) {
+		// do not call `clone()` else will cause stackoverflow
+		this->param_definition = va.param_definition;
+		this->param_name_typename = va.param_name_typename;
+	}
+	ParseAttr * clone() { return new FunctionAttr(*this); }
+
+	void merge(const FunctionAttr & x2) {
+
 	}
 };
 // struct ArrayAttr FormatterAttr

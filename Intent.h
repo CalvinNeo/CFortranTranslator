@@ -127,7 +127,6 @@ namespace IntentMeta {
 		Friend = -207,
 		Class = -208,
 		NameSpace = -209,
-		Function = -210, //TODO function声明 用于匿名函数等
 		Extern = -211,
 		Partial = -212,
 		Final = -213,
@@ -165,6 +164,7 @@ namespace IntentMeta {
 		Long = -330,
 		Complex = -331,
 		Short = -332,
+		Function = -333, //TODO function声明 用于匿名函数等
 
 		// 变量声明 -400~-500
 		Void_Def = Void - 100,
@@ -180,6 +180,7 @@ namespace IntentMeta {
 		Long_Def = Long - 100,
 		Complex_Def = Complex - 100,
 		Short_Def = Short - 100,
+		Function_Def = Function - 100,
 
 		// Flow-Control
 		If = -600,

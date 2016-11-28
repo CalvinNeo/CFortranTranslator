@@ -634,12 +634,12 @@ using namespace std;
 			}
 		| interface_decl
 			{
-				$$ = gen_promote("%s\n", TokenMeta::NT_SUITE, $1);
+				$$ = gen_promote("", TokenMeta::NT_SUITE, $1);
 				update_pos($$, $1, $1);
 			}
 		| interface_decl suite
 			{
-				$$ = gen_flattern($1, $2, "%s\n%s", TokenMeta::NT_SUITE);
+				$$ = gen_flattern($1, $2, "%s%s", TokenMeta::NT_SUITE);
 				//$$.fs.CurrentTerm.what = $2.fs.CurrentTerm.what;
 				update_pos($$, $1, $2);
 			}

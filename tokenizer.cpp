@@ -290,6 +290,10 @@ const vector<KeywordMeta> keywords = {
 		, TokenMeta::META_ANY
 		, YY_KIND
 	}
+	, KeywordMeta{ "call"
+		, TokenMeta::META_ANY
+		, YY_CALL
+	}
 };
 
 
