@@ -49,6 +49,30 @@ ParseNode * promote_type(const ParseNode & type_spec, VariableDescAttr * vardesc
 	return ty;
 }
 
+std::string gen_vardef_typestr(VariableDescAttr * vardescattr) {
+	string var_pattern;
+	if (vardescattr == nullptr) {
+		return "%s ";
+	}
+	if (vardescattr->desc.reference) {
+		if (vardescattr->desc.constant) {
+			var_pattern = "const %s & ";
+		}
+		else {
+			var_pattern = "%s & ";
+		}
+	}
+	else {
+		if (vardescattr->desc.constant) {
+			var_pattern = "const %s ";
+		}
+		else {
+			var_pattern = "%s ";
+		}
+	}
+	return var_pattern;
+}
+
 ParseNode gen_vardef(const ParseNode & type_spec, const ParseNode & variable_desc, const ParseNode & paramtable) {
 	ParseNode newnode = ParseNode();
 	string arr_decl = ""; string var_decl = ""; bool do_arr = false;
@@ -79,11 +103,12 @@ ParseNode gen_vardef(const ParseNode & type_spec, const ParseNode & variable_des
 			// for each variable in flatterned paramtable
 			int sliceid = 0;
 			sprintf(codegen_buf, "forarray<%s>", ty->fs.CurrentTerm.what.c_str());
+			sprintf(codegen_buf, gen_vardef_typestr(vardescattr).c_str(), string(codegen_buf).c_str());
 			string type_str(codegen_buf);
 			// init high dimension array
 			/* though using for-loop to init a high-dimension array is verbose comparing to using constructors, i use this form because it is more clear and it can remind users of the cost of using a high dimension array */
 			vector<string> this_major; /* if you want to set value of a(i0)(i1)(i2) then this_major is a(i0)(i1) */
-			this_major.push_back(pn->child[i]->child[0]->fs.CurrentTerm.what /* array name */);
+			this_major.push_back(pn->child[i]/* NT_VARIABLEINITIAL/NT_KEYVALUE */->child[0]->fs.CurrentTerm.what /* array name */);
 			for (int i = 1; i < slice->child.size(); i++)
 			{
 				sprintf(codegen_buf, "%s(i%d)", this_major.back().c_str(), i - 1);
@@ -102,23 +127,8 @@ ParseNode gen_vardef(const ParseNode & type_spec, const ParseNode & variable_des
 				slice->child[sliceid]->fs.CurrentTerm.what = string(codegen_buf);
 			}
 			// use it in fucntion_decl
-			string var_pattern;
-			if (vardescattr->desc.reference) {
-				if (vardescattr->desc.constant) {
-					var_pattern = "const %s & %s";
-				}
-				else {
-					var_pattern = "%s & %s";
-				}
-			}
-			else {
-				if (vardescattr->desc.constant) {
-					var_pattern = "const %s %s";
-				}
-				else {
-					var_pattern = "%s %s";
-				}
-			}
+			//string var_pattern = gen_vardef_pattern(vardescattr, false);
+
 			// no desc if var_def is not in paramtable
 			sprintf(codegen_buf, "%s %s(%s, %s + 1);\n", type_str.c_str(), pn->child[i]->child[0]->fs.CurrentTerm.what.c_str() /* array name */
 				, slice->child[0]->child[0]->fs.CurrentTerm.what.c_str(), slice->child[0]->child[1]->fs.CurrentTerm.what.c_str() /* slice from to */);
@@ -168,8 +178,9 @@ ParseNode gen_vardef(const ParseNode & type_spec, const ParseNode & variable_des
 	}
 	else {
 		// SCALAR
-		sprintf(codegen_buf, "%s ", ty->fs.CurrentTerm.what.c_str());
-		var_decl += string(codegen_buf);
+		sprintf(codegen_buf, gen_vardef_typestr(vardescattr).c_str(), ty->fs.CurrentTerm.what.c_str());
+		string typestr = string(codegen_buf);
+		var_decl += typestr;
 		bool hitted = false; // 是否至少有一个变量，因为有的变量定义可能是函数的声明，这在c++规范是不允许的，所以可能出现空int，空逗号的情况。
 							 /* enumerate paramtable */
 		// pn is flattened
@@ -185,25 +196,7 @@ ParseNode gen_vardef(const ParseNode & type_spec, const ParseNode & variable_des
 				var_decl += ", ";
 			}
 			hitted = true;
-			// use it in fucntion_decl
-			string var_pattern;
-			if (vardescattr->desc.reference) {
-				if (vardescattr->desc.constant) {
-					var_pattern = "const & %s";
-				}
-				else {
-					var_pattern = "& %s";
-				}
-			}
-			else {
-				if (vardescattr->desc.constant) {
-					var_pattern = "const %s";
-				}
-				else {
-					var_pattern = "%s";
-				}
-			}
-			// no desc if var_def is not in paramtable
+
 			sprintf(codegen_buf, "%s", this_variable->child[0]->fs.CurrentTerm.what.c_str());
 
 			var_decl += codegen_buf;
@@ -224,6 +217,11 @@ ParseNode gen_vardef(const ParseNode & type_spec, const ParseNode & variable_des
 
 		newnode.fs.CurrentTerm = Term{ TokenMeta::NT_VARIABLEDEFINE, var_decl };
 	} // end if
+	// set all elements' attr in paramtable 
+	for (int i = 0; i < pn->child.size(); i++)
+	{
+		pn->child[i]->attr = newnode.attr->clone();
+	}
 	return newnode;
 }
 

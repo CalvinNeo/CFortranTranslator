@@ -141,8 +141,8 @@ std::map<int, std::string> IntentName = {
 	,{ -309, "META_REQ_MORE" }
 	,{ -310, "META_NONTERMINAL" }
 	,{ -311, "META_COMPLEX" }
+	,{ -312, "Void or META_VOID" }
 
-	,{ -320, "Void" }
 	,{ -321, "Obj" }
 	,{ -323, "Char" }
 	,{ -326, "Dynamic" }

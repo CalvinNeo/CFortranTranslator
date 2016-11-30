@@ -60,6 +60,29 @@ std::string regen_suite(ParseNode * oldsuite) {
 	return newsuitestr;
 }
 
+
+std::string gen_function_paramtable_typestr(VariableDescAttr * vardescattr, const tuple<string, ParseNode, ParseNode *> & param_name_typename_elem) {
+	string typestrpat, paramtblstr;
+	typestrpat = gen_vardef_typestr(vardescattr);
+
+	string type_nospec;
+	if (vardescattr != nullptr && vardescattr->desc.optional)
+	{
+		type_nospec += "foroptional<";
+		type_nospec += get<1>(param_name_typename_elem).fs.CurrentTerm.what;
+		type_nospec += ">";
+	}
+	else {
+		type_nospec += get<1>(param_name_typename_elem).fs.CurrentTerm.what;
+	}
+
+	sprintf(codegen_buf, typestrpat.c_str(), type_nospec.c_str());
+
+	paramtblstr += string(codegen_buf);
+	paramtblstr += get<0>(param_name_typename_elem); // variable name
+	return paramtblstr;
+}
+
 std::string regen_paramtable(const vector<tuple<string, ParseNode, ParseNode *>> & param_name_typename) {
 	/* generate new paramtable with type */
 	string paramtblstr;
@@ -67,44 +90,19 @@ std::string regen_paramtable(const vector<tuple<string, ParseNode, ParseNode *>>
 	{
 		if (i != 0)
 			paramtblstr += ", ";
-		if (get<2>(param_name_typename[i]) == nullptr) {
+		ParseNode * vp = get<2>(param_name_typename[i]);
+		if (vp == nullptr) {
 			print_error("not find variable/function " + get<0>(param_name_typename[i]));
 			continue;
 		}
-	
-		if (get<2>(param_name_typename[i])->fs.CurrentTerm.token == TokenMeta::NT_VARIABLEINITIAL || 
-			get<2>(param_name_typename[i])->fs.CurrentTerm.token == TokenMeta::NT_DECLAREDVARIABLE)
+		
+		if (vp->fs.CurrentTerm.token == TokenMeta::NT_VARIABLEINITIAL ||
+			vp->fs.CurrentTerm.token == TokenMeta::NT_DECLAREDVARIABLE)
 		{
-			VariableDescAttr * vardescattr = dynamic_cast<VariableDescAttr *>(get<2>(param_name_typename[i])->attr);
-			if (vardescattr != nullptr)
-			{
-				if (vardescattr->desc.constant) {
-					paramtblstr += "const ";
-				}
-				else {
-				}
-			}
-			if (vardescattr != nullptr && vardescattr->desc.optional)
-			{
-				paramtblstr += "foroptional<";
-				paramtblstr += get<1>(param_name_typename[i]).fs.CurrentTerm.what;
-				paramtblstr += ">";
-			}
-			else {
-				paramtblstr += get<1>(param_name_typename[i]).fs.CurrentTerm.what;
-			}
-			paramtblstr += " ";
-			if (vardescattr != nullptr)
-			{
-				if (vardescattr->desc.reference) {
-					paramtblstr += "& ";
-				}
-				else {
-				}
-			}
-			paramtblstr += get<0>(param_name_typename[i]);
+			VariableDescAttr * vardescattr = dynamic_cast<VariableDescAttr *>(vp->attr);
+			paramtblstr += gen_function_paramtable_typestr(vardescattr, param_name_typename[i]);
 		}
-		else if (get<2>(param_name_typename[i])->fs.CurrentTerm.token == TokenMeta::NT_FUNCTIONDECLARE) {
+		else if (vp->fs.CurrentTerm.token == TokenMeta::NT_FUNCTIONDECLARE) {
 			paramtblstr += get<1>(param_name_typename[i]).fs.CurrentTerm.what;
 			paramtblstr += " " + get<0>(param_name_typename[i]);
 		}
@@ -201,46 +199,49 @@ vector<tuple<string, ParseNode, ParseNode *>> get_full_paramtable(const ParseNod
 	param_name_typename.push_back(make_tuple(variable_result.fs.CurrentTerm.what, gen_type(Term{ TokenMeta::Void_Def, "void" }), nullptr));// if subroutine get tuple ("", "void")
 
 	/* set type to all param_name_typename */
-	for (int i = 0; i < param_name_typename.size(); i++)
+	for (int i = 0; i < param_name_typename.size(); i++) // varname in paramtable
 	{
 		string varname = get<0>(param_name_typename[i]);
-		for (int j = 0; j < param_definition.size(); j++)
+		for (int j = 0; j < param_definition.size(); j++) // definition in suite
 		{
-			ParseNode * varname_node = param_definition[j];
+			ParseNode * var_node = param_definition[j];
 			// variable
-			if (varname_node->fs.CurrentTerm.token ==  TokenMeta::NT_VARIABLEINITIAL 
-				|| varname_node->fs.CurrentTerm.token == TokenMeta::NT_DECLAREDVARIABLE){
-				if (varname_node->child[0]->fs.CurrentTerm.what == varname) {
+			if (var_node->fs.CurrentTerm.token ==  TokenMeta::NT_VARIABLEINITIAL
+				|| var_node->fs.CurrentTerm.token == TokenMeta::NT_DECLAREDVARIABLE){
+				if (var_node->child[0]->fs.CurrentTerm.what == varname) {
 					//				NT_VARIABLEINITIAL/NT_KEYVALUE (variable_name, variable_initial_value)
 					//	father 		NT_PARAMTABLE
 					//	father * 2	NT_VARIABLEDEFINE var_def = (type_spec, slice, paramtable)
 					//  param_name_typename[i] = tuple<name, type, ParseNode *>
-					get<1>(param_name_typename[i]) = *varname_node->father->father->child[0]; // type
-					get<2>(param_name_typename[i]) = varname_node; // variable ParseNode
+					get<1>(param_name_typename[i]) = *var_node->father->father->child[0]; // type
+					get<2>(param_name_typename[i]) = var_node; // variable ParseNode
 					/* `delete` ParseNode except return value */
 					if (i != param_name_typename.size() - 1) {
-						varname_node->fs.CurrentTerm.token = TokenMeta::NT_DECLAREDVARIABLE;
+						var_node->fs.CurrentTerm.token = TokenMeta::NT_DECLAREDVARIABLE;
 					}
 				}
 			}
 			// interface function
-			else if (varname_node->fs.CurrentTerm.token == TokenMeta::NT_FUNCTIONDECLARE) {
-				if (varname_node->child[1]->fs.CurrentTerm.what == varname) {
+			else if (var_node->fs.CurrentTerm.token == TokenMeta::NT_FUNCTIONDECLARE) {
+				if (var_node->child[1]->fs.CurrentTerm.what == varname) {
 					string paramtable_types = "";
-					if (varname_node->attr != nullptr) {
-						FunctionAttr * fa = dynamic_cast<FunctionAttr *>(varname_node->attr);
+					if (var_node->attr != nullptr) {
+						FunctionAttr * fa = dynamic_cast<FunctionAttr *>(var_node->attr);
 						for (int k = 0; k < fa->param_name_typename.size() - 1; k++)
 						{
 							if (k != 0)
 								paramtable_types += ", ";
-							paramtable_types += get<1>(fa->param_name_typename[k]).fs.CurrentTerm.what;
+							ParseNode * var_node = get<2>(fa->param_name_typename[k]);
+							VariableDescAttr * vardescattr = dynamic_cast<VariableDescAttr *>(var_node->attr);
+							string pat = gen_function_paramtable_typestr(vardescattr, fa->param_name_typename[k]);
+							paramtable_types += pat;//get<1>(fa->param_name_typename[k]).fs.CurrentTerm.what;
 						}
 					}
 					get<1>(param_name_typename[i]) = gen_type(Term{TokenMeta::Function_Def, "std::function<"
-						+ varname_node->child[3]/*vardef return value*/->child[0]->fs.CurrentTerm.what
+						+ var_node->child[3]/*vardef return value*/->child[0]->fs.CurrentTerm.what
 						+ "(" + paramtable_types + ")"
 						+ ">" });
-					get<2>(param_name_typename[i]) = varname_node;
+					get<2>(param_name_typename[i]) = var_node;
 				}
 			}
 		}

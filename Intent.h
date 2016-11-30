@@ -116,7 +116,6 @@ namespace IntentMeta {
 		
 		Stop = -150,//For Debug
 
-
 		// Describer
 		Virtual = -201,
 		Const = -202,
@@ -149,9 +148,10 @@ namespace IntentMeta {
 		META_REQ_MORE = -309, // 词法分析器需要更多信息(Look Ahead)
 		META_NONTERMINAL = -310, // 非终结符, 由NT_细化
 		META_COMPLEX = -311,
+		META_VOID = -312,
 
 		// 标注变量类型(变量表)
-		Void = -320,
+		Void = META_VOID,
 		Obj = -321,
 		Int = META_INTEGER,
 		Char = -323,//type

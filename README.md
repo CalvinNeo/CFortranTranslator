@@ -49,7 +49,14 @@ refer to [/grammar/for90.y](/grammar/for90.y) for all accepted grammar
 ### functions and subroutines
 1. remove all definition of local variables which is also in parameter list
 2. remove all interface
-3. intent(out) variables will translate to `T & variable`
+3. value pass strategy
+|intent|parameter|result|
+|:-:|:-:|:-:|
+|/|/|T|
+|/|parameter|const T|
+|in|ignore|const & T|
+|out|ignore|& T|
+|inout|ignore|& T|
 
 ### inherit function mapping
 #### type cast
@@ -186,6 +193,8 @@ note that argtable is now alias of paramtable
 ### Attributes
 `->` means `ParseAttr` attached to：
 - VariableDesc -> NT_DECLAREDVARIABLE
+- VariableDesc -> NT_VARIABLEINTIAL nodes of NT_PARAMTABLE(only son of NT_VARIABLEDEFINE node)
+- VariableDesc -> NT_VARIABLEDEFINE
 
 #### VariableDesc
 | item | rule |
@@ -196,7 +205,6 @@ note that argtable is now alias of paramtable
 | intent | variable_desc_elem |
 | optional | variable_desc_elem |
 | parameter | variable_desc_elem |
-
 
 ## todolist(features)
 - lazygen(partial)
