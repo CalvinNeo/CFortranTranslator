@@ -27,6 +27,16 @@ T max_n(T x, T y) {
 
 
 typedef std::complex<double> forcomplex;
+//struct forcomplex {
+//	
+//	const forcomplex operator+(const forcomplex & rhs);
+//
+//	forcomplex(double real, double imagine);
+//	forcomplex(std::string);
+//protected:
+//	double m_real;
+//	double m_imagine;
+//};
 
 template<class T1, class T2>
 long double power(T1 x, T2 y) {

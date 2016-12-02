@@ -105,6 +105,8 @@ ParseNode gen_vardef(const ParseNode & type_spec, const ParseNode & variable_des
 			sprintf(codegen_buf, "forarray<%s>", ty->fs.CurrentTerm.what.c_str());
 			sprintf(codegen_buf, gen_vardef_typestr(vardescattr).c_str(), string(codegen_buf).c_str());
 			string type_str(codegen_buf);
+			sprintf(codegen_buf, gen_vardef_typestr(vardescattr).c_str(), ty->fs.CurrentTerm.what.c_str());
+			string elem_type_str(codegen_buf); // `T`
 			// init high dimension array
 			/* though using for-loop to init a high-dimension array is verbose comparing to using constructors, i use this form because it is more clear and it can remind users of the cost of using a high dimension array */
 			vector<string> this_major; /* if you want to set value of a(i0)(i1)(i2) then this_major is a(i0)(i1) */
@@ -155,10 +157,11 @@ ParseNode gen_vardef(const ParseNode & type_spec, const ParseNode & variable_des
 							vec_size += codegen_buf;
 						}
 						vec_size += "}", vec_lb += "}";
-						sprintf(codegen_buf, ab->fs.CurrentTerm.what.c_str() /* sth like "init_for1array(%%s, %%s, %%s, %s)\n" */
+						sprintf(codegen_buf, ab->fs.CurrentTerm.what.c_str() /*  "init_for1array(%%s, %%s, %%s, %s)\n" */
 							, pn->child[i]->child[0]->fs.CurrentTerm.what.c_str() /* variable name */
 							, vec_lb.c_str()
-							, vec_size.c_str());
+							, vec_size.c_str()
+							, elem_type_str.c_str());
 					}
 					else if (ab->fs.CurrentTerm.token == TokenMeta::NT_ARRAYBUILDER_EXP) {
 						string formatter = (ab->fs.CurrentTerm.what + ";\n");

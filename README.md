@@ -49,7 +49,8 @@ refer to [/grammar/for90.y](/grammar/for90.y) for all accepted grammar
 ### functions and subroutines
 1. remove all definition of local variables which is also in parameter list
 2. remove all interface
-3. value pass strategy
+3. value pass strategy:
+
 |intent|parameter|result|
 |:-:|:-:|:-:|
 |/|/|T|
@@ -147,9 +148,9 @@ all parse tree nodes are defined in [/Intent.h](/Intent.h) with an `NT_` prefix
 - `callable_head` and `argtable` are two parts of a function call
 - both type and function name are callable name, so both `type_nospec` and `variable` are `callable_head`
 - in `gen_argtable` function a `NT_ARGTABLE_PURE` generate a `NT_ARGTABLE_PURE` node, and a `NT_DIMENSLICE` generate a `NT_ARGTABLE_DIMENSLICE` node
-- in `dimen_slice` rule, appending a `NT_SLICE` to a `NT_ARGTABLE_PURE` will generate a `NT_DIMENSLICE`, otherwise it will remain `NT_ARGTABLE_PURE`.
-- as a result, `dimen_slice` is a set of `slice`(`NT_DIMENSLICE`), or a set of both `exp` and `slice`(`NT_DIMENSLICE`), or a set of `exp`(`NT_ARGTABLE_PURE`) .
-- `NT_ARGTABLE_DIMENSLICE` is from rule `argtable`, `NT_DIMENSLICE` is from rule `dimen_slice`. 
+- in `dimen_slice` rule, appending a `NT_SLICE` to a `NT_ARGTABLE_PURE` will generate a `NT_DIMENSLICE`, otherwise it will remain `NT_ARGTABLE_PURE`
+- as a result, `dimen_slice` is a set of `slice`(`NT_DIMENSLICE`), or a set of both `exp` and `slice`(`NT_DIMENSLICE`), or a set of `exp`(`NT_ARGTABLE_PURE`) 
+- `NT_ARGTABLE_DIMENSLICE` is from rule `argtable`, `NT_DIMENSLICE` is from rule `dimen_slice`
 
 #### type_spec, type_nospec
 you can use `REAL(x)` to get the float copy of x, however, you can also use `REAL(kind = 8)` to specify a floating number which is same to `long double` rather than `double`, so it may cause conflict. so a `type_nospec` is like `INTEGER` and a `type_spec` is like `INTEGER(kind = 4)`, `type_nospec` is `callable_head`, `type_spec` is not.
@@ -161,6 +162,10 @@ you can use `REAL(x)` to get the float copy of x, however, you can also use `REA
 #### stmt, suite
 - `stmt` is statement end with ';' or '\n'
 - `suite` is set of `stmt`
+
+#### argtable, paramtable
+argtable is now alias of paramtable
+
 
 ### Parse Tree Layers
 
@@ -187,8 +192,6 @@ you can use `REAL(x)` to get the float copy of x, however, you can also use `REA
 | | NT_ARRAYBUILDER_VALUE | argtable / NT_ARRAYBUILDER_EXP / exp |
 | callable_head |  | variable / type_nospec |
 | type_spec |  | type_nospec / (type_nospec, typecast_spec) |
-
-note that argtable is now alias of paramtable
 
 ### Attributes
 `->` means `ParseAttr` attached to：

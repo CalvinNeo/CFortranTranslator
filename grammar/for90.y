@@ -872,13 +872,14 @@ using namespace std;
 	array_builder_elem : YY_ARRAYINITIAL_START paramtable YY_ARRAYINITIAL_END
 			{
 				/* give initial value */
-				/* NOTE that `B(1:2:3)` can be either a single-element argtable or a exp, this can probably lead to reduction conflicts, NOW we merge rules */
+				/* `B(1:2:3)` can be either a single-element argtable or a exp, this can probably lead to reduction conflicts, so merge rules */
 				/* NOTE fortran use a 1d list to initialize a 2d(or higher) array, however, contrary to c++ and most other language does, it store them in a **conlumn - first order**. for a 2d array, it means you a order of a(1)(1)->a(2)(1)->a(lb_1)(1)->a(1)(2) */
 				ParseNode * newnode = new ParseNode();
 				ParseNode & argtable = $2; 
 				/* for1array<_Container_value_type> & farr, const std::vector<int> & lower_bound
 				, const std::vector<int> & size, const std::vector<T> & values */
-				sprintf(codegen_buf, "init_for1array(%%s, %%s, %%s, %s);\n", /* value */ argtable.fs.CurrentTerm.what.c_str());
+				// set in gen_vardef.cpp
+				sprintf(codegen_buf, "init_for1array(%%s, %%s, %%s, std::vector<%%s>{%s});\n", /* value */ argtable.fs.CurrentTerm.what.c_str());
 				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_ARRAYBUILDER_VALUE, string(codegen_buf) };
 				newnode->addchild(new ParseNode(argtable)); // argtable
 				$$ = *newnode;

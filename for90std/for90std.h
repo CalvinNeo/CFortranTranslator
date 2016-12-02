@@ -3,21 +3,10 @@
 #include "for1array.h"
 #include "formath.h"
 #include "forstdio.h"
-//#define USE_FORARRAY
 
 
-
-
-//struct forcomplex {
-//	
-//	const forcomplex operator+(const forcomplex & rhs);
-//
-//	forcomplex(double real, double imagine);
-//	forcomplex(std::string);
-//protected:
-//	double m_real;
-//	double m_imagine;
-//};
+#define USE_FORARRAY
+/* if defined USE_FORARRAY use fortran-style array */
 
 
 using namespace std;

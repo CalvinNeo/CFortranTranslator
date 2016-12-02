@@ -59,3 +59,8 @@ template <class T>
 bool forpresent(foroptional<T> x) {
 	return x.inited();
 }
+
+template<typename T>
+int to_int(T  x) {
+	return (int)x;
+}
