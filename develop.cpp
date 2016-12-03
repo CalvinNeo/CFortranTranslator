@@ -122,13 +122,35 @@ void debug() {
 	//cout << max_n(1, 2) << endl;
 	//cout << parse_ioformatter("\"aaa\"2(f, 2i)") << endl;
 
-	forarray<forarray<int>> a(1, 3);
-	for (int i = 1; i < 3; i++)
-	{
-		a(i) = forarray<int>(1, 3);
-	}
-	init_forarray(a, vector<int>{1, 1}, vector<int>{2, 2}, std::vector<int>{1, 2, 3, 4});
-	cout << a(1)(1) << " " << a(1)(2) << endl;
+	/// for1array test
+
+	//forarray<forarray<int>> a(1, 3);
+	//init_forarray(a, vector<int>{1, 1}, vector<int>{2, 2}, std::vector<int>{1, 2, 3, 4});
+	//cout << a(1)(1) << " " << a(2)(1) << endl;
+	//cout << a(1)(2) << " " << a(2)(2) << endl;
+
+	//forarray< forarray< forarray<int>  > > b(1, 3);
+	//b(1)(1)(1) = 1;
+	//b(1)(2)(1) = 2;
+	//cout << b(1)(1)(1) << endl;
+	//init_forarray(b, std::vector<int>{1, 1, 1}, std::vector<int>{2, 2, 2}, std::vector<int >{1, 2, 3, 4, 5, 6, 7, 8});
+	//for (int i = 1; i <= 2; i++)
+	//{
+	//	for (int j = 1; j <= 2; j++)
+	//	{
+	//		cout << b(j)(i)(1) << endl;
+	//	}
+	//}
+	//for (int i = 1; i <= 2; i++)
+	//{
+	//	for (int j = 1; j <= 2; j++)
+	//	{
+	//		cout << b(j)(i)(2) << endl;
+	//	}
+	//}
+
+	//forarray< forarray< forarray<int>  > > b(1, 4);
+	//init_forarray(b, std::vector<int>{1, 1, 1}, std::vector<int>{3, 3, 3}, std::vector<int >{1, 2, 3, 4, 5, 6, 7, 8, 9});
 
 	parse(global_code);
 	while (fscanf(stderr, "%s", errlog) != EOF) {

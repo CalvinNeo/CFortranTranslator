@@ -7,6 +7,7 @@ ParseNode gen_array_generate_stmt(const ParseNode & _generate_stmt) {
 	ParseNode * index = _generate_stmt.child[1];
 	ParseNode * from = _generate_stmt.child[2];
 	ParseNode * to = _generate_stmt.child[3];
+	//print_error("LBound don't agree", _generate_stmt);
 	sprintf(codegen_buf, "for(int %s = %s; %s < %s; %s++){\n%s(%s) = %s;\n}", index->fs.CurrentTerm.what.c_str(), from->fs.CurrentTerm.what.c_str() /* exp_from */
 		, index->fs.CurrentTerm.what.c_str(), to->fs.CurrentTerm.what.c_str() /* exp_to */, index->fs.CurrentTerm.what.c_str() /* index variable inc */
 		, "\t%s" /* array variable name */, index->fs.CurrentTerm.what.c_str() /* index variable */, exp->fs.CurrentTerm.what.c_str());

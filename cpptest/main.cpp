@@ -89,26 +89,24 @@
 /* visit https://github.com/CalvinNeo/CFortranTranslator/ for more*/
 /******************************************************************/
 #include "../for90std/for90std.h"
+
 int main()
 {
-	//forarray<forarray<int>> a(1, 3);
-	//for (int i = 1; i < 3; i++)
-	//{
-	//	a(i) = forarray<int>(1, 3);
-	//}
-	//init_forarray(a, vector<int>{1, 1}, vector<int>{2, 2}, std::vector<int>{1, 2, 3, 4});
-	//cout << a(1)(1) << " " << a(1)(2) << endl;
 
-	forarray< forarray< forarray<int>  > > b(1, 4);
-	//for (int i = 5; i <= 8; i++)
-	//{
-	//	b(i) = forarray<forarray<int>>(1, 4);
-	//	for (int j = 6; j <= 9; j++)
-	//	{
-	//		b(i)(j) = forarray<int>(1, 4);;
-	//	}
-	//}
-	init_forarray(b, std::vector<int>{1, 1, 1}, std::vector<int>{3, 3, 3}, std::vector<int >{1, 2, 3, 4, 5, 6, 7, 8, 9});
+	forarray<int>  a(5, 7 + 1);
+	for (int i = 5; i < 7; i++) {
+		a(i) = to_int(i) + 1;
+	};
 
+	forarray< forarray< forarray<int>  > > b(5, 6 + 1);
+	init_for1array(b, std::vector<int>{5, 6, 7}, std::vector<int>{2, 2, 2}, std::vector<int >{1, 2, 3, 4, 5, 6, 7, 8});
+
+	forarray< forarray<int>  > c(5, 7 + 1);
+
+	forarray<int>  d(5, 7 + 1);
+	init_for1array_hiddendo(1, 4, [](int i) {return to_int(i) + 1; });
+	//init_for1array(d, std::vector<int>{5}, std::vector<int>{3}, std::vector<int >{a.slice(1, 2), b.slice(3, 4), );
+
+	cout << a(6) << b(5)(6)(7) << endl;
 	return 0;
 }

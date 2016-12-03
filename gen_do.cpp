@@ -47,10 +47,16 @@ ParseNode gen_hiddendo(const ParseNode & _generate_stmt) {
 	ParseNode * index = _generate_stmt.child[1];
 	ParseNode * from = _generate_stmt.child[2];
 	ParseNode * to = _generate_stmt.child[3];
-	sprintf(codegen_buf, "init_for1array_hiddendo(%%s, %%s, [](int %s){return %s ;})", index->fs.CurrentTerm.what.c_str(), exp->fs.CurrentTerm.what.c_str());
-	std::string m1 = string(codegen_buf);
-	sprintf(codegen_buf, m1.c_str(), from->fs.CurrentTerm.what.c_str()/* exp_from */, to->fs.CurrentTerm.what.c_str()/* exp_to */);
-	newnode.fs.CurrentTerm = Term{ TokenMeta::NT_HIDDENDO, string(codegen_buf) };
+	string rt = "";
+	sprintf(codegen_buf, "[](int %s){return %s ;}", index->fs.CurrentTerm.what.c_str(), exp->fs.CurrentTerm.what.c_str());
+	string str_lambda_body = string(codegen_buf);
+	sprintf(codegen_buf, "init_for1array_hiddendo(%s, %s, %s);"
+		, from->fs.CurrentTerm.what.c_str()/* exp_from */
+		, to->fs.CurrentTerm.what.c_str()/* exp_to */
+		, str_lambda_body.c_str());
+	string str_init = string(codegen_buf);
+	rt += str_init;
+	newnode.fs.CurrentTerm = Term{ TokenMeta::NT_HIDDENDO, rt };
 	newnode.addchild(new ParseNode(*exp)); // exp
 	newnode.addchild(new ParseNode(*index)); // index variable
 	newnode.addchild(new ParseNode(*from)); // exp_from

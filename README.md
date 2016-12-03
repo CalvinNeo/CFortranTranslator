@@ -41,6 +41,7 @@ refer to [/grammar/for90.y](/grammar/for90.y) for all accepted grammar
 2. forarray default lower bound is **1**, which is different from cpp
 3. fortran use a 1d list to initialize a 2d(or higher) array, however, contrary to c++ and most other language, fortran store them in a **column-first order**. for a 2d array, it means you a order of `a(1)(1) -> a(2)(1) -> a(1)(2) -> a(1)(2)` . you can `#undef USE_FORARRAY` to use c-style array. for details refer to `array_builder` rule in [/grammar/for90.y](/grammar/for90.y)
 4. hidden do will be translated to `init_for1array_hiddendo` in [/for90std/for1array.h](/for90std/for1array.h)
+5. when use `hidden_do` to generate array, array's LBound and hidden_do index's initial value must agree
 
 ### variables
 1. all variables must be **explicitly** declared

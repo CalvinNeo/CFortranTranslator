@@ -21,12 +21,15 @@ struct for1array {
 		}
 		return for1array<T>(nvec, fr, to);
 	};
-	int LBound() const {
+	size_type LBound() const {
 		return lb;
 	};
-	int UBound() const {
+	size_type UBound() const {
 		return ub;
 	};
+	size_type size() {
+		return m_arr.size();
+	}
 	int for1array_kind(){
 		return 1;
 	}
@@ -37,7 +40,7 @@ struct for1array {
 		return m_arr;
 	}
 
-	const T & get_const(int i) const {
+	const T & const_get(int i) const {
 		if (i - lb >= m_arr.size() || i - lb < 0) {
 			throw 0;
 		}
@@ -47,7 +50,12 @@ struct for1array {
 	}
 	T & get(int i) {
 		if (i - lb >= m_arr.size() || i - lb < 0) {
+			//vector<T> tmp = m_arr;
 			m_arr.resize(i - lb + 1);
+			//for (int j = 0; j < tmp.size(); j++) {
+			//	m_arr[j] = tmp[j];
+			//}
+			ub = i + 1; // important
 			return m_arr[i - lb];
 			//throw 0;
 		}
@@ -61,13 +69,22 @@ struct for1array {
 	T & operator[](int i) {
 		return get(i);
 	}
+	for1array<T> operator=(for1array<T> x) {
+		for (int i = 0; i < x.size(); i++)
+		{
+			m_arr = x.m_arr;
+		}
+		(this->lb) = x.LBound();
+		(this->ub) = x.UBound();
+		return x;
+	}
 
 	template<class ... Args>
-	void add_list(const T & x, Args ... args) {
-		add(x);
+	void push_back_list(const T & x, Args ... args) {
+		push_back(x);
 		addrange(forward<Args>(args)...);
 	}
-	void add(const T & x) {
+	void push_back(const T & x) {
 		m_arr.push_back(x);
 	}
 
@@ -115,7 +132,7 @@ struct for1array {
 		(this->ub) = x.UBound();
 		for (int i = lb; i < ub; i++)
 		{
-			m_arr.push_back(x.get_const(i));
+			m_arr.push_back(x.const_get(i));
 		}
 	}
 protected:
@@ -150,37 +167,46 @@ struct is_for1array
 template<typename T
 	, typename _Container_value_type
 	, typename _Iterator>
-	void init_for1array_layer(for1array<T> & farr, const std::vector<int> & lower_bound, int deep
-		, const std::vector<int> & size, const std::vector<int> & accumulated
-		, _Iterator b, _Iterator e, const std::vector<T> & values, .../* SFINAE */) {
-	for (auto iter = b; iter != e; iter += accumulated[deep] /* always 1 */)
-	{
-		farr.add(*iter);
+	void _init_for1array_layer(for1array<T> & farr, const std::vector<int> & lower_bound, int deep
+		, const std::vector<int> & size, const std::vector<int> & next_i_delta, const std::vector<int> & next_iter_delta
+		, _Iterator b, _Iterator e,  .../* SFINAE */) {
+	auto iter = b;
+	for (int times = 0; times < 1 /*always 1*/; times++) {
+		for (int i = lower_bound[deep]; i < lower_bound[deep] + size[deep]; i++)
+		{
+			farr(i) = *iter;
+			if (i != lower_bound[deep] + size[deep] - 1) {
+				iter += next_iter_delta[deep]/* always 1, always not 1 -- 2016-12-03 */;
+			}
+		}
 	}
 }
 
 template<typename T
 	, typename _Container_value_type
 	, typename _Iterator>
-	void init_for1array_layer(for1array<_Container_value_type> & farr, const std::vector<int> & lower_bound, int deep
-		, const std::vector<int> & size, const std::vector<int> & accumulated
-		, _Iterator b, _Iterator e, const std::vector<T> & values, for1array_matcher<_Container_value_type>/* SFINAE */) {
+	void _init_for1array_layer(for1array<_Container_value_type> & farr, const std::vector<int> & lower_bound, int deep
+		, const std::vector<int> & size, const std::vector<int> & next_i_delta, const std::vector<int> & next_iter_delta
+		, _Iterator b, _Iterator e, for1array_matcher<_Container_value_type>/* SFINAE */) {
 	/* deep can never be equal to size.size() - 1 */
-	int i = lower_bound[deep]; 
-	for (auto iter = b; iter != e; iter += accumulated[deep])
-	{
-		/* NOTE: assume the array is already allocated and no need to clear */
-		// farr.add(_Container_value_type());
-		init_for1array_layer<T, typename _Container_value_type::value_type, _Iterator>(farr(i), lower_bound, deep + 1, size, accumulated
-			, iter, iter + accumulated[deep], values, nullptr);
-		i++;
+	auto iter = b;
+	for (int times = 0; times < 1; times++) {
+		for (int i = lower_bound[deep]; i < lower_bound[deep] + size[deep]; i++)
+		{
+			/* NOTE: assume the array is already allocated and no need to clear */
+			_init_for1array_layer<T, typename _Container_value_type::value_type, _Iterator>(farr(i), lower_bound, deep + 1, size, next_i_delta
+				, next_iter_delta, iter, iter + next_iter_delta[deep], nullptr);
+			if (i != lower_bound[deep] + size[deep] - 1) {
+				iter += next_iter_delta[deep];
+			}
+		}
 	}
 }
 #else
 template<typename T
 	, typename _Container_value_type
 	, typename _Iterator>
-	void init_for1array_layer(for1array<T> & farr, const std::vector<int> & lower_bound, int deep, const std::vector<int> & size, const std::vector<int> & accumulated, _Iterator b, _Iterator e) {
+	void _init_for1array_layer(for1array<T> & farr, const std::vector<int> & lower_bound, int deep, const std::vector<int> & size, const std::vector<int> & accumulated, _Iterator b, _Iterator e) {
 	for (auto iter = b; iter != e; iter += accumulated[deep])
 	{
 		farr.add(*iter);
@@ -189,7 +215,7 @@ template<typename T
 template<typename T
 	, typename _Container_value_type
 	, typename _Iterator>
-	void init_for1array_layer(for1array<_Container_value_type> & farr, const std::vector<int> & lower_bound, int deep, const std::vector<int> & size, const std::vector<int> & accumulated, _Iterator b, _Iterator e) {
+	void _init_for1array_layer(for1array<_Container_value_type> & farr, const std::vector<int> & lower_bound, int deep, const std::vector<int> & size, const std::vector<int> & accumulated, _Iterator b, _Iterator e) {
 	/* deep can never be equal to size.size() - 1 */
 	int i = lower_bound[deep];
 	for (auto outer = b; outer != e; outer += accumulated[deep + 1])
@@ -198,7 +224,7 @@ template<typename T
 		{
 			/* NOTE: assume the array is already allocated and no need to clear */
 			// farr.add(_Container_value_type());
-			init_for1array_layer<T, _Container_value_type, std::vector<T>::const_iterator >(farr(i), lower_bound, deep + 1, size, accumulated, b, e);
+			_init_for1array_layer<T, _Container_value_type, std::vector<T>::const_iterator >(farr(i), lower_bound, deep + 1, size, accumulated, b, e);
 			i++;
 		}
 	}
@@ -211,27 +237,64 @@ template<typename T, typename _Container_value_type>
 void init_for1array(for1array<_Container_value_type> & farr, const std::vector<int> & lower_bound, const std::vector<int> & size, const std::vector<T> & values) {
 	/* NOTE: assume the array is already allocated and no need to clear */
 	// f_arr.clear()
-	std::vector<int> accumulated(size);
+	std::vector<int> next_i_delta(size);
+	std::vector<int> next_iter_delta(size);
 	int s = 1;
 #ifndef USE_FORARRAY
-	std::transform(accumulated.rbegin(), accumulated.rend(), accumulated.rbegin(), [&s](int x) {int ans = s; s *= x; return ans; });
+	std::transform(next_i_delta.rbegin(), next_i_delta.rend(), next_i_delta.rbegin(), [&s](int x) {int ans = s; s *= x; return ans; });
+	s = 1; std::transform(next_iter_delta.begin(), next_iter_delta.end(), next_iter_delta.begin(), [&s](int x) {int ans = s; s *= x; return ans; });
 #else
-	std::transform(accumulated.begin(), accumulated.end(), accumulated.begin(), [&s](int x) {int ans = s; s *= x; return ans; });
+	std::transform(next_i_delta.begin(), next_i_delta.end(), next_i_delta.begin(), [&s](int x) {int ans = s; s *= x; return ans; });
+	next_iter_delta = next_i_delta;
 #endif // !USE_FORARRAY
 	typedef std::conditional<std::is_same<_Container_value_type, T>::value, T, _Container_value_type >::type _New_value_type;
-	init_for1array_layer<T, _New_value_type, std::vector<T>::const_iterator >(farr, lower_bound, 0, size, accumulated
-		, values.begin(), values.end(),  values, nullptr);
+	_init_for1array_layer<T, _New_value_type, std::vector<T>::const_iterator >(farr, lower_bound, 0, size, next_i_delta
+		, next_iter_delta, values.begin(), values.end(),  nullptr);
 }
 
+template <typename T>
+struct function_traits
+	: public function_traits<decltype(&T::operator())>
+{};
+// For generic types, directly use the result of the signature of its 'operator()'
+
+template <typename ClassType, typename ReturnType, typename... Args>
+struct function_traits<ReturnType(ClassType::*)(Args...) const>
+	// we specialize for pointers to member function
+{
+	enum { arity = sizeof...(Args) };
+	// arity is the number of arguments.
+
+	typedef ReturnType result_type;
+
+	template <size_t i>
+	struct arg
+	{
+		typedef typename std::tuple_element<i, std::tuple<Args...>>::type type;
+		// the i-th argument is equivalent to the i-th tuple element of a tuple
+		// composed of those arguments.
+	};
+};
+
+//template<typename T>
+//for1array<T> init_for1array_hiddendo(int start, int end, std::function<T(int) > get_T) {
+//for1array<T> init_for1array_hiddendo(int start, int end, T (*get_T)(int) ) {
 template<typename T>
-for1array<T> init_for1array_hiddendo(int start, int end, std::function<T (int)> get_T) {
+auto _init_for1array_hiddendo(int start, int end, std::function<T(int) > get_T)
+{
 	std::vector<T> nvec;
 	for (int i = start; i < end; i++) {
 		nvec.push_back(get_T(i));
 	}
-	return for1array<T>(nvec, start, end);
+	for1array<T> rt(nvec, start, end);
+	return rt;
 }
 
+template <typename T>
+void init_for1array_hiddendo(int from, int to, T lambda) {
+	auto _Gen_stmt = lambda;
+	_init_for1array_hiddendo<function_traits<decltype(_Gen_stmt)>::result_type>(from, to, _Gen_stmt);
+}
 
 
 #define forarray for1array
