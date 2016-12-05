@@ -89,7 +89,6 @@
 /* visit https://github.com/CalvinNeo/CFortranTranslator/ for more*/
 /******************************************************************/
 #include "../for90std/for90std.h"
-
 int main()
 {
 
@@ -98,15 +97,10 @@ int main()
 		a(i) = to_int(i) + 1;
 	};
 
-	forarray< forarray< forarray<int>  > > b(5, 6 + 1);
-	init_for1array(b, std::vector<int>{5, 6, 7}, std::vector<int>{2, 2, 2}, std::vector<int >{1, 2, 3, 4, 5, 6, 7, 8});
-
-	forarray< forarray<int>  > c(5, 7 + 1);
+	forarray< int > b(5, 7 + 1);
 
 	forarray<int>  d(5, 7 + 1);
-	init_for1array_hiddendo(1, 4, [](int i) {return to_int(i) + 1; });
-	//init_for1array(d, std::vector<int>{5}, std::vector<int>{3}, std::vector<int >{a.slice(1, 2), b.slice(3, 4), );
+	d = a.slice(1, 2) + b.slice(3, 4);
 
-	cout << a(6) << b(5)(6)(7) << endl;
 	return 0;
 }

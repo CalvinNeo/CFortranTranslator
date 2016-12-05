@@ -50,7 +50,7 @@ ParseNode gen_hiddendo(const ParseNode & _generate_stmt) {
 	string rt = "";
 	sprintf(codegen_buf, "[](int %s){return %s ;}", index->fs.CurrentTerm.what.c_str(), exp->fs.CurrentTerm.what.c_str());
 	string str_lambda_body = string(codegen_buf);
-	sprintf(codegen_buf, "init_for1array_hiddendo(%s, %s, %s);"
+	sprintf(codegen_buf, "init_for1array_hiddendo(%s, %s, %s)"
 		, from->fs.CurrentTerm.what.c_str()/* exp_from */
 		, to->fs.CurrentTerm.what.c_str()/* exp_to */
 		, str_lambda_body.c_str());

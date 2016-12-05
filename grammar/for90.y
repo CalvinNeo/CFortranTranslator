@@ -874,15 +874,7 @@ using namespace std;
 				/* give initial value */
 				/* `B(1:2:3)` can be either a single-element argtable or a exp, this can probably lead to reduction conflicts, so merge rules */
 				/* NOTE fortran use a 1d list to initialize a 2d(or higher) array, however, contrary to c++ and most other language does, it store them in a **conlumn - first order**. for a 2d array, it means you a order of a(1)(1)->a(2)(1)->a(lb_1)(1)->a(1)(2) */
-				ParseNode * newnode = new ParseNode();
-				ParseNode & argtable = $2; 
-				/* for1array<_Container_value_type> & farr, const std::vector<int> & lower_bound
-				, const std::vector<int> & size, const std::vector<T> & values */
-				// set in gen_vardef.cpp
-				sprintf(codegen_buf, "init_for1array(%%s, %%s, %%s, std::vector<%%s>{%s});\n", /* value */ argtable.fs.CurrentTerm.what.c_str());
-				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_ARRAYBUILDER_VALUE, string(codegen_buf) };
-				newnode->addchild(new ParseNode(argtable)); // argtable
-				$$ = *newnode;
+				$$ = gen_array_generate_paramtable($2);
 				update_pos($$, $1, $3);
 			}
 		| YY_ARRAYINITIAL_START _generate_stmt YY_ARRAYINITIAL_END
@@ -890,7 +882,6 @@ using namespace std;
 				/* give generate stmt */
 				$$ = gen_array_generate_stmt($2);
 				update_pos($$, $1, $3);
-				// TODO 
 				/* rule `YY_ARRAYINITIAL_START variable '(' dimen_slice ')' YY_ARRAYINITIAL_END ` is included in this rule*/
 				/* note that this two rules can not be splitted because `exp` and `variable` + '(' can cause reduction conflict */
 				/* note either that `variable '(' dimen_slice ')'` is an `exp` */
@@ -906,14 +897,6 @@ using namespace std;
 			}
 		| array_builder_elem ',' array_builder
 			{
-				//ParseNode * newnode = new ParseNode();
-				//newnode->addchild(new ParseNode($1)); // array_builder_elem
-				//newnode->addchild(new ParseNode($3)); // array_builder
-				//sprintf(codegen_buf, "%s\n%s", $1.fs.CurrentTerm.what.c_str(), $3.fs.CurrentTerm.what.c_str());
-				//newnode->fs.CurrentTerm = Term{ TokenMeta::NT_ARRAYBUILDER, string(codegen_buf) };
-				//newnode = flattern_bin(newnode);
-				//$$ = *newnode;
-				//update_pos($$, $1, $3);
 				$$ = gen_flattern($1, $3, "%s\n%s", TokenMeta::NT_ARRAYBUILDER);
 				update_pos($$, $1, $3);
 

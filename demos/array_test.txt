@@ -1,6 +1,6 @@
 program array_test
 	implicit none
-	integer,dimension(5:7)::A=(/ int(i) + 1, i=1,4/)
+	integer,dimension(5:7)::A=(/ int(i) + 1, i=5,7/)
 	integer,dimension(5:6, 6:7, 7:8)::B=(/1, 2, 3, 4, 5, 6, 7, 8/) 
 	integer,dimension(5:7, 6:8)::C = A(1:2, :)
 	integer,dimension(5:7)::D=(/ a(1:2) , b(3:4) , (int(i) + 1, i=1,4) /)

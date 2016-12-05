@@ -142,13 +142,17 @@ all parse tree nodes are defined in [/Intent.h](/Intent.h) with an `NT_` prefix
 	* fs.CurrentTerm.what: immediate-gen code
 	* fs.CurrentTerm.token: refer [/Intent.h](/Intent.h)
 3. attr
+	attrs including
+	* FunctionAttr
+	* VariableDescAttr
+
 4. child
 
 ### rules explanation
 #### callable_head, argtable, dimen_slice, paramtable
 - `callable_head` and `argtable` are two parts of a function call
 - both type and function name are callable name, so both `type_nospec` and `variable` are `callable_head`
-- in `gen_argtable` function a `NT_ARGTABLE_PURE` generate a `NT_ARGTABLE_PURE` node, and a `NT_DIMENSLICE` generate a `NT_ARGTABLE_DIMENSLICE` node
+- in `gen_argtable` function a `NT_ARGTABLE_PURE` can be reduced to a `NT_ARGTABLE_PURE` node, and a `NT_DIMENSLICE` can be reduced to a `NT_ARGTABLE_DIMENSLICE` node
 - in `dimen_slice` rule, appending a `NT_SLICE` to a `NT_ARGTABLE_PURE` will generate a `NT_DIMENSLICE`, otherwise it will remain `NT_ARGTABLE_PURE`
 - as a result, `dimen_slice` is a set of `slice`(`NT_DIMENSLICE`), or a set of both `exp` and `slice`(`NT_DIMENSLICE`), or a set of `exp`(`NT_ARGTABLE_PURE`) 
 - `NT_ARGTABLE_DIMENSLICE` is from rule `argtable`, `NT_DIMENSLICE` is from rule `dimen_slice`
@@ -228,7 +232,7 @@ argtable is now alias of paramtable
 - c-style array(partial)
 - variable with type
 - ~~enable crlf rule~~(may cause bugs)
-- mixed array_builder
+- ~~mixed array_builder~~
 - ~~more specific type(char, int, long long)~~
 - type stmt
 - ~~comments~~

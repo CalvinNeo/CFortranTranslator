@@ -1,6 +1,8 @@
 #pragma once
 #include <string>
 
-void foropenfile(std::string file_name) {
+namespace for90std {
+	void foropenfile(std::string file_name) {
 
+	}
 }

@@ -1,9 +1,10 @@
 #pragma once
 #include "parser.h"
 
+
 // 在初始化之后是否值是否被修改
 template<class T>
-struct dirty{
+struct dirty {
 	T & operator= (const T & newv) {
 		// 赋值是赋值
 		changed = true;
@@ -25,7 +26,7 @@ struct dirty{
 		changed = d.isdirty();
 		value = d;
 	}
-	bool isdirty() const{
+	bool isdirty() const {
 		return changed;
 	}
 	T get() {
@@ -178,7 +179,7 @@ struct KwArgsAttr : public ParseAttr {
 	ParseAttr * clone() { return new KwArgsAttr(*this); }
 
 	void merge(const KwArgsAttr & x2) {
-		
+
 	}
 };
 

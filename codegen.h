@@ -67,6 +67,7 @@ ParseNode gen_stmt(const ParseNode & content);
 ParseNode gen_stmt(const ParseNode & content, const std::string & rules);
 
 ParseNode gen_array_generate_stmt(const ParseNode & _generate_stmt);
+ParseNode gen_array_generate_paramtable(const ParseNode & argtable);
 
 void set_variabledesc_attr(ParseNode * newnode, optionalparam<bool> reference, optionalparam<bool> constant, optionalparam<bool> optional, optionalparam<struct ParseNode *> slice, optionalparam<int> kind);
 ParseNode gen_variabledesc_from_dimenslice(const ParseNode & dimen_slice);
