@@ -5,13 +5,13 @@
 // 在初始化之后是否值是否被修改
 template<class T>
 struct dirty {
+	operator T() const {
+		return value;
+	}
 	T & operator= (const T & newv) {
 		// 赋值是赋值
 		changed = true;
 		value = newv;
-		return value;
-	}
-	operator T() const {
 		return value;
 	}
 	dirty(const T & newv) {
@@ -19,7 +19,7 @@ struct dirty {
 		changed = false;
 		value = newv;
 	}
-	dirty(const dirty & d) {
+	dirty(const dirty<T> & d) {
 		// 复制构造函数
 		// 初始化是初始化
 		changed = false;

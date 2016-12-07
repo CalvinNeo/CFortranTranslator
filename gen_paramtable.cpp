@@ -42,7 +42,8 @@ ParseNode gen_keyvalue_from_arraybuilder(const ParseNode & variable, const Parse
 
 ParseNode gen_paramtable(ParseNode & paramtable_elem) {
 	ParseNode newnode = ParseNode();
-	if (paramtable_elem.fs.CurrentTerm.token == TokenMeta::NT_DIMENSLICE || paramtable_elem.fs.CurrentTerm.token == TokenMeta::NT_ARGTABLE_PURE) {
+	if (paramtable_elem.fs.CurrentTerm.token == TokenMeta::NT_DIMENSLICE 
+		|| paramtable_elem.fs.CurrentTerm.token == TokenMeta::NT_ARGTABLE_PURE) {
 		// promote dimen_slice to paramtable
 		return gen_argtable(paramtable_elem);
 	}
@@ -70,7 +71,7 @@ ParseNode gen_paramtable(ParseNode & paramtable_elem, ParseNode & paramtable) {
 	if (paramtable.fs.CurrentTerm.token == TokenMeta::NT_ARGTABLE_PURE) {
 		arg2 = true;
 	}
-	if (paramtable_elem.fs.CurrentTerm.token == TokenMeta::NT_PARAMTABLE) {
+	if (paramtable_elem.fs.CurrentTerm.token == TokenMeta::NT_KEYVALUE) {
 		// keyvalue pair 
 		newnode = gen_flattern(paramtable_elem, paramtable, "%s, %s", TokenMeta::NT_PARAMTABLE);
 	}

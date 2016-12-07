@@ -32,6 +32,7 @@
     <ClCompile Include="..\..\develop.cpp" />
     <ClCompile Include="..\..\for90std\for90std.cpp" />
     <ClCompile Include="..\..\for90std\forfilesys.h" />
+    <ClCompile Include="..\..\for90std\forlang.cpp" />
     <ClCompile Include="..\..\Function.cpp" />
     <ClCompile Include="..\..\gen_argtable.cpp" />
     <ClCompile Include="..\..\gen_arraybuilder.cpp" />

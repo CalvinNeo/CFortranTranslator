@@ -10,7 +10,7 @@ ParseNode gen_function_array(const ParseNode & callable_head, const ParseNode & 
 	string name;
 	string args;
 	if (funcname_map.find(callable_head.fs.CurrentTerm.what) != funcname_map.end()) {
-		// some fortran intrinsic function name must be replaced with its c++ implementation in for90std.h
+		// some fortran intrinsic function NAME must be replaced with its c++ implementation function NAME in for90std.h
 		name = funcname_map.at(callable_head.fs.CurrentTerm.what);
 	}
 	else {
@@ -22,8 +22,33 @@ ParseNode gen_function_array(const ParseNode & callable_head, const ParseNode & 
 	}
 	else /*if(argtable.fs.CurrentTerm.token == TokenMeta::NT_ARGTABLE_PURE)*/{
 		args += name;
+		map<string, map<string, string>>::const_iterator mp = func_kwargs.find(name);
 		args += "(";
-		args += argtable.fs.CurrentTerm.what;
+		for (int i = 0; i < argtable.child.size(); i++)
+		{
+			if (argtable.child[i]->fs.CurrentTerm.token == TokenMeta::NT_KEYVALUE) {
+				if (mp == func_kwargs.end()) {
+					print_error("invalid kwarg of " + name, argtable);
+				}
+				else {
+					string argname = argtable.child[i]->child[0]->fs.CurrentTerm.what;
+					string argvalue = argtable.child[i]->child[1]->fs.CurrentTerm.what;
+					map<string, string>::const_iterator mp2 = mp->second.find(argname);
+					if (mp2 == mp->second.end()) {
+						print_error("invalid kwarg of " + name, argtable);
+					}
+					else {
+						args += argname + " = " + argvalue;
+					}
+				}
+			}
+			else {
+				args += argtable.child[i]->fs.CurrentTerm.what;
+			}
+			if (i != argtable.child.size() - 1) {
+				args += ", ";
+			}
+		}
 		args += ")";
 		newnode.fs.CurrentTerm = Term{ TokenMeta::NT_FUCNTIONARRAY,  args };
 	}

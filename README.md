@@ -56,9 +56,9 @@ refer to [/grammar/for90.y](/grammar/for90.y) for all accepted grammar
 |:-:|:-:|:-:|
 |/|/|T|
 |/|parameter|const T|
-|in|ignore|const & T|
-|out|ignore|& T|
-|inout|ignore|& T|
+|in|ignore|const T &|
+|out|ignore|T &|
+|inout|ignore|T &|
 
 ### inherit function mapping
 #### type cast
@@ -141,7 +141,7 @@ all parse tree nodes are defined in [/Intent.h](/Intent.h) with an `NT_` prefix
 2. fs:
 	* fs.CurrentTerm.what: immediate-gen code
 	* fs.CurrentTerm.token: refer [/Intent.h](/Intent.h)
-3. attr
+3. attr:
 	attrs including
 	* FunctionAttr
 	* VariableDescAttr

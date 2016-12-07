@@ -4,6 +4,7 @@
 #include <cstdio>
 #include <map>
 #include <boost/algorithm/string.hpp>
+#include <boost/any.hpp>
 
 
 std::string lazy_gen(ParseNode * ptree) {
