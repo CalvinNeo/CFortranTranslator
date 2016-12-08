@@ -22,28 +22,35 @@ ParseNode gen_function_array(const ParseNode & callable_head, const ParseNode & 
 	}
 	else /*if(argtable.fs.CurrentTerm.token == TokenMeta::NT_ARGTABLE_PURE)*/{
 		args += name;
-		map<string, map<string, string>>::const_iterator mp = func_kwargs.find(name);
+		map<string, map<string, string>>::const_iterator map_func = func_kwargs.find(name);
 		args += "(";
+		bool kwargs = false;
 		for (int i = 0; i < argtable.child.size(); i++)
 		{
 			if (argtable.child[i]->fs.CurrentTerm.token == TokenMeta::NT_KEYVALUE) {
-				if (mp == func_kwargs.end()) {
+				if (map_func == func_kwargs.end()) {
 					print_error("invalid kwarg of " + name, argtable);
 				}
 				else {
 					string argname = argtable.child[i]->child[0]->fs.CurrentTerm.what;
 					string argvalue = argtable.child[i]->child[1]->fs.CurrentTerm.what;
-					map<string, string>::const_iterator mp2 = mp->second.find(argname);
-					if (mp2 == mp->second.end()) {
+					map<string, string>::const_iterator map_arg = map_func->second.find(argname);
+					string argtype;
+					if (map_arg == map_func->second.end()) {
 						print_error("invalid kwarg of " + name, argtable);
 					}
 					else {
-						args += argname + " = " + argvalue;
+						args += /*map_arg->second + " " + */argname + " = " + argvalue;
 					}
 				}
 			}
 			else {
-				args += argtable.child[i]->fs.CurrentTerm.what;
+				if (kwargs) {
+					print_error("keyword arguments must come after normal arguments", argtable);
+				}
+				else {
+					args += argtable.child[i]->fs.CurrentTerm.what;
+				}
 			}
 			if (i != argtable.child.size() - 1) {
 				args += ", ";

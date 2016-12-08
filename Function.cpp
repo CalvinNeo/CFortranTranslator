@@ -42,5 +42,6 @@ bool add_function(std::string module_name, std::string function_name, funcptr_t 
 	}
 	else {
 		functions[fullname] = fptr;
+		return true;
 	}
 }

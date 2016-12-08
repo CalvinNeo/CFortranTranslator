@@ -10,4 +10,8 @@
 using namespace std;
 
 // use static instead of extern will make build fast
+#ifdef _DEBUG
 static char codegen_buf[MAX_CODE_LENGTH]; 
+#else
+extern char codegen_buf[MAX_CODE_LENGTH];
+#endif

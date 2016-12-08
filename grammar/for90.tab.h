@@ -140,9 +140,7 @@ extern int yydebug;
      YY_WRITE = 349,
      YY_READ = 350,
      YY_PRINT = 351,
-     YY_OPEN = 352,
-     YY_CLOSE = 353,
-     YY_CALL = 354
+     YY_CALL = 352
    };
 #endif
 

@@ -149,12 +149,17 @@ all parse tree nodes are defined in [/Intent.h](/Intent.h) with an `NT_` prefix
 4. child
 
 ### rules explanation
-#### callable_head, argtable, dimen_slice, paramtable
+#### callable_head, argtable, dimen_slice, paramtable, keyvalue
+- argtable is now alias of paramtable
 - `callable_head` and `argtable` are two parts of a function call
 - both type and function name are callable name, so both `type_nospec` and `variable` are `callable_head`
-- in `gen_argtable` function a `NT_ARGTABLE_PURE` can be reduced to a `NT_ARGTABLE_PURE` node, and a `NT_DIMENSLICE` can be reduced to a `NT_ARGTABLE_DIMENSLICE` node
+- `keyvalue` rules generates `NT_VARIABLEINITIAL` = `NT_KEYVALUE` node. `what` of this node is `name` not `name = value`, the later is regenerated in `gen_function_array` in [/gen_callable.cpp](/gen_callable.cpp)
+
+#### argtable, dimen_slice, paramtable
 - in `dimen_slice` rule, appending a `NT_SLICE` to a `NT_ARGTABLE_PURE` will generate a `NT_DIMENSLICE`, otherwise it will remain `NT_ARGTABLE_PURE`
+- in function `gen_argtable`(called by `gen_paramtable`) a `NT_ARGTABLE_PURE` remain a `NT_ARGTABLE_PURE` node, and a `NT_DIMENSLICE` can be reorganized to a `NT_ARGTABLE_DIMENSLICE` node
 - as a result, `dimen_slice` is a set of `slice`(`NT_DIMENSLICE`), or a set of both `exp` and `slice`(`NT_DIMENSLICE`), or a set of `exp`(`NT_ARGTABLE_PURE`) 
+- `paramtable` is set of `keyvalue` and `dimen_slice`
 - `NT_ARGTABLE_DIMENSLICE` is from rule `argtable`, `NT_DIMENSLICE` is from rule `dimen_slice`
 
 #### type_spec, type_nospec
@@ -167,9 +172,6 @@ you can use `REAL(x)` to get the float copy of x, however, you can also use `REA
 #### stmt, suite
 - `stmt` is statement end with ';' or '\n'
 - `suite` is set of `stmt`
-
-#### argtable, paramtable
-argtable is now alias of paramtable
 
 
 ### Parse Tree Layers
@@ -242,6 +244,7 @@ argtable is now alias of paramtable
 - ~~support function pointers, Parse `Interface` for function pointer~~
 - ~~hidden do~~
 - ~~more precise code/error location, start/end~~
+- optimize ParseNode with rvalue
 
 ## todolist(bugfix)
 - ~~if slice can be a scalar x and equal to (1: x + 1), there will be conflict in argtable~~

@@ -9,6 +9,7 @@ end function
 program
 	implicit none
 	integer::kwargs, s 
+	open("1.txt", unit = 100, status = "wtf")
 	s = kwargs(1, b = 3, c = 3)
 	print *, s
 end program

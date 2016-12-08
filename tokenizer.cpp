@@ -242,14 +242,15 @@ const vector<KeywordMeta> keywords = {
 		, TokenMeta::META_ANY
 		, YY_READ
 	}
-	, KeywordMeta{ "open"
-		, TokenMeta::META_ANY
-		, YY_OPEN
-	}
-	, KeywordMeta{ "close"
-		, TokenMeta::META_ANY
-		, YY_CLOSE
-	}
+	/* treat open/close as normal function */
+	//, KeywordMeta{ "open"
+	//	, TokenMeta::META_ANY
+	//	, YY_OPEN
+	//}
+	//, KeywordMeta{ "close"
+	//	, TokenMeta::META_ANY
+	//	, YY_CLOSE
+	//}
 	, KeywordMeta{ "dimension"
 		, TokenMeta::META_ANY
 		, YY_DIMENSION
@@ -294,10 +295,15 @@ const vector<KeywordMeta> keywords = {
 		, TokenMeta::META_ANY
 		, YY_CALL
 	}
+	, KeywordMeta{ "goto"
+		, TokenMeta::META_ANY
+		, YY_GOTO
+	}
 };
 
 
 const std::map<std::string, std::vector<std::string> > forward1 = {
 	{"else", {"if"}}
-	, {"do",{ "while" }}
+	, {"do", { "while" }}
+	, { "go", { "to" } }
 };

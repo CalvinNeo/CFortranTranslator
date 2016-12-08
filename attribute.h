@@ -70,11 +70,6 @@ struct optionalparam
 		invalid = true;
 		value = newv.const_get();
 	}
-	optionalparam(optionalparam<T> & newv) {
-		// 复制构造函数
-		invalid = true;
-		value = newv.get();
-	}
 	optionalparam() {
 		// 默认初始化
 		invalid = false;

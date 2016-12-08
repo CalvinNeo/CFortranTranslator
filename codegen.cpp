@@ -1,7 +1,9 @@
 #include "gen_common.h"
 #include <iostream>
 #include <sstream>
-//char codegen_buf[MAX_CODE_LENGTH];
+#ifndef _DEBUG
+char codegen_buf[MAX_CODE_LENGTH];
+#endif
 
 void do_trans(const std::string & src) {
 	global_code = src;

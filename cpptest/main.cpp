@@ -89,9 +89,12 @@
 /* visit https://github.com/CalvinNeo/CFortranTranslator/ for more*/
 /******************************************************************/
 #include "../for90std/for90std.h"
+void test2(function<void(void)> f = nullptr, int a = 0, int b = 0) {
+	f();
+	printf("%d %d\n", a, b);
+}
 int main()
 {
-
 	forarray<int>  a(5, 7 + 1);
 	for (int i = 5; i < 7; i++) {
 		a(i) = to_int(i) + 1;
@@ -101,6 +104,9 @@ int main()
 
 	forarray<int>  d(5, 7 + 1);
 	d = a.slice(1, 2) + b.slice(3, 4);
+
+	test2();
+	test2([&]() {});
 
 	return 0;
 }
