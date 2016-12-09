@@ -31,6 +31,7 @@
     <ClCompile Include="..\..\codegen.cpp" />
     <ClCompile Include="..\..\develop.cpp" />
     <ClCompile Include="..\..\for90std\for90std.cpp" />
+    <ClCompile Include="..\..\for90std\forfilesys.cpp" />
     <ClCompile Include="..\..\for90std\forfilesys.h" />
     <ClCompile Include="..\..\for90std\forlang.cpp" />
     <ClCompile Include="..\..\Function.cpp" />

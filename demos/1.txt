@@ -1,15 +1,8 @@
-function kwargs(a, b, c) result (r)
+program array_test
 	implicit none
-	integer::r, a, b, c
-	r = 0
-	do i = 1, n
-		r = r + 1
-	end do
-end function
-program
-	implicit none
-	integer::kwargs, s 
-	open("1.txt", unit = 100, status = "wtf")
-	s = kwargs(1, b = 3, c = 3)
-	print *, s
+	integer,dimension(5:7)::A=(/ int(i) + 1, i=5,7/)
+	integer,dimension(5:6, 6:7, 7:8)::B=(/1, 2, 3, 4, 5, 6, 7, 8/) 
+	integer,dimension(5:7, 6:8)::C = A(5:7, :)
+	integer,dimension(5:7)::D=(/ a(5:7) , b(5)(6)(7) , (int(i) + 1, i=1,4) /)
+	print *, A(6), B(5)(6)(7)
 end program

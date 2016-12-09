@@ -126,6 +126,9 @@
     <ClCompile Include="..\..\gen_config.cpp">
       <Filter>target</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\for90std\forfilesys.cpp">
+      <Filter>for90std</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\grammar\for90.tab.h">

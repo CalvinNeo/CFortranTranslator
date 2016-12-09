@@ -31,7 +31,7 @@ ParseNode gen_array_generate_paramtable(const ParseNode & argtable) {
 	string fi;
 	for (int i = 0; i < argtable.child.size() + 1; i++)
 	{
-		int stat;
+		int stat = 0;
 		if (i == argtable.child.size()) {
 			stat = 0;
 		}else

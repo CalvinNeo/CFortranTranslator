@@ -13,6 +13,43 @@ My Configuration:
 ## for90 std
 include [for90std/for90std.h](/for90std/for90std.h) to use c++ implementation of fortran intrinsic functions
 
+### inherit function mapping
+#### type cast
+|for90|c++|
+|:-:|:-:|
+|INTEGER()|to_int|
+|REAL()|to_double|
+|LOGICAL()|to_bool|
+|COMPLEX()|to_int|
+|CHARACTER()|forcomplex(constructor)|
+
+#### mathematical
+|for90|c++|
+|:-:|:-:|
+|min|min_n|
+|max|max_n|
+
+#### file
+|for90|c++|
+|:-:|:-:|
+|open|foropenfile|
+|close|forclosefile|
+
+#### array
+|for90|c++|
+|:-:|:-:|
+|reshape|not implemented yet|
+|spread|not implemented yet|
+|transpose|not implemented yet|
+
+### IO function mapping
+|for90|c++|
+|:-:|:-:|
+|*|cin/cout|
+|(*,*)|cin/cout|
+|(*,formatter)|scanf/printf|
+|(device_id,formatter)|not implemented yet|
+
 ## translation results and restrictions
 refer to [/grammar/for90.y](/grammar/for90.y) for all accepted grammar
 ### unsupported keywords
@@ -49,7 +86,7 @@ refer to [/grammar/for90.y](/grammar/for90.y) for all accepted grammar
 
 ### functions and subroutines
 1. remove all definition of local variables which is also in parameter list
-2. remove all interface
+2. replace all interface with forward declaration when necessary
 3. value pass strategy:
 
 |intent|parameter|result|
@@ -60,40 +97,8 @@ refer to [/grammar/for90.y](/grammar/for90.y) for all accepted grammar
 |out|ignore|T &|
 |inout|ignore|T &|
 
-### inherit function mapping
-#### type cast
-|for90|c++|
-|:-:|:-:|
-|INTEGER()|to_int|
-|REAL()|to_double|
-|LOGICAL()|to_bool|
-|COMPLEX()|to_int|
-|CHARACTER()|forcomplex(constructor)|
-
-#### mathematical
-|for90|c++|
-|:-:|:-:|
-|min|min_n|
-|max|max_n|
-
-#### file
-|for90|c++|
-|:-:|:-:|
-
-#### array
-|for90|c++|
-|:-:|:-:|
-|reshape|not implemented yet|
-|spread|not implemented yet|
-|transpose|not implemented yet|
-
-### IO function mapping
-|for90|c++|
-|:-:|:-:|
-|*|cin/cout|
-|(*,*)|cin/cout|
-|(*,formatter)|scanf/printf|
-|(device_id,formatter)|not implemented yet|
+4. optional parameter: instead of c-style optional parameter, wrap optional parameters with `foroptional`, function `forpresent` functions as `present` function in fortran90
+5. keyword/named parameter: c++ don't support keyword parameters, all keyword parameter will be reorganized in normal paramtable
 
 # Develop
 

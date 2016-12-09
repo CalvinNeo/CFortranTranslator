@@ -82,7 +82,11 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>F:\Codes\CommonLib\boost_1_60_0;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
+    <Link>
+      <AdditionalLibraryDirectories>F:\Codes\CommonLib\boost_1_60_0\libs;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+    </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -113,9 +117,19 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\..\cpptest\main.cpp" />
+    <ClCompile Include="..\..\for90std\for90std.cpp" />
+    <ClCompile Include="..\..\for90std\forfilesys.cpp" />
+    <ClCompile Include="..\..\for90std\forlang.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\for90std\for1array.h" />
     <ClInclude Include="..\..\for90std\for90std.h" />
+    <ClInclude Include="..\..\for90std\forarray.h" />
+    <ClInclude Include="..\..\for90std\forfilesys.h" />
+    <ClInclude Include="..\..\for90std\forlang.h" />
+    <ClInclude Include="..\..\for90std\formath.h" />
+    <ClInclude Include="..\..\for90std\fornarray.h" />
+    <ClInclude Include="..\..\for90std\forstdio.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

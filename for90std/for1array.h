@@ -308,9 +308,10 @@ namespace for90std {
 	}
 
 	template <typename T>
-	void init_for1array_hiddendo(int from, int to, T lambda) {
+	auto init_for1array_hiddendo(int from, int to, T lambda)
+		-> for1array<typename function_traits<T>::result_type> {
 		auto _Gen_stmt = lambda;
-		_init_for1array_hiddendo<function_traits<decltype(_Gen_stmt)>::result_type>(from, to, _Gen_stmt);
+		return _init_for1array_hiddendo<function_traits<decltype(_Gen_stmt)>::result_type>(from, to, _Gen_stmt);
 	}
 
 #define forarray for1array

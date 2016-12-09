@@ -60,11 +60,6 @@ struct optionalparam
 		invalid = true;
 		value = newv;
 	}
-	optionalparam(T & newv) {
-		// 给定值初始化，说明不是默认初始化
-		invalid = true;
-		value = newv;
-	}
 	optionalparam(const optionalparam<T> & newv) {
 		// 复制构造函数
 		invalid = true;

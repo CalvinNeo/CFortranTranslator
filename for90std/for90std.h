@@ -3,6 +3,7 @@
 #include "for1array.h"
 #include "formath.h"
 #include "forstdio.h"
+#include "forfilesys.h"
 
 
 #define USE_FORARRAY
