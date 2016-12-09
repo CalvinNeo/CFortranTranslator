@@ -3,6 +3,7 @@
 #include <stack>
 #include <map>
 #include <string>
+#include <vector>
 
 // const map has no operator[]
 const std::map<std::string, std::string> pre_map{
@@ -41,7 +42,7 @@ const std::vector<std::string> intrinsic_lvalue{
 };
 
 // in gen_config.cpp
-extern std::map<std::string, std::map<std::string, std::string>> func_kwargs;
+extern std::map<std::string, std::vector<std::pair<std::string, std::string>>> func_kwargs;
 
 const std::string cpp_header = "#include\"for90std.h\" \n";
 

@@ -8,7 +8,7 @@ namespace for90std {
 	template<typename T>
 	struct for1array {
 		typedef T value_type;
-		typedef int size_type;
+		typedef int size_type; // for1array index can be negative
 		typedef value_type *pointer;
 		typedef value_type& reference;
 		typedef const value_type *const_pointer;
@@ -310,8 +310,7 @@ namespace for90std {
 	template <typename T>
 	auto init_for1array_hiddendo(int from, int to, T lambda)
 		-> for1array<typename function_traits<T>::result_type> {
-		auto _Gen_stmt = lambda;
-		return _init_for1array_hiddendo<function_traits<decltype(_Gen_stmt)>::result_type>(from, to, _Gen_stmt);
+		return _init_for1array_hiddendo<function_traits<decltype(lambda)>::result_type>(from, to, lambda);
 	}
 
 #define forarray for1array

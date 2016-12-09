@@ -118,6 +118,11 @@ refer to [/grammar/for90.y](/grammar/for90.y) for all accepted grammar
 7. if this keyword takes more than 1 word and can cause reduction conflicts between itself and its prefix like `else if`, update forward1 in [/tokenizer.cpp](/tokenizer.cpp)
 8. update translation rules in [/gen_config.h.h](/gen_config.h.h)
 
+## new intrinsic function
+1. implement this function and included it in [for90std/for90std.h](/for90std/for90std.h)
+	- if a parameter is **optional** in Fortran, wrap it with `foroptional`
+2. log all parameters of this function in [/gen_config.cpp](/gen_config.cpp)
+
 ## code generate
 when using immediate code generate(or using lazy gen), upper level non-terminal can channge generated codes by low level non-terminal, so `gen_` functions pass `ParseNode &` other than `const ParseNode &`:
 
