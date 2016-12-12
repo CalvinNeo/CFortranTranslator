@@ -10,18 +10,17 @@
     <Filter Include="NuclearLangVM">
       <UniqueIdentifier>{39772ae8-a7f7-4308-8103-2091915938f1}</UniqueIdentifier>
     </Filter>
-    <Filter Include="target">
-      <UniqueIdentifier>{9da2175c-f44d-4aed-849b-93c43f413c0c}</UniqueIdentifier>
-    </Filter>
     <Filter Include="parser">
       <UniqueIdentifier>{607de490-a2ce-4aee-abdf-12b812fc8080}</UniqueIdentifier>
     </Filter>
     <Filter Include="for90std">
       <UniqueIdentifier>{76832b9e-16a1-453a-bbc2-bd7d5366a598}</UniqueIdentifier>
     </Filter>
+    <Filter Include="target90">
+      <UniqueIdentifier>{9da2175c-f44d-4aed-849b-93c43f413c0c}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\main.cpp" />
     <ClCompile Include="..\..\grammar\for90.flex.cpp">
       <Filter>grammar</Filter>
     </ClCompile>
@@ -52,52 +51,52 @@
       <Filter>NuclearLang</Filter>
     </ClCompile>
     <ClCompile Include="..\..\codegen.cpp">
-      <Filter>target</Filter>
+      <Filter>target90</Filter>
     </ClCompile>
     <ClCompile Include="..\..\lazygen.cpp">
-      <Filter>target</Filter>
+      <Filter>target90</Filter>
     </ClCompile>
     <ClCompile Include="..\..\gen_function.cpp">
-      <Filter>target</Filter>
+      <Filter>target90</Filter>
     </ClCompile>
     <ClCompile Include="..\..\gen_vardef.cpp">
-      <Filter>target</Filter>
+      <Filter>target90</Filter>
     </ClCompile>
     <ClCompile Include="..\..\gen_io.cpp">
-      <Filter>target</Filter>
+      <Filter>target90</Filter>
     </ClCompile>
     <ClCompile Include="..\..\gen_select.cpp">
-      <Filter>target</Filter>
+      <Filter>target90</Filter>
     </ClCompile>
     <ClCompile Include="..\..\gen_if.cpp">
-      <Filter>target</Filter>
+      <Filter>target90</Filter>
     </ClCompile>
     <ClCompile Include="..\..\gen_do.cpp">
-      <Filter>target</Filter>
+      <Filter>target90</Filter>
     </ClCompile>
     <ClCompile Include="..\..\gen_exp.cpp">
-      <Filter>target</Filter>
+      <Filter>target90</Filter>
     </ClCompile>
     <ClCompile Include="..\..\gen_callable.cpp">
-      <Filter>target</Filter>
+      <Filter>target90</Filter>
     </ClCompile>
     <ClCompile Include="..\..\gen_stmt_suite.cpp">
-      <Filter>target</Filter>
+      <Filter>target90</Filter>
     </ClCompile>
     <ClCompile Include="..\..\gen_type.cpp">
-      <Filter>target</Filter>
+      <Filter>target90</Filter>
     </ClCompile>
     <ClCompile Include="..\..\gen_paramtable.cpp">
-      <Filter>target</Filter>
+      <Filter>target90</Filter>
     </ClCompile>
     <ClCompile Include="..\..\gen_dimenslice.cpp">
-      <Filter>target</Filter>
+      <Filter>target90</Filter>
     </ClCompile>
     <ClCompile Include="..\..\gen_argtable.cpp">
-      <Filter>target</Filter>
+      <Filter>target90</Filter>
     </ClCompile>
     <ClCompile Include="..\..\gen_arraybuilder.cpp">
-      <Filter>target</Filter>
+      <Filter>target90</Filter>
     </ClCompile>
     <ClCompile Include="..\..\for90std\for90std.cpp">
       <Filter>for90std</Filter>
@@ -106,29 +105,33 @@
       <Filter>for90std</Filter>
     </ClCompile>
     <ClCompile Include="..\..\gen_interface.cpp">
-      <Filter>target</Filter>
+      <Filter>target90</Filter>
     </ClCompile>
     <ClCompile Include="..\..\gen_header.cpp">
-      <Filter>target</Filter>
+      <Filter>target90</Filter>
     </ClCompile>
     <ClCompile Include="..\..\gen_forward.cpp">
-      <Filter>target</Filter>
+      <Filter>target90</Filter>
     </ClCompile>
     <ClCompile Include="..\..\gen_attr_describer.cpp">
-      <Filter>target</Filter>
+      <Filter>target90</Filter>
     </ClCompile>
     <ClCompile Include="..\..\gen_variable.cpp">
-      <Filter>target</Filter>
+      <Filter>target90</Filter>
     </ClCompile>
     <ClCompile Include="..\..\for90std\forlang.cpp">
       <Filter>for90std</Filter>
     </ClCompile>
     <ClCompile Include="..\..\gen_config.cpp">
-      <Filter>target</Filter>
+      <Filter>target90</Filter>
     </ClCompile>
     <ClCompile Include="..\..\for90std\forfilesys.cpp">
       <Filter>for90std</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\gen_tag.cpp">
+      <Filter>target90</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\main.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\grammar\for90.tab.h">
@@ -161,13 +164,13 @@
       <Filter>NuclearLang</Filter>
     </ClInclude>
     <ClInclude Include="..\..\codegen.h">
-      <Filter>target</Filter>
+      <Filter>target90</Filter>
     </ClInclude>
     <ClInclude Include="..\..\gen_config.h">
-      <Filter>target</Filter>
+      <Filter>target90</Filter>
     </ClInclude>
     <ClInclude Include="..\..\gen_common.h">
-      <Filter>target</Filter>
+      <Filter>target90</Filter>
     </ClInclude>
     <ClInclude Include="..\..\for90std\for1array.h">
       <Filter>for90std</Filter>

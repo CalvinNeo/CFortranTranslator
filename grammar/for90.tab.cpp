@@ -2859,7 +2859,7 @@ yyreduce:
 /* Line 1792 of yacc.c  */
 #line 659 "for90.y"
     {
-				(yyval).fs.CurrentTerm = Term{ TokenMeta::META_NONTERMINAL, "" };
+				(yyval).fs.CurrentTerm = Term{ TokenMeta::META_NONTERMINAL, "-1" }; // -1 stands for stdin/stdout
 			}
     break;
 

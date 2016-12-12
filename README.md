@@ -1,5 +1,5 @@
 # CFortranTranslator
-A translator between C++ and Fortran90.
+A translator between C++ and Fortran.
 
 # Usage
 ## Install
@@ -10,12 +10,12 @@ My Configuration:
 3. win_bison(win_flex_bison 2.4.5, bison 2.7)
 4. boost(1.60)
 
-## for90 std
-include [for90std/for90std.h](/for90std/for90std.h) to use c++ implementation of fortran intrinsic functions
+## fortran std
+include [for90std/for90std.h](/for90std/for90std.h) to use c++ implementation of intrinsic fortran functions and language features
 
 ### inherit function mapping
 #### type cast
-|for90|c++|
+|fortran|c++|
 |:-:|:-:|
 |INTEGER()|to_int|
 |REAL()|to_double|
@@ -24,26 +24,26 @@ include [for90std/for90std.h](/for90std/for90std.h) to use c++ implementation of
 |CHARACTER()|forcomplex(constructor)|
 
 #### mathematical
-|for90|c++|
+|fortran|c++|
 |:-:|:-:|
 |min|min_n|
 |max|max_n|
 
 #### file
-|for90|c++|
+|fortran|c++|
 |:-:|:-:|
 |open|foropenfile|
 |close|forclosefile|
 
 #### array
-|for90|c++|
+|fortran|c++|
 |:-:|:-:|
 |reshape|not implemented yet|
 |spread|not implemented yet|
 |transpose|not implemented yet|
 
 ### IO function mapping
-|for90|c++|
+|fortran|c++|
 |:-:|:-:|
 |*|cin/cout|
 |(*,*)|cin/cout|

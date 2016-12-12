@@ -1,5 +1,13 @@
 #include "gen_common.h"
 
+void add_fileno(int no) {
+
+}
+
+void close_fileno(int no) {
+
+}
+
 ParseNode gen_read(const ParseNode & io_info, const ParseNode & argtable) {
 	ParseNode newnode = ParseNode();
 	const ParseNode * argtbl = &argtable;

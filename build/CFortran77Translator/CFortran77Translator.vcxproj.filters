@@ -1,0 +1,78 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="grammar">
+      <UniqueIdentifier>{bf594dab-6b73-4b31-82af-70819a5c75b4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="NuclearLang">
+      <UniqueIdentifier>{b00370fc-12b4-4165-bbcb-0a2a1bae90cd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="parser">
+      <UniqueIdentifier>{f0c93598-3d4a-4cc5-9657-03c674112fdc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="target77">
+      <UniqueIdentifier>{b2fec413-d836-430c-9da3-3d9fd69b508e}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\Function.cpp">
+      <Filter>NuclearLang</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\IntentHelper.cpp">
+      <Filter>NuclearLang</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Variable.cpp">
+      <Filter>NuclearLang</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\parser.cpp">
+      <Filter>parser</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tokenizer.cpp">
+      <Filter>parser</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\scanner.cpp">
+      <Filter>parser</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\attribute.cpp">
+      <Filter>parser</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\develop.cpp" />
+    <ClCompile Include="..\..\getopt.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\Function.h">
+      <Filter>NuclearLang</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Intent.h">
+      <Filter>NuclearLang</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\IntentHelper.h">
+      <Filter>NuclearLang</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Variable.h">
+      <Filter>NuclearLang</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\parser.h">
+      <Filter>parser</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\tokenizer.h">
+      <Filter>parser</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\attribute.h">
+      <Filter>parser</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\develop.h" />
+    <ClInclude Include="..\..\general_config.h" />
+    <ClInclude Include="..\..\getopt.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Bison Include="..\..\grammar\for77.y">
+      <Filter>grammar</Filter>
+    </Bison>
+  </ItemGroup>
+  <ItemGroup>
+    <Flex Include="..\..\grammar\for77.l">
+      <Filter>grammar</Filter>
+    </Flex>
+  </ItemGroup>
+</Project>

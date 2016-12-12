@@ -28,40 +28,10 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\attribute.cpp" />
-    <ClCompile Include="..\..\codegen.cpp" />
     <ClCompile Include="..\..\develop.cpp" />
-    <ClCompile Include="..\..\for90std\for90std.cpp" />
-    <ClCompile Include="..\..\for90std\forfilesys.cpp" />
-    <ClCompile Include="..\..\for90std\forfilesys.h" />
-    <ClCompile Include="..\..\for90std\forlang.cpp" />
     <ClCompile Include="..\..\Function.cpp" />
-    <ClCompile Include="..\..\gen_argtable.cpp" />
-    <ClCompile Include="..\..\gen_arraybuilder.cpp" />
-    <ClCompile Include="..\..\gen_callable.cpp" />
-    <ClCompile Include="..\..\gen_attr_describer.cpp" />
-    <ClCompile Include="..\..\gen_config.cpp" />
-    <ClCompile Include="..\..\gen_do.cpp" />
-    <ClCompile Include="..\..\gen_exp.cpp" />
-    <ClCompile Include="..\..\gen_forward.cpp" />
-    <ClCompile Include="..\..\gen_function.cpp" />
-    <ClCompile Include="..\..\gen_header.cpp" />
-    <ClCompile Include="..\..\gen_if.cpp" />
-    <ClCompile Include="..\..\gen_interface.cpp" />
-    <ClCompile Include="..\..\gen_io.cpp" />
-    <ClCompile Include="..\..\gen_paramtable.cpp" />
-    <ClCompile Include="..\..\gen_select.cpp" />
-    <ClCompile Include="..\..\gen_dimenslice.cpp" />
-    <ClCompile Include="..\..\gen_stmt_suite.cpp" />
-    <ClCompile Include="..\..\gen_tag.cpp" />
-    <ClCompile Include="..\..\gen_type.cpp" />
-    <ClCompile Include="..\..\gen_vardef.cpp" />
-    <ClCompile Include="..\..\gen_variable.cpp" />
     <ClCompile Include="..\..\getopt.cpp" />
-    <ClCompile Include="..\..\grammar\for90.flex.cpp" />
-    <ClCompile Include="..\..\grammar\for90.tab.cpp" />
     <ClCompile Include="..\..\IntentHelper.cpp" />
-    <ClCompile Include="..\..\lazygen.cpp" />
-    <ClCompile Include="..\..\main.cpp" />
     <ClCompile Include="..\..\parser.cpp" />
     <ClCompile Include="..\..\scanner.cpp" />
     <ClCompile Include="..\..\tokenizer.cpp" />
@@ -69,21 +39,10 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\attribute.h" />
-    <ClInclude Include="..\..\for90std\for1array.h" />
-    <ClInclude Include="..\..\for90std\for90std.h" />
-    <ClInclude Include="..\..\for90std\forlang.h" />
-    <ClInclude Include="..\..\for90std\formath.h" />
-    <ClInclude Include="..\..\for90std\fornarray.h" />
-    <ClInclude Include="..\..\for90std\forstdio.h" />
-    <ClInclude Include="..\..\general_config.h" />
-    <ClInclude Include="..\..\gen_common.h" />
-    <ClInclude Include="..\..\gen_config.h" />
-    <ClInclude Include="..\..\codegen.h" />
     <ClInclude Include="..\..\develop.h" />
     <ClInclude Include="..\..\Function.h" />
+    <ClInclude Include="..\..\general_config.h" />
     <ClInclude Include="..\..\getopt.h" />
-    <ClInclude Include="..\..\grammar\for90.flex.h" />
-    <ClInclude Include="..\..\grammar\for90.tab.h" />
     <ClInclude Include="..\..\Intent.h" />
     <ClInclude Include="..\..\IntentHelper.h" />
     <ClInclude Include="..\..\parser.h" />
@@ -91,20 +50,17 @@
     <ClInclude Include="..\..\Variable.h" />
   </ItemGroup>
   <ItemGroup>
-    <Bison Include="..\..\grammar\for90.y" />
+    <Bison Include="..\..\grammar\for77.y" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\..\README.md" />
-  </ItemGroup>
-  <ItemGroup>
-    <Flex Include="..\..\grammar\for90.l" />
+    <Flex Include="..\..\grammar\for77.l" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{EEFFE8C1-37FF-4F41-9113-5996FEA58436}</ProjectGuid>
-    <Keyword>Win32Proj</Keyword>
-    <RootNamespace>CFortranTranslator</RootNamespace>
+    <ProjectGuid>{41F1B7FB-5DD3-4115-BDB8-563D19F4D981}</ProjectGuid>
+    <RootNamespace>CFortran77Translator</RootNamespace>
     <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
   </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>

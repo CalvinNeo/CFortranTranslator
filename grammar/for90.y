@@ -657,7 +657,7 @@ using namespace std;
 		|
 	_optional_device : '*'
 			{
-				$$.fs.CurrentTerm = Term{ TokenMeta::META_NONTERMINAL, "" };
+				$$.fs.CurrentTerm = Term{ TokenMeta::META_NONTERMINAL, "-1" }; // -1 stands for stdin/stdout
 			}
 		| YY_INTEGER
 			{

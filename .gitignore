@@ -46,6 +46,9 @@ build/x64/
 build/Debug/
 build/Release/
 presentation/
+build/CFortran77Translator/Debug/
+build/CFortran77Translator/Release/
+build/CFortran77Translator/x64/
 *.opendb
 *.db
 *.lnk
