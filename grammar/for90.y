@@ -863,7 +863,8 @@ using namespace std;
 			{
 				ParseNode & paramtable_elem = $1;
 				ParseNode & paramtable = $3;
-				$$ = gen_flattern(paramtable_elem, paramtable, "%s, %s", TokenMeta::NT_PARAMTABLE);
+				//$$ = gen_flattern(paramtable_elem, paramtable, "%s, %s", TokenMeta::NT_PARAMTABLE);
+				$$ = gen_paramtable(paramtable_elem, paramtable);
 				update_pos($$, $1, $3);
 			}
 		|

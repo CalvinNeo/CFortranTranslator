@@ -16,7 +16,7 @@ ParseNode gen_function_array(const ParseNode & callable_head, const ParseNode & 
 	else {
 		name = callable_head.fs.CurrentTerm.what;
 	}
-	if (argtable.fs.CurrentTerm.token == TokenMeta::NT_ARGTABLE_DIMENSLICE) {
+	if (argtable.fs.CurrentTerm.token == TokenMeta::NT_PARAMTABLE_DIMENSLICE) {
 		// array
 		sprintf(codegen_buf, argtable.fs.CurrentTerm.what.c_str(), name.c_str());
 		newnode.fs.CurrentTerm = Term{ TokenMeta::NT_FUCNTIONARRAY,  string(codegen_buf) };
@@ -94,7 +94,7 @@ ParseNode gen_function_array(const ParseNode & callable_head, const ParseNode & 
 	else {
 		name = callable_head.fs.CurrentTerm.what;
 	}
-	if (argtable.fs.CurrentTerm.token == TokenMeta::NT_ARGTABLE_DIMENSLICE) {
+	if (argtable.fs.CurrentTerm.token == TokenMeta::NT_PARAMTABLE_DIMENSLICE) {
 		// error
 	}
 	else {

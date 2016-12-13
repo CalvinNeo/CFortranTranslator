@@ -43,7 +43,7 @@ include [for90std/for90std.h](/for90std/for90std.h) to use c++ implementation of
 |:-:|:-:|
 |*|get_file(-1)|
 |5|stdin|
-|6|stdin|
+|6|stdout|
 |id|get_file(id)|
 
 #### file function mapping
@@ -60,7 +60,7 @@ include [for90std/for90std.h](/for90std/for90std.h) to use c++ implementation of
 |*|cin/cout|
 |(*,*)|cin/cout|
 |(*,formatter)|scanf/printf|
-|(device_id,formatter)|not implemented yet|
+|(device_id,formatter)|forread/forwrite|
 
 ## translation results and restrictions
 refer to [/grammar/for90.y](/grammar/for90.y) for all accepted grammar
@@ -177,12 +177,21 @@ all parse tree nodes are defined in [/Intent.h](/Intent.h) with an `NT_` prefix
 - `keyvalue` rules generates `NT_VARIABLEINITIAL` = `NT_KEYVALUE` node. `what` of this node is `name` not `name = value`, the later is regenerated in `gen_function_array` in [/gen_callable.cpp](/gen_callable.cpp)
 
 #### argtable, dimen_slice, paramtable
-- in `dimen_slice` rule, appending a `NT_SLICE` to a `NT_ARGTABLE_PURE` will generate a `NT_DIMENSLICE`, otherwise it will remain `NT_ARGTABLE_PURE`
-- in function `gen_argtable`(called by `gen_paramtable`) a `NT_ARGTABLE_PURE` remain a `NT_ARGTABLE_PURE` node, and a `NT_DIMENSLICE` can be reorganized to a `NT_ARGTABLE_DIMENSLICE` node
-- as a result, `dimen_slice` is a set of `slice`(`NT_DIMENSLICE`), or a set of both `exp` and `slice`(`NT_DIMENSLICE`), or a set of `exp`(`NT_ARGTABLE_PURE`) 
-- `paramtable` is set of `keyvalue` and `dimen_slice`
-- `NT_ARGTABLE_DIMENSLICE` is from rule `argtable`, `NT_DIMENSLICE` is from rule `dimen_slice`
+- `dimen_slice` rule: 
+	`dimen_slice` rule can reduce to: `NT_DIMENSLICE`, `NT_ARGTABLE_PURE` node.
+	- `NT_ARGTABLE_PURE` + `NT_SLICE` -> `NT_DIMENSLICE`, `exp` + `paramtable` -> `NT_ARGTABLE_PURE`
+	- as a result, `dimen_slice` is a set of `slice`(`NT_DIMENSLICE`), or a set of both `exp` and `slice`(`NT_DIMENSLICE`), or a set of `exp`(`NT_ARGTABLE_PURE`) 
 
+- `paramtable` rule(refer [/gen_paramtable.cpp](/gen_paramtable.cpp)):
+	`paramtable` rule can reduce to: `NT_PARAMTABLE`, `NT_ARGTABLE_PURE`, `NT_PARAMTABLE_DIMENSLICE` node.
+	- `keyvalue` / `dimen_slice`(`NT_DIMENSLICE`/`NT_ARGTABLE_PURE`) -> `NT_PARAMTABLE`
+	- when `keyvalue`: promote this to `paramtable`. 
+	- when `NT_DIMENSLICE`: promote this to `NT_PARAMTABLE_DIMENSLICE`. refer function `gen_argtable`
+	- when `NT_ARGTABLE_PURE`: promote this to `NT_ARGTABLE_PURE`. refer function `gen_argtable`
+	- `keyvalue` + `paramtable`
+	- `NT_DIMENSLICE` + `paramtable`
+	- `NT_ARGTABLE_PURE` + `paramtable`
+	
 #### type_spec, type_nospec
 you can use `REAL(x)` to get the float copy of x, however, you can also use `REAL(kind = 8)` to specify a floating number which is same to `long double` rather than `double`, so it may cause conflict. so a `type_nospec` is like `INTEGER` and a `type_spec` is like `INTEGER(kind = 4)`, `type_nospec` is `callable_head`, `type_spec` is not.
 
@@ -209,11 +218,11 @@ you can use `REAL(x)` to get the float copy of x, however, you can also use `REA
 | | NT_DECLAREDVARIABLE | no rules, renamed from keyvalue |
 | keyvalue | NT_VARIABLEINITIAL(namely NT_KEYVALUE) | variable, NT_EXPRESSION / NT_VARIABLEINITIALDUMMY |
 | | NT_VARIABLEINITIAL | variable, exp / array_builder |
-| function_array_body | NT_FUCNTIONARRAY | NT_ARGTABLE_DIMENSLICE / NT_PARAMTABLE |
+| function_array_body | NT_FUCNTIONARRAY | NT_PARAMTABLE_DIMENSLICE / NT_PARAMTABLE |
 | dimen_slice | NT_DIMENSLICE | NT_SLICE |
 | dimen_slice | NT_ARGTABLE_PURE | NT_EXPRESSION |
 | variable_desc_elem | NT_VARIABLEDESC | dimen_slice |
-| ~~argtable~~ | NT_ARGTABLE_DIMENSLICE / NT_ARGTABLE_PURE | dimen_slice |
+| ~~argtable~~ | NT_PARAMTABLE_DIMENSLICE / NT_ARGTABLE_PURE | dimen_slice |
 | suite | NT_SUITE | NT_STATEMENT \* |
 | stmt | NT_STATEMENT | exp / var_def / compound_stmt / output_stmt / input_stmt / dummy_stmt / let_stmt / jump_stmt / interface_decl |
 | | NT_ARRAYBUILDER | NT_ARRAYBUILDER_VALUE + |

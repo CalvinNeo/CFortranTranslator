@@ -36,7 +36,6 @@
     <ClCompile Include="..\..\for90std\forlang.cpp" />
     <ClCompile Include="..\..\for90std\forstdio.cpp" />
     <ClCompile Include="..\..\Function.cpp" />
-    <ClCompile Include="..\..\gen_argtable.cpp" />
     <ClCompile Include="..\..\gen_arraybuilder.cpp" />
     <ClCompile Include="..\..\gen_callable.cpp" />
     <ClCompile Include="..\..\gen_attr_describer.cpp" />

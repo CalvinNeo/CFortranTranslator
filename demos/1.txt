@@ -1,18 +1,4 @@
 program array_test
 	implicit none
-	integer,dimension(5,5)::m
-	character(len=30)::ch=''
-	integer::i,j,k = 0
-	do i = 1,5
-		do j = 1,5
-			k = k + 1;m(i,j) = k
-		enddo
-	enddo
-	do i = 1, 5
-		print '(1x, 5i4)', m(i, 1:i)
-	enddo
-	print *, "----"
-	do i = 1, 5
-		print '1x,a,5i4', ch(1:4*(i-1)), m(i,i:5)
-	end do
+	m(i, 1:i)
 end program

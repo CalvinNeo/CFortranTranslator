@@ -92,9 +92,6 @@
     <ClCompile Include="..\..\gen_dimenslice.cpp">
       <Filter>target90</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\gen_argtable.cpp">
-      <Filter>target90</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\gen_arraybuilder.cpp">
       <Filter>target90</Filter>
     </ClCompile>

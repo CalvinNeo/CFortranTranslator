@@ -234,12 +234,11 @@ namespace IntentMeta {
 		NT_FUCNTIONARRAY = -2015,
 		NT_ARRAYBUILDER_VALUE = -2016, /* 使用初始化列表初始化数组 */
 		NT_ARRAYBUILDER_EXP = -2017, /* 使用产生式初始化数组 */
-		NT_DIMENSLICE = -2018, /* 1:2, 3:4 */
-		NT_ARGTABLE_DIMENSLICE = -2019, /* 1:2, 3:4 */
+		NT_DIMENSLICE = -2018, /* 1:2, 3:4 in `dimen_slice` level */
+		NT_PARAMTABLE_DIMENSLICE = -2019, /* 1:2, 3:4 in `paramtable` level*/
 		NT_SLICE = -2020,
 		NT_VARIABLEDESC = -2021,
 		NT_VARIABLEINITIALDUMMY = -2022, /* dummy initial_value of (varname, initial_value) ref NT_VARIABLEINITIAL */
-		/* NT_ARGTABLE 和 NT_ARGTABLE_DIMENSLICE 都应当看作函数的参数表 */
 		NT_VOID = -2023, /* this ParseNode do not exist but ParseNode * can not be nullptr so this is placeholder */
 		NT_ARRAYBUILDER = -2024, /* mixed array builder */
 		NT_ARGTABLE_PURE = -2025,
@@ -255,6 +254,7 @@ namespace IntentMeta {
 		NT_PROGRAM = -2034,
 		NT_INTERFACE = -2035,
 		NT_WRAPPERS = -2036,
+		NT_PARAMRABLE_PURE = -2036,
 
 		NT_DUMMY = -9999,
 };

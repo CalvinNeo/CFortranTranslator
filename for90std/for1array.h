@@ -60,6 +60,11 @@ namespace for90std {
 				return m_arr[i - lb];
 			}
 		}
+		template<typename... Args>
+		T & operator()(size_type i, Args... args) {
+			T & x = get(i);
+			return x.get(forward<Args>(args)...);
+		}
 		T & operator()(size_type i) {
 			return get(i);
 		};
@@ -321,7 +326,7 @@ namespace for90std {
 
 	inline std::string slice(std::string str, std::string::size_type fr, std::string::size_type to, std::string::size_type step = 1) {
 		if (to >= str.size()) {
-			str.reserve(to + 1);
+			str.resize(to + 1);
 		}
 		if (step == 1) {
 			return str.substr(fr, to - fr + 1);
@@ -335,8 +340,20 @@ namespace for90std {
 			return newstr;
 		}
 	}
+	
+	template<typename T, int D = 0>
+	using fornarray = for1array<T>;
+	template<typename T, int D>
+	using fornarray = fornarray<T, D - 1>;
 
-#define forarray for1array
-#define init_forarray init_for1array
-#define gen_forarray gen_for1array
+	template<typename T, int D>
+	fornarray<T, D> forreshape(const for1array<T> & farr, std::vector<int> shape) {
+
+	}
+
+//
+//#define forarray for1array
+//#define init_forarray init_for1array
+//#define gen_forarray gen_for1array
 }
+

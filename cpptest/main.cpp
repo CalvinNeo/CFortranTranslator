@@ -94,16 +94,16 @@
 
 int main()
 {	
-	forarray<int>  a(5, 7 + 1);
+	for1array<int>  a(5, 7 + 1);
 	for (int i = 5; i < 7; i++) {
 		a(i) = to_int(i, 4) + 1;
 	};
-	forarray< forarray< forarray<int>  > > b(5, 6 + 1);
+	for1array< for1array< for1array<int>  > > b(5, 6 + 1);
 	init_for1array(b, std::vector<int>{5, 6, 7}, std::vector<int>{2, 2, 2}, std::vector<int >{1, 2, 3, 4, 5, 6, 7, 8});
 
-	forarray< forarray<int>  > c(5, 7 + 1);
+	for1array< for1array<int>  > c(5, 7 + 1);
 
-	forarray<int>  d(5, 7 + 1);
+	for1array<int>  d(5, 7 + 1);
 	d = a.slice(5, 7) + init_for1array_hiddendo(1, 4, [](int i) {return to_int(i) + 1; });
 
 	cout << a(6) << b(5)(6)(7) << endl;
