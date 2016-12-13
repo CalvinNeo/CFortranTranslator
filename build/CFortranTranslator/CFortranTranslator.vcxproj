@@ -34,6 +34,7 @@
     <ClCompile Include="..\..\for90std\forfilesys.cpp" />
     <ClCompile Include="..\..\for90std\forfilesys.h" />
     <ClCompile Include="..\..\for90std\forlang.cpp" />
+    <ClCompile Include="..\..\for90std\forstdio.cpp" />
     <ClCompile Include="..\..\Function.cpp" />
     <ClCompile Include="..\..\gen_argtable.cpp" />
     <ClCompile Include="..\..\gen_arraybuilder.cpp" />
@@ -75,6 +76,7 @@
     <ClInclude Include="..\..\for90std\formath.h" />
     <ClInclude Include="..\..\for90std\fornarray.h" />
     <ClInclude Include="..\..\for90std\forstdio.h" />
+    <ClInclude Include="..\..\for90std\fortime.h" />
     <ClInclude Include="..\..\general_config.h" />
     <ClInclude Include="..\..\gen_common.h" />
     <ClInclude Include="..\..\gen_config.h" />

@@ -58,10 +58,6 @@ namespace for90std {
 		return x.inited();
 	}
 
-	template<typename T>
-	struct forargs {
-
-	};
 
 	/* general type cast */
 	template<typename T>

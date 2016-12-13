@@ -1,5 +1,5 @@
 # CFortranTranslator
-A translator between C++ and Fortran.
+A translator from Fortran to C++
 
 # Usage
 ## Install
@@ -29,12 +29,6 @@ include [for90std/for90std.h](/for90std/for90std.h) to use c++ implementation of
 |min|min_n|
 |max|max_n|
 
-#### file
-|fortran|c++|
-|:-:|:-:|
-|open|foropenfile|
-|close|forclosefile|
-
 #### array
 |fortran|c++|
 |:-:|:-:|
@@ -43,6 +37,24 @@ include [for90std/for90std.h](/for90std/for90std.h) to use c++ implementation of
 |transpose|not implemented yet|
 
 ### IO function mapping
+#### device id mapping
+
+|fortran|c++|
+|:-:|:-:|
+|*|get_file(-1)|
+|5|stdin|
+|6|stdin|
+|id|get_file(id)|
+
+#### file function mapping
+
+|fortran|c++|
+|:-:|:-:|
+|open|foropenfile|
+|close|forclosefile|
+
+#### print formatter mapping
+
 |fortran|c++|
 |:-:|:-:|
 |*|cin/cout|
@@ -54,14 +66,12 @@ include [for90std/for90std.h](/for90std/for90std.h) to use c++ implementation of
 refer to [/grammar/for90.y](/grammar/for90.y) for all accepted grammar
 ### unsupported keywords
 
-### INTERFACE block
-
-1. now you can rename keyword parameter
+1. now you can rename keyword parameter in `interface` block
 
 ### types
 #### type mapping
 
-|for90|c++|
+|fortran|c++|
 |:-:|:-:|
 |INTEGER(all length)|int|
 |REAL(all length)|double|
@@ -130,6 +140,7 @@ when using immediate code generate(or using lazy gen), upper level non-terminal 
 2. all `suite` will be changed(`tabber` function)
 3. ~~`dimen_slice` will append 1 child to the end of size == 1 slice~~
 4. argtable will change `CurrentTerm.what` of `dimen_slice`
+5. `gen_variabledesc_from_dimenslice` will promote `exp` to `slice`. because it is definitly an array other than a argtable now.
 
 child ParseNode may also be referred when generating upper level ParseNode, so do not change child index of:
 
@@ -255,6 +266,7 @@ you can use `REAL(x)` to get the float copy of x, however, you can also use `REA
 - ~~hidden do~~
 - ~~more precise code/error location, start/end~~
 - optimize ParseNode with rvalue
+- support fortran77 standard
 
 ## todolist(bugfix)
 - ~~if slice can be a scalar x and equal to (1: x + 1), there will be conflict in argtable~~
@@ -271,3 +283,4 @@ you can use `REAL(x)` to get the float copy of x, however, you can also use `REA
 	~~1. merge `argtable` and `dimen_slice` to paramtable~~
 	~~2. only change reduce rules~~
 - `printf` array
+- fixed length character initialize with shorter characters

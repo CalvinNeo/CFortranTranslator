@@ -3,7 +3,9 @@
 
 namespace for90std {
 	static std::map<int, FILE *> filenos;
+	static bool forfilesys_inited = false;
 	FILE * get_file(int unit) {
+		if (!forfilesys_inited) flush_fileno();
 		auto iter = filenos.find(unit);
 		if (iter != filenos.end()) {
 			return iter->second;
@@ -15,8 +17,10 @@ namespace for90std {
 		filenos.clear();
 		filenos[5] = stdin;
 		filenos[6] = stdout;
+		forfilesys_inited = true;
 	}
 	void foropenfile(int unit, std::string file, foroptional<std::string> access, foroptional<std::string> action, foroptional<std::string> status, foroptional<int> iostat) {
+		if (!forfilesys_inited) flush_fileno();
 		using namespace std;
 		bool docreate;
 		bool doread;
@@ -100,6 +104,7 @@ namespace for90std {
 		filenos[unit] = fopen(file.c_str(), mode.c_str());
 	}
 	void forclosefile(foroptional<int> unit, foroptional<std::string> status, foroptional<int> iostat) {
+		if (!forfilesys_inited) flush_fileno();
 		auto iter = filenos.find(unit.get());
 		if (iter != filenos.end()) {
 			fclose(iter->second);

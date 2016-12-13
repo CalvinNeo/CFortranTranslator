@@ -115,6 +115,7 @@ newline [\r\n]
 "<=" { RTOP(TokenMeta::LE, YY_LE) }
 "==" { RTOP(TokenMeta::EQ, YY_EQ) }
 "/=" { RTOP(TokenMeta::NEQ, YY_NEQ) /* [Ee][Ll][Ss][Ee]{ws}[Ii][Ff] {RTWORD()} */ }
+"//" { RTOP(TokenMeta::Add, '+') /* string concat */}
 
 [a-zA-Z_][a-zA-Z0-9_]* { RTWORD() }
 \.[a-zA-Z_][a-zA-Z0-9]*\. { RTWORD() }

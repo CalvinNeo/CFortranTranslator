@@ -21,19 +21,22 @@ ParseNode gen_slice(const ParseNode & lb, const ParseNode & ub) {
 	return newnode;
 }
 
+ParseNode promote_exp_to_slice(const ParseNode & exp) {
+	ParseNode newnode = ParseNode();
+	newnode.fs.CurrentTerm = Term{ TokenMeta::NT_SLICE, "" };
+	newnode.child.push_back(nullptr);
+	newnode.child.push_back(new ParseNode(exp));
+	ParseNode lb = gen_exp(gen_token(Term{ TokenMeta::NT_EXPRESSION, "1" }));
+	newnode.child[0] = new ParseNode(lb);
+	return newnode;
+}
+
 ParseNode gen_dimenslice_from_slice(ParseNode & slice) {
 	/* 1d array */
 	/* arr[from : to] */
 	/* target code of slice depend on context */
 	ParseNode newnode = ParseNode();
 	newnode.fs.CurrentTerm = Term{ TokenMeta::NT_DIMENSLICE, "" };
-	//if (slice.child.size() == 1) {
-	//	// not a slice but a index
-	//	slice.child.push_back(nullptr);
-	//	slice.child[1] = slice.child[0];
-	//	ParseNode lb = gen_exp(gen_token(Term{ TokenMeta::NT_EXPRESSION, "1" }));
-	//	slice.child[0] = new ParseNode(lb);
-	//}
 	newnode.addchild(new ParseNode(slice)); // only 1 slice
 	return newnode;
 }

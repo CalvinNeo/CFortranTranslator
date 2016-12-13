@@ -132,6 +132,9 @@
       <Filter>target90</Filter>
     </ClCompile>
     <ClCompile Include="..\..\main.cpp" />
+    <ClCompile Include="..\..\for90std\forstdio.cpp">
+      <Filter>for90std</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\grammar\for90.tab.h">
@@ -191,6 +194,9 @@
       <Filter>for90std</Filter>
     </ClInclude>
     <ClInclude Include="..\..\general_config.h" />
+    <ClInclude Include="..\..\for90std\fortime.h">
+      <Filter>for90std</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Bison Include="..\..\grammar\for90.y">

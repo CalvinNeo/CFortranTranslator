@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <functional>
 #include <type_traits>
+#include <string>
 
 namespace for90std {
 	template<typename T>
@@ -13,7 +14,7 @@ namespace for90std {
 		typedef value_type& reference;
 		typedef const value_type *const_pointer;
 		typedef const value_type& const_reference;
-		for1array<T> slice(size_type fr, size_type to, int step = 1) {
+		for1array<T> slice(size_type fr, size_type to, size_type step = 1) {
 			std::vector<T> nvec;
 			for (int i = fr; i <= to; i += step)
 			{
@@ -311,6 +312,28 @@ namespace for90std {
 	auto init_for1array_hiddendo(int from, int to, T lambda)
 		-> for1array<typename function_traits<T>::result_type> {
 		return _init_for1array_hiddendo<function_traits<decltype(lambda)>::result_type>(from, to, lambda);
+	}
+
+	template <typename T>
+	for1array<T> slice(const for1array<T> & farr, typename for1array<T>::size_type fr, typename for1array<T>::size_type to, typename for1array<T>::size_type step = 1) {
+		return farr.slice(fr, to, step);
+	}
+
+	inline std::string slice(std::string str, std::string::size_type fr, std::string::size_type to, std::string::size_type step = 1) {
+		if (to >= str.size()) {
+			str.reserve(to + 1);
+		}
+		if (step == 1) {
+			return str.substr(fr, to - fr + 1);
+		}
+		else {
+			std::string newstr;
+			for (size_t i = fr; i <= to; i+= step)
+			{
+				newstr += str[i];
+			}
+			return newstr;
+		}
 	}
 
 #define forarray for1array

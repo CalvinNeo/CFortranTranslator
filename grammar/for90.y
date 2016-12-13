@@ -27,14 +27,14 @@ using namespace std;
 
 %debug
 
-%token _YY_VOID YY_REQ_MORE YY_CRLF
-%token _YY_OP YY_GT YY_GE YY_EQ YY_LE YY_LT YY_NEQ YY_NEQV YY_EQV YY_ANDAND YY_OROR YY_NOT YY_POWER YY_DOUBLECOLON YY_NEG YY_POS
-%token _YY_TYPE YY_INTEGER YY_FLOAT YY_WORD YY_OPERATOR YY_STRING YY_ILLEGAL YY_COMPLEX YY_TRUE YY_FALSE
-%token _YY_CONTROL YY_END YY_IF YY_THEN YY_ELSE YY_ELSEIF YY_ENDIF YY_DO YY_ENDDO YY_CONTINUE YY_BREAK YY_WHILE YY_ENDWHILE YY_WHERE YY_ENDWHERE YY_CASE YY_ENDCASE YY_SELECT YY_ENDSELECT YY_GOTO YY_DOWHILE YY_DEFAULT
-%token _YY_DELIM YY_PROGRAM YY_ENDPROGRAM YY_FUNCTION YY_ENDFUNCTION YY_RECURSIVE YY_RESULT YY_SUBROUTINE YY_ENDSUBROUTINE YY_MODULE YY_ENDMODULE YY_BLOCK YY_ENDBLOCK YY_INTERFACE YY_ENDINTERFACE
-%token _YY_DESCRIBER YY_IMPLICIT YY_NONE YY_USE YY_PARAMETER YY_FORMAT YY_ENTRY YY_DIMENSION YY_ARRAYINITIAL_START YY_ARRAYINITIAL_END YY_INTENT YY_IN YY_OUT YY_INOUT YY_OPTIONAL YY_LEN YY_KIND
-%token _YY_TYPEDEF YY_INTEGER_T YY_FLOAT_T YY_STRING_T YY_COMPLEX_T YY_BOOL_T YY_CHARACTER_T
-%token _YY_COMMAND YY_WRITE YY_READ YY_PRINT YY_CALL 
+%token /*_YY_VOID*/ YY_REQ_MORE YY_CRLF
+%token /*_YY_OP*/ YY_GT YY_GE YY_EQ YY_LE YY_LT YY_NEQ YY_NEQV YY_EQV YY_ANDAND YY_OROR YY_NOT YY_POWER YY_DOUBLECOLON YY_NEG YY_POS
+%token /*_YY_TYPE*/ YY_INTEGER YY_FLOAT YY_WORD YY_OPERATOR YY_STRING YY_ILLEGAL YY_COMPLEX YY_TRUE YY_FALSE
+%token /*_YY_CONTROL*/ YY_END YY_IF YY_THEN YY_ELSE YY_ELSEIF YY_ENDIF YY_DO YY_ENDDO YY_CONTINUE YY_BREAK YY_WHILE YY_ENDWHILE YY_WHERE YY_ENDWHERE YY_CASE YY_ENDCASE YY_SELECT YY_ENDSELECT YY_GOTO YY_DOWHILE YY_DEFAULT
+%token /*_YY_DELIM*/ YY_PROGRAM YY_ENDPROGRAM YY_FUNCTION YY_ENDFUNCTION YY_RECURSIVE YY_RESULT YY_SUBROUTINE YY_ENDSUBROUTINE YY_MODULE YY_ENDMODULE YY_BLOCK YY_ENDBLOCK YY_INTERFACE YY_ENDINTERFACE
+%token /*_YY_DESCRIBER*/ YY_IMPLICIT YY_NONE YY_USE YY_PARAMETER YY_FORMAT YY_ENTRY YY_DIMENSION YY_ARRAYINITIAL_START YY_ARRAYINITIAL_END YY_INTENT YY_IN YY_OUT YY_INOUT YY_OPTIONAL YY_LEN YY_KIND
+%token /*_YY_TYPEDEF*/ YY_INTEGER_T YY_FLOAT_T YY_STRING_T YY_COMPLEX_T YY_BOOL_T YY_CHARACTER_T
+%token /*_YY_COMMAND*/ YY_WRITE YY_READ YY_PRINT YY_CALL 
 
 
 %left '='
@@ -162,7 +162,15 @@ using namespace std;
 			}
 		| YY_LEN '=' exp
 			{
-				// do nothing because we use std::string
+				// though use std::string
+				// still need to initialize the string to YY_LEN
+				int len;
+				sscanf($3.fs.CurrentTerm.what.c_str(), "%d", &len);
+
+				/* string length */
+				ParseNode * newnode = new ParseNode(gen_flex(Term{ TokenMeta::NT_VARIABLEDESC, "NT_VARIABLEDESC" }), nullptr); // len
+				set_variabledesc_attr(newnode, optionalparam<bool>(), optionalparam<bool>(), optionalparam<bool>(), optionalparam<ParseNode *>(), len);
+				$$ = *newnode;
 				update_pos($$, $1, $3);
 			}
 				
@@ -667,6 +675,10 @@ using namespace std;
 			{
 				$$.fs.CurrentTerm = Term{ TokenMeta::NT_AUTOFORMATTER, "" };
 			}
+		| YY_INTEGER
+			{
+					
+			}
 		| YY_STRING
 			{
 				// replace `'` with `"`
@@ -784,8 +796,17 @@ using namespace std;
 			}
         | YY_CHARACTER_T '(' typecast_spec ')'
 			{
-				$$ = gen_type($1, $3);
+				ParseNode newnode = gen_type($1);
+				int len;
+				sscanf($3.fs.CurrentTerm.what.c_str(), "%d", &len);
+				set_variabledesc_attr(&newnode, optionalparam<bool>(), optionalparam<bool>(), optionalparam<bool>()
+					, optionalparam<ParseNode *>(), len);
 				update_pos($$, $1, $4);
+			}
+		| YY_CHARACTER_T '*' YY_INTEGER
+			{
+				$$ = gen_type($1, $3);
+				update_pos($$, $1, $3);
 			}
 		| type_nospec
 
@@ -906,34 +927,37 @@ using namespace std;
 
 			}
 
-	if_stmt : YY_IF exp YY_THEN crlf suite YY_END YY_IF crlf
+	_yy_endif : YY_END YY_IF
+		| YY_ENDIF
+
+	if_stmt : YY_IF exp YY_THEN crlf suite _yy_endif crlf
 			{
 				ParseNode & exp = $2;
 				ParseNode & suite_true = $5; 
 				//sprintf(codegen_buf, "if (%s) {\n%s}", exp.fs.CurrentTerm.what.c_str(), suite_true.fs.CurrentTerm.what.c_str());
 
 				$$ = gen_if(exp, suite_true, gen_dummy(), gen_dummy());
-				update_pos($$, $1, $8);
+				update_pos($$, $1, $7);
 			}
-		| YY_IF exp YY_THEN crlf suite YY_ELSE crlf suite YY_END YY_IF crlf
+		| YY_IF exp YY_THEN crlf suite YY_ELSE crlf suite _yy_endif crlf
 			{
 				ParseNode & exp = $2;
 				ParseNode & suite_true = $5; 
 				ParseNode & suite_else = $8; 
 				//sprintf(codegen_buf, "if (%s) {\n%s}\nelse {\n %s}", exp.fs.CurrentTerm.what.c_str(), suite_true.fs.CurrentTerm.what.c_str(), suite_else.fs.CurrentTerm.what.c_str());
 				$$ = gen_if(exp, suite_true, gen_dummy(), suite_else);
-				update_pos($$, $1, $11);
+				update_pos($$, $1, $10);
 			}
-		| YY_IF exp YY_THEN crlf suite elseif_stmt YY_END YY_IF crlf
+		| YY_IF exp YY_THEN crlf suite elseif_stmt _yy_endif crlf
 			{
 				ParseNode & exp = $2;
 				ParseNode & suite_true = $5;
 				ParseNode & elseif = $6;
 				//sprintf(codegen_buf, "if (%s) {\n%s}\n%s", exp.fs.CurrentTerm.what.c_str(), suite_true.fs.CurrentTerm.what.c_str(), elseif.fs.CurrentTerm.what.c_str());
 				$$ = gen_if(exp, suite_true, elseif, gen_dummy());
-				update_pos($$, $1, $9);
+				update_pos($$, $1, $8);
 			}
-		| YY_IF exp YY_THEN crlf suite elseif_stmt YY_ELSE crlf suite YY_END YY_IF crlf
+		| YY_IF exp YY_THEN crlf suite elseif_stmt YY_ELSE crlf suite _yy_endif crlf
 			{
 				ParseNode & exp = $2;
 				ParseNode & suite_true = $5;
@@ -941,7 +965,7 @@ using namespace std;
 				ParseNode & suite_else = $9; 
 				//sprintf(codegen_buf, "if (%s) {\n%s}\n%selse {\n%s}", exp.fs.CurrentTerm.what.c_str(), suite_true.fs.CurrentTerm.what.c_str(), elseif.fs.CurrentTerm.what.c_str(), suite_else.fs.CurrentTerm.what.c_str());
 				$$ = gen_if(exp, suite_true, elseif, suite_else);
-				update_pos($$, $1, $12);
+				update_pos($$, $1, $11);
 			}
 		|  YY_IF exp _optional_then stmt
 			{
@@ -967,13 +991,16 @@ using namespace std;
 				update_pos($$, $1, $6);
 			}
 
-	do_stmt : YY_DO crlf suite YY_END YY_DO crlf
+	_yy_enddo : YY_END YY_DO
+		| YY_ENDDO
+
+	do_stmt : YY_DO crlf suite _yy_enddo crlf
 			{
 				ParseNode & suite = $3; 
 				$$ = gen_do(suite);
-				update_pos($$, $1, $6);
+				update_pos($$, $1, $5);
 			}
-		| YY_DO variable '=' exp ',' exp crlf suite YY_END YY_DO crlf
+		| YY_DO variable '=' exp ',' exp crlf suite _yy_enddo crlf
 			{
 				ParseNode & loop_variable = $2;
 				ParseNode & exp_from = $4;
@@ -981,9 +1008,9 @@ using namespace std;
 				ParseNode & step = gen_exp(gen_token(Term{ TokenMeta::META_INTEGER , "1" }));
 				ParseNode & suite = $8; 
 				$$ = gen_do_range(loop_variable, exp_from, exp_to, step, suite);
-				update_pos($$, $1, $11);
+				update_pos($$, $1, $10);
 			}
-		| YY_DO variable '=' exp ',' exp ',' exp crlf suite YY_END YY_DO crlf
+		| YY_DO variable '=' exp ',' exp ',' exp crlf suite _yy_enddo crlf
 			{
 				ParseNode & loop_variable = $2;
 				ParseNode & exp1 = $4;
@@ -991,23 +1018,26 @@ using namespace std;
 				ParseNode & exp3 = $8;
 				ParseNode & suite = $10;
 				$$ = gen_do_range(loop_variable, exp1, exp2, exp3, suite);
-				update_pos($$, $1, $13);
+				update_pos($$, $1, $12);
 			}
-		| YY_DOWHILE exp crlf suite YY_END YY_DO crlf
+		| YY_DOWHILE exp crlf suite _yy_enddo crlf
 			{
 				ParseNode & exp = $2;
 				ParseNode & suite = $4; 
 				$$ = gen_do_while(exp, suite);
-				update_pos($$, $1, $7);
+				update_pos($$, $1, $6);
 			}
+	
+	_yy_endselect : YY_END YY_SELECT
+		| YY_ENDSELECT
 
-	select_stmt : YY_SELECT YY_CASE _optional_lbrace exp _optional_rbrace crlf case_stmt YY_END YY_SELECT crlf
+	select_stmt : YY_SELECT YY_CASE _optional_lbrace exp _optional_rbrace crlf case_stmt _yy_endselect crlf
 			{
 				ParseNode & select = $1;
 				ParseNode & exp = $4;
 				ParseNode & case_stmt = $7;
 				$$ = gen_select(exp, case_stmt);
-				update_pos($$, $1, $10);
+				update_pos($$, $1, $9);
 			}
 	case_stmt_elem : YY_CASE _optional_lbrace dimen_slice _optional_rbrace crlf suite
 			{

@@ -46,6 +46,7 @@ ParseNode gen_function_array(const ParseNode & callable_head, const ParseNode & 
 
 ParseNode gen_slice(const ParseNode & lb, const ParseNode & ub, const ParseNode & step);
 ParseNode gen_slice(const ParseNode & lb, const ParseNode & ub); 
+ParseNode promote_exp_to_slice(const ParseNode & exp);
 ParseNode gen_dimenslice_from_slice(ParseNode & slice);
 ParseNode gen_argtable_from_exp(ParseNode & exp);
 
@@ -70,7 +71,7 @@ ParseNode gen_array_generate_stmt(const ParseNode & _generate_stmt);
 ParseNode gen_array_generate_paramtable(const ParseNode & argtable);
 
 void set_variabledesc_attr(ParseNode * newnode, optionalparam<bool> reference, optionalparam<bool> constant, optionalparam<bool> optional, optionalparam<struct ParseNode *> slice, optionalparam<int> kind);
-ParseNode gen_variabledesc_from_dimenslice(const ParseNode & dimen_slice);
+ParseNode gen_variabledesc_from_dimenslice(ParseNode & dimen_slice);
 
 ParseNode gen_interface(const ParseNode & wrappers);
 

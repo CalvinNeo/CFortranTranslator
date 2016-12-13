@@ -42,7 +42,7 @@ ParseNode gen_argtable(ParseNode & dimen_slice) {
 	}
 	if (isdimen) {
 		//sprintf(codegen_buf, "%s", dimen_slice.fs.CurrentTerm.what.c_str());
-		sprintf(codegen_buf, "%%s.slice(%s)", dimen_slice.fs.CurrentTerm.what.c_str());
+		sprintf(codegen_buf, "slice(%%s, %s)", dimen_slice.fs.CurrentTerm.what.c_str());
 		newnode.fs.CurrentTerm = Term{ TokenMeta::NT_ARGTABLE_DIMENSLICE, string(codegen_buf) };
 	}
 	else {
