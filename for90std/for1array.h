@@ -4,6 +4,7 @@
 #include <functional>
 #include <type_traits>
 #include <string>
+#include "forlang.h"
 
 namespace for90std {
 	template<typename T>
@@ -14,9 +15,94 @@ namespace for90std {
 		typedef value_type& reference;
 		typedef const value_type *const_pointer;
 		typedef const value_type& const_reference;
+		typedef size_type difference_type ;
+		
+		struct iterator {
+			iterator() {}
+			iterator(const iterator & m) : _pos(m._pos), _farr(m._farr) {}
+			iterator(for1array<value_type> * forarray, size_type pos) : _pos(pos), _farr(forarray) {}
+			
+			reference operator*() const
+			{	// return designated object
+				return (*_farr)[_pos];
+			}
+
+			pointer operator->() const
+			{	// return pointer to class object
+				return &(*_farr)[_pos];
+			}
+
+			iterator& operator++()
+			{	// preincrement
+				++_pos;
+				return (*this);
+			}
+
+			iterator operator++(int)
+			{	// postincrement
+				iterator tmp = *this;
+				++_pos;
+				return (tmp);
+			}
+
+			iterator& operator--()
+			{	// predecrement
+				--_pos;
+				return (*this);
+			}
+
+			iterator operator--(int)
+			{	// postdecrement
+				iterator tmp = *this;
+				--_pos;
+				return (tmp);
+			}
+
+			bool operator==(const iterator& _right) const
+			{	// test for iterator equality
+				return _right._pos == _pos && _right._farr == _farr;
+			}
+
+			bool operator!=(const iterator& _right) const
+			{	// test for iterator inequality
+				return _right._pos != _pos || _right._farr != _farr;
+			}
+
+			bool operator<(const iterator& _right) const
+			{	// test if this < _Right
+				return _pos < _right._pos;
+			}
+
+			bool operator>(const iterator& _right) const
+			{	// test if this > _Right
+				return _pos > _right._pos;
+			}
+
+			bool operator<=(const iterator& _right) const
+			{	// test if this <= _Right
+				return _pos <= _right._pos;
+			}
+
+			bool operator>=(const iterator& _right) const
+			{	// test if this >= _Right
+				return _pos >= _right._pos;
+			}
+		protected:
+			size_type _pos;
+			for1array<value_type> * _farr;
+		};
+
+		iterator begin() {
+			return iterator(this, this->LBound());
+		}
+
+		iterator end() {
+			return iterator(this, this->UBound());
+		}
+
 		for1array<T> slice(size_type fr, size_type to, size_type step = 1) {
 			std::vector<T> nvec;
-			for (int i = fr; i <= to; i += step)
+			for (int i = fr; i < to; i += step)
 			{
 				nvec.push_back(m_arr[i - lb]);
 			}
@@ -29,7 +115,7 @@ namespace for90std {
 			return ub;
 		};
 		size_type size() const {
-			return m_arr.size();
+			return (int)m_arr.size();
 		}
 		int for1array_kind() {
 			return 1;
@@ -42,7 +128,7 @@ namespace for90std {
 		}
 
 		const T & const_get(size_type i) const {
-			if (i - lb >= m_arr.size() || i - lb < 0) {
+			if (i - lb >= (int)m_arr.size() || i - lb < 0) {
 				throw 0;
 			}
 			else {
@@ -50,7 +136,7 @@ namespace for90std {
 			}
 		}
 		T & get(size_type i) {
-			if (i - lb >= m_arr.size() || i - lb < 0) {
+			if (i - lb >= (int)m_arr.size() || i < lb) {
 				m_arr.resize(i - lb + 1);
 				ub = i + 1; // important
 				return m_arr[i - lb];
@@ -320,8 +406,21 @@ namespace for90std {
 	}
 
 	template <typename T>
-	for1array<T> slice(const for1array<T> & farr, typename for1array<T>::size_type fr, typename for1array<T>::size_type to, typename for1array<T>::size_type step = 1) {
-		return farr.slice(fr, to, step);
+	for1array<T> slice(const for1array<T> & farr, typename foroptional<typename for1array<T>::size_type> fr, typename foroptional<typename for1array<T>::size_type> to, typename for1array<T>::size_type step = 1) {
+		typename for1array<T>::size_type f, t;
+		if (!fr.inited()) {
+			f = farr.LBound();
+		}
+		else {
+			f = fr.get();
+		}
+		if (!to.inited()) {
+			t = farr.UBound() - 1;
+		}
+		else {
+			t = to.get();
+		}
+		return farr.slice(f, t, step);
 	}
 
 	inline std::string slice(std::string str, std::string::size_type fr, std::string::size_type to, std::string::size_type step = 1) {
@@ -329,11 +428,11 @@ namespace for90std {
 			str.resize(to + 1);
 		}
 		if (step == 1) {
-			return str.substr(fr, to - fr + 1);
+			return str.substr(fr, to - fr);
 		}
 		else {
 			std::string newstr;
-			for (size_t i = fr; i <= to; i+= step)
+			for (size_t i = fr; i < to; i+= step)
 			{
 				newstr += str[i];
 			}
@@ -345,6 +444,52 @@ namespace for90std {
 	using fornarray = for1array<T>;
 	template<typename T, int D>
 	using fornarray = fornarray<T, D - 1>;
+
+	template<typename T
+		, typename _Container_value_type
+		, typename _Iterator>
+		void _iter_for1array_layer(for1array<T> & farr, const std::vector<int> & lower_bound, int deep
+			, const std::vector<int> & size,  const std::vector<int> & next_iter_delta
+			, _Iterator b, _Iterator e, .../* SFINAE */) {
+		auto iter = b;
+		for (int i = lower_bound[deep]; i < lower_bound[deep] + size[deep]; i++)
+		{
+			farr(i) = *iter;
+			if (i != lower_bound[deep] + size[deep] - 1) {
+				iter += next_iter_delta[deep]/* always 1, always not 1 -- 2016-12-03 */;
+			}
+		}
+	}
+
+	template<typename T
+		, typename _Container_value_type
+		, typename _Iterator>
+		void _iter_for1array_layer(for1array<_Container_value_type> & farr, const std::vector<int> & lower_bound, int deep
+			, const std::vector<int> & size,  const std::vector<int> & next_iter_delta
+			, _Iterator b, _Iterator e, for1array_matcher<_Container_value_type>/* SFINAE */) {
+		/* deep can never be equal to size.size() - 1 */
+		auto iter = b;
+		for (int i = lower_bound[deep]; i < lower_bound[deep] + size[deep]; i++)
+		{
+			/* NOTE: assume the array is already allocated and no need to clear */
+			_iter_for1array_layer<T, typename _Container_value_type::value_type, _Iterator>(farr(i), lower_bound, deep + 1, size,
+				, next_iter_delta, iter, iter + next_iter_delta[deep], nullptr);
+			if (i != lower_bound[deep] + size[deep] - 1) {
+				iter += next_iter_delta[deep];
+			}
+		}
+	}
+
+	template<typename T, typename _Container_value_type>
+	void iter_for1array(for1array<_Container_value_type> & farr, const std::vector<int> & lower_bound, const std::vector<int> & size, const std::vector<T> & values) {
+		/* NOTE: assume the array is already allocated and no need to clear */
+		std::vector<int> next_iter_delta(size);
+		int s = 1;
+		std::transform(next_iter_delta.begin(), next_iter_delta.end(), next_iter_delta.begin(), [&s](int x) {int ans = s; s *= x; return ans; });
+		typedef std::conditional<std::is_same<_Container_value_type, T>::value, T, _Container_value_type >::type _New_value_type;
+		_iter_for1array_layer<T, _New_value_type, std::vector<T>::const_iterator >(farr, lower_bound, 0, size,
+			, next_iter_delta, values.begin(), values.end(), nullptr);
+	}
 
 	template<typename T, int D>
 	fornarray<T, D> forreshape(const for1array<T> & farr, std::vector<int> shape) {

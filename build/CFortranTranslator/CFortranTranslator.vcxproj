@@ -59,6 +59,7 @@
     <ClCompile Include="..\..\getopt.cpp" />
     <ClCompile Include="..\..\grammar\for90.flex.cpp" />
     <ClCompile Include="..\..\grammar\for90.tab.cpp" />
+    <ClCompile Include="..\..\Intent.cpp" />
     <ClCompile Include="..\..\IntentHelper.cpp" />
     <ClCompile Include="..\..\lazygen.cpp" />
     <ClCompile Include="..\..\main.cpp" />

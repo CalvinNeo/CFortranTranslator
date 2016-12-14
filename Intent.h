@@ -2,6 +2,9 @@
 #include "IntentHelper.h"
 #include <string>
 
+
+#define TokenMeta IntentMeta
+#define TokenMeta_T int
 namespace IntentMeta {
 	//enum class IntentMeta {
 	enum IntentMeta {
@@ -154,11 +157,11 @@ namespace IntentMeta {
 		Void = META_VOID,
 		Obj = -321,
 		Int = META_INTEGER,
-		Char = -323,//type
+		Char = META_CHARACTER, 
 		String = META_STRING,
 		Double = META_FLOAT,
 		Dynamic = -326,
-		Bool = -327,
+		Bool = -327, // no use because Bool is true + false
 		Pointer = -328, // 声明指针类型
 		Float = META_FLOAT,
 		Long = -330,
@@ -254,10 +257,13 @@ namespace IntentMeta {
 		NT_PROGRAM = -2034,
 		NT_INTERFACE = -2035,
 		NT_WRAPPERS = -2036,
-		NT_PARAMRABLE_PURE = -2036,
+		NT_PARAMTABLE_PURE = -2037,
 
 		NT_DUMMY = -9999,
 };
+
+bool iselement(TokenMeta_T x);
+
 }
 
 

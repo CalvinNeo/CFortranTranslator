@@ -276,8 +276,8 @@ using namespace std;
 		| ':'
 			{
 				/* arr[from : to : step] */
-				ParseNode & lb = gen_exp(gen_token(Term{ TokenMeta::META_INTEGER, "-1" }));
-				ParseNode & ub = gen_exp(gen_token(Term{ TokenMeta::META_INTEGER, "-1" }));
+				ParseNode & lb = gen_exp(gen_token(Term{ TokenMeta::META_INTEGER, "foroptional<int>()" }));
+				ParseNode & ub = gen_exp(gen_token(Term{ TokenMeta::META_INTEGER, "foroptional<int>()" }));
 				/* target code of slice depend on context */
 				$$ = gen_slice(lb, ub);
 				update_pos($$, $1, $1);
@@ -311,15 +311,46 @@ using namespace std;
 				$$ = gen_argtable_from_exp(exp);
 				update_pos($$, $1, $1);
 			}
-        | exp ',' paramtable
+		/*
+		| exp ',' dimen_slice
+			{
+				ParseNode & exp = $1;
+				ParseNode & argtable = $3;
+				ParseNode newnode = ParseNode();
+				if (argtable.fs.CurrentTerm.token == TokenMeta::NT_ARGTABLE_PURE) {
+					newnode = gen_flattern(exp, argtable, "%s, %s", TokenMeta::NT_ARGTABLE_PURE);
+				}
+				else if (argtable.fs.CurrentTerm.token == TokenMeta::NT_DIMENSLICE) {
+					newnode = gen_flattern(exp, argtable, "%s, %s", TokenMeta::NT_DIMENSLICE);
+				}
+				$$ = newnode;
+			}
+		*/
+         | exp ',' paramtable
 			{
 				ParseNode & exp = $1;
 				ParseNode & argtable = $3;
 				// gen_argtable(exp, argtable);
-				$$ = gen_flattern(exp, argtable, "%s, %s", TokenMeta::NT_ARGTABLE_PURE);
+				//$$ = gen_flattern(exp, argtable, "%s, %s", TokenMeta::NT_ARGTABLE_PURE);
+				ParseNode newnode = ParseNode();
+				if (argtable.fs.CurrentTerm.token == TokenMeta::NT_ARGTABLE_PURE) {
+					newnode = gen_flattern(exp, argtable, "%s, %s", TokenMeta::NT_ARGTABLE_PURE);
+				}
+				else if (argtable.fs.CurrentTerm.token == TokenMeta::NT_DIMENSLICE) {
+					newnode = gen_flattern(exp, argtable, "%s, %s", TokenMeta::NT_DIMENSLICE);
+				}
+				else if (argtable.fs.CurrentTerm.token == TokenMeta::NT_PARAMTABLE) {
+					newnode = gen_paramtable(exp, argtable);
+				}
+				else if (argtable.fs.CurrentTerm.token == TokenMeta::NT_PARAMTABLE_DIMENSLICE) {
+					newnode = gen_paramtable(exp, argtable);
+				}
+				else {
+					print_error("Illegal dimen_slice", argtable);
+				}
+				$$ = newnode;
 				update_pos($$, $1, $3);
 			}
-
 
 	function_array_body : callable_head '(' paramtable ')'
 			{
@@ -333,11 +364,11 @@ using namespace std;
 
 	function_array : function_array_body
 			{
-				$$ = $1
+				$$ = $1;
 			}
 		| YY_CALL function_array_body
 			{
-				$$ = $2
+				$$ = $2;
 			}
 
 	exp : function_array 
@@ -590,10 +621,11 @@ using namespace std;
 				$$ = gen_stmt($1);
 				update_pos($$, $1, $1);
 			}
-		| interface_decl
+		/*| interface_decl
 			{
 				$$ = $1;
 			}
+		*/
 		| semicolon YY_CRLF
 			{
 				ParseNode & xx = $1;
@@ -823,21 +855,18 @@ using namespace std;
 			}
 
     keyvalue : variable
-			{	
+			{ 
+				// useless reduction
 				/* paramtable is used in function decl */
-				/* this paramtable has only one value */
-				ParseNode & variable = $1;
-				$$ = gen_keyvalue(variable);
-				update_pos($$, $1, $1);
 			}
-        | variable '=' exp
+        | exp '=' exp
 			{
 				/* initial value is required in parse tree because it can be an non-terminal `exp` */
 				/* non-array initial values */
 				$$ = gen_keyvalue_from_exp($1, $3);
 				update_pos($$, $1, $3);
 			}
-		| variable '=' array_builder
+		| exp '=' array_builder
 			{
 				/* initial value is required in parse tree because it can be an non-terminal `exp` */
 				/* array initial values */;
@@ -846,10 +875,11 @@ using namespace std;
 				update_pos($$, $1, $3);
 			}
 
-	paramtable_elem : keyvalue
+	paramtable_elem : dimen_slice
 			{
+				// from rule ` dimen_slice : exp ',' paramtable `
 			}
-		| dimen_slice
+		| keyvalue
 			{
 			}
 
@@ -913,9 +943,6 @@ using namespace std;
 				/* note either that `variable '(' dimen_slice ')'` is an `exp` */
 			}
 
-	_optional_then : YY_THEN
-		|
-
 	array_builder : array_builder_elem
 			{
 				$$ = gen_promote("%s", TokenMeta::NT_ARRAYBUILDER, $1); // array_builder_elem
@@ -930,6 +957,11 @@ using namespace std;
 
 	_yy_endif : YY_END YY_IF
 		| YY_ENDIF
+
+	/* _optional_then : YY_THEN
+		|
+		removed because of conflict with YY_THEN(i don't know why)
+	*/
 
 	if_stmt : YY_IF exp YY_THEN crlf suite _yy_endif crlf
 			{
@@ -968,13 +1000,21 @@ using namespace std;
 				$$ = gen_if(exp, suite_true, elseif, suite_else);
 				update_pos($$, $1, $11);
 			}
-		|  YY_IF exp _optional_then stmt
+		|  YY_IF exp YY_THEN stmt
 			{
 				ParseNode & exp = $2;
 				ParseNode & stmt_true = $4; 
 				$$ = gen_if_oneline(exp, stmt_true);
 				update_pos($$, $1, $4);
 			}
+		| YY_IF exp stmt
+			{
+				ParseNode & exp = $2;
+				ParseNode & stmt_true = $3;
+				$$ = gen_if_oneline(exp, stmt_true);
+				update_pos($$, $1, $3);
+			}
+
 	elseif_stmt : YY_ELSEIF exp YY_THEN crlf suite
 			{
 				ParseNode & exp = $2;

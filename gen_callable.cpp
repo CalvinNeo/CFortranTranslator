@@ -9,6 +9,8 @@ ParseNode gen_function_array(const ParseNode & callable_head, const ParseNode & 
 	ParseNode newnode = ParseNode();
 	string name;
 	string func_header;
+	newnode.addchild(new ParseNode(callable_head)); // function/array name
+	newnode.addchild(new ParseNode(argtable)); // argtable
 	if (funcname_map.find(callable_head.fs.CurrentTerm.what) != funcname_map.end()) {
 		// some fortran intrinsic function NAME must be replaced with its c++ implementation function NAME in for90std.h
 		name = funcname_map.at(callable_head.fs.CurrentTerm.what);
@@ -18,10 +20,24 @@ ParseNode gen_function_array(const ParseNode & callable_head, const ParseNode & 
 	}
 	if (argtable.fs.CurrentTerm.token == TokenMeta::NT_PARAMTABLE_DIMENSLICE) {
 		// array
-		sprintf(codegen_buf, argtable.fs.CurrentTerm.what.c_str(), name.c_str());
-		newnode.fs.CurrentTerm = Term{ TokenMeta::NT_FUCNTIONARRAY,  string(codegen_buf) };
+		//sprintf(codegen_buf, argtable.fs.CurrentTerm.what.c_str(), name.c_str());
+		string arr = name;
+		for (int i = 0; i < argtable.child.size(); i++)
+		{
+			if (argtable.child[i]->fs.CurrentTerm.token == TokenMeta::NT_SLICE) {
+				sprintf(codegen_buf, "slice(%s, %s, %s + 1)", arr.c_str()
+					, argtable.child[i]->child[0]->fs.CurrentTerm.what.c_str()
+					, argtable.child[i]->child[1]->fs.CurrentTerm.what.c_str());
+				arr = string(codegen_buf);
+			}
+			else {
+				sprintf(codegen_buf, "(%s)", argtable.child[i]->fs.CurrentTerm.what.c_str());
+				arr += string(codegen_buf);
+			}
+		}
+		newnode.fs.CurrentTerm = Term{ TokenMeta::NT_FUCNTIONARRAY,  arr };
 	}
-	else /*if(argtable.fs.CurrentTerm.token == TokenMeta::NT_ARGTABLE_PURE)*/{
+	else if(argtable.fs.CurrentTerm.token == TokenMeta::NT_ARGTABLE_PURE){
 		// function call
 		func_header += name;
 		auto map_func = func_kwargs.find(name); // function_name -> args
@@ -77,8 +93,9 @@ ParseNode gen_function_array(const ParseNode & callable_head, const ParseNode & 
 		func_header += ")";
 		newnode.fs.CurrentTerm = Term{ TokenMeta::NT_FUCNTIONARRAY,  func_header };
 	}
-	newnode.addchild(new ParseNode(callable_head)); // function/array name
-	newnode.addchild(new ParseNode(argtable)); // argtable
+	else {
+		print_error("callable generate fail", newnode);
+	}
 	return newnode;
 }
 

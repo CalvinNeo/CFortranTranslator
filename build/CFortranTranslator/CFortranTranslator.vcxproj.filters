@@ -132,6 +132,9 @@
     <ClCompile Include="..\..\for90std\forstdio.cpp">
       <Filter>for90std</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Intent.cpp">
+      <Filter>NuclearLang</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\grammar\for90.tab.h">

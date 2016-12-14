@@ -4,8 +4,6 @@
 #include <vector>
 #include "Intent.h"
 
-#define TokenMeta IntentMeta
-#define TokenMeta_T int
 
 struct Term {
 	//TokenMeta token;

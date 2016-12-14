@@ -133,7 +133,7 @@ std::map<int, std::string> IntentName = {
 	,{ -301, "META_WORD" }
 	,{ -302, "META_INTEGER or Int" }
 	,{ -303, "META_STRING or String" }
-	,{ -304, "META_CHARACTER" }
+	,{ -304, "META_CHARACTER or Char" }
 	,{ -305, "META_FLOAT or Double" }
 	,{ -306, "META_OPERATOR" }
 	,{ -307, "META_ILLEGAL" }
@@ -144,7 +144,6 @@ std::map<int, std::string> IntentName = {
 	,{ -312, "Void or META_VOID" }
 
 	,{ -321, "Obj" }
-	,{ -323, "Char" }
 	,{ -326, "Dynamic" }
 	,{ -327, "Bool" }
 	,{ -328, "Pointer" }
@@ -236,6 +235,7 @@ std::map<int, std::string> IntentName = {
 	, {-2034, "NT_PROGRAM"}
 	, {-2035, "NT_INTERFACE"}
 	, {-2036, "NT_WRAPPERS"}
+	, {-2037, "NT_PARAMTABLE_PURE"}
 	,{ -9999, "NT_DUMMY"}
 };
 

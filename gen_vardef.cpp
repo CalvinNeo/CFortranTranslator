@@ -90,7 +90,8 @@ std::string gen_vardef_array(ParseNode * pn, ParseNode * spec_typename, ParseNod
 		sprintf(codegen_buf, gen_vardef_typestr(vardescattr).c_str(), spec_typename->fs.CurrentTerm.what.c_str());
 		string elem_type_str(codegen_buf); // `T`
 										   // init high dimension array
-										   /* though using for-loop to init a high-dimension array is verbose comparing to using constructors, i use this form because it is more clear and it can remind users of the cost of using a high dimension array */
+										   /* though using for-loop to init a high-dimension array is verbose comparing to using constructors, 
+										   i use this form because it is more clear and it can remind users of the cost of using a high dimension array */
 		vector<string> this_major; /* if you want to set value of a(i0)(i1)(i2) then this_major is a(i0)(i1) */
 		this_major.push_back(pn->child[i]/* NT_VARIABLEINITIAL/NT_KEYVALUE */->child[0]->fs.CurrentTerm.what /* array name */);
 		for (int i = 1; i < slice->child.size(); i++)

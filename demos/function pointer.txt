@@ -30,7 +30,7 @@ program
 			integer::minu_result
 		end function
 	end interface
-	integer, parameter::const_int
+	!integer, parameter::const_int
 	integer::a, b
 	read *, a, b
 	call proc(a, b, sum)
