@@ -123,6 +123,9 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\for90std\for1array.h" />
+    <ClInclude Include="..\..\for90std\for1array\for1array_cstyle.h" />
+    <ClInclude Include="..\..\for90std\for1array\for1array_def.h" />
+    <ClInclude Include="..\..\for90std\for1array\for1array_forstyle.h" />
     <ClInclude Include="..\..\for90std\for90std.h" />
     <ClInclude Include="..\..\for90std\forarray.h" />
     <ClInclude Include="..\..\for90std\forfilesys.h" />

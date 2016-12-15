@@ -148,31 +148,6 @@ using namespace std;
 				$$ = *newnode;
 				update_pos($$, $1, $1);
 			}
-
-	typecast_spec : YY_KIND '=' YY_INTEGER
-			{
-				int kind;
-				sscanf($3.fs.CurrentTerm.what.c_str(), "%d", &kind);
-
-				/* type size */
-				ParseNode * newnode = new ParseNode(gen_flex(Term{ TokenMeta::NT_VARIABLEDESC, "NT_VARIABLEDESC" }), nullptr); // kind
-				set_variabledesc_attr(newnode, optionalparam<bool>(), true, optionalparam<bool>(), optionalparam<ParseNode *>(), kind);
-				$$ = *newnode;
-				update_pos($$, $1, $3);
-			}
-		| YY_LEN '=' exp
-			{
-				// though use std::string
-				// still need to initialize the string to YY_LEN
-				int len;
-				sscanf($3.fs.CurrentTerm.what.c_str(), "%d", &len);
-
-				/* string length */
-				ParseNode * newnode = new ParseNode(gen_flex(Term{ TokenMeta::NT_VARIABLEDESC, "NT_VARIABLEDESC" }), nullptr); // len
-				set_variabledesc_attr(newnode, optionalparam<bool>(), optionalparam<bool>(), optionalparam<bool>(), optionalparam<ParseNode *>(), len);
-				$$ = *newnode;
-				update_pos($$, $1, $3);
-			}
 				
 	variable_desc : ',' variable_desc_elem
 			{
@@ -199,6 +174,31 @@ using namespace std;
 				newnode->attr = new VariableDescAttr(newnode);
 				$$ = *newnode;
 				update_pos($$);
+			}
+
+	typecast_spec : YY_KIND '=' YY_INTEGER
+			{
+				int kind;
+				sscanf($3.fs.CurrentTerm.what.c_str(), "%d", &kind);
+
+				/* type size */
+				ParseNode * newnode = new ParseNode(gen_flex(Term{ TokenMeta::NT_VARIABLEDESC, "NT_VARIABLEDESC" }), nullptr); // kind
+				set_variabledesc_attr(newnode, optionalparam<bool>(), true, optionalparam<bool>(), optionalparam<ParseNode *>(), kind);
+				$$ = *newnode;
+				update_pos($$, $1, $3);
+			}
+		| YY_LEN '=' exp
+			{
+				// though use std::string
+				// still need to initialize the string to YY_LEN
+				int len;
+				sscanf($3.fs.CurrentTerm.what.c_str(), "%d", &len);
+
+				/* string length */
+				ParseNode * newnode = new ParseNode(gen_flex(Term{ TokenMeta::NT_VARIABLEDESC, "NT_VARIABLEDESC" }), nullptr); // len
+				set_variabledesc_attr(newnode, optionalparam<bool>(), optionalparam<bool>(), optionalparam<bool>(), optionalparam<ParseNode *>(), len);
+				$$ = *newnode;
+				update_pos($$, $1, $3);
 			}
 
 

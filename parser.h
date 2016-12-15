@@ -9,10 +9,9 @@
 
 // 分析树
 struct ParseNode {
-	struct ParseNode * father;
-	
+	FlexState fs;
 	std::vector<ParseNode *> child;
-	FlexState fs; 
+	struct ParseNode * father;
 	/*
 	对于终结符: cpp-stylish
 	对于非终结符: 当前非终结符的语法子树的cpp code
@@ -54,3 +53,12 @@ ParseNode * flattern_bin(ParseNode *); // eliminate right recursion of an binary
 /* lazygen */
 
 #define MAX_CODE_LENGTH 32767
+
+struct ParseConfig {
+	bool for90 = true;
+	bool isdebug = false;
+	bool hasfile = false;
+	bool usefor = true;
+};
+
+extern ParseConfig parse_config;

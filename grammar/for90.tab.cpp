@@ -530,7 +530,7 @@ static const yytype_uint8 yytranslate[] =
 static const yytype_uint16 yyprhs[] =
 {
        0,     0,     3,     5,     7,     8,    10,    11,    16,    21,
-      26,    31,    36,    38,    40,    44,    48,    51,    55,    56,
+      26,    31,    36,    38,    40,    43,    47,    48,    52,    56,
       58,    60,    62,    64,    66,    68,    71,    73,    75,    77,
       81,    87,    89,    91,    95,    97,   101,   106,   108,   111,
      113,   118,   122,   126,   130,   134,   138,   142,   145,   148,
@@ -556,8 +556,8 @@ static const yytype_int16 yyrhs[] =
       -1,    73,    96,    74,    97,    -1,    73,    96,    75,    97,
       -1,    73,    96,    76,    97,    -1,    70,    96,   111,    97,
       -1,    70,    96,   114,    97,    -1,    77,    -1,    67,    -1,
-      79,    90,    20,    -1,    78,    90,   114,    -1,    98,   104,
-      -1,    98,   104,   106,    -1,    -1,    21,    -1,    20,    -1,
+      98,   104,    -1,    98,   104,   105,    -1,    -1,    79,    90,
+      20,    -1,    78,    90,   114,    -1,    21,    -1,    20,    -1,
       24,    -1,    27,    -1,    28,    -1,    26,    -1,     1,    99,
       -1,    22,    -1,   108,    -1,   134,    -1,   114,   100,   114,
       -1,   114,   100,   114,   100,   114,    -1,   100,    -1,   110,
@@ -584,10 +584,10 @@ static const yytype_int16 yyrhs[] =
      128,    98,   129,    97,    -1,   129,   127,    -1,    86,   130,
      139,    -1,    88,   130,   139,    -1,    87,   130,   139,    -1,
       80,    -1,    81,    -1,    82,    -1,    83,    -1,    84,    -1,
-      85,    -1,    80,    96,   105,    97,    -1,    81,    96,   105,
-      97,    -1,    82,    96,   105,    97,    -1,    83,    96,   105,
-      97,    -1,    84,    96,   105,    97,    -1,    85,    96,   105,
-      97,    -1,    85,    93,    20,    -1,   134,    -1,   135,   106,
+      85,    -1,    80,    96,   106,    97,    -1,    81,    96,   106,
+      97,    -1,    82,    96,   106,    97,    -1,    83,    96,   106,
+      97,    -1,    84,    96,   106,    97,    -1,    85,    96,   106,
+      97,    -1,    85,    93,    20,    -1,   134,    -1,   135,   105,
       17,   139,    -1,   108,    -1,   114,    90,   114,    -1,   114,
       90,   143,    -1,   111,    -1,   137,    -1,   138,    -1,   138,
       98,   139,    -1,    -1,   114,    98,   108,    90,   114,    98,
@@ -619,7 +619,7 @@ static const yytype_int16 yyrhs[] =
 static const yytype_uint16 yyrline[] =
 {
        0,    54,    54,    58,    63,    80,    81,    83,    90,    98,
-     105,   117,   136,   143,   152,   163,   177,   182,   196,   205,
+     105,   117,   136,   143,   152,   157,   171,   179,   190,   205,
      210,   214,   219,   223,   227,   234,   237,   244,   250,   257,
      266,   276,   286,   296,   307,   329,   355,   365,   369,   374,
      381,   389,   397,   405,   413,   421,   429,   437,   444,   451,
@@ -663,8 +663,8 @@ static const char *const yytname[] =
   "YY_STRING_T", "YY_COMPLEX_T", "YY_BOOL_T", "YY_CHARACTER_T", "YY_WRITE",
   "YY_READ", "YY_PRINT", "YY_CALL", "'='", "'+'", "'-'", "'*'", "'/'",
   "';'", "'('", "')'", "','", "'\\n'", "':'", "$accept", "crlf",
-  "dummy_function_iden", "variable_desc_elem", "typecast_spec",
-  "variable_desc", "literal", "variable", "callable_head", "slice",
+  "dummy_function_iden", "variable_desc_elem", "variable_desc",
+  "typecast_spec", "literal", "variable", "callable_head", "slice",
   "dimen_slice", "function_array_body", "function_array", "exp",
   "_crlf_semicolon", "semicolon", "stmt", "output_stmt", "input_stmt",
   "compound_stmt", "jump_stmt", "let_stmt", "dummy_stmt", "suite",
@@ -703,7 +703,7 @@ static const yytype_uint16 yytoknum[] =
 static const yytype_uint8 yyr1[] =
 {
        0,   101,   102,   102,   102,   103,   103,   104,   104,   104,
-     104,   104,   104,   104,   105,   105,   106,   106,   106,   107,
+     104,   104,   104,   104,   105,   105,   105,   106,   106,   107,
      107,   107,   107,   107,   107,   107,   108,   109,   109,   110,
      110,   110,   111,   111,   111,   111,   112,   113,   113,   114,
      114,   114,   114,   114,   114,   114,   114,   114,   114,   114,
@@ -726,7 +726,7 @@ static const yytype_uint8 yyr1[] =
 static const yytype_uint8 yyr2[] =
 {
        0,     2,     1,     1,     0,     1,     0,     4,     4,     4,
-       4,     4,     1,     1,     3,     3,     2,     3,     0,     1,
+       4,     4,     1,     1,     2,     3,     0,     3,     3,     1,
        1,     1,     1,     1,     1,     2,     1,     1,     1,     3,
        5,     1,     1,     3,     1,     3,     4,     1,     2,     1,
        4,     3,     3,     3,     3,     3,     3,     2,     2,     3,
@@ -757,7 +757,7 @@ static const yytype_uint8 yydefact[] =
      109,   110,   111,   112,     0,     0,     0,     0,     0,     0,
       65,     0,    61,    27,    62,    37,    39,     4,     0,     0,
       70,    71,    69,    74,    73,    72,     0,     4,     4,     4,
-      28,    18,     4,    60,    79,    80,    81,     0,     0,    25,
+      28,    16,     4,    60,    79,    80,    81,     0,     0,    25,
      107,   108,   109,   110,   111,   112,    55,    28,     0,     0,
        0,     3,    63,    82,    83,    91,     4,     4,     4,     4,
        0,     0,     0,     0,     0,     0,     0,   100,   101,    99,
@@ -771,13 +771,13 @@ static const yytype_uint8 yydefact[] =
        0,    98,    97,     0,    95,   103,   104,   106,   105,    41,
        0,   131,     0,    56,    57,    51,    58,    59,    49,    50,
       52,    53,    54,    46,     4,    42,    43,    44,    45,     0,
-     164,    13,     0,     0,    12,    16,     0,     0,     0,     0,
+     164,    13,     0,     0,    12,    14,     0,     0,     0,     0,
        0,     0,   159,     3,     0,   142,    42,    43,     0,     0,
      147,     4,     0,    93,     0,     4,     0,     0,   113,   114,
      115,   116,   117,   118,     0,     0,    36,    85,    40,     4,
-       0,     0,    17,   121,    33,    34,     0,   123,   134,   124,
+       0,     0,    15,   121,    33,    34,     0,   123,   134,   124,
       35,    29,   128,     0,     4,     0,    40,   146,   148,     0,
-      94,     4,     4,     0,    15,    14,     0,     0,   165,     0,
+      94,     4,     4,     0,    18,    17,     0,     0,   165,     0,
        0,     0,     0,     0,    34,     0,     0,     0,     0,     0,
        0,     0,     4,     0,   137,     4,     0,     4,     0,   151,
        0,   102,     0,    10,    11,     7,     8,     9,     0,   132,
@@ -792,7 +792,7 @@ static const yytype_uint8 yydefact[] =
 /* YYDEFGOTO[NTERM-NUM].  */
 static const yytype_int16 yydefgoto[] =
 {
-      -1,    92,     3,   215,   174,   147,    52,    53,    54,   152,
+      -1,    92,     3,   215,   147,   174,    52,    53,    54,   152,
      153,    55,    56,    57,    93,    58,    59,    60,    61,    62,
       63,    64,    65,    66,   167,   271,   185,   183,   111,   112,
       67,    68,    69,    87,    71,    72,   155,   156,   260,   120,
@@ -848,7 +848,7 @@ static const yytype_int16 yypact[] =
 /* YYPGOTO[NTERM-NUM].  */
 static const yytype_int16 yypgoto[] =
 {
-    -217,   -10,  -217,  -217,   149,    69,  -217,    13,   243,  -217,
+    -217,   -10,  -217,  -217,    69,   149,  -217,    13,   243,  -217,
     -213,   245,  -217,   -20,   -22,  -217,   -80,  -217,  -217,  -217,
     -217,  -217,  -217,   -18,   -30,   -50,  -217,  -217,    59,    18,
     -217,  -217,  -217,    -4,  -217,  -217,  -217,  -217,   -61,    52,
@@ -1219,18 +1219,18 @@ static const yytype_uint8 yystos[] =
       96,   129,   130,   130,   130,   109,   112,   114,   114,   114,
      140,    96,     5,     6,     7,     8,     9,    10,    11,    12,
       13,    14,    16,    90,    91,    92,    93,    94,    96,   115,
-       4,   124,    29,   115,   115,   115,    98,   106,   115,   124,
+       4,   124,    29,   115,   115,   115,    98,   105,   115,   124,
      100,   108,   110,   111,   114,   137,   138,   139,    31,    91,
       92,    96,   117,   124,    90,   102,    96,   125,   115,   102,
-     102,   102,    78,    79,   105,   105,   105,   105,   105,    20,
-     105,    20,    93,   128,    98,   127,   139,   139,   139,    97,
+     102,   102,    78,    79,   106,   106,   106,   106,   106,    20,
+     106,    20,    93,   128,    98,   127,   139,   139,   139,    97,
       98,    97,   139,   114,   114,   114,   114,   114,   114,   114,
      114,   114,   114,   114,   114,   114,   114,   114,   114,   114,
       50,    67,    70,    73,    77,   104,    17,    98,    90,    98,
      100,    98,    97,    95,   102,   117,   114,   114,   114,    29,
       36,   147,   114,   114,   124,   159,    90,    90,    97,    97,
       97,    97,    97,    97,    98,   108,    97,   115,    97,   156,
-      96,    96,   106,   139,   111,   114,    71,   114,   142,   143,
+      96,    96,   105,   139,   111,   114,    71,   114,   142,   143,
      139,   114,   139,    55,   153,   124,    97,    35,   102,    98,
       97,   126,   147,   102,   114,    20,   129,    90,   102,   111,
      114,    74,    75,    76,   114,   139,   140,    98,   100,    96,
@@ -2164,46 +2164,14 @@ yyreduce:
 /* Line 1792 of yacc.c  */
 #line 153 "for90.y"
     {
-				int kind;
-				sscanf((yyvsp[(3) - (3)]).fs.CurrentTerm.what.c_str(), "%d", &kind);
-
-				/* type size */
-				ParseNode * newnode = new ParseNode(gen_flex(Term{ TokenMeta::NT_VARIABLEDESC, "NT_VARIABLEDESC" }), nullptr); // kind
-				set_variabledesc_attr(newnode, optionalparam<bool>(), true, optionalparam<bool>(), optionalparam<ParseNode *>(), kind);
-				(yyval) = *newnode;
-				update_pos((yyval), (yyvsp[(1) - (3)]), (yyvsp[(3) - (3)]));
-			}
-    break;
-
-  case 15:
-/* Line 1792 of yacc.c  */
-#line 164 "for90.y"
-    {
-				// though use std::string
-				// still need to initialize the string to YY_LEN
-				int len;
-				sscanf((yyvsp[(3) - (3)]).fs.CurrentTerm.what.c_str(), "%d", &len);
-
-				/* string length */
-				ParseNode * newnode = new ParseNode(gen_flex(Term{ TokenMeta::NT_VARIABLEDESC, "NT_VARIABLEDESC" }), nullptr); // len
-				set_variabledesc_attr(newnode, optionalparam<bool>(), optionalparam<bool>(), optionalparam<bool>(), optionalparam<ParseNode *>(), len);
-				(yyval) = *newnode;
-				update_pos((yyval), (yyvsp[(1) - (3)]), (yyvsp[(3) - (3)]));
-			}
-    break;
-
-  case 16:
-/* Line 1792 of yacc.c  */
-#line 178 "for90.y"
-    {
 				(yyval) = (yyvsp[(2) - (2)]);
 				update_pos((yyval), (yyvsp[(1) - (2)]), (yyvsp[(2) - (2)]));
 			}
     break;
 
-  case 17:
+  case 15:
 /* Line 1792 of yacc.c  */
-#line 183 "for90.y"
+#line 158 "for90.y"
     {
 				ParseNode * variable_iden = & (yyvsp[(3) - (3)]);
 				ParseNode & variable_iden_1 = (yyvsp[(2) - (3)]);
@@ -2218,15 +2186,47 @@ yyreduce:
 			}
     break;
 
-  case 18:
+  case 16:
 /* Line 1792 of yacc.c  */
-#line 196 "for90.y"
+#line 171 "for90.y"
     {
 				ParseNode * newnode = new ParseNode();
 				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_VARIABLEDESC, "NT_VARIABLEDESC" }; 
 				newnode->attr = new VariableDescAttr(newnode);
 				(yyval) = *newnode;
 				update_pos((yyval));
+			}
+    break;
+
+  case 17:
+/* Line 1792 of yacc.c  */
+#line 180 "for90.y"
+    {
+				int kind;
+				sscanf((yyvsp[(3) - (3)]).fs.CurrentTerm.what.c_str(), "%d", &kind);
+
+				/* type size */
+				ParseNode * newnode = new ParseNode(gen_flex(Term{ TokenMeta::NT_VARIABLEDESC, "NT_VARIABLEDESC" }), nullptr); // kind
+				set_variabledesc_attr(newnode, optionalparam<bool>(), true, optionalparam<bool>(), optionalparam<ParseNode *>(), kind);
+				(yyval) = *newnode;
+				update_pos((yyval), (yyvsp[(1) - (3)]), (yyvsp[(3) - (3)]));
+			}
+    break;
+
+  case 18:
+/* Line 1792 of yacc.c  */
+#line 191 "for90.y"
+    {
+				// though use std::string
+				// still need to initialize the string to YY_LEN
+				int len;
+				sscanf((yyvsp[(3) - (3)]).fs.CurrentTerm.what.c_str(), "%d", &len);
+
+				/* string length */
+				ParseNode * newnode = new ParseNode(gen_flex(Term{ TokenMeta::NT_VARIABLEDESC, "NT_VARIABLEDESC" }), nullptr); // len
+				set_variabledesc_attr(newnode, optionalparam<bool>(), optionalparam<bool>(), optionalparam<bool>(), optionalparam<ParseNode *>(), len);
+				(yyval) = *newnode;
+				update_pos((yyval), (yyvsp[(1) - (3)]), (yyvsp[(3) - (3)]));
 			}
     break;
 

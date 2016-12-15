@@ -85,11 +85,22 @@ refer to [/grammar/for90.y](/grammar/for90.y) for all accepted grammar
 |array-cstyle|not implemented yet|
 
 #### array
-1. `DIMENSION(a:b)` -> `forarray<T>(a, b + 1)`
-2. forarray default lower bound is **1**, which is different from cpp
-3. fortran use a 1d list to initialize a 2d(or higher) array, however, contrary to c++ and most other language, fortran store them in a **column-first order**. for a 2d array, it means you a order of `a(1)(1) -> a(2)(1) -> a(1)(2) -> a(1)(2)` . you can `#undef USE_FORARRAY` to use c-style array. for details refer to `array_builder` rule in [/grammar/for90.y](/grammar/for90.y)
-4. hidden do will be translated to `init_for1array_hiddendo` in [/for90std/for1array.h](/for90std/for1array.h)
-5. when use `hidden_do` to generate array, array's LBound and hidden_do index's initial value must agree
+1. `DIMENSION(a:b)` -> `forarray<T>(a, b + 1)` and forarray default lower bound is **1**
+2. fortran use a 1d list to initialize a 2d(or higher) array, and store them in a **column-first order**. 
+    - for a 2d array, it means you a order of `a(1)(1) -> a(2)(1) -> a(1)(2) -> a(1)(2)` . 
+    - you can `#undef USE_FORARRAY` to use c-style array. 
+    - for details refer to `array_builder` rule in [/grammar/for90.y](/grammar/for90.y)
+3. `#define USE_FORARRAY` to use fortran style array, `#define USE_CARRAY` to use c style array
+4. define a array
+5. init a array
+    - use `init_for1array(array, lower_bound, size, values)` to init array, in which
+        1. `array` is reference of a defined array you want to init
+        2. `lower_bound` is the lower bound of every dimension(from left to right) in this array
+        3. `size` is the size of every dimension in this array
+        4. `values` is `std::vector` of initialize list
+
+6. hidden do will be translated to `init_for1array_hiddendo` in [/for90std/for1array.h](/for90std/for1array.h)
+    - when use `hidden_do` to generate array, array's LBound and hidden_do index's initial value must agree
 
 ### variables
 1. all variables must be **explicitly** declared
@@ -129,12 +140,12 @@ refer to [/grammar/for90.y](/grammar/for90.y) for all accepted grammar
 7. if this keyword takes more than 1 word and can cause reduction conflicts between itself and its prefix like `else if`, update forward1 in [/tokenizer.cpp](/tokenizer.cpp)
 8. update translation rules in [/gen_config.h.h](/gen_config.h.h)
 
-## new intrinsic function
+## extend new intrinsic function
 1. implement this function and included it in [for90std/for90std.h](/for90std/for90std.h)
 	- if a parameter is **optional** in Fortran, wrap it with `foroptional`
 2. log all parameters of this function in [/gen_config.cpp](/gen_config.cpp)
 
-## code generate
+## c++ code generate
 when using immediate code generate(or using lazy gen), upper level non-terminal can channge generated codes by low level non-terminal, so `gen_` functions pass `ParseNode &` other than `const ParseNode &`:
 
 1. `function_decl` change `suite`(function body)
@@ -146,7 +157,7 @@ when using immediate code generate(or using lazy gen), upper level non-terminal 
 child ParseNode may also be referred when generating upper level ParseNode, so do not change child index of:
 
 1. NT_VARIABLEINITIAL: referred by function_decl
-2. NT_FUNCTIONDECLARE：referred by interface of paramtable
+2. NT_FUNCTIONDECLARE: referred by interface of paramtable
 
 ### name mapping
 many type names and function names are mapped, they are defined in in [/gen_config.h](/gen_config.h)
@@ -155,6 +166,16 @@ their replacement occur in following stages:
 1. mappings defined in `pre_map` is replacement in tokenizing stage in [/grammar/for90.l](/grammar/for90.l)
 
 2. function name mapping in `funcname_map` is replacement in parse stage in function `gen_function_array` [/gen_callable.cpp](/gen_callable.cpp)
+
+### fortran-style array
+** though fortran-style array is different from c-style array, only need to consider relationship with flatterned 1d array **
+
+1. for1array class defined in [/for90std/for1array.l](/for90std/for1array.h)
+2. in [/gen_callable.cpp](/gen_callable.cpp), functions and arrays are generated in normal order
+3. in [/gen_vardef.cpp](/gen_vardef.cpp)
+4. overload for1array<T>::operator() so `a(1, 2, 3)` is same as `a(1)(2)(3)`
+
+### c-style array
 
 ## Parse Tree
 all parse tree nodes are defined in [/Intent.h](/Intent.h) with an `NT_` prefix
@@ -234,7 +255,7 @@ you can use `REAL(x)` to get the float copy of x, however, you can also use `REA
 | type_spec |  | type_nospec / (type_nospec, typecast_spec) |
 
 ### Attributes
-`->` means `ParseAttr` attached to：
+`->` means `ParseAttr` attached to:
 - VariableDesc -> NT_DECLAREDVARIABLE
 - VariableDesc -> NT_VARIABLEINTIAL nodes of NT_PARAMTABLE(only son of NT_VARIABLEDEFINE node)
 - VariableDesc -> NT_VARIABLEDEFINE

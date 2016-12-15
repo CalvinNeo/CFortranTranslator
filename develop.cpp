@@ -129,25 +129,28 @@ void debug() {
 	//cout << a(1)(1) << " " << a(2)(1) << endl;
 	//cout << a(1)(2) << " " << a(2)(2) << endl;
 
-	//forarray< forarray< forarray<int>  > > b(1, 3);
-	//b(1)(1)(1) = 1;
-	//b(1)(2)(1) = 2;
-	//cout << b(1)(1)(1) << endl;
-	//init_forarray(b, std::vector<int>{1, 1, 1}, std::vector<int>{2, 2, 2}, std::vector<int >{1, 2, 3, 4, 5, 6, 7, 8});
-	//for (int i = 1; i <= 2; i++)
-	//{
-	//	for (int j = 1; j <= 2; j++)
-	//	{
-	//		cout << b(j)(i)(1) << endl;
-	//	}
-	//}
-	//for (int i = 1; i <= 2; i++)
-	//{
-	//	for (int j = 1; j <= 2; j++)
-	//	{
-	//		cout << b(j)(i)(2) << endl;
-	//	}
-	//}
+	for1array< for1array< for1array<int>  > > b(1, 3);
+	b(1)(1)(1) = 1;
+	b(1)(2)(1) = 2;
+	cout << b(1)(1)(1) << endl;
+	init_for1array(b, std::vector<int>{1, 1, 1}, std::vector<int>{2, 2, 2}, std::vector<int >{1, 2, 3, 4, 5, 6, 7, 8});
+	for (int i = 1; i <= 2; i++)
+	{
+		for (int j = 1; j <= 2; j++)
+		{
+			cout << b(j)(i)(1) << endl;
+		}
+	}
+	for (int i = 1; i <= 2; i++)
+	{
+		for (int j = 1; j <= 2; j++)
+		{
+			cout << b(j)(i)(2) << endl;
+		}
+	}
+	vector<for1array_size_type_t> size = for1array_getsize(b);
+	// forstyle should return 1, 2, 3, 4, 5, 6, 7, 8
+
 
 	//forarray< forarray< forarray<int>  > > b(1, 4);
 	//init_forarray(b, std::vector<int>{1, 1, 1}, std::vector<int>{3, 3, 3}, std::vector<int >{1, 2, 3, 4, 5, 6, 7, 8, 9});

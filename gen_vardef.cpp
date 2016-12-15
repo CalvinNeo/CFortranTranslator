@@ -118,7 +118,7 @@ std::string gen_vardef_array(ParseNode * pn, ParseNode * spec_typename, ParseNod
 		sprintf(codegen_buf, "%s %s(%s, %s + 1);\n", type_str.c_str(), pn->child[i]->child[0]->fs.CurrentTerm.what.c_str() /* array name */
 			, slice->child[0]->child[0]->fs.CurrentTerm.what.c_str(), slice->child[0]->child[1]->fs.CurrentTerm.what.c_str() /* slice from to */);
 		arr_decl += codegen_buf;
-		/* set initial value */
+		/* set initial value from array_builder */
 		if (pn->child[i]->child[1]->fs.CurrentTerm.token == TokenMeta::NT_ARRAYBUILDER)
 		{
 			for (int abid = 0; abid < pn->child[i]->child[1]->child.size(); abid++)
@@ -140,7 +140,7 @@ std::string gen_vardef_array(ParseNode * pn, ParseNode * spec_typename, ParseNod
 						vec_size += codegen_buf;
 					}
 					vec_size += "}", vec_lb += "}";
-					sprintf(codegen_buf, ab->fs.CurrentTerm.what.c_str() /*  "init_for1array(%%s, %%s, %%s, %s)\n" */
+					sprintf(codegen_buf, ab->fs.CurrentTerm.what.c_str() /*  "init_for1array(%%s, %%s, %%s, %s)\n" from gen_arraybuilder */
 						, pn->child[i]->child[0]->fs.CurrentTerm.what.c_str() /* variable name */
 						, vec_lb.c_str()
 						, vec_size.c_str()

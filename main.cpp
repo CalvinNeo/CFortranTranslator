@@ -17,14 +17,11 @@ using namespace std;
 int main(int argc, char* argv[], char* env[])
 {
 	int opt;
-	bool for90 = true;
-	bool isdebug = false;
-	bool hasfile = false;
 	std::string code;
 	while ((opt = getopt(argc, argv, "df:Fp")) != -1) {
 		if (opt == 'f')
 		{
-			hasfile = true;
+			parse_config.hasfile = true;
 			fstream f;
 			f.open(optarg, ios::in);
 			code = std::string((std::istreambuf_iterator<char>(f)), std::istreambuf_iterator<char>());
@@ -32,17 +29,21 @@ int main(int argc, char* argv[], char* env[])
 		}
 		else if (opt == 'F') {
 			// for90
-			for90 = true;
+			parse_config.for90 = true;
 		}
 		else if (opt == 'd') {
 			// debug
-			isdebug = true;
+			parse_config.isdebug = true;
+		}
+		else if (opt == 'C') {
+			// usec
+			parse_config.usefor = false;
 		}
 	}
-	if (isdebug) {
+	if (parse_config.isdebug) {
 		debug();
 	}
-	else if(hasfile){
+	else if(parse_config.hasfile){
 		do_trans(code);
 		cout << program_tree.fs.CurrentTerm.what << endl;
 		//preorder(&program_tree);

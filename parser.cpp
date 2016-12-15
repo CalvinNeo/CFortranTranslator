@@ -76,6 +76,7 @@ void ParseNode::replace(int childid, const ParseNode & pn) {
 
 ParseNode program_tree;
 ParseNode * curnode;
+ParseConfig parse_config;
 
 void preorder(ParseNode * ptree) {
 	using namespace std;
