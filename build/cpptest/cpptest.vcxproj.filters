@@ -27,6 +27,9 @@
     <ClCompile Include="..\..\for90std\forlang.cpp">
       <Filter>头文件</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\for90std\forstdio.cpp">
+      <Filter>头文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\for90std\for90std.h">
@@ -54,6 +57,12 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="..\..\for90std\for1array\for1array_def.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\for90std\for1array\for1array_cstyle.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\for90std\for1array\for1array_forstyle.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

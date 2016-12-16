@@ -148,7 +148,7 @@ void debug() {
 			cout << b(j)(i)(2) << endl;
 		}
 	}
-	vector<for1array_size_type_t> size = for1array_getsize(b);
+	vector<for1array_size_t> size = for1array_getsize(b);
 	// forstyle should return 1, 2, 3, 4, 5, 6, 7, 8
 
 

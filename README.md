@@ -21,8 +21,8 @@ all slice in c++ is [from, to)
 |INTEGER()|to_int|
 |REAL()|to_double|
 |LOGICAL()|to_bool|
-|COMPLEX()|to_int|
-|CHARACTER()|forcomplex(constructor)|
+|COMPLEX()|to_forcomplex|
+|CHARACTER()|to_string|
 
 #### mathematical
 |fortran|c++|
@@ -31,11 +31,7 @@ all slice in c++ is [from, to)
 |max|max_n|
 
 #### array
-|fortran|c++|
-|:-:|:-:|
-|reshape|not implemented yet|
-|spread|not implemented yet|
-|transpose|not implemented yet|
+refer types:array
 
 ### IO function mapping
 #### device id mapping
@@ -58,9 +54,9 @@ all slice in c++ is [from, to)
 
 |fortran|c++|
 |:-:|:-:|
-|*|cin/cout|
-|(*,*)|cin/cout|
-|(*,formatter)|scanf/printf|
+|* and (*,*)|forscan/forprint|
+|(*,formatter)|forread/forwrite|
+|(device_id,*)|forread_noform/forwrite_noform|
 |(device_id,formatter)|forread/forwrite|
 
 ## translation results and restrictions
@@ -85,22 +81,38 @@ refer to [/grammar/for90.y](/grammar/for90.y) for all accepted grammar
 |array-cstyle|not implemented yet|
 
 #### array
-1. `DIMENSION(a:b)` -> `forarray<T>(a, b + 1)` and forarray default lower bound is **1**
-2. fortran use a 1d list to initialize a 2d(or higher) array, and store them in a **column-first order**. 
-    - for a 2d array, it means you a order of `a(1)(1) -> a(2)(1) -> a(1)(2) -> a(1)(2)` . 
-    - you can `#undef USE_FORARRAY` to use c-style array. 
-    - for details refer to `array_builder` rule in [/grammar/for90.y](/grammar/for90.y)
-3. `#define USE_FORARRAY` to use fortran style array, `#define USE_CARRAY` to use c style array
-4. define a array
-5. init a array
+1. define an array
+    1. fortran store array in a **column-first order**
+        - for a 2d array, it means when initializing by a 1d array, it follows the order of `a(1)(1) -> a(2)(1) -> a(1)(2) -> a(1)(2)`  
+        - for details refer to `array_builder` rule in [/grammar/for90.y](/grammar/for90.y)
+    2. fortran array default lower bound for each dimension is **1**
+        - `DIMENSION(a:b)` -> `forarray<T>(a, b + 1)`
+2. `#define USE_FORARRAY` to use fortran style array, `#define USE_CARRAY` to use c style array
+3. array traits
+
+|function|usage|
+|`#define USE_FORARRAY`|use fortran style array|
+|`#define USE_CARRAY`|use c style array|
+|`init_for1array(array, lowerbound, size, initialvalue list)`|use a 1d list to initialize a 2d(or higher) array|
+|`for1array_getsize(array)`|get flatterned size of an array|
+|`for1array_gettype<T>::type`|get innermost type of an array|
+
+4. init a array
     - use `init_for1array(array, lower_bound, size, values)` to init array, in which
         1. `array` is reference of a defined array you want to init
         2. `lower_bound` is the lower bound of every dimension(from left to right) in this array
         3. `size` is the size of every dimension in this array
         4. `values` is `std::vector` of initialize list
+    - use `init_for1array_hiddendo` in [/for90std/for1array.h](/for90std/for1array.h) to init array by hidden do
+        - when use `hidden_do` to generate array, array's LBound and hidden_do index's initial value must agree
 
-6. hidden do will be translated to `init_for1array_hiddendo` in [/for90std/for1array.h](/for90std/for1array.h)
-    - when use `hidden_do` to generate array, array's LBound and hidden_do index's initial value must agree
+5. fortran intrinsic functions
+
+|fortran|c++|
+|:-:|:-:|
+|reshape|not implemented yet|
+|spread|not implemented yet|
+|transpose|not implemented yet|
 
 ### variables
 1. all variables must be **explicitly** declared
@@ -119,7 +131,7 @@ refer to [/grammar/for90.y](/grammar/for90.y) for all accepted grammar
 |out|ignore|T &|
 |inout|ignore|T &|
 
-4. optional parameter: instead of c-style optional parameter, wrap optional parameters with `foroptional`, function `forpresent` functions as `present` function in fortran90
+4. optional parameter: instead of c-style optional parameter, wrap optional parameters with `foroptional<T>`, function `forpresent` functions as `present` function in fortran90
 5. keyword/named parameter: c++ don't support keyword parameters, all keyword parameter will be reorganized in normal paramtable
 
 # Develop
@@ -180,16 +192,15 @@ their replacement occur in following stages:
 ## Parse Tree
 all parse tree nodes are defined in [/Intent.h](/Intent.h) with an `NT_` prefix
 ### struct ParseNode
-1. father: parent node
-2. fs:
+1. fs:
 	* fs.CurrentTerm.what: immediate-gen code
 	* fs.CurrentTerm.token: refer [/Intent.h](/Intent.h)
+2. child
 3. attr:
 	attrs including
 	* FunctionAttr
 	* VariableDescAttr
-
-4. child
+4. father: parent node
 
 ### rules explanation
 #### callable_head, argtable, dimen_slice, paramtable, keyvalue

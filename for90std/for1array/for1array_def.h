@@ -10,17 +10,17 @@
 #define USE_FORARRAY
 
 namespace for90std {
-	typedef int for1array_size_type_t;
+	typedef int for1array_size_t;
 	template<typename T>
 	struct for1array {
 		typedef T value_type;
-		typedef for1array_size_type_t size_type; // for1array index can be negative
+		typedef for1array_size_t size_type; // for1array index can be negative
 		typedef value_type * pointer;
 		typedef value_type & reference;
 		typedef const value_type * const_pointer;
 		typedef const value_type & const_reference;
-		typedef size_type difference_type;		
-		
+		typedef size_type difference_type;
+
 		struct iterator {
 			iterator() {}
 			iterator(const iterator & m) : _pos(m._pos), _farr(m._farr) {}
@@ -95,7 +95,7 @@ namespace for90std {
 			size_type _pos;
 			for1array<value_type> * _farr;
 		};
-		
+
 		typename for1array<T>::iterator begin() {
 			return iterator(this, this->LBound());
 		}
@@ -104,7 +104,7 @@ namespace for90std {
 			return iterator(this, this->UBound());
 		}
 
-		for1array<T> slice(size_type fr, size_type to, size_type step = 1) {
+		for1array<T> slice(size_type fr, size_type to, size_type step = 1) const {
 			std::vector<T> nvec;
 			for (int i = fr; i < to; i += step)
 			{
@@ -257,13 +257,13 @@ namespace for90std {
 	struct is_for1array
 	{
 		template<typename T>
-		static bool test(for1array_matcher<T>)
+		constexpr static bool test(for1array_matcher<T>)
 		{
 			return true;
 		}
 
 		template<typename T>
-		static bool test(...)
+		constexpr static bool test(...)
 		{
 			return false;
 		}
@@ -281,6 +281,21 @@ namespace for90std {
 	template<typename T, int D>
 	using fornarray = fornarray<T, D - 1>;
 
+	//template <typename T>
+	//struct for1array_gettype {
+	//	typedef std::conditional<is_for1array::test<T>(nullptr), typename for1array_gettype<typename T::value_type>::type, T> type;
+	//};
+
+	// get inner most type of nested for1array
+	template <typename T>
+	struct for1array_gettype {
+		using type = T;
+	};
+	template<typename T>
+	struct for1array_gettype<for1array<T>> {
+		using type = typename for1array_gettype<T>::type;
+	};
+
 	template <typename T>
 	struct function_traits
 		: public function_traits<decltype(&T::operator())>
@@ -289,13 +304,11 @@ namespace for90std {
 
 	template <typename ClassType, typename ReturnType, typename... Args>
 	struct function_traits<ReturnType(ClassType::*)(Args...) const>
-		// we specialize for pointers to member function
 	{
+		// we specialize for pointers to member function
 		enum { arity = sizeof...(Args) };
 		// arity is the number of arguments.
-
 		typedef ReturnType result_type;
-
 		template <size_t i>
 		struct arg
 		{
@@ -304,5 +317,31 @@ namespace for90std {
 			// composed of those arguments.
 		};
 	};
+
+	template<typename _Container_value_type>
+	std::vector<for1array_size_t> _for1array_getsize_layer(
+		for1array<_Container_value_type> & farr
+		, std::vector<for1array_size_t> & size
+		, .../* SFINAE */) {
+		size.push_back(farr.size());
+		return size;
+	}
+
+	template<typename _Container_value_type>
+	std::vector<for1array_size_t> _for1array_getsize_layer(
+		for1array<_Container_value_type> & farr
+		, std::vector<for1array_size_t> & size
+		, for1array_matcher<_Container_value_type>/* SFINAE */) {
+		size.push_back(farr.size());
+		_for1array_getsize_layer<typename _Container_value_type::value_type>(farr(farr.LBound()), size, nullptr);
+		return size;
+	}
+
+	template<typename _Container_value_type>
+	std::vector<for1array_size_t> for1array_getsize(for1array<_Container_value_type> & farr) {
+		std::vector<for1array_size_t> size;
+		_for1array_getsize_layer<_Container_value_type>(farr, size, nullptr);
+		return size;
+	}
 
 }

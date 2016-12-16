@@ -120,6 +120,7 @@
     <ClCompile Include="..\..\for90std\for90std.cpp" />
     <ClCompile Include="..\..\for90std\forfilesys.cpp" />
     <ClCompile Include="..\..\for90std\forlang.cpp" />
+    <ClCompile Include="..\..\for90std\forstdio.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\for90std\for1array.h" />

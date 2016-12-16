@@ -58,7 +58,7 @@ ParseNode gen_write(const ParseNode & io_info, const ParseNode & argtable) {
 	ParseNode * formatter = io_info.child[1];
 	if (formatter->fs.CurrentTerm.token == TokenMeta::NT_FORMATTER) {
 		string fmt = io_info.child[1]->fs.CurrentTerm.what.substr(1, io_info.child[1]->fs.CurrentTerm.what.size() - 1); // strip " 
-		sprintf(codegen_buf, "printf(\"%s\", %s) ;", parse_ioformatter(fmt).c_str(), argtbl->fs.CurrentTerm.what.c_str());
+		sprintf(codegen_buf, "forprint(\"%s\", %s) ;", parse_ioformatter(fmt).c_str(), argtbl->fs.CurrentTerm.what.c_str());
 		newnode.fs.CurrentTerm = Term{ TokenMeta::META_NONTERMINAL, string(codegen_buf) };
 	}
 	else {
