@@ -3,11 +3,13 @@
 #include <vector>
 #include <map>
 
-typedef void * funcptr_t;
+struct FunctionInfo {
+	std::vector<struct ParseNode *> param_definition;
+	std::vector<std::tuple<std::string, ParseNode, struct ParseNode *>> param_name_typename;
+};
 
-bool try_get_function(std::string module_name, std::string function_name, funcptr_t & fptr );
-bool try_get_function(std::string module_name, std::string function_name);
+typedef FunctionInfo * funcptr_t;
 
-funcptr_t get_function(std::string module_name, std::string function_name);
+FunctionInfo * get_function(std::string module_name, std::string function_name);
 
-bool add_function(std::string module_name, std::string function_name, funcptr_t fptr);
+bool add_function(std::string module_name, std::string function_name, const FunctionInfo & finfo);

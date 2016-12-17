@@ -5,7 +5,6 @@
 #include <boost/shared_ptr.hpp>
 #include <boost/algorithm/string.hpp>
 #include "tokenizer.h"
-#include "Variable.h"
 
 // ·ÖÎöÊ÷
 struct ParseNode {

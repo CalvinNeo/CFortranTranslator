@@ -135,6 +135,9 @@
     <ClCompile Include="..\..\Intent.cpp">
       <Filter>NuclearLang</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\gen_program.cpp">
+      <Filter>target90</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\grammar\for90.tab.h">

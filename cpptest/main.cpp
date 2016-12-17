@@ -155,24 +155,23 @@
 
 int main()
 {
-
 	for1array< for1array<int>  > m(1, 5 + 1);
 
 	string ch = "";
+
 	int i, j, k = 0;
 	for (i = 1; i <= 5; i += 1) {
 		for (j = 1; j <= 5; j += 1) {
 			k = k + 1;
-			m(i)(j) = k;
+			m(i, j) = k;
 		}
 	}
 	for (i = 1; i <= 5; i += 1) {
-		for1array<int> f1 = slice(m(i), 1, i + 1);
-		printf(" %4d%4d%4d%4d%4d", f1);
+		forwrite(stdout, " %4d%4d%4d%4d%4d\n", slice(m(i), 1, i + 1));
 	}
 	cout << "----" << endl;
 	for (i = 1; i <= 5; i += 1) {
-		printf(" %s%4d%4d%4d%4d%4d", slice(ch, 1, 4 * (i - 1) + 1), slice(m(i), i, 5 + 1));
+		forwrite(stdout, " %s%4d%4d%4d%4d%4d\n", slice(ch, 1, 4 * (i - 1) + 1), slice(m(i), i, 5 + 1));
 	}
 	return 0;
 }

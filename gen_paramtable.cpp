@@ -88,9 +88,33 @@ ParseNode gen_paramtable(ParseNode & paramtable_elem, ParseNode & paramtable) {
 	if (TokenMeta::iselement(paramtable.fs.CurrentTerm.token)) {
 		va2 = true;
 	}
-	if (paramtable_elem.fs.CurrentTerm.token == TokenMeta::NT_KEYVALUE) {
-		// keyvalue pair 
+	if (paramtable_elem.fs.CurrentTerm.token == TokenMeta::NT_KEYVALUE && paramtable.fs.CurrentTerm.token == TokenMeta::NT_PARAMTABLE) {
+		// all keyvalue pair 
 		newnode = gen_flattern(paramtable_elem, paramtable, "%s, %s", TokenMeta::NT_PARAMTABLE);
+	}
+	else if(paramtable.fs.CurrentTerm.token == TokenMeta::NT_PARAMTABLE){
+		// there is keyvalue pair
+		// this is possible because of rule `dimen_slice : exp ',' paramtable `
+		// there is keyvalue
+		if (dimen1) {
+			// promote dimen_slice to paramtable
+			for (int i = 0; i < paramtable_elem.child.size(); i++)
+			{
+				newnode.addchild(new ParseNode(*paramtable_elem.child[i]));
+			}
+		}
+		else {
+			// do not promote exp to keyvalue
+			// TODO
+			newnode.addchild(new ParseNode(paramtable_elem));
+		}
+		// assume paramtable is flatterned
+		for (int i = 0; i < paramtable.child.size(); i++)
+		{
+			newnode.addchild(new ParseNode(*paramtable.child[i]));
+		}
+		sprintf(codegen_buf, "%s, %s", paramtable_elem.fs.CurrentTerm.what.c_str(), paramtable.fs.CurrentTerm.what.c_str());
+		newnode.fs.CurrentTerm.what = string(codegen_buf);
 	}
 	else if ((dimen1 || arg1 || va1) && (dimen2 || arg2 || va2)) {
 		// all dimen_slice or argument_pure or variable
@@ -118,26 +142,7 @@ ParseNode gen_paramtable(ParseNode & paramtable_elem, ParseNode & paramtable) {
 		newnode.fs.CurrentTerm.what = string(codegen_buf);
 	}
 	else {
-		// there is keyvalue
-		if (dimen1) {
-			// promote dimen_slice to paramtable
-			for (int i = 0; i < paramtable_elem.child.size(); i++)
-			{
-				newnode.addchild(new ParseNode(*paramtable_elem.child[i]));
-			}
-		}
-		else {
-			// do not promote exp to keyvalue
-			// TODO
-			newnode.addchild(new ParseNode(paramtable_elem));
-		}
-		// assume paramtable is flatterned
-		for (int i = 0; i < paramtable.child.size(); i++)
-		{
-			newnode.addchild(new ParseNode(*paramtable.child[i]));
-		}
-		sprintf(codegen_buf, "%s, %s", paramtable_elem.fs.CurrentTerm.what.c_str(), paramtable.fs.CurrentTerm.what.c_str());
-		newnode.fs.CurrentTerm.what = string(codegen_buf);
+		print_error("bad param table");
 	}
 	return newnode;
 }

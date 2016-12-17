@@ -2,27 +2,15 @@
 #include <string>
 #include <vector>
 
-struct VariablePanel
-{
-	struct Variable * GetVariable(const std::string &);
-	void AddVariable(Variable *, bool insert_into_global = true);
-	std::vector<Variable> MemberVariables;
-	Variable * HolderVariable;
-	VariablePanel * Upper;//…œ“ªº∂
-
-};
-
 struct Variable
 {
-public:
-	int name;
-	void * value;
-
-	VariablePanel * HolderPanel;
-	VariablePanel * MemberPanel;
+	std::string name;
+	bool is_array;
 };
 
-Variable * get_panel_variable(const std::string &); // return observer
-Variable * get_literal_variable(const struct Term & ); // return observer
+typedef void * variableptr_t;
 
-extern VariablePanel program_panel;
+
+variableptr_t get_variable(std::string module_name, std::string function_name);
+
+bool add_variable(std::string module_name, std::string function_name, std::string variable_name, const variableptr_t & fptr);

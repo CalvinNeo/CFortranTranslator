@@ -150,14 +150,16 @@ namespace for90std {
 				return m_arr[i - lb];
 			}
 		}
-		template<typename... Args>
-		T & operator()(size_type i, Args... args) {
-			T & x = get(i);
-			return x.get(forward<Args>(args)...);
-		}
 		T & operator()(size_type i) {
-			return get(i);
-		};
+			return this->get(i);
+		}
+		template<typename... Args>
+		auto & operator()(size_type i, Args... args){
+			value_type & x = this->get(i);
+			auto & y = x.operator()(std::forward<Args>(args)...);
+			return y;
+		}
+
 		T & operator[](size_type i) {
 			return get(i);
 		}
@@ -280,6 +282,7 @@ namespace for90std {
 	using fornarray = for1array<T>;
 	template<typename T, int D>
 	using fornarray = fornarray<T, D - 1>;
+
 
 	//template <typename T>
 	//struct for1array_gettype {

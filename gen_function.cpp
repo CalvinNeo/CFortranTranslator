@@ -257,7 +257,7 @@ ParseNode gen_function(const ParseNode & variable_function, const ParseNode & pa
 	bool is_subroutine = variable_result.fs.CurrentTerm.what == "";
 
 	// log function in function table
-	add_function("", variable_function.fs.CurrentTerm.what, nullptr);
+	add_function("", variable_function.fs.CurrentTerm.what, FunctionInfo{});
 
 	// get all variables declared in this function
 	vector<ParseNode *> param_definition = get_all_declared(suite);

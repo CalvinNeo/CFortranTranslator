@@ -201,7 +201,7 @@ ParseNode gen_vardef(const ParseNode & type_spec, const ParseNode & variable_des
 			ParseNode * this_variable = new ParseNode(*pn->child[i]);
 			// skip if it is a function
 			// TODO no module currently
-			if (try_get_function("", this_variable->fs.CurrentTerm.what)) {
+			if (get_function("", this_variable->fs.CurrentTerm.what)) {
 				continue;
 			}
 			if (hitted) {

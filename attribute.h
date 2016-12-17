@@ -1,6 +1,7 @@
 #pragma once
 #include "parser.h"
-
+#include "Function.h"
+#include "Variable.h"
 
 // 在初始化之后是否值是否被修改
 template<class T>
@@ -174,9 +175,9 @@ struct KwArgsAttr : public ParseAttr {
 };
 
 struct FunctionAttr : public ParseAttr {
-	std::vector<ParseNode *> param_definition;
+	std::vector<struct ParseNode *> param_definition;
 	std::vector<std::tuple<std::string, ParseNode, struct ParseNode *>> param_name_typename;
-	FunctionAttr(ParseNode * parsenode) : ParseAttr(parsenode) {}
+	FunctionAttr(struct ParseNode * parsenode) : ParseAttr(parsenode) {}
 	FunctionAttr(const FunctionAttr & va) {
 		// do not call `clone()` else will cause stackoverflow
 		this->param_definition = va.param_definition;

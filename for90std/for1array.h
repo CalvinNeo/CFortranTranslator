@@ -44,7 +44,8 @@ namespace for90std {
 
 	inline std::string slice(std::string str, std::string::size_type fr, std::string::size_type to, std::string::size_type step = 1) {
 		if (to >= str.size()) {
-			str.resize(to + 1);
+			size_t appendlen = to - str.size() + 2;
+			str += std::string(appendlen, ' ');
 		}
 		if (step == 1) {
 			return str.substr(fr, to - fr);
