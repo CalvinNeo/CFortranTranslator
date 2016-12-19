@@ -299,6 +299,10 @@ const vector<KeywordMeta> keywords = {
 		, TokenMeta::META_ANY
 		, YY_GOTO
 	}
+	, KeywordMeta{ "format"
+		, TokenMeta::Format
+		, YY_FORMAT
+	}
 };
 
 

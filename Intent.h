@@ -117,7 +117,8 @@ namespace IntentMeta {
 		Using = -139,
 		Duplicate = -140,
 		
-		Stop = -150,//For Debug
+		Stop = -150, // For Debug
+		Format = -151, // fortran77 format commandd
 
 		// Describer
 		Virtual = -201,
@@ -206,9 +207,9 @@ namespace IntentMeta {
 		Case = -616,
 		Default = -617,
 
-		// system
+		// parsing tags
 		CRLF = -1000,
-		Label = -1003,//书签
+		Label = -1003,//标签
 		Sharp = -1004,//#号,表示预处理
 		EndOfScan = -1005, //表示Scanning读取结束
 		End = -1006,//程序结束
@@ -258,6 +259,8 @@ namespace IntentMeta {
 		NT_INTERFACE = -2035,
 		NT_WRAPPERS = -2036,
 		NT_PARAMTABLE_PURE = -2037,
+		NT_FORMAT = -2038,
+		NT_LABEL = -2039,
 
 		NT_DUMMY = -9999,
 };

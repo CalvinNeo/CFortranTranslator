@@ -82,16 +82,16 @@ namespace for90std {
 		, typename T
 		, typename _Iterator>
 		void _for1array_layer_flattern(
-			for1array<T> & farr
+			const for1array<T> & farr
 			, int deep
 			, const std::vector<for1array_size_t> & size
 			, const std::vector<for1array_size_t> & next_iter_delta
 			, _Iterator b, _Iterator e
-			, .../* SFINAE */) {
+			, .../* SFINAE */)  {
 		auto iter = b;
 		for (auto i = farr.LBound(); i < farr.UBound(); i++)
 		{
-			*iter = farr(i);
+			*iter = farr.const_get(i);
 			if (i != farr.UBound() - 1) {
 				iter += next_iter_delta[deep];
 			}
@@ -102,7 +102,7 @@ namespace for90std {
 		, typename T
 		, typename _Iterator>
 		void _for1array_layer_flattern(
-			for1array<_Container_value_type> & farr
+			const for1array<_Container_value_type> & farr
 			, int deep
 			, const std::vector<for1array_size_t> & size
 			, const std::vector<for1array_size_t> & next_iter_delta
@@ -122,12 +122,12 @@ namespace for90std {
 	};
 
 	template<typename _Container_value_type>
-		auto for1array_flattern(for1array<_Container_value_type> & farr)
+		auto for1array_flattern(const for1array<_Container_value_type> & farr) 
 			-> typename std::vector<typename for1array_gettype<_Container_value_type>::type> {
 		std::vector<for1array_size_t> size = for1array_getsize(farr); // size of each dimension of array
-		for1array_size_t sizef = accumulate(size.begin(), size.end(), 1, [](auto x, auto y) {return x * y; });
+		for1array_size_t sizeflat = accumulate(size.begin(), size.end(), 1, [](auto x, auto y) {return x * y; });
 		typedef typename for1array_gettype<_Container_value_type>::type T; // inner most type
-		std::vector<T> flat(sizef); // size of flatterned array
+		std::vector<T> flat(sizeflat); // size of flatterned array
 		std::vector<for1array_size_t> next_iter_delta(size); // copy from size to compute
 		for1array_size_t s = 1;
 		std::transform(next_iter_delta.begin(), next_iter_delta.end(), next_iter_delta.begin()

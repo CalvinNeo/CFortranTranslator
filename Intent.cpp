@@ -11,5 +11,6 @@ bool iselement(TokenMeta_T x) {
 	if (x == IntentMeta::True) return true;
 	if (x == IntentMeta::False) return true;
 	if (x == IntentMeta::UnknownVariant) return true;
+	return false;
 }
 }

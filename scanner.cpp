@@ -2,6 +2,8 @@
 #include <iostream>
 using namespace std;
 
+
+
 bool isNumeric(char asc)
 {
 	return ((asc >= '0' && asc <= '9') || asc == '.');

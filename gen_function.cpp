@@ -251,28 +251,28 @@ vector<tuple<string, ParseNode, ParseNode *>> get_full_paramtable(const ParseNod
 
 ParseNode gen_function(const ParseNode & variable_function, const ParseNode & paramtable, const ParseNode & variable_result, ParseNode & suite) {
 	/* fortran90 does not declare type of arguments in function declaration statement*/
+	// paramtable is raw for90 paramtable without type
 	ParseNode newnode = ParseNode();
 	
 	ParseNode * oldsuite = const_cast<ParseNode *>(&suite);
 	bool is_subroutine = variable_result.fs.CurrentTerm.what == "";
 
 	// log function in function table
-	add_function("", variable_function.fs.CurrentTerm.what, FunctionInfo{});
 
 	// get all variables declared in this function
 	vector<ParseNode *> param_definition = get_all_declared(suite);
 	// get all params in paramtable of function declare (var_name, var_type, ParseNode*)
 	vector<tuple<string, ParseNode, ParseNode *>> param_name_typename = get_full_paramtable(paramtable, variable_result, param_definition, is_subroutine);
 
-	
-	/* add type infomation to paramtable ParseNodes  */
-	ParseNode newpt; // paramtable is raw for90 paramtable without type /* generate new return with type */
-	
-					   
-	ParseNode newrt; // variable_result is raw for90 return without type
-					   // NOW WRAP TO GET var_def
+	// set attr
+	FunctionAttr functionattr = FunctionAttr(&newnode);
+	functionattr.param_definition = param_definition;
+	functionattr.param_name_typename = param_name_typename;
+	newnode.attr = functionattr.clone();
+	// log function
+	add_function("", variable_function.fs.CurrentTerm.what, FunctionInfo{});
 
-					   /* re-generated codes of suite */
+	// make newnode
 	string newsuitestr = regen_suite(oldsuite); // suite is raw for90 suite without type
 	string paramtblstr = regen_paramtable(param_name_typename);
 	/* generate function ParseTree */
@@ -281,8 +281,7 @@ ParseNode gen_function(const ParseNode & variable_function, const ParseNode & pa
 	newnode.addchild(new ParseNode(paramtable)); // paramtable 2
 	if (get<2>(param_name_typename[param_name_typename.size() - 1]) == nullptr) {
 		// void function
-		ParseNode vardef = gen_vardef_simple(gen_type(Term{ TokenMeta::Void_Def, "void" })
-			, "");
+		ParseNode vardef = gen_vardef_simple(gen_type(Term{ TokenMeta::Void_Def, "void" }), "");
 		newnode.addchild(new ParseNode(vardef)); // return value 3
 	}
 	else {
@@ -292,20 +291,24 @@ ParseNode gen_function(const ParseNode & variable_function, const ParseNode & pa
 	}
 	newnode.addchild(new ParseNode(suite)); // suite 4
 
+	/* generate function code */
 	sprintf(codegen_buf, "%s %s(%s)\n{\n%s\treturn %s;\n}\n"
 		, get<1>(param_name_typename[param_name_typename.size() - 1]).fs.CurrentTerm.what.c_str() // return value type, "void" if subroutine
 		, variable_function.fs.CurrentTerm.what.c_str() // function name
 		, paramtblstr.c_str() // paramtable
 		, oldsuite->fs.CurrentTerm.what.c_str() // code
-		, (is_subroutine ? "" : variable_result.fs.CurrentTerm.what.c_str()) // add return stmt if not function
+		, (is_subroutine ? "" : variable_result/* variable_result is raw for90 return without type*/.fs.CurrentTerm.what.c_str()) // add return stmt if not function
 	);
-	/* generate function code */
 	newnode.fs.CurrentTerm = Term{ TokenMeta::NT_FUNCTIONDECLARE, string(codegen_buf) };
-	// set attr
-	FunctionAttr functionattr = FunctionAttr(&newnode);
-	functionattr.param_definition = param_definition;
-	functionattr.param_name_typename = param_name_typename;
-	newnode.attr = functionattr.clone();
 	// return
+	return newnode;
+}
+
+ParseNode gen_program(ParseNode & suite) {
+	sprintf(codegen_buf, "int main()\n{\n%s\treturn 0;\n}", tabber(suite.fs.CurrentTerm.what).c_str());
+	ParseNode newnode = ParseNode(gen_flex(Term{ TokenMeta::NT_PROGRAM, string(codegen_buf) }), nullptr);
+	// get all variables declared in this function
+	vector<ParseNode *> param_definition = get_all_declared(suite);
+	newnode.addchild(new ParseNode(suite)); //suite
 	return newnode;
 }

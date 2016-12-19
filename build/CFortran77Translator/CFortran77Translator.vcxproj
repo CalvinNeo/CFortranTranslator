@@ -52,9 +52,6 @@
   <ItemGroup>
     <Bison Include="..\..\grammar\for77.y" />
   </ItemGroup>
-  <ItemGroup>
-    <Flex Include="..\..\grammar\for77.l" />
-  </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{41F1B7FB-5DD3-4115-BDB8-563D19F4D981}</ProjectGuid>
     <RootNamespace>CFortran77Translator</RootNamespace>

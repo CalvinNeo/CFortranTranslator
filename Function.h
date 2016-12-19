@@ -5,7 +5,6 @@
 
 struct FunctionInfo {
 	std::vector<struct ParseNode *> param_definition;
-	std::vector<std::tuple<std::string, ParseNode, struct ParseNode *>> param_name_typename;
 };
 
 typedef FunctionInfo * funcptr_t;

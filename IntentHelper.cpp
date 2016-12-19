@@ -111,6 +111,7 @@ std::map<int, std::string> IntentName = {
 	,{ -140, "Duplicate" }
 
 	,{ -150, "Stop" }
+	, {-151, "Format"}
 
 	,{ -201, "Virtual" }
 	,{ -202, "Const" }
@@ -165,7 +166,7 @@ std::map<int, std::string> IntentName = {
 	,{ TokenMeta::Long - 100, "Long_Def" }
 	,{ TokenMeta::Complex - 100, "Complex_Def" }
 	,{ TokenMeta::Short - 100, "Short_Def" }
-		, { TokenMeta::Function - 100, "Function_Def" }
+	, { TokenMeta::Function - 100, "Function_Def" }
 
 	,{ -600, "If" }
 	,{ -601, "Else or ElseIf" }
@@ -236,6 +237,8 @@ std::map<int, std::string> IntentName = {
 	, {-2035, "NT_INTERFACE"}
 	, {-2036, "NT_WRAPPERS"}
 	, {-2037, "NT_PARAMTABLE_PURE"}
+	, {-2038, "NT_FORMAT"}
+	, {-2039, "NT_LABEL"}
 	,{ -9999, "NT_DUMMY"}
 };
 

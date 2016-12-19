@@ -323,7 +323,7 @@ namespace for90std {
 
 	template<typename _Container_value_type>
 	std::vector<for1array_size_t> _for1array_getsize_layer(
-		for1array<_Container_value_type> & farr
+		const for1array<_Container_value_type> & farr
 		, std::vector<for1array_size_t> & size
 		, .../* SFINAE */) {
 		size.push_back(farr.size());
@@ -332,16 +332,16 @@ namespace for90std {
 
 	template<typename _Container_value_type>
 	std::vector<for1array_size_t> _for1array_getsize_layer(
-		for1array<_Container_value_type> & farr
+		const for1array<_Container_value_type> & farr
 		, std::vector<for1array_size_t> & size
 		, for1array_matcher<_Container_value_type>/* SFINAE */) {
 		size.push_back(farr.size());
-		_for1array_getsize_layer<typename _Container_value_type::value_type>(farr(farr.LBound()), size, nullptr);
+		_for1array_getsize_layer<typename _Container_value_type::value_type>(farr.const_get(farr.LBound()), size, nullptr);
 		return size;
 	}
 
 	template<typename _Container_value_type>
-	std::vector<for1array_size_t> for1array_getsize(for1array<_Container_value_type> & farr) {
+	std::vector<for1array_size_t> for1array_getsize(const for1array<_Container_value_type> & farr) {
 		std::vector<for1array_size_t> size;
 		_for1array_getsize_layer<_Container_value_type>(farr, size, nullptr);
 		return size;

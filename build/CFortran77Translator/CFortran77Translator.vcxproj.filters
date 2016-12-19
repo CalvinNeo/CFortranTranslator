@@ -70,9 +70,4 @@
       <Filter>grammar</Filter>
     </Bison>
   </ItemGroup>
-  <ItemGroup>
-    <Flex Include="..\..\grammar\for77.l">
-      <Filter>grammar</Filter>
-    </Flex>
-  </ItemGroup>
 </Project>

@@ -30,11 +30,11 @@ using namespace std;
 %token /*_YY_VOID*/ YY_REQ_MORE YY_CRLF
 %token /*_YY_OP*/ YY_GT YY_GE YY_EQ YY_LE YY_LT YY_NEQ YY_NEQV YY_EQV YY_ANDAND YY_OROR YY_NOT YY_POWER YY_DOUBLECOLON YY_NEG YY_POS
 %token /*_YY_TYPE*/ YY_INTEGER YY_FLOAT YY_WORD YY_OPERATOR YY_STRING YY_ILLEGAL YY_COMPLEX YY_TRUE YY_FALSE
-%token /*_YY_CONTROL*/ YY_END YY_IF YY_THEN YY_ELSE YY_ELSEIF YY_ENDIF YY_DO YY_ENDDO YY_CONTINUE YY_BREAK YY_WHILE YY_ENDWHILE YY_WHERE YY_ENDWHERE YY_CASE YY_ENDCASE YY_SELECT YY_ENDSELECT YY_GOTO YY_DOWHILE YY_DEFAULT
+%token /*_YY_CONTROL*/ YY_LABEL YY_END YY_IF YY_THEN YY_ELSE YY_ELSEIF YY_ENDIF YY_DO YY_ENDDO YY_CONTINUE YY_BREAK YY_WHILE YY_ENDWHILE YY_WHERE YY_ENDWHERE YY_CASE YY_ENDCASE YY_SELECT YY_ENDSELECT YY_GOTO YY_DOWHILE YY_DEFAULT
 %token /*_YY_DELIM*/ YY_PROGRAM YY_ENDPROGRAM YY_FUNCTION YY_ENDFUNCTION YY_RECURSIVE YY_RESULT YY_SUBROUTINE YY_ENDSUBROUTINE YY_MODULE YY_ENDMODULE YY_BLOCK YY_ENDBLOCK YY_INTERFACE YY_ENDINTERFACE
 %token /*_YY_DESCRIBER*/ YY_IMPLICIT YY_NONE YY_USE YY_PARAMETER YY_FORMAT YY_ENTRY YY_DIMENSION YY_ARRAYINITIAL_START YY_ARRAYINITIAL_END YY_INTENT YY_IN YY_OUT YY_INOUT YY_OPTIONAL YY_LEN YY_KIND
 %token /*_YY_TYPEDEF*/ YY_INTEGER_T YY_FLOAT_T YY_STRING_T YY_COMPLEX_T YY_BOOL_T YY_CHARACTER_T
-%token /*_YY_COMMAND*/ YY_WRITE YY_READ YY_PRINT YY_CALL 
+%token /*_YY_COMMAND*/ YY_WRITE YY_READ YY_PRINT YY_CALL YY_FORMAT
 
 
 %left '='
@@ -201,7 +201,6 @@ using namespace std;
 				update_pos($$, $1, $3);
 			}
 
-
 	literal : YY_FLOAT
 			{
 				/* 该条目下的右部全部为单个终结符号(语法树的叶子节点), 因此$1全部来自lex程序 */
@@ -232,7 +231,6 @@ using namespace std;
 			}
 
 		| error '\n'
-
 
 	variable : YY_WORD
 			{
@@ -578,6 +576,12 @@ using namespace std;
 				$$.fs.CurrentTerm = Term{ TokenMeta::Nop, "" };
 			}
 
+	label : YY_LABEL
+		{
+			$$ = gen_label($1);
+			update_pos($$, $1, $1);
+		}
+
 	stmt : exp _crlf_semicolon
 			{
 				// TODO IMPORTANT
@@ -630,6 +634,10 @@ using namespace std;
 			{
 				ParseNode & xx = $1;
 				update_pos($$, $1, $2);
+			}
+		| label
+			{
+				update_pos($$, $1, $1);
 			}
 
 
@@ -1141,10 +1149,7 @@ using namespace std;
     program : YY_PROGRAM _optional_name crlf suite YY_END YY_PROGRAM _optional_name crlf
 			{
 				ParseNode & suite = $4;
-				sprintf(codegen_buf, "int main()\n{\n%s\treturn 0;\n}", tabber(suite.fs.CurrentTerm.what).c_str());
-				ParseNode newnode = ParseNode(gen_flex(Term{ TokenMeta::NT_PROGRAM, string(codegen_buf) }), nullptr);
-				newnode.addchild(new ParseNode(suite)); //suite
-				$$ = newnode;
+				$$ = gen_program(suite);
 				update_pos($$, $1, $8);
 			}
 

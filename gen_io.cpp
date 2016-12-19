@@ -1,50 +1,18 @@
 #include "gen_common.h"
 
-void add_fileno(int no) {
-
-}
-
-void close_fileno(int no) {
-
-}
-
 ParseNode gen_read(const ParseNode & io_info, const ParseNode & argtable) {
 	ParseNode newnode = ParseNode();
-	const ParseNode * argtbl = &argtable;
+	const ParseNode * pn = &argtable;
 	ParseNode * formatter = io_info.child[1];
-	if (formatter->fs.CurrentTerm.token == TokenMeta::NT_FORMATTER) {
-		string fmt = io_info.child[1]->fs.CurrentTerm.what.substr(1, io_info.child[1]->fs.CurrentTerm.what.size() - 1); // strip " 
-		string pointer_to;
-		for (int i = 0; i < argtbl->child.size(); i++)
-		{
-			if (i > 0) {
-				pointer_to += ",";
-			}
-			pointer_to += "&";
-			pointer_to += argtbl->child[i]->fs.CurrentTerm.what;
-		}
-		argtbl = argtbl->child[1];
-		sprintf(codegen_buf, "scanf(\"%s\", %s) ;", parse_ioformatter(fmt).c_str(), pointer_to.c_str());
-		newnode.fs.CurrentTerm = Term{ TokenMeta::META_NONTERMINAL, string(codegen_buf) };
+	string device = io_info.child[0]->fs.CurrentTerm.what;
+	if (io_info.child[1]->fs.CurrentTerm.token == TokenMeta::NT_AUTOFORMATTER) {
+		sprintf(codegen_buf, "forread(get_file(%s), %s) ;", device.c_str(), pn->fs.CurrentTerm.what.c_str());
 	}
 	else {
-		/* NT_AUTOFORMATTER */
-		string cincode = "cin";
-		/* enumerate argtable */
-		// TODO the while loop is wrong, there is need for while loop. ref: var_def code
-		//while (argtbl->child.size() == 2 && argtbl->child[1]->fs.CurrentTerm.token == TokenMeta::NT_ARGTABLE) {
-		// for all non-flatterned argtable
-		for (int i = 0; i < argtbl->child.size(); i++)
-		{
-			// for each variable in flatterned argtable
-			cincode += " >> ";
-			cincode += argtbl->child[i]->fs.CurrentTerm.what;
-		}
-		// argtbl = argtbl->child[1];
-		//}
-		cincode += ";";
-		newnode.fs.CurrentTerm = Term{ TokenMeta::META_NONTERMINAL, cincode };
+		string fmt = io_info.child[1]->fs.CurrentTerm.what.substr(1, io_info.child[1]->fs.CurrentTerm.what.size() - 1); // strip " 
+		sprintf(codegen_buf, "forread(get_file(%s), \"%s\\n\", %s) ;", device.c_str(), parse_ioformatter(fmt).c_str(), pn->fs.CurrentTerm.what.c_str());
 	}
+	newnode.fs.CurrentTerm = Term{ TokenMeta::META_NONTERMINAL, string(codegen_buf) };
 	newnode.addchild(new ParseNode(io_info)); // ioinfo
 	newnode.addchild(new ParseNode(argtable)); // argtable
 	return newnode;
@@ -54,31 +22,17 @@ ParseNode gen_read(const ParseNode & io_info, const ParseNode & argtable) {
 ParseNode gen_write(const ParseNode & io_info, const ParseNode & argtable) {
 	// brace is forced
 	ParseNode newnode = ParseNode();
-	const ParseNode * argtbl = &argtable;
+	const ParseNode * pn = &argtable;
 	ParseNode * formatter = io_info.child[1];
-	if (formatter->fs.CurrentTerm.token == TokenMeta::NT_FORMATTER) {
-		string fmt = io_info.child[1]->fs.CurrentTerm.what.substr(1, io_info.child[1]->fs.CurrentTerm.what.size() - 1); // strip " 
-		sprintf(codegen_buf, "forwrite(\"%s\\n\", %s) ;", parse_ioformatter(fmt).c_str(), argtbl->fs.CurrentTerm.what.c_str());
-		newnode.fs.CurrentTerm = Term{ TokenMeta::META_NONTERMINAL, string(codegen_buf) };
+	string device = io_info.child[0]->fs.CurrentTerm.what;
+	if (io_info.child[1]->fs.CurrentTerm.token == TokenMeta::NT_AUTOFORMATTER) {
+		sprintf(codegen_buf, "forwrite_noform(get_file(%s), %s) ;", device.c_str(), pn->fs.CurrentTerm.what.c_str());
 	}
 	else {
-		/* NT_AUTOFORMATTER */
-		string coutcode = "cout";
-		/* enumerate argtable */
-		// TODO the while loop is wrong, there is need for while loop. ref: var_def code
-		//while (argtbl->child.size() == 2 && argtbl->child[1]->fs.CurrentTerm.token == TokenMeta::NT_ARGTABLE) {
-		// for all non-flatterned argtable
-		for (int i = 0; i < argtbl->child.size(); i++)
-		{
-			// for each variable in flatterned argtable
-			coutcode += " << ";
-			coutcode += argtbl->child[i]->fs.CurrentTerm.what;
-		}
-		// argtbl = argtbl->child[1];
-		//}
-		coutcode += " << endl;";
-		newnode.fs.CurrentTerm = Term{ TokenMeta::META_NONTERMINAL, coutcode };
+		string fmt = io_info.child[1]->fs.CurrentTerm.what.substr(1, io_info.child[1]->fs.CurrentTerm.what.size() - 1); // strip " 
+		sprintf(codegen_buf, "forwrite(get_file(%s), \"%s\\n\", %s) ;", device.c_str(), parse_ioformatter(fmt).c_str(), pn->fs.CurrentTerm.what.c_str());
 	}
+	newnode.fs.CurrentTerm = Term{ TokenMeta::META_NONTERMINAL, string(codegen_buf) };
 	newnode.addchild(new ParseNode(io_info)); // ioinfo
 	newnode.addchild(new ParseNode(argtable)); // argtable
 	return newnode;
@@ -86,31 +40,15 @@ ParseNode gen_write(const ParseNode & io_info, const ParseNode & argtable) {
 ParseNode gen_print(const ParseNode & io_info, const ParseNode & argtable) {
 
 	ParseNode newnode = ParseNode();
-	const ParseNode * argtbl = &argtable;
-	ParseNode * formatter = io_info.child[1];
-	if (formatter->fs.CurrentTerm.token == TokenMeta::NT_FORMATTER) {
-		string fmt = io_info.child[1]->fs.CurrentTerm.what.substr(1, io_info.child[1]->fs.CurrentTerm.what.size() - 1); // strip " 
-		sprintf(codegen_buf, "forprint(\"%s\\n\", %s) ;", parse_ioformatter(fmt).c_str(), argtbl->fs.CurrentTerm.what.c_str());
-		newnode.fs.CurrentTerm = Term{ TokenMeta::META_NONTERMINAL, string(codegen_buf) };
+	const ParseNode * pn = &argtable;
+	if (io_info.child[1]->fs.CurrentTerm.token == TokenMeta::NT_AUTOFORMATTER) {
+		sprintf(codegen_buf, "forprint_noform(%s) ;", pn->fs.CurrentTerm.what.c_str());
 	}
 	else {
-		/* NT_AUTOFORMATTER */
-		string coutcode = "cout";
-		/* enumerate argtable */
-		// TODO the while loop is wrong, there is need for while loop. ref: var_def code
-		//while (argtbl->child.size() == 2 && argtbl->child[1]->fs.CurrentTerm.token == TokenMeta::NT_ARGTABLE) {
-		// for all non-flatterned argtable
-		for (int i = 0; i < argtbl->child.size(); i++)
-		{
-			// for each variable in flatterned argtable
-			coutcode += " << ";
-			coutcode += argtbl->child[i]->fs.CurrentTerm.what;
-		}
-		// argtbl = argtbl->child[1];
-		//}
-		coutcode += " << endl;";
-		newnode.fs.CurrentTerm = Term{ TokenMeta::META_NONTERMINAL, coutcode };
+		string fmt = io_info.child[1]->fs.CurrentTerm.what.substr(1, io_info.child[1]->fs.CurrentTerm.what.size() - 1); // strip " 
+		sprintf(codegen_buf, "forprint(\"%s\\n\", %s) ;", parse_ioformatter(fmt).c_str(), pn->fs.CurrentTerm.what.c_str());
 	}
+	newnode.fs.CurrentTerm = Term{ TokenMeta::META_NONTERMINAL, string(codegen_buf) };
 	newnode.addchild(new ParseNode(io_info)); // ioinfo
 	newnode.addchild(new ParseNode(argtable)); // argtable
 	return newnode;

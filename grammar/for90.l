@@ -102,6 +102,8 @@ newline [\r\n]
 ^{newline}$ { /* ¿ÕÐÐ */ }
 {newline} {RTCRLF() }
 {ws} { RTNOP() }
+^[Cc\*]{ws}+.*{newline} { RTNOP() /*×¢ÊÍ*/}
+^[0-9]+ {RTN(TokenMeta::Label, YY_LABEL); }
 [0-9]+ { RTINT(TokenMeta::META_INTEGER) }
 [0-9\.]+([eE][0-9\.]+)? { RTFLOAT(TokenMeta::META_FLOAT) }
 [0-9\.]+([eE][0-9\.]+)?_[-+]?[0-9\.]+([eE][0-9\.]+)? { RTCOMPLEX(TokenMeta::META_COMPLEX) }
