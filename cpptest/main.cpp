@@ -165,7 +165,6 @@ int main()
 
 	for1array< for1array< for1array<int>  > > xxx(1, 2 + 1);
 
-	forreshape(gen_for1array<%s, %d>(%s, %s, std::vector<%s>{3, 4, 5, 6, 7, 8}), gen_for1array<%s, %d>(%s, %s, std::vector<%s>{2, 3}));
 	forprintfree(a(6), b(5)(6)(7), c(6, 7));
 	return 0;
 }

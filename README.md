@@ -90,6 +90,7 @@ refer to [/grammar/for90.y](/grammar/for90.y) for all accepted grammar
 3. array traits
 
 |function|usage|
+|:-:|:-:|
 |`#define USE_FORARRAY`|use fortran style array|
 |`#define USE_CARRAY`|use c style array|
 |`init_for1array(array, lowerbound, size, initialvalue list)`|use a 1d list to initialize a 2d(or higher) array|
