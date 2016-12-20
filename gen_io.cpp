@@ -26,7 +26,7 @@ ParseNode gen_write(const ParseNode & io_info, const ParseNode & argtable) {
 	ParseNode * formatter = io_info.child[1];
 	string device = io_info.child[0]->fs.CurrentTerm.what;
 	if (io_info.child[1]->fs.CurrentTerm.token == TokenMeta::NT_AUTOFORMATTER) {
-		sprintf(codegen_buf, "forwrite_noform(get_file(%s), %s) ;", device.c_str(), pn->fs.CurrentTerm.what.c_str());
+		sprintf(codegen_buf, "forwritefree(get_file(%s), %s) ;", device.c_str(), pn->fs.CurrentTerm.what.c_str());
 	}
 	else {
 		string fmt = io_info.child[1]->fs.CurrentTerm.what.substr(1, io_info.child[1]->fs.CurrentTerm.what.size() - 1); // strip " 
@@ -42,7 +42,7 @@ ParseNode gen_print(const ParseNode & io_info, const ParseNode & argtable) {
 	ParseNode newnode = ParseNode();
 	const ParseNode * pn = &argtable;
 	if (io_info.child[1]->fs.CurrentTerm.token == TokenMeta::NT_AUTOFORMATTER) {
-		sprintf(codegen_buf, "forprint_noform(%s) ;", pn->fs.CurrentTerm.what.c_str());
+		sprintf(codegen_buf, "forprintfree(%s) ;", pn->fs.CurrentTerm.what.c_str());
 	}
 	else {
 		string fmt = io_info.child[1]->fs.CurrentTerm.what.substr(1, io_info.child[1]->fs.CurrentTerm.what.size() - 1); // strip " 

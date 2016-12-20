@@ -172,6 +172,11 @@ namespace for90std {
 			(this->ub) = x.UBound();
 			return *this;
 		}
+		template<typename _Inner>
+		for1array<T> & operator=(const std::vector<_Inner> & x) {
+			init_for1array(*this, for1array_lbound(*this), for1array_getsize(*this), x);
+			return *this;
+		}
 		for1array<T> & operator+=(const for1array<T> & x) {
 			for (size_type i = x.LBound(); i < x.UBound(); i++)
 			{
@@ -210,6 +215,15 @@ namespace for90std {
 			this->ub = u;
 		}
 
+		template<typename _Inner>
+		for1array(size_type l, size_type u, const std::vector<_Inner> & x) {
+			lb = l; ub = u;
+			init_for1array(*this, for1array_lbound(*this), for1array_getsize(*this), x);
+			return *this;
+		}		
+		for1array(const std::vector<T> & arr, size_type l, size_type u) : lb(l), ub(u) {
+			m_arr = arr;
+		};
 		for1array(size_type l, size_type u) : lb(l), ub(u) {
 			m_arr.resize(u - l);
 		};
@@ -222,9 +236,6 @@ namespace for90std {
 			{
 				m_arr.push_back(x);
 			}
-		};
-		for1array(const std::vector<T> & arr, size_type l, size_type u) : lb(l), ub(u) {
-			m_arr = arr;
 		};
 		for1array(const for1array<T> & x) {
 			m_arr.clear();
@@ -281,10 +292,15 @@ namespace for90std {
 		return n;
 	}
 
-	template<typename T, int D = 0>
-	using fornarray = for1array<T>;
+	// base template must before inherited
 	template<typename T, int D>
-	using fornarray = fornarray<T, D - 1>;
+	struct fornarray {
+		typedef typename for1array<typename fornarray<T, D - 1>::type> type;
+	};
+	template<typename T>
+	struct fornarray<T, 1> {
+		typedef typename for1array<T> type;
+	};
 
 
 	//template <typename T>
@@ -350,4 +366,29 @@ namespace for90std {
 		return size;
 	}
 
+	template<typename _Container_value_type>
+	std::vector<for1array_size_t> _for1array_lbound_layer(
+		const for1array<_Container_value_type> & farr
+		, std::vector<for1array_size_t> & lbound
+		, .../* SFINAE */) {
+		lbound.push_back(farr.LBound());
+		return lbound;
+	}
+
+	template<typename _Container_value_type>
+	std::vector<for1array_size_t> _for1array_lbound_layer(
+		const for1array<_Container_value_type> & farr
+		, std::vector<for1array_size_t> & lbound
+		, for1array_matcher<_Container_value_type>/* SFINAE */) {
+		lbound.push_back(farr.LBound());
+		_for1array_lbound_layer<typename _Container_value_type::value_type>(farr.const_get(farr.LBound()), size, nullptr);
+		return lbound;
+	}
+
+	template<typename _Container_value_type>
+	std::vector<for1array_size_t> for1array_lbound(const for1array<_Container_value_type> & farr) {
+		std::vector<for1array_size_t> lbound;
+		_for1array_lbound_layer<_Container_value_type>(farr, lbound, nullptr);
+		return lbound;
+	}
 }

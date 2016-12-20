@@ -152,36 +152,20 @@
 /*******************************************************************/
 #include "../for90std/for90std.h"
 #define USE_FORARRAY
-
 int main()
 {
-	
-	for1array< for1array<int>  > m(1, 5 + 1);
 
-	string ch = "";
-	int i, j, k = 0;
-	for (i = 1; i <= 5; i += 1) {
-		for (j = 1; j <= 5; j += 1) {
-			k = k + 1;
-			m(i, j) = k;
-		}
-	}
-	for (i = 1; i <= 5; i += 1) {
-		forprint(" %4d%4d%4d%4d%4d\n", slice(m(i), 1, i + 1));
-	}
-	cout << "----" << endl;
-	for (i = 1; i <= 5; i += 1) {
-		forprint(" %s%4d%4d%4d%4d%4d\n", slice(ch, 1, 4 * (i - 1) + 1), slice(m(i), i, 5 + 1));
-	}
-	auto xx = for1array_flattern(m);
-	for (auto i = 0; i < xx.size() ; i++)
-	{
-		*xx[i] = 1;
-	}
-	for (i = 1; i <= 5; i += 1) {
-		for (j = 1; j <= 5; j += 1) {
-			forwritefree(stdout, m(i, j));
-		}
-	}
+	for1array<int>  a(init_for1array_hiddendo(5, 7, [](int i) {return to_int(i) + 1; }));
+
+	for1array< for1array< for1array<int>  > > b(gen_for1array<int, 3>({ 5,6,7 }, { 2,2,2 }, std::vector<int >{1, 2, 3, 4, 5, 6, 7, 8}));
+
+	for1array< for1array<int>  > c(5, 7 + 1);
+
+	for1array<int>  d(slice(a, 5, 7 + 1) + b(5)(6) + init_for1array_hiddendo(1, 4, [](int i) {return to_int(i) + 1; }));
+
+	for1array< for1array< for1array<int>  > > xxx(1, 2 + 1);
+
+	forreshape(gen_for1array<%s, %d>(%s, %s, std::vector<%s>{3, 4, 5, 6, 7, 8}), gen_for1array<%s, %d>(%s, %s, std::vector<%s>{2, 3}));
+	forprintfree(a(6), b(5)(6)(7), c(6, 7));
 	return 0;
 }

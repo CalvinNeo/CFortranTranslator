@@ -84,50 +84,34 @@ std::string gen_vardef_array(ParseNode * pn, ParseNode * spec_typename, ParseNod
 	{
 		// for each variable in flatterned paramtable
 		int sliceid = 0;
+		sprintf(codegen_buf, gen_vardef_typestr(vardescattr).c_str(), spec_typename->fs.CurrentTerm.what.c_str());
+		string innermost_type(codegen_buf); // `T`
 		sprintf(codegen_buf, "for1array<%s>", spec_typename->fs.CurrentTerm.what.c_str());
 		sprintf(codegen_buf, gen_vardef_typestr(vardescattr).c_str(), string(codegen_buf).c_str());
 		string type_str(codegen_buf);
-		sprintf(codegen_buf, gen_vardef_typestr(vardescattr).c_str(), spec_typename->fs.CurrentTerm.what.c_str());
-		string elem_type_str(codegen_buf); // `T`
-										   // init high dimension array
-										   /* though using for-loop to init a high-dimension array is verbose comparing to using constructors, 
-										   i use this form because it is more clear and it can remind users of the cost of using a high dimension array */
-		vector<string> this_major; /* if you want to set value of a(i0)(i1)(i2) then this_major is a(i0)(i1) */
-		this_major.push_back(pn->child[i]/* NT_VARIABLEINITIAL/NT_KEYVALUE */->child[0]->fs.CurrentTerm.what /* array name */);
-		for (int i = 1; i < slice->child.size(); i++)
-		{
-			sprintf(codegen_buf, "%s(i%d)", this_major.back().c_str(), i - 1);
-			this_major.push_back(string(codegen_buf));
-		}
+
 		for (sliceid = slice->child.size() - 2; sliceid >= 0; sliceid--)
 		{
-			string prev_type_str = type_str;
 			sprintf(codegen_buf, "for1array< %s >", type_str.c_str());
 			type_str = string(codegen_buf);
-			sprintf(codegen_buf, "for(int i%d = %s; i%d < %s; i%d++){\n\t%s(i%d) = %s(%s, %s + 1);\n%s\n}\n" /* NOTE fortran is [lower_bound, upper_bound] cpp is [lower_bound, upper_bound) */
-				, sliceid, slice->child[sliceid]->child[0]->fs.CurrentTerm.what.c_str(), sliceid, slice->child[sliceid]->child[1]->fs.CurrentTerm.what.c_str(), sliceid
-				, this_major[sliceid].c_str(), sliceid, prev_type_str.c_str(), slice->child[sliceid + 1]->child[0]->fs.CurrentTerm.what.c_str(), slice->child[sliceid + 1]->child[1]->fs.CurrentTerm.what.c_str()
-				, sliceid + 1 == slice->child.size() - 1 ? "" : tabber(slice->child[sliceid + 1]->fs.CurrentTerm.what).c_str());
-			prev_type_str = type_str;
-			slice->child[sliceid]->fs.CurrentTerm.what = string(codegen_buf);
 		}
 		// use it in fucntion_decl
 		//string var_pattern = gen_vardef_pattern(vardescattr, false);
 
 		// no desc if var_def is not in paramtable
-		sprintf(codegen_buf, "%s %s(%s, %s + 1)", type_str.c_str(), pn->child[i]->child[0]->fs.CurrentTerm.what.c_str() /* array name */
-			, slice->child[0]->child[0]->fs.CurrentTerm.what.c_str(), slice->child[0]->child[1]->fs.CurrentTerm.what.c_str() /* slice from to */);
-		arr_decl += codegen_buf;
+		sprintf(codegen_buf, "%s %s", type_str.c_str(), pn->child[i]->child[0]->fs.CurrentTerm.what.c_str() /* array name */);
+		string decl = string(codegen_buf);
+		arr_decl += decl;
 		/* set initial value from array_builder */
 		if (pn->child[i]->child[1]->fs.CurrentTerm.token == TokenMeta::NT_ARRAYBUILDER)
 		{
-			arr_decl += " = ";
-			for (int abid = 0; abid < pn->child[i]->child[1]->child.size(); abid++)
+			arr_decl += "(";
+			for (auto abid = 0; abid < pn->child[i]->child[1]->child.size(); abid++)
 			{
 				ParseNode * array_builder = pn->child[i]->child[1]->child[abid];
 				if (array_builder->fs.CurrentTerm.token == TokenMeta::NT_ARRAYBUILDER_VALUE) {
 					std::string vec_size = "{", vec_lb = "{";
-					for (int sliceid = 0; sliceid < slice->child.size(); sliceid++)
+					for (auto sliceid = 0; sliceid < slice->child.size(); sliceid++)
 					{
 						if (sliceid != 0) {
 							vec_lb += ",";
@@ -142,16 +126,16 @@ std::string gen_vardef_array(ParseNode * pn, ParseNode * spec_typename, ParseNod
 					}
 					vec_size += "}", vec_lb += "}";
 					/* gen_for1array(%%s, %%s, std::vector<%%s>{%s})\n" from gen_arraybuilder */
-					sprintf(codegen_buf, 
+					sprintf(codegen_buf,
 						array_builder->fs.CurrentTerm.what.c_str() // format
-						// , pn->child[i]->child[0]->fs.CurrentTerm.what.c_str() /* variable name */
+						, innermost_type.c_str()
+						, slice->child.size()
 						, vec_lb.c_str()
 						, vec_size.c_str()
-						, elem_type_str.c_str());
+						, innermost_type.c_str());
 				}
 				else if (array_builder->fs.CurrentTerm.token == TokenMeta::NT_ARRAYBUILDER_EXP) {
-					string formatter = (array_builder->fs.CurrentTerm.what + ";\n");
-					sprintf(codegen_buf, formatter.c_str(), pn->child[i]->child[0]->fs.CurrentTerm.what.c_str());
+					sprintf(codegen_buf, "%s", array_builder->fs.CurrentTerm.what.c_str());
 				}
 				else {
 					sprintf(codegen_buf, "");
@@ -161,8 +145,13 @@ std::string gen_vardef_array(ParseNode * pn, ParseNode * spec_typename, ParseNod
 				}
 				arr_decl += codegen_buf;
 			}
+			arr_decl += ") ;\n";
 		}
 		else {
+			// no arraybuilder
+			sprintf(codegen_buf, "(%s, %s + 1)", slice->child[0]->child[0]->fs.CurrentTerm.what.c_str(), slice->child[0]->child[1]->fs.CurrentTerm.what.c_str() /* slice from to */);
+			string dimension = string(codegen_buf);
+			arr_decl += dimension;
 			arr_decl += ";\n";
 			sprintf(codegen_buf, "");
 		}

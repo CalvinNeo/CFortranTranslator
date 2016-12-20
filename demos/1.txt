@@ -1,18 +1,12 @@
 program array_test
 	implicit none
-	integer,dimension(5,5)::m
-	character(len=30)::ch=''
-	integer::i,j,k = 0
-	do i = 1,5
-		do j = 1,5
-			k = k + 1;m(i,j) = k
-		enddo
-	enddo
-	do i = 1, 5
-		print '(1x, 5i4)', m(i, 1:i)
-	enddo
-	print *, "----"
-	do i = 1, 5
-		print '1x,a,5i4', ch(1:4*(i-1)), m(i,i:5)
-	end do
+	integer,dimension(5:7)::A=(/ int(i) + 1, i=5,7/)
+	integer,dimension(5:6, 6:7, 7:8)::B=(/1, 2, 3, 4, 5, 6, 7, 8/) 
+	integer,dimension(5:7, 6:8)::C = A(5:7, :)
+	integer,dimension(5:7)::D=(/ a(5:7) , b(5)(6)(7) , (int(i) + 1, i=1,4) /)
+	integer, dimension(1:2, 3:4, 5:6)::xxx
+	m(1)(2)(3)
+	m(1, 2:i, 3:j, 4)
+	RESHAPE((/3,4,5,6,7,8/),(/2,3/))
+	print *, A(6), B(5)(6)(7), C(6, 7)
 end program
