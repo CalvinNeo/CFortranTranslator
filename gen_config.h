@@ -30,6 +30,7 @@ const std::map<std::string, std::string> funcname_map{
 	, { "forcomplex", "forcomplex" }
 
 	// array
+	,{ "reshape", "forreshape" }
 
 	// intrinsic
 	,{ "present", "forpresent" }

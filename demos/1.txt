@@ -3,7 +3,7 @@ program array_test
 	integer,dimension(5,5)::m
 	character(len=30)::ch=''
 	integer::i,j,k = 0
-11	do i = 1,5
+	do i = 1,5
 		do j = 1,5
 			k = k + 1;m(i,j) = k
 		enddo

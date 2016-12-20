@@ -32,7 +32,7 @@ using namespace std;
 %token /*_YY_TYPE*/ YY_INTEGER YY_FLOAT YY_WORD YY_OPERATOR YY_STRING YY_ILLEGAL YY_COMPLEX YY_TRUE YY_FALSE
 %token /*_YY_CONTROL*/ YY_LABEL YY_END YY_IF YY_THEN YY_ELSE YY_ELSEIF YY_ENDIF YY_DO YY_ENDDO YY_CONTINUE YY_BREAK YY_WHILE YY_ENDWHILE YY_WHERE YY_ENDWHERE YY_CASE YY_ENDCASE YY_SELECT YY_ENDSELECT YY_GOTO YY_DOWHILE YY_DEFAULT
 %token /*_YY_DELIM*/ YY_PROGRAM YY_ENDPROGRAM YY_FUNCTION YY_ENDFUNCTION YY_RECURSIVE YY_RESULT YY_SUBROUTINE YY_ENDSUBROUTINE YY_MODULE YY_ENDMODULE YY_BLOCK YY_ENDBLOCK YY_INTERFACE YY_ENDINTERFACE
-%token /*_YY_DESCRIBER*/ YY_IMPLICIT YY_NONE YY_USE YY_PARAMETER YY_FORMAT YY_ENTRY YY_DIMENSION YY_ARRAYINITIAL_START YY_ARRAYINITIAL_END YY_INTENT YY_IN YY_OUT YY_INOUT YY_OPTIONAL YY_LEN YY_KIND
+%token /*_YY_DESCRIBER*/ YY_IMPLICIT YY_NONE YY_USE YY_PARAMETER YY_ENTRY YY_DIMENSION YY_ARRAYINITIAL_START YY_ARRAYINITIAL_END YY_INTENT YY_IN YY_OUT YY_INOUT YY_OPTIONAL YY_LEN YY_KIND
 %token /*_YY_TYPEDEF*/ YY_INTEGER_T YY_FLOAT_T YY_STRING_T YY_COMPLEX_T YY_BOOL_T YY_CHARACTER_T
 %token /*_YY_COMMAND*/ YY_WRITE YY_READ YY_PRINT YY_CALL YY_FORMAT
 
@@ -120,13 +120,13 @@ using namespace std;
 				ParseNode * newnode = new ParseNode();
 				ParseNode slice = ParseNode();
 				ParseNode & exp_to = $3;
-				ParseNode & exp_from = gen_exp(gen_token(Term{ TokenMeta::META_INTEGER, "1" }));
+				ParseNode & exp_from = gen_promote(TokenMeta::NT_EXPRESSION, gen_token(Term{ TokenMeta::META_INTEGER, "1" }));
 
 				slice.addchild(new ParseNode(exp_from)); // slice from 1
 				slice.addchild(new ParseNode(exp_to)); // slice to
 				// sprintf(codegen_buf, "%s", /* from 1, to */exp_to.fs.CurrentTerm.what.c_str());				
 
-				ParseNode * dimen = new ParseNode(gen_dimenslice_from_slice(slice));
+				ParseNode * dimen = new ParseNode(gen_promote("", TokenMeta::NT_DIMENSLICE, slice));
 				newnode->addchild(dimen); // def slice
 
 				set_variabledesc_attr(newnode, optionalparam<bool>(), optionalparam<bool>(), optionalparam<bool>(), dimen, optionalparam<int>());
@@ -274,8 +274,8 @@ using namespace std;
 		| ':'
 			{
 				/* arr[from : to : step] */
-				ParseNode & lb = gen_exp(gen_token(Term{ TokenMeta::META_INTEGER, "foroptional<int>()" }));
-				ParseNode & ub = gen_exp(gen_token(Term{ TokenMeta::META_INTEGER, "foroptional<int>()" }));
+				ParseNode & lb = gen_promote(TokenMeta::NT_EXPRESSION, gen_token(Term{ TokenMeta::META_INTEGER, "foroptional<int>()" }));
+				ParseNode & ub = gen_promote(TokenMeta::NT_EXPRESSION, gen_token(Term{ TokenMeta::META_INTEGER, "foroptional<int>()" }));
 				/* target code of slice depend on context */
 				$$ = gen_slice(lb, ub);
 				update_pos($$, $1, $1);
@@ -288,7 +288,7 @@ using namespace std;
 				/* target code of slice depend on context */
 				ParseNode & slice = $1;
 				// only 1 slice
-				$$ = gen_dimenslice_from_slice(slice);
+				$$ = gen_promote("", TokenMeta::NT_DIMENSLICE, slice);
 				update_pos($$, $1, $1);
 			}
 		| slice ',' dimen_slice
@@ -306,24 +306,9 @@ using namespace std;
 			{
 				/* argtable is used in function call */
 				ParseNode & exp = $1;
-				$$ = gen_argtable_from_exp(exp);
+				$$ = gen_promote(TokenMeta::NT_ARGTABLE_PURE, exp);
 				update_pos($$, $1, $1);
 			}
-		/*
-		| exp ',' dimen_slice
-			{
-				ParseNode & exp = $1;
-				ParseNode & argtable = $3;
-				ParseNode newnode = ParseNode();
-				if (argtable.fs.CurrentTerm.token == TokenMeta::NT_ARGTABLE_PURE) {
-					newnode = gen_flattern(exp, argtable, "%s, %s", TokenMeta::NT_ARGTABLE_PURE);
-				}
-				else if (argtable.fs.CurrentTerm.token == TokenMeta::NT_DIMENSLICE) {
-					newnode = gen_flattern(exp, argtable, "%s, %s", TokenMeta::NT_DIMENSLICE);
-				}
-				$$ = newnode;
-			}
-		*/
          | exp ',' paramtable
 			{
 				ParseNode & exp = $1;
@@ -331,20 +316,15 @@ using namespace std;
 				// gen_argtable(exp, argtable);
 				//$$ = gen_flattern(exp, argtable, "%s, %s", TokenMeta::NT_ARGTABLE_PURE);
 				ParseNode newnode = ParseNode();
-				if (argtable.fs.CurrentTerm.token == TokenMeta::NT_ARGTABLE_PURE) {
-					newnode = gen_flattern(exp, argtable, "%s, %s", TokenMeta::NT_ARGTABLE_PURE);
-				}
-				else if (argtable.fs.CurrentTerm.token == TokenMeta::NT_DIMENSLICE) {
-					newnode = gen_flattern(exp, argtable, "%s, %s", TokenMeta::NT_DIMENSLICE);
-				}
-				else if (argtable.fs.CurrentTerm.token == TokenMeta::NT_PARAMTABLE) {
-					newnode = gen_paramtable(exp, argtable);
-				}
-				else if (argtable.fs.CurrentTerm.token == TokenMeta::NT_PARAMTABLE_DIMENSLICE) {
-					newnode = gen_paramtable(exp, argtable);
-				}
-				else {
-					print_error("Illegal dimen_slice", argtable);
+				switch (argtable.fs.CurrentTerm.token) {
+					case TokenMeta::NT_ARGTABLE_PURE:
+					case TokenMeta::NT_DIMENSLICE:
+					case TokenMeta::NT_PARAMTABLE:
+					case TokenMeta::NT_PARAMTABLE_DIMENSLICE:
+						newnode = gen_paramtable(exp, argtable);
+						break;
+					default:
+						print_error("Illegal dimen_slice", argtable);
 				}
 				$$ = newnode;
 				update_pos($$, $1, $3);
@@ -373,9 +353,17 @@ using namespace std;
 			{
 				/* function call OR array index */
 				ParseNode & function_array = $1;
-				$$ = gen_exp(function_array);
+				$$ = gen_promote(TokenMeta::NT_EXPRESSION, function_array);
 				update_pos($$, $1, $1);
 			}
+				
+		| array_builder
+			{
+				ParseNode & array_builder_elem = $1;
+				$$ = $1;
+				update_pos($$, $1, $1);
+			}
+			
 		| exp '(' exp ')'
 			{
 				/* hyper-function or multi-dimension array like A(2)(3)  */
@@ -536,7 +524,7 @@ using namespace std;
 		| hidden_do
 			{
 				ParseNode & hidden_do = $1;
-				$$ = gen_exp(hidden_do);
+				$$ = gen_promote(TokenMeta::NT_EXPRESSION, hidden_do);
 				update_pos($$, $1, $1);
 			}
 		| literal 
@@ -549,20 +537,6 @@ using namespace std;
 				// TODO : i am a little strange that `integer::a, b, c` works well because i am afraid that callable_head will reduce to exp from here. however according to LR(1), `::` is not in FOLLOW(exp)
 				$$ = $1;
 			}
-
-/* 
-	argtable : dimen_slice
-			{
-				$$ = gen_argtable($1);
-				update_pos($$, $1, $1);
-			}
-		|
-			{
-				// TODO : argtable can also be empty
-				$$ = gen_token(Term{ TokenMeta::NT_ARGTABLE_PURE, "" });
-				update_pos($$);
-			}
-*/
 
 	_crlf_semicolon: crlf
 		| ';' crlf
@@ -871,17 +845,20 @@ using namespace std;
 			{
 				/* initial value is required in parse tree because it can be an non-terminal `exp` */
 				/* non-array initial values */
+				ParseNode & exp2 = $3;
 				$$ = gen_keyvalue_from_exp($1, $3);
 				update_pos($$, $1, $3);
 			}
+
 		| exp '=' array_builder
 			{
-				/* initial value is required in parse tree because it can be an non-terminal `exp` */
-				/* array initial values */;
-				/* 因为使用forarray作为数组, 故需要知道类型信息, 不在此处赋值, 在上层的var_def赋初值 */
+				// initial value is required in parse tree because it can be an non-terminal `exp` 
+				// array initial values 
+				// 因为使用forarray作为数组, 故需要知道类型信息, 不在此处赋值, 在上层的var_def赋初值 
 				$$ = gen_keyvalue_from_arraybuilder($1, $3);
 				update_pos($$, $1, $3);
-			}
+			} 
+
 
 	paramtable_elem : dimen_slice
 			{
@@ -935,9 +912,8 @@ using namespace std;
 
 	array_builder_elem : YY_ARRAYINITIAL_START paramtable YY_ARRAYINITIAL_END
 			{
-				/* give initial value */
-				/* `B(1:2:3)` can be either a single-element argtable or a exp, this can probably lead to reduction conflicts, so merge rules */
-				/* NOTE fortran use a 1d list to initialize a 2d(or higher) array, however, contrary to c++ and most other language does, it store them in a **conlumn - first order**. for a 2d array, it means you a order of a(1)(1)->a(2)(1)->a(lb_1)(1)->a(1)(2) */
+				// give initial value 
+				// `B(1:2:3)` can be either a single-element argtable or a exp, this can probably lead to reduction conflicts, so merge rules
 				$$ = gen_array_generate_paramtable($2);
 				update_pos($$, $1, $3);
 			}
@@ -946,19 +922,35 @@ using namespace std;
 				/* give generate stmt */
 				$$ = gen_array_generate_stmt($2);
 				update_pos($$, $1, $3);
-				/* rule `YY_ARRAYINITIAL_START variable '(' dimen_slice ')' YY_ARRAYINITIAL_END ` is included in this rule*/
-				/* note that this two rules can not be splitted because `exp` and `variable` + '(' can cause reduction conflict */
-				/* note either that `variable '(' dimen_slice ')'` is an `exp` */
+				// rule `YY_ARRAYINITIAL_START variable '(' dimen_slice ')' YY_ARRAYINITIAL_END ` is included in this rule because \
+				// these two rules can not be splitted because `exp` and `variable` + '(' can cause reduction conflict 
+				// so either that `variable '(' dimen_slice ')'` is an `exp`
 			}
 
+	/* array_builder can accept mixed */
 	array_builder : array_builder_elem
 			{
-				$$ = gen_promote("%s", TokenMeta::NT_ARRAYBUILDER, $1); // array_builder_elem
+				ParseNode & array_builder_elem = $1;
+				if (array_builder_elem.fs.CurrentTerm.token == TokenMeta::NT_ARRAYBUILDER)
+				{
+					$$ = $1;
+				}
+				else {
+					$$ = gen_promote("%s", TokenMeta::NT_ARRAYBUILDER, $1); // array_builder_elem
+				}
 				update_pos($$, $1, $1);
 			}
 		| array_builder_elem ',' array_builder
 			{
-				$$ = gen_flattern($1, $3, "%s\n%s", TokenMeta::NT_ARRAYBUILDER);
+				ParseNode & array_builder_elem = $1;
+				ParseNode & array_builder = $3;
+				if (array_builder_elem.fs.CurrentTerm.token == TokenMeta::NT_ARRAYBUILDER)
+				{
+					$$ = gen_merge($1, $3, "", TokenMeta::NT_ARRAYBUILDER);
+				}
+				else {
+					$$ = gen_flattern($1, $3, "", TokenMeta::NT_ARRAYBUILDER);
+				}
 				update_pos($$, $1, $3);
 
 			}
@@ -975,8 +967,6 @@ using namespace std;
 			{
 				ParseNode & exp = $2;
 				ParseNode & suite_true = $5; 
-				//sprintf(codegen_buf, "if (%s) {\n%s}", exp.fs.CurrentTerm.what.c_str(), suite_true.fs.CurrentTerm.what.c_str());
-
 				$$ = gen_if(exp, suite_true, gen_dummy(), gen_dummy());
 				update_pos($$, $1, $7);
 			}
@@ -985,7 +975,6 @@ using namespace std;
 				ParseNode & exp = $2;
 				ParseNode & suite_true = $5; 
 				ParseNode & suite_else = $8; 
-				//sprintf(codegen_buf, "if (%s) {\n%s}\nelse {\n %s}", exp.fs.CurrentTerm.what.c_str(), suite_true.fs.CurrentTerm.what.c_str(), suite_else.fs.CurrentTerm.what.c_str());
 				$$ = gen_if(exp, suite_true, gen_dummy(), suite_else);
 				update_pos($$, $1, $10);
 			}
@@ -994,7 +983,6 @@ using namespace std;
 				ParseNode & exp = $2;
 				ParseNode & suite_true = $5;
 				ParseNode & elseif = $6;
-				//sprintf(codegen_buf, "if (%s) {\n%s}\n%s", exp.fs.CurrentTerm.what.c_str(), suite_true.fs.CurrentTerm.what.c_str(), elseif.fs.CurrentTerm.what.c_str());
 				$$ = gen_if(exp, suite_true, elseif, gen_dummy());
 				update_pos($$, $1, $8);
 			}
@@ -1003,8 +991,7 @@ using namespace std;
 				ParseNode & exp = $2;
 				ParseNode & suite_true = $5;
 				ParseNode & elseif = $6;
-				ParseNode & suite_else = $9; 
-				//sprintf(codegen_buf, "if (%s) {\n%s}\n%selse {\n%s}", exp.fs.CurrentTerm.what.c_str(), suite_true.fs.CurrentTerm.what.c_str(), elseif.fs.CurrentTerm.what.c_str(), suite_else.fs.CurrentTerm.what.c_str());
+				ParseNode & suite_else = $9;
 				$$ = gen_if(exp, suite_true, elseif, suite_else);
 				update_pos($$, $1, $11);
 			}
@@ -1054,7 +1041,7 @@ using namespace std;
 				ParseNode & loop_variable = $2;
 				ParseNode & exp_from = $4;
 				ParseNode & exp_to = $6;
-				ParseNode & step = gen_exp(gen_token(Term{ TokenMeta::META_INTEGER , "1" }));
+				ParseNode & step = gen_promote(TokenMeta::NT_EXPRESSION, gen_token(Term{ TokenMeta::META_INTEGER , "1" }));
 				ParseNode & suite = $8; 
 				$$ = gen_do_range(loop_variable, exp_from, exp_to, step, suite);
 				update_pos($$, $1, $10);

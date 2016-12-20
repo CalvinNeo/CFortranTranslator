@@ -69,6 +69,10 @@ void ParseNode::addchild(ParseNode * ptrn, bool add_back) {
 	}
 }
 
+void ParseNode::addchild(const ParseNode & n, bool add_back ) {
+	this->addchild(new ParseNode(n), add_back);
+}
+
 void ParseNode::replace(int childid, const ParseNode & pn) {
 	delete this->child[childid];
 	this->child[childid] = new ParseNode(pn);

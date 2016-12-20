@@ -7,5 +7,6 @@ program array_test
 	integer, dimension(1:2, 3:4, 5:6)::xxx
 	m(1)(2)(3)
 	m(1, 2:i, 3:j, 4)
-	print *, A(6), B(5)(6)(7)
+	RESHAPE((/3,4,5,6,7,8/),(/2,3/))
+	print *, A(6), B(5)(6)(7), C(6, 7)
 end program

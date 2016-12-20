@@ -18,6 +18,16 @@ struct ParseNode {
 	struct ParseAttr * attr = nullptr;
 
 	void addchild(ParseNode * ptrn, bool add_back = true);
+	void addchild(const ParseNode & n, bool add_back = true);
+	template <typename ... Args>
+	void addlist(const ParseNode & x, Args ... args) {
+		addchild(new ParseNode(x));
+		addlist(std::forward<Args...>(args...));
+	}
+	template <typename ... Args>
+	void addlist(const ParseNode & x) {
+		addchild(new ParseNode(x));
+	}
 	void replace(int childid, const ParseNode & pn);
 
 	ParseNode(const ParseNode &);
@@ -26,6 +36,7 @@ struct ParseNode {
 	ParseNode(const FlexState & s, ParseNode * fa, ParseAttr * att = nullptr) : father(fa), attr(att), fs(s) {}
 	virtual ~ParseNode();
 };
+
 
 
 int parse(std::string code);

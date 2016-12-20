@@ -150,7 +150,9 @@ refer to [/grammar/for90.y](/grammar/for90.y) for all accepted grammar
 4. update bytecodes and grammar tokens in [/Intent.h](/Intent.h)
 5. update IntentName in [/IntentHelper.cpp](/IntentHelper.cpp)
 6. register keyword in [/tokenizer.cpp](/tokenizer.cpp)(if this token is keyword)
-7. if this keyword takes more than 1 word and can cause reduction conflicts between itself and its prefix like `else if`, update forward1 in [/tokenizer.cpp](/tokenizer.cpp)
+7. if this keyword are made up of more than 1 word, reduction conflicts may be caused between the keyword and its prefix,
+    - if rules keywords are all charaters like `(/`, just add a regex to for90.l
+    - if rules keywords are all words like `else if`, update forward1 in [/tokenizer.cpp](/tokenizer.cpp)
 8. update translation rules in [/gen_config.h.h](/gen_config.h.h)
 
 ## extend new intrinsic function
@@ -204,13 +206,13 @@ all parse tree nodes are defined in [/Intent.h](/Intent.h) with an `NT_` prefix
 4. father: parent node
 
 ### rules explanation
-#### callable_head, argtable, dimen_slice, paramtable, keyvalue
+#### argtable, paramtable
 - argtable is now alias of paramtable
-- `callable_head` and `argtable` are two parts of a function call
+- `callable_head` and `paramtable`(NT_ARGTABLE_PURE/NT_PARAMTABLE_DIMENSLICE) are two parts of a function call/array slice
 - both type and function name are callable name, so both `type_nospec` and `variable` are `callable_head`
 - `keyvalue` rules generates `NT_VARIABLEINITIAL` = `NT_KEYVALUE` node. `what` of this node is `name` not `name = value`, the later is regenerated in `gen_function_array` in [/gen_callable.cpp](/gen_callable.cpp)
 
-#### argtable, dimen_slice, paramtable
+#### dimen_slice, paramtable
 - `dimen_slice` rule: 
     - `dimen_slice` rule can reduce to: `NT_DIMENSLICE`, `NT_ARGTABLE_PURE` node.
     - `dimen_slice` is needed in `paramtable`, `case_stmt_elem`, `variable_desc_elem`
@@ -227,13 +229,14 @@ all parse tree nodes are defined in [/Intent.h](/Intent.h) with an `NT_` prefix
 	- `keyvalue` + `paramtable`
 	- `NT_DIMENSLICE` + `paramtable`
 	- `NT_ARGTABLE_PURE` + `paramtable`
+
 	
 #### type_spec, type_nospec
 you can use `REAL(x)` to get the float copy of x, however, you can also use `REAL(kind = 8)` to specify a floating number which is same to `long double` rather than `double`, so it may cause conflict. so a `type_nospec` is like `INTEGER` and a `type_spec` is like `INTEGER(kind = 4)`, `type_nospec` is `callable_head`, `type_spec` is not.
 
 #### hidden_do, _generate_stmt
 - `_generate_stmt` is for `array_builder`, `hidden_do` is for `exp`
-- `hidder_do` is wrapped by "( )", `_generate_stmt` is wrapped by "(/ /)"
+- `_generate_stmt` wrapped by "( )" is `hidder_do`, wrapped by "(/ /)" is `array_builder`
 
 #### stmt, suite
 - `stmt` is statement end with ';' or '\n'

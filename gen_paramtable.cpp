@@ -76,7 +76,8 @@ ParseNode gen_paramtable(ParseNode & paramtable_elem, ParseNode & paramtable) {
 	if (paramtable_elem.fs.CurrentTerm.token == TokenMeta::NT_ARGTABLE_PURE) {
 		arg1 = true;
 	}
-	if (TokenMeta::iselement(paramtable_elem.fs.CurrentTerm.token)) {
+	if (TokenMeta::iselement(paramtable_elem.fs.CurrentTerm.token) 
+		|| paramtable_elem.fs.CurrentTerm.token == TokenMeta::NT_EXPRESSION) {
 		va1 = true;
 	}
 	if (paramtable.fs.CurrentTerm.token == TokenMeta::NT_PARAMTABLE_DIMENSLICE) {
@@ -85,7 +86,8 @@ ParseNode gen_paramtable(ParseNode & paramtable_elem, ParseNode & paramtable) {
 	if (paramtable.fs.CurrentTerm.token == TokenMeta::NT_ARGTABLE_PURE) {
 		arg2 = true;
 	}
-	if (TokenMeta::iselement(paramtable.fs.CurrentTerm.token)) {
+	if (TokenMeta::iselement(paramtable.fs.CurrentTerm.token) 
+		|| paramtable_elem.fs.CurrentTerm.token == TokenMeta::NT_EXPRESSION) {
 		va2 = true;
 	}
 	if (paramtable_elem.fs.CurrentTerm.token == TokenMeta::NT_KEYVALUE && paramtable.fs.CurrentTerm.token == TokenMeta::NT_PARAMTABLE) {

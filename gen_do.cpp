@@ -40,7 +40,7 @@ ParseNode gen_do_while(const ParseNode & exp, ParseNode & suite) {
 	return newnode;
 }
 
-ParseNode gen_hiddendo(const ParseNode & _generate_stmt) {
+ParseNode gen_hiddendo(const ParseNode & _generate_stmt, TokenMeta_T return_token ) {
 	/* give generate stmt */
 	ParseNode newnode = ParseNode();
 	ParseNode * exp = _generate_stmt.child[0];
@@ -56,7 +56,7 @@ ParseNode gen_hiddendo(const ParseNode & _generate_stmt) {
 		, str_lambda_body.c_str());
 	string str_init = string(codegen_buf);
 	rt += str_init;
-	newnode.fs.CurrentTerm = Term{ TokenMeta::NT_HIDDENDO, rt };
+	newnode.fs.CurrentTerm = Term{ return_token, rt };
 	newnode.addchild(new ParseNode(*exp)); // exp
 	newnode.addchild(new ParseNode(*index)); // index variable
 	newnode.addchild(new ParseNode(*from)); // exp_from

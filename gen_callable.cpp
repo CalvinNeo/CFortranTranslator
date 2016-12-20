@@ -61,15 +61,29 @@ ParseNode gen_function_array(const ParseNode & callable_head, const ParseNode & 
 			}
 			else {
 				// normal argument
+				vector<ParseNode *> args;
+				if (argtable.child[i]->fs.CurrentTerm.token == TokenMeta::NT_ARRAYBUILDER) {
+					for (auto j = 0; j < argtable.child[i]->child.size(); j++)
+					{
+						args.push_back(argtable.child[i]->child[j]);
+					}
+				}
+				else {
+					args.push_back(argtable.child[i]);
+				}
+
 				if (kwargs) {
 					print_error("keyword arguments must come after normal arguments", argtable);
 				}
 				else {
-					if (i != 0) {
-						func_header += " ,";
+					for (auto j = 0; j < args.size(); j++)
+					{
+						if (i != 0 || j != 0) {
+							func_header += " ,";
+						}
+						func_header += args[j]->fs.CurrentTerm.what;
+						normal_count++;
 					}
-					func_header += argtable.child[i]->fs.CurrentTerm.what;
-					normal_count++;
 				}
 			}
 		}

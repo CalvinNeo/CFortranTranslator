@@ -101,14 +101,14 @@ namespace for90std {
 			, next_iter_delta, values.begin(), values.end(), nullptr);
 	};
 
-	template<typename T, typename _Container_value_type>
-	for1array<_Container_value_type> gen_for1array(
-		const for1array<_Container_value_type> & farr
-		, const std::vector<for1array_size_t> & lower_bound
+	template<typename T, int D>
+	fornarray<T, D> gen_for1array(
+		const std::vector<for1array_size_t> & lower_bound
 		, const std::vector<for1array_size_t> & size
 		, const std::vector<T> & values) {
-		for1array<_Container_value_type> n;
-		return init_for1array(n, lower_bound, size, values);
+		fornarray<T, D> n;
+		init_for1array(n, lower_bound, size, values);
+		return n;
 	};
 
 
