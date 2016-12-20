@@ -66,6 +66,17 @@ namespace for90std {
 
 	}
 
+	template <typename T>
+	fornarray<T, 2> fortranspose(const for1array<T> & farr) {
+
+	}
+
+	//// 1d vector -> 2d matrix
+	//template <typename T>
+	//fornarray<T, 2> fornarray<T, 1>::operator fornarray<T, 2>() const (const fornarray<T, 1> & farr) {
+
+	//}
+
 //
 //#define forarray for1array
 //#define init_forarray init_for1array

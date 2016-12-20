@@ -95,6 +95,7 @@ refer to [/grammar/for90.y](/grammar/for90.y) for all accepted grammar
 |`init_for1array(array, lowerbound, size, initialvalue list)`|use a 1d list to initialize a 2d(or higher) array|
 |`for1array_getsize(array)`|get flatterned size of an array|
 |`for1array_gettype<T>::type`|get innermost type of an array|
+|`for1array_flatmap(array, lambda)`|flat map elements in the array and put them in a vector|
 
 4. init a array
     - use `init_for1array(array, lower_bound, size, values)` to init array, in which

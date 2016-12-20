@@ -155,7 +155,7 @@
 
 int main()
 {
-
+	
 	for1array< for1array<int>  > m(1, 5 + 1);
 
 	string ch = "";
@@ -173,15 +173,15 @@ int main()
 	for (i = 1; i <= 5; i += 1) {
 		forprint(" %s%4d%4d%4d%4d%4d\n", slice(ch, 1, 4 * (i - 1) + 1), slice(m(i), i, 5 + 1));
 	}
-	//auto xx = for1array_flattern(m);
-	//for (auto i = 0; i < xx.size() - 1; i++)
-	//{
-	//	xx[i] = 1;
-	//}
-	//for (i = 1; i <= 5; i += 1) {
-	//	for (j = 1; j <= 5; j += 1) {
-	//		forwrite_noform(stdout, m(i, j));
-	//	}
-	//}
+	auto xx = for1array_flattern(m);
+	for (auto i = 0; i < xx.size() ; i++)
+	{
+		*xx[i] = 1;
+	}
+	for (i = 1; i <= 5; i += 1) {
+		for (j = 1; j <= 5; j += 1) {
+			forwritefree(stdout, m(i, j));
+		}
+	}
 	return 0;
 }

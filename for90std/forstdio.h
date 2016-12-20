@@ -9,7 +9,7 @@
 //#define eprintf(f, ...) fprintf(stdin, f, __VA_ARGS__)
 
 namespace for90std {
-	inline std::string _forwrite_noargs(FILE * f, std::string & format) {
+	inline std::string _forwrite_noargs(FILE * f, const std::string & format) {
 		for (size_t i = 0; i < format.size(); i++)
 		{
 			switch (format[i])
@@ -31,15 +31,15 @@ namespace for90std {
 	}
 
 	template <typename T>
-	void _do_fprintf(FILE * f, std::string _format, T & x) {
+	void _do_fprintf(FILE * f, std::string _format, const T & x) {
 		fprintf(f, _format.c_str(), x);
 	}
-	inline void _do_fprintf(FILE * f, std::string _format, std::string & x) {
+	inline void _do_fprintf(FILE * f, std::string _format, const std::string & x) {
 		fprintf(f, _format.c_str(), x.c_str());
 	}
 
 	template <typename T>
-	std::string _forwrite_one(FILE * f, std::string format, T & x) {
+	std::string _forwrite_one(FILE * f, std::string format, const T & x) {
 		// clear front
 		std::string _format = _forwrite_noargs(f, format);
 		if (_format != "") {
@@ -61,11 +61,11 @@ namespace for90std {
 		}
 	};
 	template <typename T>
-	std::string _forwrite_one_arr(FILE * f, std::string format, T & x) {
+	std::string _forwrite_one_arr(FILE * f, std::string format, const T & x) {
 		// clear front
 		std::string _format = _forwrite_noargs(f, format);
 		typedef typename for1array_gettype<T>::type _InnerT;
-		std::vector<_InnerT> vec = for1array_flattern(x);
+		std::vector<_InnerT> vec = for1array_flatterned(x);
 		for (auto i = 0; i < vec.size(); i++)
 		{
 			if (_format == "") {
@@ -80,9 +80,9 @@ namespace for90std {
 	};
 
 	template <typename T>
-	void _forwrite_one_arr_noform(FILE * f, T & x) {
+	void _forwrite_one_arr_noform(FILE * f, const T & x) {
 		typedef typename for1array_gettype<T>::type _InnerT;
-		std::vector<_InnerT> vec = for1array_flattern(x);
+		std::vector<_InnerT> vec = for1array_flatterned(x);
 		for (auto i = 0; i < vec.size(); i++)
 		{
 			_forwrite_one_noform(f, vec[i]);
@@ -101,7 +101,7 @@ namespace for90std {
 	inline void _forwrite_one_noform(FILE * f, long double x) {
 		fprintf(f, "%Lf ", x);
 	};
-	inline void _forwrite_one_noform(FILE * f, std::string & x) {
+	inline void _forwrite_one_noform(FILE * f, const std::string & x) {
 		fprintf(f, "%s ", x.c_str());
 	};
 	inline void _forwrite_one_noform(FILE * f, bool x) {
@@ -109,58 +109,67 @@ namespace for90std {
 	};
 	template <typename T>
 	void _forwrite_one_noform(FILE * f, T x) {
-		fprintf(f, "[object] %p ", &x);
+		fprintf(f, "[object %s] %p ", typeid(T).name(), &x);
 	};
 	
 	// format
 	template <typename T, typename... Args>
-	void forwrite(FILE * f, std::string format, T & x, Args... args) {
-		format = _forwrite_one(f, format, x);
+	std::string _forwrite(FILE * f, std::string format, const T & x, for1array_matcher<T>) {
+		return _forwrite_one_arr(f, format, x);
+	};
+	template <typename T, typename... Args>
+	std::string _forwrite(FILE * f, std::string format, const T & x, ...) {
+		return _forwrite_one(f, format, x);
+	};
+	template <typename T, typename... Args>
+	void forwrite(FILE * f, std::string format, const T & x, Args... args) {
+		format = _forwrite<T>(f, format, x, nullptr);
 		forwrite(f, format, forward<Args>(args)...);
 	};
 	template <typename T>
-	void forwrite(FILE * f, std::string format, T & x) {
-		if (is_for1array::test<T>(nullptr)) {
-			format = _forwrite_one_arr(f, format, x);
-		}
-		else {
-			format = _forwrite_one(f, format, x);
-		}
+	void forwrite(FILE * f, std::string format, const T & x) {
+		format = _forwrite<T>(f, format, x, nullptr);
 		// clear end
 		_forwrite_noargs(f, format);
 	};
+
+
 	// no format
 	template <typename T, typename... Args>
-	void forwritefree(FILE * f, T & x, Args... args) {
-		_forwrite_one_noform(f, x);
-		forwritefree(f, forward<Args>(args)...);
+	void _forwritefree(FILE * f, const T & x, for1array_matcher<T>) {
+		_forwrite_one_arr_noform(f, x);
 	};
-	template <typename T>
-	void forwritefree(FILE * f, T & x) {
-		if (is_for1array::test<T>(nullptr)) {
-			_forwrite_one_arr_noform(f, x);
-		}
-		else {
-			_forwrite_one_noform(f, x);
-		}
+	template <typename T, typename... Args>
+	void _forwritefree(FILE * f, const T & x, ...) {
+		_forwrite_one_noform(f, x);
 	};
 
 	template <typename T, typename... Args>
-	void forprintfree(T & x, Args... args) {
+	void forwritefree(FILE * f, const T & x, Args... args) {
+		_forwritefree<T>(f, x, nullptr);
+		forwritefree(f, forward<Args>(args)...);
+	};
+	template <typename T>
+	void forwritefree(FILE * f, const T & x) {
+		_forwritefree<T>(f, x, nullptr);
+	};
+
+	template <typename T, typename... Args>
+	void forprintfree(const T & x, Args... args) {
 		// no format
 		forwritefree(stdout, x, forward<Args>(args)...);
 	};
 	template <typename T>
-	void forprint_noform(T & x) {
+	void forprint_noform(const T & x) {
 		forwritefree(stdout, x);
 	};
 	template <typename T, typename... Args>
-	void forprint(std::string format, T & x, Args... args) {
+	void forprint(std::string format, const T & x, Args... args) {
 		// format
 		forwrite(stdout, format, x, forward<Args>(args)...);
 	};
 	template <typename T>
-	void forprint(std::string format, T & x) {
+	void forprint(std::string format, const T & x) {
 		forwrite(stdout, format, x);
 	};
 	

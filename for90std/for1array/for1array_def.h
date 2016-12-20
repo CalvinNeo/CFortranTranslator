@@ -181,15 +181,18 @@ namespace for90std {
 			return *this;
 		}
 
+		// deprecated
 		template<class ... Args>
-		void push_back_list(const T & x, Args ... args) {
+		void push_back(const T & x, Args ... args) {
 			push_back(x);
-			addrange(forward<Args>(args)...);
+			push_back(forward<Args>(args)...);
 		}
+		template<class ... Args>
 		void push_back(const T & x) {
 			m_arr.push_back(x);
 		}
 
+		// deprecated
 		template<class ... Args>
 		void init(const T & x, Args ... args) {
 			m_arr.clear();
@@ -202,7 +205,7 @@ namespace for90std {
 		void clear() {
 			m_arr.clear();
 		}
-		void resize(int l, int u) {
+		void resize(size_type l, size_type u) {
 			this->lb = l;
 			this->ub = u;
 		}

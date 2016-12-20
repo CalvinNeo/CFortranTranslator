@@ -2,7 +2,8 @@
 
 namespace for90std {
 	/* string type cast */
-	/* using static/inline/extern to avoid repeated definition */ int to_int(std::string x, foroptional<int> kind = foroptional<int>()) {
+	/* using static/inline/extern to avoid repeated definition */ 
+	int to_int(std::string x, foroptional<int> kind = foroptional<int>()) {
 		int a;
 		sscanf(x.c_str(), "%d", &a);
 		return a;
