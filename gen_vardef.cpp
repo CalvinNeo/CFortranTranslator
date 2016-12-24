@@ -125,14 +125,15 @@ std::string gen_vardef_array(ParseNode * pn, ParseNode * spec_typename, ParseNod
 						vec_size += codegen_buf;
 					}
 					vec_size += "}", vec_lb += "}";
-					/* gen_for1array(%%s, %%s, std::vector<%%s>{%s})\n" from gen_arraybuilder */
+					/* gen_for1array(%%s, %%s, std::initializer_list<%%s>{%s})\n" from gen_arraybuilder */
 					sprintf(codegen_buf,
 						array_builder->fs.CurrentTerm.what.c_str() // format
 						, innermost_type.c_str()
 						, slice->child.size()
 						, vec_lb.c_str()
 						, vec_size.c_str()
-						, innermost_type.c_str());
+						// , innermost_type.c_str() //use std::initializer now
+					);
 				}
 				else if (array_builder->fs.CurrentTerm.token == TokenMeta::NT_ARRAYBUILDER_EXP) {
 					sprintf(codegen_buf, "%s", array_builder->fs.CurrentTerm.what.c_str());

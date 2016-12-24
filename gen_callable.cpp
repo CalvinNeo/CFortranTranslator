@@ -81,7 +81,12 @@ ParseNode gen_function_array(const ParseNode & callable_head, const ParseNode & 
 						if (i != 0 || j != 0) {
 							func_header += " ,";
 						}
-						func_header += args[j]->fs.CurrentTerm.what;
+						if (args[j]->fs.CurrentTerm.token == TokenMeta::NT_ARRAYBUILDER_VALUE) {
+							func_header += "{" + args[j]->child[0]->fs.CurrentTerm.what + "}";
+						}
+						else {
+							func_header += args[j]->fs.CurrentTerm.what;
+						}
 						normal_count++;
 					}
 				}
@@ -117,7 +122,7 @@ ParseNode gen_function_array(const ParseNode & callable_head, const ParseNode & 
 	// kwargs functrion
 	/* function call OR array index */
 	ParseNode newnode = ParseNode();
-	string name, args;
+	string name;
 	if (funcname_map.find(callable_head.fs.CurrentTerm.what) != funcname_map.end()) {
 		// some fortran intrinsic function name must be replaced with its c++ implementation in for90std.h
 		name = funcname_map.at(callable_head.fs.CurrentTerm.what);
@@ -129,13 +134,8 @@ ParseNode gen_function_array(const ParseNode & callable_head, const ParseNode & 
 		// error
 	}
 	else {
-		args += name;
-		args += "(";
-		args += argtable.fs.CurrentTerm.what;
-		args += ",";
-		args += paramtable.fs.CurrentTerm.what;
-		args += ")";
-		newnode.fs.CurrentTerm = Term{ TokenMeta::NT_FUCNTIONARRAY,  args };
+		sprintf(codegen_buf, "%s(%s, %s)", name.c_str(), argtable.fs.CurrentTerm.what.c_str(), paramtable.fs.CurrentTerm.what.c_str());
+		newnode.fs.CurrentTerm = Term{ TokenMeta::NT_FUCNTIONARRAY,  string(codegen_buf) };
 	}
 	return newnode;
 }

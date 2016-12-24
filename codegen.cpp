@@ -1,6 +1,7 @@
 #include "gen_common.h"
 #include <iostream>
 #include <sstream>
+#include <array>
 #ifndef _DEBUG
 char codegen_buf[MAX_CODE_LENGTH];
 #endif

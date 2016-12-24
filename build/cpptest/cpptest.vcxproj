@@ -134,6 +134,7 @@
     <ClInclude Include="..\..\for90std\formath.h" />
     <ClInclude Include="..\..\for90std\fornarray.h" />
     <ClInclude Include="..\..\for90std\forstdio.h" />
+    <ClInclude Include="..\..\for90std\forutils.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

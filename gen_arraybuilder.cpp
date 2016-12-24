@@ -36,7 +36,7 @@ ParseNode gen_array_generate_paramtable(const ParseNode & argtable) {
 			// set in gen_vardef.cpp
 			//sprintf(codegen_buf, "init_for1array(%%s, %%s, %%s, std::vector<%%s>{%s});\n", /* value */ argtable.fs.CurrentTerm.what.c_str());
 			// use 1d list to initialize the array
-			sprintf(codegen_buf, "gen_for1array<%%s, %%d>(%%s, %%s, std::vector<%%s>{%s})", argtable.fs.CurrentTerm.what.c_str());
+			sprintf(codegen_buf, "gen_for1array<%%s, %%d>(%%s, %%s, {%s})", argtable.fs.CurrentTerm.what.c_str());
 			goto CAN_ONLY_GEN_ONE;
 		}
 	}

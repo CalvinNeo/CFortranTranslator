@@ -4,8 +4,10 @@
 #include <functional>
 #include <type_traits>
 #include <string>
+#include <array>
 #include <random>
 #include "../forlang.h"
+#include "../forutils.h"
 
 #define USE_FORARRAY
 
@@ -121,7 +123,7 @@ namespace for90std {
 		size_type size() const {
 			return ub - lb;
 		}
-		int for1array_kind() {
+		int for1array_kind() const{
 			return 1;
 		}
 		T * c_array() {
@@ -132,7 +134,7 @@ namespace for90std {
 		}
 
 		const T & const_get(size_type i) const {
-			if (i - lb >= (int)m_arr.size() || i - lb < 0) {
+			if (i - lb >= (size_type)m_arr.size() || i - lb < 0) {
 				throw 0;
 			}
 			else {
@@ -140,7 +142,7 @@ namespace for90std {
 			}
 		}
 		T & get(size_type i) {
-			if (i - lb >= (int)m_arr.size() || i < lb) {
+			if (i - lb >= (size_type)m_arr.size() || i < lb) {
 				m_arr.resize(i - lb + 1);
 				ub = i + 1; // important
 				return m_arr[i - lb];
@@ -174,7 +176,7 @@ namespace for90std {
 		}
 		template<typename _Inner>
 		for1array<T> & operator=(const std::vector<_Inner> & x) {
-			init_for1array(*this, for1array_lbound(*this), for1array_getsize(*this), x);
+			for1array_init(*this, for1array_lbound(*this), for1array_getsize(*this), x);
 			return *this;
 		}
 		for1array<T> & operator+=(const for1array<T> & x) {
@@ -218,7 +220,7 @@ namespace for90std {
 		template<typename _Inner>
 		for1array(size_type l, size_type u, const std::vector<_Inner> & x) {
 			lb = l; ub = u;
-			init_for1array(*this, for1array_lbound(*this), for1array_getsize(*this), x);
+			for1array_init(*this, for1array_lbound(*this), for1array_getsize(*this), x);
 			return *this;
 		}		
 		for1array(const std::vector<T> & arr, size_type l, size_type u) : lb(l), ub(u) {
@@ -262,13 +264,10 @@ namespace for90std {
 			m_arr.push_back(x);
 		}
 	};
-
-	/* SFINAE */
-	template<typename T, int (T::*)()>
-	struct func_matcher;
+	
 
 	template <typename T>
-	using for1array_matcher = func_matcher<T, &T::for1array_kind>*;
+	using for1array_matcher = const_func_matcher<T, &(T::for1array_kind)>*;
 
 	struct is_for1array
 	{
@@ -294,13 +293,19 @@ namespace for90std {
 
 	// base template must before inherited
 	template<typename T, int D>
-	struct fornarray {
-		typedef typename for1array<typename fornarray<T, D - 1>::type> type;
+	struct fornarray_impl {
+		typedef typename for1array<typename fornarray_impl<T, D - 1>::type> type;
 	};
 	template<typename T>
-	struct fornarray<T, 1> {
+	struct fornarray_impl<T, 1> {
 		typedef typename for1array<T> type;
 	};
+	template<typename T>
+	struct fornarray_impl<T, 0> {
+		typedef typename T type;
+	};
+	template<typename T, int D>
+	using fornarray = typename fornarray_impl<T, D>::type;
 
 
 	//template <typename T>
@@ -318,27 +323,6 @@ namespace for90std {
 		using type = typename for1array_gettype<T>::type;
 	};
 
-	template <typename T>
-	struct function_traits
-		: public function_traits<decltype(&T::operator())>
-	{};
-	// For generic types, directly use the result of the signature of its 'operator()'
-
-	template <typename ClassType, typename ReturnType, typename... Args>
-	struct function_traits<ReturnType(ClassType::*)(Args...) const>
-	{
-		// we specialize for pointers to member function
-		enum { arity = sizeof...(Args) };
-		// arity is the number of arguments.
-		typedef ReturnType result_type;
-		template <size_t i>
-		struct arg
-		{
-			typedef typename std::tuple_element<i, std::tuple<Args...>>::type type;
-			// the i-th argument is equivalent to the i-th tuple element of a tuple
-			// composed of those arguments.
-		};
-	};
 
 	template<typename _Container_value_type>
 	std::vector<for1array_size_t> _for1array_getsize_layer(
@@ -381,7 +365,7 @@ namespace for90std {
 		, std::vector<for1array_size_t> & lbound
 		, for1array_matcher<_Container_value_type>/* SFINAE */) {
 		lbound.push_back(farr.LBound());
-		_for1array_lbound_layer<typename _Container_value_type::value_type>(farr.const_get(farr.LBound()), size, nullptr);
+		_for1array_lbound_layer<typename _Container_value_type::value_type>(farr.const_get(farr.LBound()), lbound, nullptr);
 		return lbound;
 	}
 
@@ -391,4 +375,5 @@ namespace for90std {
 		_for1array_lbound_layer<_Container_value_type>(farr, lbound, nullptr);
 		return lbound;
 	}
+
 }

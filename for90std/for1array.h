@@ -5,10 +5,10 @@
 
 namespace for90std {
 	//template<typename T>
-	//for1array<T> init_for1array_hiddendo(int start, int end, std::function<T(int) > get_T) {
-	//for1array<T> init_for1array_hiddendo(int start, int end, T (*get_T)(int) ) {
+	//for1array<T> for1array_init_hiddendo(int start, int end, std::function<T(int) > get_T) {
+	//for1array<T> for1array_init_hiddendo(int start, int end, T (*get_T)(int) ) {
 	template<typename T>
-	auto _init_for1array_hiddendo(typename for1array<T>::size_type start, typename for1array<T>::size_type end, std::function<T(typename for1array<T>::size_type) > get_T)
+	auto _for1array_init_hiddendo(typename for1array<T>::size_type start, typename for1array<T>::size_type end, std::function<T(typename for1array<T>::size_type) > get_T)
 	{
 		std::vector<T> nvec;
 		for (int i = start; i < end; i++) {
@@ -19,9 +19,9 @@ namespace for90std {
 	}
 
 	template <typename T>
-	auto init_for1array_hiddendo(typename for1array<T>::size_type from, typename for1array<T>::size_type to, T lambda)
+	auto for1array_init_hiddendo(typename for1array<T>::size_type from, typename for1array<T>::size_type to, T lambda)
 		-> for1array<typename function_traits<T>::result_type> {
-		return _init_for1array_hiddendo<function_traits<decltype(lambda)>::result_type>(from, to, lambda);
+		return _for1array_init_hiddendo<function_traits<decltype(lambda)>::result_type>(from, to, lambda);
 	}
 
 	template <typename T>
@@ -59,11 +59,14 @@ namespace for90std {
 			return newstr;
 		}
 	}
-	
-	
-	template<typename T, int D>
-	fornarray<T, D> forreshape(const for1array<T> & farr, std::vector<int> shape) {
 
+
+	template<int D, typename T>
+	auto forreshape(const std::initializer_list<T> & values, const for1array_size_t(&shape)[D])
+	{
+		std::vector<for1array_size_t> lbound = std::vector<for1array_size_t>(D, 1);
+		std::vector<for1array_size_t> size = std::vector<for1array_size_t>(shape, shape + D);
+		return for1array_gen<T, D>(lbound, size, values);
 	}
 
 	template <typename T>
@@ -71,15 +74,15 @@ namespace for90std {
 
 	}
 
-	//// 1d vector -> 2d matrix
+	// 1d vector -> 2d matrix
 	//template <typename T>
-	//fornarray<T, 2> fornarray<T, 1>::operator fornarray<T, 2>() const (const fornarray<T, 1> & farr) {
+	//fornarray<T, 2> operator fornarray<T, 2>(const fornarray<T, 1> & farr) {
 
 	//}
 
 //
 //#define forarray for1array
-//#define init_forarray init_for1array
+//#define init_forarray for1array_init
 //#define gen_forarray gen_for1array
 }
 

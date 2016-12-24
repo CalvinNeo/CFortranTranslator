@@ -133,7 +133,7 @@ void debug() {
 	b(1)(1)(1) = 1;
 	b(1)(2)(1) = 2;
 	cout << b(1)(1)(1) << endl;
-	init_for1array(b, std::vector<int>{1, 1, 1}, std::vector<int>{2, 2, 2}, std::vector<int >{1, 2, 3, 4, 5, 6, 7, 8});
+	for1array_init(b, {1, 1, 1}, {2, 2, 2}, {1, 2, 3, 4, 5, 6, 7, 8});
 	for (int i = 1; i <= 2; i++)
 	{
 		for (int j = 1; j <= 2; j++)

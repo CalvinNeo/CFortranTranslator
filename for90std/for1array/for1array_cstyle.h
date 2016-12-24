@@ -40,7 +40,7 @@ namespace for90std {
 	}
 
 	template<typename T, typename _Container_value_type>
-	void init_for1array(for1array<_Container_value_type> & farr, const std::vector<for1array_size_type_t> & lower_bound
+	void for1array_init(for1array<_Container_value_type> & farr, const std::vector<for1array_size_type_t> & lower_bound
 		, const std::vector<for1array_size_type_t> & size, const std::vector<T> & values) {
 		/* NOTE: assume the array is already allocated and no need to clear */
 		std::vector<for1array_size_type_t> next_iter_delta(size);

@@ -359,6 +359,7 @@ using namespace std;
 				
 		| array_builder
 			{
+				// do not promote to exp
 				ParseNode & array_builder_elem = $1;
 				$$ = $1;
 				update_pos($$, $1, $1);
@@ -871,15 +872,16 @@ using namespace std;
 	paramtable : paramtable_elem
 			{
 				ParseNode & paramtable_elem = $1;
-				$$ = gen_paramtable(paramtable_elem);
+				ParseNode & newnode = gen_paramtable(paramtable_elem);
+				$$ = newnode;
 				update_pos($$, $1, $1);
 			}
 		| paramtable_elem ',' paramtable
 			{
 				ParseNode & paramtable_elem = $1;
 				ParseNode & paramtable = $3;
-				//$$ = gen_flattern(paramtable_elem, paramtable, "%s, %s", TokenMeta::NT_PARAMTABLE);
-				$$ = gen_paramtable(paramtable_elem, paramtable);
+				ParseNode & newnode = gen_paramtable(paramtable_elem, paramtable);
+				$$ = newnode;
 				update_pos($$, $1, $3);
 			}
 		|
@@ -933,10 +935,10 @@ using namespace std;
 				ParseNode & array_builder_elem = $1;
 				if (array_builder_elem.fs.CurrentTerm.token == TokenMeta::NT_ARRAYBUILDER)
 				{
-					$$ = $1;
+					$$ = array_builder_elem;
 				}
 				else {
-					$$ = gen_promote("%s", TokenMeta::NT_ARRAYBUILDER, $1); // array_builder_elem
+					$$ = gen_promote("%s", TokenMeta::NT_ARRAYBUILDER, array_builder_elem); // array_builder_elem
 				}
 				update_pos($$, $1, $1);
 			}
@@ -946,10 +948,10 @@ using namespace std;
 				ParseNode & array_builder = $3;
 				if (array_builder_elem.fs.CurrentTerm.token == TokenMeta::NT_ARRAYBUILDER)
 				{
-					$$ = gen_merge($1, $3, "", TokenMeta::NT_ARRAYBUILDER);
+					$$ = gen_merge(array_builder_elem, array_builder, "", TokenMeta::NT_ARRAYBUILDER);
 				}
 				else {
-					$$ = gen_flattern($1, $3, "", TokenMeta::NT_ARRAYBUILDER);
+					$$ = gen_flattern(array_builder_elem, array_builder, "", TokenMeta::NT_ARRAYBUILDER);
 				}
 				update_pos($$, $1, $3);
 

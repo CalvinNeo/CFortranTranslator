@@ -101,11 +101,14 @@ namespace for90std {
 	inline void _forwrite_one_noform(FILE * f, long double x) {
 		fprintf(f, "%Lf ", x);
 	};
-	inline void _forwrite_one_noform(FILE * f, const std::string & x) {
+	inline void _forwrite_one_noform(FILE * f, std::string x) {
 		fprintf(f, "%s ", x.c_str());
 	};
 	inline void _forwrite_one_noform(FILE * f, bool x) {
 		fprintf(f, "%s ", x ? "true" : "false");
+	};
+	inline void _forwrite_one_noform(FILE * f, const char * x) {
+		fprintf(f, "%s ", x);
 	};
 	template <typename T>
 	void _forwrite_one_noform(FILE * f, T x) {
@@ -126,9 +129,7 @@ namespace for90std {
 		format = _forwrite<T>(f, format, x, nullptr);
 		forwrite(f, format, forward<Args>(args)...);
 	};
-	template <typename T>
-	void forwrite(FILE * f, std::string format, const T & x) {
-		format = _forwrite<T>(f, format, x, nullptr);
+	inline void forwrite(FILE * f, std::string format) {
 		// clear end
 		_forwrite_noargs(f, format);
 	};
@@ -160,7 +161,7 @@ namespace for90std {
 		forwritefree(stdout, x, forward<Args>(args)...);
 	};
 	template <typename T>
-	void forprint_noform(const T & x) {
+	void forprintfree(const T & x) {
 		forwritefree(stdout, x);
 	};
 	template <typename T, typename... Args>
@@ -168,9 +169,8 @@ namespace for90std {
 		// format
 		forwrite(stdout, format, x, forward<Args>(args)...);
 	};
-	template <typename T>
-	void forprint(std::string format, const T & x) {
-		forwrite(stdout, format, x);
+	inline void forprint(std::string format) {
+		forwrite(stdout, format);
 	};
 	
 	inline std::string _forread_noargs(FILE * f, std::string format) {

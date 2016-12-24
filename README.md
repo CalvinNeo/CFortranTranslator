@@ -93,18 +93,19 @@ refer to [/grammar/for90.y](/grammar/for90.y) for all accepted grammar
 |:-:|:-:|
 |`#define USE_FORARRAY`|use fortran style array|
 |`#define USE_CARRAY`|use c style array|
-|`init_for1array(array, lowerbound, size, initialvalue list)`|use a 1d list to initialize a 2d(or higher) array|
+|`for1array_init(array, lowerbound, size, initialvalue list)`|use a 1d list to initialize a 2d(or higher) array|
 |`for1array_getsize(array)`|get flatterned size of an array|
 |`for1array_gettype<T>::type`|get innermost type of an array|
 |`for1array_flatmap(array, lambda)`|flat map elements in the array and put them in a vector|
 
 4. init a array
-    - use `init_for1array(array, lower_bound, size, values)` to init array, in which
+    - use `for1array_init(array, lower_bound, size, values)` to init array, in which
         1. `array` is reference of a defined array you want to init
         2. `lower_bound` is the lower bound of every dimension(from left to right) in this array
         3. `size` is the size of every dimension in this array
         4. `values` is `std::vector` of initialize list
-    - use `init_for1array_hiddendo` in [/for90std/for1array.h](/for90std/for1array.h) to init array by hidden do
+    - use `for1array_gen` to get a copy
+    - use `for1array_init_hiddendo` in [/for90std/for1array.h](/for90std/for1array.h) to init array by hidden do
         - when use `hidden_do` to generate array, array's LBound and hidden_do index's initial value must agree
 
 5. fortran intrinsic functions
@@ -225,7 +226,7 @@ all parse tree nodes are defined in [/Intent.h](/Intent.h) with an `NT_` prefix
 	`paramtable` rule can reduce to: `NT_PARAMTABLE`, `NT_ARGTABLE_PURE`, `NT_PARAMTABLE_DIMENSLICE` node.
 	- `keyvalue` / `dimen_slice`(`NT_DIMENSLICE`/`NT_ARGTABLE_PURE`) -> `NT_PARAMTABLE`
 	- when `keyvalue`: promote this to `paramtable`. 
-	- when `NT_DIMENSLICE`: promote this to `NT_DIMENSLICE`. refer function `gen_argtable`
+	- when `NT_DIMENSLICE`: promote this to `NT_PARAMTABLE_DIMENSLICE`(do not keep `NT_DIMENSLICE`). refer function `gen_argtable`
 	- when `NT_ARGTABLE_PURE`: promote this to `NT_ARGTABLE_PURE`. refer function `gen_argtable`
 	- `keyvalue` + `paramtable`
 	- `NT_DIMENSLICE` + `paramtable`
