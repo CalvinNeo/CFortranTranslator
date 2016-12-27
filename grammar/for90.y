@@ -45,7 +45,7 @@ using namespace std;
 %right YY_NEG YY_POS
 %left '+' '-' 
 %left '*' '/' 
-%left YY_POWER
+%right YY_POWER /* x**y**z -> x**(y**z) */
 %right YY_NOT
 
 %start fortran_program
@@ -226,7 +226,7 @@ using namespace std;
         | YY_COMPLEX
             {
 				string strcplx = $1.fs.CurrentTerm.what;
-				int splitter = strcplx.find_first_of('_', 0);
+				auto splitter = strcplx.find_first_of('_', 0);
 				$$ = gen_token(Term{ TokenMeta::Complex, "forcomplex(" + strcplx.substr(0, splitter) + ", " + strcplx.substr(splitter + 1) + ") " }); //complex
 			}
 

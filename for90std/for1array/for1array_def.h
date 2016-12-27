@@ -199,16 +199,6 @@ namespace for90std {
 			m_arr.push_back(x);
 		}
 
-		// deprecated
-		template<class ... Args>
-		void init(const T & x, Args ... args) {
-			m_arr.clear();
-			_init_by_value(x, forward<Args>(args)...);
-		}
-		template<class ... Args>
-		void init() {
-			m_arr.clear();
-		}
 		void clear() {
 			m_arr.clear();
 		}
@@ -216,13 +206,11 @@ namespace for90std {
 			this->lb = l;
 			this->ub = u;
 		}
-
-		template<typename _Inner>
-		for1array(size_type l, size_type u, const std::vector<_Inner> & x) {
-			lb = l; ub = u;
-			for1array_init(*this, for1array_lbound(*this), for1array_getsize(*this), x);
-			return *this;
-		}		
+		template<typename _InnerT>
+		for1array(const std::vector<size_type> & lower_bound, const std::vector<size_type> & size, const std::initializer_list<_InnerT> & values)
+		{
+			for1array_init(*this, lower_bound, size, values);
+		}
 		for1array(const std::vector<T> & arr, size_type l, size_type u) : lb(l), ub(u) {
 			m_arr = arr;
 		};
@@ -253,16 +241,6 @@ namespace for90std {
 		std::vector<T> m_arr;
 		T * carr;
 		size_type lb, ub;
-
-		template<class ... Args>
-		void _init_by_value(const T & x, Args ... args) {
-			m_arr.push_back(x);
-			_init_by_value(forward<Args>(args)...);
-		}
-		template<class ... Args>
-		void _init_by_value(const T & x) {
-			m_arr.push_back(x);
-		}
 	};
 	
 
@@ -292,20 +270,20 @@ namespace for90std {
 	}
 
 	// base template must before inherited
-	template<typename T, int D>
+	template<typename _DTYPE, int D>
 	struct fornarray_impl {
-		typedef typename for1array<typename fornarray_impl<T, D - 1>::type> type;
+		typedef typename for1array<typename fornarray_impl<_DTYPE, D - 1>::type> type;
 	};
-	template<typename T>
-	struct fornarray_impl<T, 1> {
-		typedef typename for1array<T> type;
+	template<typename _DTYPE>
+	struct fornarray_impl<_DTYPE, 1> {
+		typedef typename for1array<_DTYPE> type;
 	};
-	template<typename T>
-	struct fornarray_impl<T, 0> {
-		typedef typename T type;
+	template<typename _DTYPE>
+	struct fornarray_impl<_DTYPE, 0> {
+		typedef typename _DTYPE type;
 	};
-	template<typename T, int D>
-	using fornarray = typename fornarray_impl<T, D>::type;
+	template<typename _DTYPE, int D>
+	using fornarray = typename fornarray_impl<_DTYPE, D>::type;
 
 
 	//template <typename T>

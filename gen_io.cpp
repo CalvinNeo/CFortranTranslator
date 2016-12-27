@@ -146,7 +146,7 @@ std::string parse_ioformatter(const std::string & src) {
 			break;
 		case '(':
 			repeat.push_back(1);
-			repeat_from.push_back(rt.size());
+			repeat_from.push_back((int)rt.size());
 			break;
 		case ')':
 			memset(buf, 0, sizeof(buf));

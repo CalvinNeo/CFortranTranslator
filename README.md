@@ -96,15 +96,17 @@ refer to [/grammar/for90.y](/grammar/for90.y) for all accepted grammar
 |`for1array_init(array, lowerbound, size, initialvalue list)`|use a 1d list to initialize a 2d(or higher) array|
 |`for1array_getsize(array)`|get flatterned size of an array|
 |`for1array_gettype<T>::type`|get innermost type of an array|
-|`for1array_flatmap(array, lambda)`|flat map elements in the array and put them in a vector|
+|`for1array_flatmap(array, lambda)`|return a vector of all elements mapped by function `lambda` in fortran/c order|
 
 4. init a array
-    - use `for1array_init(array, lower_bound, size, values)` to init array, in which
+    there are many ways to init an array
+    - use `for1array_init(array, lower_bound, size, values)` to init `array`, in which
         1. `array` is reference of a defined array you want to init
         2. `lower_bound` is the lower bound of every dimension(from left to right) in this array
         3. `size` is the size of every dimension in this array
         4. `values` is `std::vector` of initialize list
-    - use `for1array_gen` to get a copy
+    - use `for1array_gen` and return a copy directly
+    - use constructor `for1array(lower_bound, size, values)`
     - use `for1array_init_hiddendo` in [/for90std/for1array.h](/for90std/for1array.h) to init array by hidden do
         - when use `hidden_do` to generate array, array's LBound and hidden_do index's initial value must agree
 
@@ -112,10 +114,15 @@ refer to [/grammar/for90.y](/grammar/for90.y) for all accepted grammar
 
 |fortran|c++|
 |:-:|:-:|
-|reshape|not implemented yet|
+|reshape|forreshape|
 |spread|not implemented yet|
 |transpose|not implemented yet|
 |maxloc, minloc|not implemented yet|
+|sum, product|not implemented yet|
+|any, all, count|not implemented yet|
+|pack|for1array_flatmap|
+|size|for1array_flatmap|
+|dot_product|for1array_flatmap|
 
 ### variables
 1. all variables must be **explicitly** declared
@@ -185,6 +192,7 @@ their replacement occur in following stages:
 2. function name mapping in `funcname_map` is replacement in parse stage in function `gen_function_array` [/gen_callable.cpp](/gen_callable.cpp)
 
 ### fortran-style array
+
 ** though fortran-style array is different from c-style array, only need to consider relationship with flatterned 1d array **
 
 1. for1array class defined in [/for90std/for1array.l](/for90std/for1array.h)

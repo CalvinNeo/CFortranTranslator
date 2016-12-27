@@ -98,7 +98,7 @@ void preorder(ParseNode * ptree) {
 		}
 		else {
 			cout << string(deep * 2, ' ') << p->fs.CurrentTerm.token << ", " << p->fs.CurrentTerm.what << endl;
-			for (int i = p->child.size() - 1; i >= 0; i--)
+			for (auto i = p->child.size() - 1; i >= 0; i--)
 			{
 				s.push(make_pair(p->child[i], deep + 1));
 			}
@@ -110,7 +110,7 @@ std::string & replace_all(std::string & str, const std::string & old_value, cons
 {
 	while (true)
 	{
-		int pos = 0;
+		size_t pos = 0;
 		if ((pos = str.find(old_value, 0)) != std::string::npos)
 			str.replace(pos, old_value.length(), new_value);
 		else break;
@@ -139,7 +139,7 @@ std::string & repalce_all_my(std::string & str, const std::string & old_value, c
 std::string compose_marker(std::string cont, int place, int end) {
 	using namespace std;
 	string ret = "\n";
-	int len = cont.size();
+	auto len = cont.size();
 	int i;
 	for (i = 0; i < len; i++)
 	{

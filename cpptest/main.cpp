@@ -121,7 +121,8 @@ int main()
 	//{
 	//	cout << *i << endl;
 	//}
-
+	for1array< for1array< for1array<int>  > > aaa({ 5,6,7 }, { 2,2,2 }, { 1, 2, 3, 4, 5, 6, 7, 8 });
+	forprintfree(aaa);
 	for1array< for1array< for1array<int>  > > b(1, 3);
 	for1array_init(b, {1, 1, 1}, {1, 2, 3}, {1, 2, 3, 4, 5, 6});
 	vector<for1array_size_t> size = for1array_getsize(b);
