@@ -10,6 +10,9 @@ My Configuration:
 3. win_bison(win_flex_bison 2.4.5, bison 2.7)
 4. boost(1.60)
 
+## Demo
+demos provided in [demos](/demos)
+
 ## fortran std
 include [for90std/for90std.h](/for90std/for90std.h) to use c++ implementation of intrinsic fortran functions and language features
 all slice in c++ is [from, to)
@@ -61,9 +64,11 @@ refer types:array
 
 ## translation results and restrictions
 refer to [/grammar/for90.y](/grammar/for90.y) for all accepted grammar
-### unsupported keywords
+### grammar
 
-1. now you can rename keyword parameter in `interface` block
+1. you can rename keyword parameter in `interface` block
+2. you can use anonymous grammar structures
+3. variable definitions and interfaces is not forced before any other statements
 
 ### types
 #### type mapping
@@ -73,21 +78,54 @@ refer to [/grammar/for90.y](/grammar/for90.y) for all accepted grammar
 |INTEGER(all length)|int|
 |REAL(all length)|double|
 |LOGICAL|bool|
-|COMPLEX|struct for_complex|
+|COMPLEX|struct forcomplex|
 |CHARACTER|std::string|
 |array(1d)|for1array&lt;T&gt;|
 |array(nd)|for1array&lt;for1array&lt; ...for1array&lt;T&gt;&gt;&gt; or fornarray&lt;T, D&gt;|
 
 ### array
+#### fortran-style array and c-style array
+
+1. fortran store array in a **column-first order**
+    - for a 2d array, it means when initializing by a 1d array, it follows the order of `a(1)(1) -> a(2)(1) -> a(1)(2) -> a(1)(2)` 
+    - similarly, for a nd array, dimension 1 increase by 1 first, when dimension 1 equals to upper bound it wrap back and dimension 2 increase by 1..., dimension n increase the last.
+    - for details refer to `array_builder` rule in [/grammar/for90.y](/grammar/for90.y)
+2. fortran array default lower bound for each dimension is **1**, and it can be negative, c++ style array has constant lower bound  0
+
+
+#### slice
+`struct slice_info<T>` stands for a slice in fortran
+1. `slice_info<T>{T x}`: stands for the scalar `x`, mostly `x` is index
+2. `slice_info<T>{T x, T y}`: `x`, `y` stands for a range of **[x, y)** of default step 1
+3. `slice_info<T>{T x, T y, T z}`: `x`, `y`, `z` stands for a range of **[x, y)** step `z`
+
+#### farray
+`farray` is a multi-dimentional valarray
 1. define an array
-    1. fortran store array in a **column-first order**
-        - for a 2d array, it means when initializing by a 1d array, it follows the order of `a(1)(1) -> a(2)(1) -> a(1)(2) -> a(1)(2)` 
-        - similarly, for a nd array, dimension 1 increase by 1 first, when dimension 1 equals to upper bound it wrap back and dimension 2 increase by 1..., dimension n increase the last.
-        - for details refer to `array_builder` rule in [/grammar/for90.y](/grammar/for90.y)
-    2. fortran array default lower bound for each dimension is **1**, and it can be negative
-        - `DIMENSION(a:b)` -> `forarray<T>(a, b + 1)`
-2. `#define USE_FORARRAY` to use fortran style array, however if you don't like feature of fortran style array, `#define USE_CARRAY` to use c style array
+2. init a array
 3. array traits
+4. fortran intrinsic functions
+
+|fortran|c++|
+|:-:|:-:|
+|get|`a(1, 2, 3, 4)` or `a({1, 2, 3, 4})` or `a[{1, 2, 3, 4}]` or `slice(a, {1, 2, 3, 4})`|
+|slice|`a[{{1, 3, 1}, {1, 4}, {5}}]` or `slice(a, {{1, 3, 1}, {1, 4}, {5}})`|
+
+#### for1array
+`for1array` is a 1-dimentional dynamic array
+1. init a array
+    ways to initialize an for1array
+    - with `f1a_init(array, lower_bound, size, values)` to init `array`, in which
+        1. `array` is reference of a defined array you want to init
+        2. `lower_bound` is the lower bound of every dimension(from left to right) in this array
+        3. `size` is the size of every dimension in this array
+        4. `values` is `std::vector` of initialize list
+    - with `f1a_gen` and return a copy directly
+    - with constructor `for1array(lower_bound, size, values)`
+    - with `f1a_init_hiddendo` in [/for90std/for1array.h](/for90std/for1array.h) to init array by hidden do
+        - when use `hidden_do` to generate array, array's LBound and hidden_do index's initial value must agree
+
+2. array traits
 
 |function|usage|
 |:-:|:-:|
@@ -98,31 +136,25 @@ refer to [/grammar/for90.y](/grammar/for90.y) for all accepted grammar
 |`for1array_gettype<T>::type`|get innermost type of an array|
 |`for1array_flatmap(array, lambda)`|return a vector of all elements mapped by function `lambda` in fortran/c order|
 
-4. init a array
-    there are many ways to init an array
-    - use `for1array_init(array, lower_bound, size, values)` to init `array`, in which
-        1. `array` is reference of a defined array you want to init
-        2. `lower_bound` is the lower bound of every dimension(from left to right) in this array
-        3. `size` is the size of every dimension in this array
-        4. `values` is `std::vector` of initialize list
-    - use `for1array_gen` and return a copy directly
-    - use constructor `for1array(lower_bound, size, values)`
-    - use `for1array_init_hiddendo` in [/for90std/for1array.h](/for90std/for1array.h) to init array by hidden do
-        - when use `hidden_do` to generate array, array's LBound and hidden_do index's initial value must agree
 
-5. fortran intrinsic functions
+3. fortran intrinsic functions
+
+|fortran|c++|
+|:-:|:-:|
+|slice||
 
 |fortran|c++|
 |:-:|:-:|
 |reshape|forreshape|
 |spread|not implemented yet|
 |transpose|not implemented yet|
-|maxloc, minloc|not implemented yet|
+|maxloc, minloc, maxval, minval|not implemented yet|
 |sum, product|not implemented yet|
 |any, all, count|not implemented yet|
 |pack|for1array_flatmap|
 |size|for1array_flatmap|
 |dot_product|for1array_flatmap|
+
 
 ### variables
 1. all variables must be **explicitly** declared
@@ -191,16 +223,15 @@ their replacement occur in following stages:
 
 2. function name mapping in `funcname_map` is replacement in parse stage in function `gen_function_array` [/gen_callable.cpp](/gen_callable.cpp)
 
-### fortran-style array
+### array
 
 ** though fortran-style array is different from c-style array, only need to consider relationship with flatterned 1d array **
 
-1. for1array class defined in [/for90std/for1array.l](/for90std/for1array.h)
+1. ~~for1array is a 1d array defined in [/for90std/for1array.l](/for90std/for1array.h), ~~farray is a nd array defined in [/for90std/farray.l](/for90std/farray.h)
 2. in [/gen_callable.cpp](/gen_callable.cpp), functions and arrays are generated in normal order
 3. in [/gen_vardef.cpp](/gen_vardef.cpp)
-4. overload for1array<T>::operator() so `a(1, 2, 3)` is same as `a(1)(2)(3)`
+4. overload `operator()` and  `operator[]` so `a(x, y, z)` is same as `a(x)(y)(z)` where x,y,z are `slice_info` or index
 
-### c-style array
 
 ## Parse Tree
 all parse tree nodes are defined in [/Intent.h](/Intent.h) with an `NT_` prefix
@@ -242,7 +273,7 @@ all parse tree nodes are defined in [/Intent.h](/Intent.h) with an `NT_` prefix
 
 	
 #### type_spec, type_nospec
-you can use `REAL(x)` to get the float copy of x, however, you can also use `REAL(kind = 8)` to specify a floating number which is same to `long double` rather than `double`, so it may cause conflict. so a `type_nospec` is like `INTEGER` and a `type_spec` is like `INTEGER(kind = 4)`, `type_nospec` is `callable_head`, `type_spec` is not.
+you can use `REAL(x)` to get the float copy of x, however, you can also use `REAL(kind = 8)` to specify a floating number which is same to `long double` rather than `double`, so it may cause conflict. To specify, `type_nospec` is like `INTEGER` and a `type_spec` is like `INTEGER(kind = 4)`, `type_nospec` is `callable_head`, `type_spec` is not.
 
 #### hidden_do, _generate_stmt
 - `_generate_stmt` is for `array_builder`, `hidden_do` is for `exp`

@@ -63,7 +63,7 @@ struct optionalparam
 	}
 	optionalparam(const optionalparam<T> & newv) {
 		// 复制构造函数
-		invalid = true;
+		invalid = newv.inited();
 		value = newv.const_get();
 	}
 	optionalparam() {
@@ -104,6 +104,7 @@ struct ParseAttr {
 	ParseAttr(ParseNode * parsenode) : parsenode(parsenode) {}
 	ParseAttr(const ParseAttr & pa) = default;
 	virtual ParseAttr * clone() = 0; /* use clone because copy-constructor can not be virtual */
+	virtual ~ParseAttr() = default;
 	// virtual ParseAttr * merge() = 0;
 
 };

@@ -64,8 +64,8 @@ namespace for90std {
 	std::string _forwrite_one_arr(FILE * f, std::string format, const T & x) {
 		// clear front
 		std::string _format = _forwrite_noargs(f, format);
-		typedef typename for1array_gettype<T>::type _InnerT;
-		std::vector<_InnerT> vec = for1array_flatterned(x);
+		typedef typename f1a_gettype<T>::type _InnerT;
+		std::vector<_InnerT> vec = f1a_flatterned(x);
 		for (auto i = 0; i < vec.size(); i++)
 		{
 			if (_format == "") {
@@ -81,8 +81,8 @@ namespace for90std {
 
 	template <typename T>
 	void _forwrite_one_arr_noform(FILE * f, const T & x) {
-		typedef typename for1array_gettype<T>::type _InnerT;
-		std::vector<_InnerT> vec = for1array_flatterned(x);
+		typedef typename f1a_gettype<T>::type _InnerT;
+		std::vector<_InnerT> vec = f1a_flatterned(x);
 		for (auto i = 0; i < vec.size(); i++)
 		{
 			_forwrite_one_noform(f, vec[i]);
@@ -117,7 +117,7 @@ namespace for90std {
 	
 	// format
 	template <typename T, typename... Args>
-	std::string _forwrite(FILE * f, std::string format, const T & x, for1array_matcher<T>) {
+	std::string _forwrite(FILE * f, std::string format, const T & x, f1a_matcher<T>) {
 		return _forwrite_one_arr(f, format, x);
 	};
 	template <typename T, typename... Args>
@@ -137,7 +137,7 @@ namespace for90std {
 
 	// no format
 	template <typename T, typename... Args>
-	void _forwritefree(FILE * f, const T & x, for1array_matcher<T>) {
+	void _forwritefree(FILE * f, const T & x, f1a_matcher<T>) {
 		_forwrite_one_arr_noform(f, x);
 	};
 	template <typename T, typename... Args>

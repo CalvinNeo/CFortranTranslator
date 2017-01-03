@@ -4,6 +4,7 @@
 #include "formath.h"
 #include "forstdio.h"
 #include "forfilesys.h"
+#include "farray.h"
 
 
 #define USE_FORARRAY

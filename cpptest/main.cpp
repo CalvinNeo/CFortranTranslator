@@ -91,7 +91,7 @@
 #include "../for90std/for90std.h"
 
 template<typename T>
-void test1(T x, for1array_matcher<T>) {
+void test1(T x, f1a_matcher<T>) {
 	cout << "match" << endl;
 }
 template<typename T>
@@ -101,41 +101,22 @@ void test1(T x, ...) {
 
 int main()
 {	
-	//for1array<int>  a(5, 7 + 1);
-	//for (int i = 5; i < 7; i++) {
-	//	a(i) = to_int(i, 4) + 1;
-	//};
-	//for1array< for1array< for1array<int>  > > b(5, 6 + 1);
-	//for1array_init(b, std::vector<int>{5, 6, 7}, std::vector<int>{2, 2, 2}, std::vector<int >{1, 2, 3, 4, 5, 6, 7, 8});
 
-	//for1array< for1array<int>  > c(5, 7 + 1);
- 
-	//for1array<int>  d(5, 7 + 1);
-	//d = a.slice(5, 7) + for1array_init_hiddendo(1, 4, [](int i) {return to_int(i) + 1; });
-
-	//cout << a(6) << b(5)(6)(7) << endl;
-
-	//for1array<int> e = for1array<int>(3, 6);
-	//for1array_init(e, vector<int>{ 3 }, vector<int>{ 3 }, vector<int>{ 1, 2, 3 });
-	//for (for1array<int>::iterator i = e.begin(); i != e.end(); i++)
-	//{
-	//	cout << *i << endl;
-	//}
 	for1array< for1array< for1array<int>  > > aaa({ 5,6,7 }, { 2,2,2 }, { 1, 2, 3, 4, 5, 6, 7, 8 });
 	forprintfree(aaa);
 	for1array< for1array< for1array<int>  > > b(1, 3);
-	for1array_init(b, {1, 1, 1}, {1, 2, 3}, {1, 2, 3, 4, 5, 6});
-	vector<for1array_size_t> size = for1array_getsize(b);
+	f1a_init(b, {1, 1, 1}, {1, 2, 3}, {1, 2, 3, 4, 5, 6});
+	vector<f1a_size_t> size = f1a_getsize(b);
 	forwritefree(stdout, b);
-	std::vector< int * >  xxxx = for1array_flatternedptr(b);
+	std::vector< int * >  xxxx = f1a_flatternedptr(b);
 	for (auto i = 0; i < xxxx.size(); i++)
 	{
 		*xxxx[i] = 1;
 	}
 	forwritefree(stdout, b);
 	
-	auto reshaped_array = forreshape({ 1,2,3,4,5,6 }, {2, 3});
-	forwritefree(stdout, reshaped_array);
+	//auto reshaped_array = forreshape({ 1,2,3,4,5,6 }, {2, 3});
+	//forwritefree(stdout, reshaped_array);
 
 	int aa = 1;
 	for1array<int> bb;
@@ -143,10 +124,14 @@ int main()
 	//test1<int>(aa, nullptr);
 	//test1<for1array<int>>(bb, nullptr);
 	//test1<for1array<for1array<int>>>(cc, nullptr);
-	cout << is_for1array::test<int>(nullptr) << endl;
-	cout << is_for1array::test<for1array<int>>(nullptr) << endl;
-	cout << is_for1array::test<for1array<for1array<int>>>(nullptr) << endl;
+	//cout << is_for1array::test<int>(nullptr) << endl;
+	//cout << is_for1array::test<for1array<int>>(nullptr) << endl;
+	//cout << is_for1array::test<for1array<for1array<int>>>(nullptr) << endl;
 
+
+	//auto a = farray({ 1, 2, 3 }, { 4, 5, 6 }, { 1, 2, 3, 4, 5 });
+	farray<int, 3> ar = farray<int, 3>({ 5,6,7 }, { 2,2,2 }, { 1, 2, 3, 4, 5, 6, 7, 8 });
+	farray<int, 3> f = for90std::slice(ar, { {5, 6}, {6, 7}, {7, 8} });
 	return 0;
 }
 

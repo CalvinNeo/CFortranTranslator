@@ -1,10 +1,10 @@
 #pragma once
 
 namespace for90std {
-	template<typename T, int (T::*)()>
+	template<typename T, typename Return, Return(T::*)()>
 	struct func_matcher;
 
-	template<typename T, int (T::*)()const>
+	template<typename T, typename Return, Return(T::*)()const>
 	struct const_func_matcher;
 
 

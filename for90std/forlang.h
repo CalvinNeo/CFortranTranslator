@@ -28,7 +28,7 @@ namespace for90std {
 		}
 		foroptional(const foroptional<T> & newv) {
 			// 复制构造函数
-			invalid = true;
+			invalid = newv.inited();
 			value = newv.const_get();
 		}
 		foroptional(const foroptional_dummy & newv) {

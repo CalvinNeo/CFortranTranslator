@@ -197,16 +197,10 @@
     <ClInclude Include="..\..\for90std\fortime.h">
       <Filter>for90std</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\for90std\for1array\for1array_def.h">
-      <Filter>for90std</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\for90std\for1array\for1array_cstyle.h">
-      <Filter>for90std</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\for90std\for1array\for1array_forstyle.h">
-      <Filter>for90std</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\for90std\forutils.h">
+      <Filter>for90std</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\for90std\for1array\forarray_common.h">
       <Filter>for90std</Filter>
     </ClInclude>
   </ItemGroup>

@@ -81,7 +81,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;_SCL_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>F:\Codes\CommonLib\boost_1_60_0;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
@@ -108,7 +108,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;_SCL_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
@@ -123,10 +123,9 @@
     <ClCompile Include="..\..\for90std\forstdio.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\for90std\farray.h" />
     <ClInclude Include="..\..\for90std\for1array.h" />
-    <ClInclude Include="..\..\for90std\for1array\for1array_cstyle.h" />
-    <ClInclude Include="..\..\for90std\for1array\for1array_def.h" />
-    <ClInclude Include="..\..\for90std\for1array\for1array_forstyle.h" />
+    <ClInclude Include="..\..\for90std\for1array\forarray_common.h" />
     <ClInclude Include="..\..\for90std\for90std.h" />
     <ClInclude Include="..\..\for90std\forarray.h" />
     <ClInclude Include="..\..\for90std\forfilesys.h" />

@@ -56,16 +56,13 @@
     <ClInclude Include="..\..\for90std\forstdio.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\for90std\for1array\for1array_def.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\for90std\for1array\for1array_cstyle.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\for90std\for1array\for1array_forstyle.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\for90std\forutils.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\for90std\farray.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\for90std\for1array\forarray_common.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>
