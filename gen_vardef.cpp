@@ -50,103 +50,132 @@ ParseNode * promote_type(const ParseNode & type_spec, VariableDescAttr * vardesc
 	return ty;
 }
 
-std::string gen_vardef_typestr(VariableDescAttr * vardescattr) {
+std::string gen_qualified_typestr(std::string type_name, VariableDescAttr * vardescattr) {
 	string var_pattern;
 	if (vardescattr == nullptr) {
-		return "%s ";
-	}
-	if (vardescattr->desc.reference) {
-		if (vardescattr->desc.constant) {
-			var_pattern = "const %s & ";
-		}
-		else {
-			var_pattern = "%s & ";
-		}
+		var_pattern = "%s ";
 	}
 	else {
-		if (vardescattr->desc.constant) {
-			var_pattern = "const %s ";
+		if (vardescattr->desc.reference) {
+			if (vardescattr->desc.constant) {
+				var_pattern = "const %s & ";
+			}
+			else {
+				var_pattern = "%s & ";
+			}
 		}
 		else {
-			var_pattern = "%s ";
+			if (vardescattr->desc.constant) {
+				var_pattern = "const %s ";
+			}
+			else {
+				var_pattern = "%s ";
+			}
 		}
 	}
-	return var_pattern;
+	sprintf(codegen_buf, var_pattern.c_str(), type_name.c_str());
+	return string(codegen_buf);
+}
+
+std::string gen_lbound_size(const ParseNode * slice) {
+	std::string vec_size = "{", vec_lb = "{";
+	for (auto sliceid = 0; sliceid < slice->child.size(); sliceid++)
+	{
+		if (sliceid != 0) {
+			vec_lb += ","; vec_size += ",";
+		}
+		int lb, ub;
+		sscanf(slice->child[sliceid]->child[0]->fs.CurrentTerm.what.c_str(), "%d", &lb);
+		sscanf(slice->child[sliceid]->child[1]->fs.CurrentTerm.what.c_str(), "%d", &ub);
+		sprintf(codegen_buf, "%d", ub - lb + 1);
+		vec_lb += slice->child[sliceid]->child[0]->fs.CurrentTerm.what; vec_size += codegen_buf;
+	}
+	vec_size += "}", vec_lb += "}";
+	return vec_size + ", " + vec_lb;
 }
 
 std::string gen_vardef_array(ParseNode * pn, ParseNode * spec_typename, ParseNode * slice, VariableDescAttr * vardescattr) {
 	// ARRAY
 	/* in cpp code, definition of an array is inherit attribute(继承属性) grammar */
 	string arr_decl = "";
-#define USE_LOOP
 	// pn is flattened
 	for (auto i = 0; i < pn->child.size(); i++)
 	{
 		// for each variable in flatterned paramtable
 		int sliceid = 0;
-		sprintf(codegen_buf, gen_vardef_typestr(vardescattr).c_str(), spec_typename->fs.CurrentTerm.what.c_str());
-		string innermost_type(codegen_buf); // `T`
-		sprintf(codegen_buf, "for1array<%s>", spec_typename->fs.CurrentTerm.what.c_str());
-		sprintf(codegen_buf, gen_vardef_typestr(vardescattr).c_str(), string(codegen_buf).c_str());
-		string type_str(codegen_buf);
-
-		for (sliceid = slice->child.size() - 2; sliceid >= 0; sliceid--)
-		{
-			sprintf(codegen_buf, "for1array< %s >", type_str.c_str());
+		string type_str;
+		string innermost_type = gen_qualified_typestr(spec_typename->fs.CurrentTerm.what, vardescattr); // `T`
+		if (parse_config.usefarray) {
+			sprintf(codegen_buf, "farr<%s, %d>", innermost_type.c_str(), (int)slice->child.size());
 			type_str = string(codegen_buf);
 		}
-		// use it in fucntion_decl
-		//string var_pattern = gen_vardef_pattern(vardescattr, false);
+		else {
+			// use for1array
+			sprintf(codegen_buf, "for1array<%s>", innermost_type.c_str());
+			type_str = string(codegen_buf);
+			for (sliceid = slice->child.size() - 2; sliceid >= 0; sliceid--)
+			{
+				sprintf(codegen_buf, "for1array< %s >", type_str.c_str());
+				type_str = string(codegen_buf);
+			}
+		}
 
 		// no desc if var_def is not in paramtable
 		sprintf(codegen_buf, "%s %s", type_str.c_str(), pn->child[i]->child[0]->fs.CurrentTerm.what.c_str() /* array name */);
-		string decl = string(codegen_buf);
-		arr_decl += decl;
+		arr_decl += string(codegen_buf);
 		/* set initial value from array_builder */
-		if (pn->child[i]->child[1]->fs.CurrentTerm.token == TokenMeta::NT_ARRAYBUILDER)
-		{
+		if (pn->child[i]->child[1]->fs.CurrentTerm.token == TokenMeta::NT_VARIABLEINITIALDUMMY){
+			// default initialize
+			if (parse_config.usefarray) {
+				arr_decl += "();\n";
+			}
+			else {
+				sprintf(codegen_buf, "(%s, %s + 1)", slice->child[0]->child[0]->fs.CurrentTerm.what.c_str(), slice->child[0]->child[1]->fs.CurrentTerm.what.c_str() /* slice from to */);
+				string dimension = string(codegen_buf);
+				arr_decl += dimension;
+				arr_decl += ";\n";
+				sprintf(codegen_buf, "");
+			}
+		}
+		else {
+			// init from array_builder
 			arr_decl += "(";
-			for (auto builderid = 0; builderid < pn->child[i]->child[1]->child.size(); builderid++)
+			ParseNode * variable_initial = pn->child[i];
+			ParseNode * compound_arraybuilder = variable_initial->child[1]; // NT_ARRAYBUILDER
+			bool can_list_init = true;
+			for (auto builderid = 0; builderid < compound_arraybuilder->child.size(); builderid++)
 			{
-				ParseNode * array_builder = pn->child[i]->child[1]->child[builderid];
+				ParseNode * array_builder = compound_arraybuilder->child[builderid];
 				if (array_builder->fs.CurrentTerm.token == TokenMeta::NT_ARRAYBUILDER_VALUE) {
-					std::string vec_size = "{", vec_lb = "{";
-					for (auto sliceid = 0; sliceid < slice->child.size(); sliceid++)
-					{
-						if (sliceid != 0) {
-							vec_lb += ","; vec_size += ",";
-						}
-						int lb, ub;
-						sscanf(slice->child[sliceid]->child[0]->fs.CurrentTerm.what.c_str(), "%d", &lb);
-						sscanf(slice->child[sliceid]->child[1]->fs.CurrentTerm.what.c_str(), "%d", &ub);
-						sprintf(codegen_buf, "%d", ub - lb + 1);
-						vec_lb += slice->child[sliceid]->child[0]->fs.CurrentTerm.what; vec_size += codegen_buf;
-					}
-					vec_size += "}", vec_lb += "}";
-					/* gen_arraybuilder */
-					sprintf(codegen_buf, "%s, %s, %s", vec_lb.c_str(), vec_size.c_str()
-						, array_builder->fs.CurrentTerm.what.c_str());
+					can_list_init = false;
+					break;
 				}
 				else if (array_builder->fs.CurrentTerm.token == TokenMeta::NT_ARRAYBUILDER_EXP) {
-					sprintf(codegen_buf, "%s", array_builder->fs.CurrentTerm.what.c_str());
+
 				}
 				else {
-					sprintf(codegen_buf, "");
+
 				}
-				if (builderid > 0 ) {
+			}
+			if (can_list_init)
+			{
+				// can init array from louer_bound, size and initial value
+				arr_decl += gen_lbound_size(slice);
+				arr_decl += ", ";
+			}
+			else {
+				// must init array from another array, or array slice selection by a copy/move constructor
+			}
+			for (auto builderid = 0; builderid < compound_arraybuilder->child.size(); builderid++)
+			{
+				ParseNode * array_builder = compound_arraybuilder->child[builderid];
+				sprintf(codegen_buf, "%s", array_builder->fs.CurrentTerm.what.c_str());
+				if (builderid > 0) {
 					arr_decl += " + ";
 				}
 				arr_decl += codegen_buf;
 			}
-			arr_decl += ") ;\n";
-		}
-		else {
-			// no arraybuilder
-			sprintf(codegen_buf, "(%s, %s + 1)", slice->child[0]->child[0]->fs.CurrentTerm.what.c_str(), slice->child[0]->child[1]->fs.CurrentTerm.what.c_str() /* slice from to */);
-			string dimension = string(codegen_buf);
-			arr_decl += dimension;
-			arr_decl += ";\n";
-			sprintf(codegen_buf, "");
+			arr_decl += ");\n";
 		}
 	}
 	return arr_decl;
@@ -179,17 +208,14 @@ ParseNode gen_vardef(const ParseNode & type_spec, const ParseNode & variable_des
 	}
 	else {
 		// SCALAR
-		sprintf(codegen_buf, gen_vardef_typestr(vardescattr).c_str(), spec_typename->fs.CurrentTerm.what.c_str());
-		string typestr = string(codegen_buf);
+		string typestr = gen_qualified_typestr(spec_typename->fs.CurrentTerm.what, vardescattr);
 		var_decl += typestr;
 		bool hitted = false; // 是否至少有一个变量，因为有的变量定义可能是函数的声明，这在c++规范是不允许的，所以可能出现空int，空逗号的情况。
-							 /* enumerate paramtable */
 		// pn is flattened
-		for (int i = 0; i < pn->child.size(); i++)
+		for (auto i = 0; i < pn->child.size(); i++)
 		{
 			ParseNode * this_variable = new ParseNode(*pn->child[i]);
-			// skip if it is a function
-			// TODO no module currently
+			// skip if it is a function, no module currently
 			if (get_function("", this_variable->fs.CurrentTerm.what)) {
 				continue;
 			}
@@ -198,10 +224,10 @@ ParseNode gen_vardef(const ParseNode & type_spec, const ParseNode & variable_des
 			}
 			hitted = true;
 
-			sprintf(codegen_buf, "%s", this_variable->child[0]->fs.CurrentTerm.what.c_str());
+			// variable name
+			var_decl += this_variable->child[0]->fs.CurrentTerm.what;
 
-			var_decl += codegen_buf;
-			/* initial value */
+			// variable initial value
 			if (this_variable->child[1]->fs.CurrentTerm.token != TokenMeta::NT_VARIABLEINITIALDUMMY) {
 				/* if initial value is not dummy but `exp` */
 				var_decl += " = ";
@@ -209,10 +235,11 @@ ParseNode gen_vardef(const ParseNode & type_spec, const ParseNode & variable_des
 			}
 			/* desc */
 			this_variable->attr = vardescattr->clone();
+			delete this_variable; // TODO temporarily not use this_variable
 		}
 		var_decl += ";";
 		if (!hitted) {
-			// all function declarations
+			// all function then remove even type declarator
 			var_decl = "";
 		}
 

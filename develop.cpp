@@ -107,33 +107,13 @@ void debug() {
 	global_code = "program integer, dimension(5:7)::A = (/ int(i) + 1, i = 1, 4 /) \n  end program";
 	global_code = "program integer, dimension(5:7, 6 : 8, 7 : 9)::A = (/ 11, 12, 13, 14, 15, 16 /) \n  end program";
 	global_code = "program print *, B(5), A(1)(2)(3) \n  end program";
-	
-		
-		
 
-
-
-
-	//std::vector<int> accumulated{ 2, 2, 2 };
-	//int s = 1;
-	//std::transform(accumulated.rbegin(), accumulated.rend(), accumulated.rbegin(), [&s](int x) {int ans = s; s *= x; return ans; });
-
-
-	//cout << max_n(1, 2) << endl;
-	//cout << parse_ioformatter("\"aaa\"2(f, 2i)") << endl;
-
-	/// for1array test
-
-	//forarray<forarray<int>> a(1, 3);
-	//init_forarray(a, vector<int>{1, 1}, vector<int>{2, 2}, std::vector<int>{1, 2, 3, 4});
-	//cout << a(1)(1) << " " << a(2)(1) << endl;
-	//cout << a(1)(2) << " " << a(2)(2) << endl;
 
 	for1array< for1array< for1array<int>  > > b(1, 3);
 	b(1)(1)(1) = 1;
 	b(1)(2)(1) = 2;
 	cout << b(1)(1)(1) << endl;
-	for1array_init(b, {1, 1, 1}, {2, 2, 2}, {1, 2, 3, 4, 5, 6, 7, 8});
+	f1a_init(b, {1, 1, 1}, {2, 2, 2}, {1, 2, 3, 4, 5, 6, 7, 8});
 	for (int i = 1; i <= 2; i++)
 	{
 		for (int j = 1; j <= 2; j++)
@@ -148,7 +128,7 @@ void debug() {
 			cout << b(j)(i)(2) << endl;
 		}
 	}
-	vector<for1array_size_t> size = for1array_getsize(b);
+	vector<fa_size_t> size = f1a_getsize(b);
 	// forstyle should return 1, 2, 3, 4, 5, 6, 7, 8
 
 

@@ -63,7 +63,6 @@ std::string regen_suite(ParseNode * oldsuite) {
 
 std::string gen_function_paramtable_typestr(VariableDescAttr * vardescattr, const tuple<string, ParseNode, ParseNode *> & param_name_typename_elem) {
 	string typestrpat, paramtblstr;
-	typestrpat = gen_vardef_typestr(vardescattr);
 
 	string type_nospec;
 	if (vardescattr != nullptr && vardescattr->desc.optional)
@@ -75,9 +74,8 @@ std::string gen_function_paramtable_typestr(VariableDescAttr * vardescattr, cons
 	else {
 		type_nospec += get<1>(param_name_typename_elem).fs.CurrentTerm.what;
 	}
-
-	sprintf(codegen_buf, typestrpat.c_str(), type_nospec.c_str());
-
+	typestrpat = gen_qualified_typestr(type_nospec, vardescattr);
+	
 	paramtblstr += string(codegen_buf);
 	paramtblstr += get<0>(param_name_typename_elem); // variable name
 	return paramtblstr;

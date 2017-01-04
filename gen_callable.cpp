@@ -20,17 +20,41 @@ ParseNode gen_function_array(const ParseNode & callable_head, const ParseNode & 
 	}
 	if (argtable.fs.CurrentTerm.token == TokenMeta::NT_PARAMTABLE_DIMENSLICE) {
 		// array
-		//sprintf(codegen_buf, argtable.fs.CurrentTerm.what.c_str(), name.c_str());
-		string arr = name;
-		for (int i = 0; i < argtable.child.size(); i++)
+		string arr;
+		bool is_slice = false;
+		for (auto i = 0; i < argtable.child.size(); i++)
 		{
 			if (argtable.child[i]->fs.CurrentTerm.token == TokenMeta::NT_SLICE) {
-				sprintf(codegen_buf, "slice(%s, %s, %s + 1)", arr.c_str()
-					, argtable.child[i]->child[0]->fs.CurrentTerm.what.c_str()
-					, argtable.child[i]->child[1]->fs.CurrentTerm.what.c_str());
-				arr = string(codegen_buf);
+				is_slice = true;
+				break;
 			}
-			else {
+		}
+		if (is_slice) {
+			string slice_info_str;
+			for (auto i = 0; i < argtable.child.size(); i++)
+			{
+				slice_info_str += "{";
+				if (argtable.child[i]->fs.CurrentTerm.token == TokenMeta::NT_SLICE) {
+					for (auto j = 0; j < argtable.child[i]->child.size(); j++)
+					{
+						if (j != 0) {
+							slice_info_str += ",";
+						}
+						slice_info_str += argtable.child[i]->child[j]->fs.CurrentTerm.what;
+					}
+				}
+				else {
+					slice_info_str += argtable.child[i]->fs.CurrentTerm.what;
+				}
+				slice_info_str += "}";
+			}
+			sprintf(codegen_buf, "fslice(%s, {%s})", name.c_str(), slice_info_str.c_str());
+			arr = string(codegen_buf);
+		}
+		else {
+			// have no slice, just call operator() or get()
+			for (auto i = 0; i < argtable.child.size(); i++)
+			{
 				sprintf(codegen_buf, "(%s)", argtable.child[i]->fs.CurrentTerm.what.c_str());
 				arr += string(codegen_buf);
 			}

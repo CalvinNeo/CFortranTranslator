@@ -70,6 +70,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\attribute.h" />
+    <ClInclude Include="..\..\for90std\farray.h" />
     <ClInclude Include="..\..\for90std\for1array.h" />
     <ClInclude Include="..\..\for90std\for1array\forarray_common.h" />
     <ClInclude Include="..\..\for90std\for90std.h" />

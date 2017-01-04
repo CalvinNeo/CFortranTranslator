@@ -1,6 +1,10 @@
 # CFortranTranslator
 A translator from Fortran to C++
 
+Fortran is an efficient tool in scientific calculation. However sometimes translate old fortran codes to c++ will provide more abstract methods, better GUI framework, higher performance IDE and easier interaction.
+
+This translator is not intended to improve existing codes, but to make convenience.
+
 # Usage
 ## Install
 My Configuration:
@@ -10,12 +14,16 @@ My Configuration:
 3. win_bison(win_flex_bison 2.4.5, bison 2.7)
 4. boost(1.60)
 
+## Debug
+Only fatal errors hinderring parsing will be reported by translator. 
+
+Debug origin fortran code or generated c++ code is recommended.
+
 ## Demo
 demos provided in [demos](/demos)
 
 ## fortran std
 include [for90std/for90std.h](/for90std/for90std.h) to use c++ implementation of intrinsic fortran functions and language features
-all slice in c++ is [from, to)
 
 ### inherit function mapping
 #### type cast
@@ -98,6 +106,7 @@ refer to [/grammar/for90.y](/grammar/for90.y) for all accepted grammar
 1. `slice_info<T>{T x}`: stands for the scalar `x`, mostly `x` is index
 2. `slice_info<T>{T x, T y}`: `x`, `y` stands for a range of **[x, y)** of default step 1
 3. `slice_info<T>{T x, T y, T z}`: `x`, `y`, `z` stands for a range of **[x, y)** step `z`
+4. all slice in c++ is [from, to)
 
 #### farray
 `farray` is a multi-dimentional valarray
@@ -108,8 +117,8 @@ refer to [/grammar/for90.y](/grammar/for90.y) for all accepted grammar
 
 |fortran|c++|
 |:-:|:-:|
-|get|`a(1, 2, 3, 4)` or `a({1, 2, 3, 4})` or `a[{1, 2, 3, 4}]` or `slice(a, {1, 2, 3, 4})`|
-|slice|`a[{{1, 3, 1}, {1, 4}, {5}}]` or `slice(a, {{1, 3, 1}, {1, 4}, {5}})`|
+|get|`a(1, 2, 3, 4)` or `a({1, 2, 3, 4})` or `a[{1, 2, 3, 4}]` or `fslice(a, {1, 2, 3, 4})`|
+|fslice|`a[{{1, 3, 1}, {1, 4}, {5}}]` or `fslice(a, {{1, 3, 1}, {1, 4}, {5}})`|
 
 #### for1array
 `for1array` is a 1-dimentional dynamic array
@@ -131,10 +140,10 @@ refer to [/grammar/for90.y](/grammar/for90.y) for all accepted grammar
 |:-:|:-:|
 |`#define USE_FORARRAY`|use fortran style array|
 |`#define USE_CARRAY`|use c style array|
-|`for1array_init(array, lowerbound, size, initialvalue list)`|use a 1d list to initialize a 2d(or higher) array|
-|`for1array_getsize(array)`|get flatterned size of an array|
-|`for1array_gettype<T>::type`|get innermost type of an array|
-|`for1array_flatmap(array, lambda)`|return a vector of all elements mapped by function `lambda` in fortran/c order|
+|`f1a_init(array, lowerbound, size, initialvalue list)`|use a 1d list to initialize a 2d(or higher) array|
+|`fia_flattern(array)`|get flatterned size of an array|
+|`f1a_gettype<T>::type`|get innermost type of an array|
+|`f1a_flatmap(array, begin_iterator, end_iterator, lambda)`|return a vector of all elements mapped by function `lambda` in fortran/c order|
 
 
 3. fortran intrinsic functions
@@ -227,10 +236,11 @@ their replacement occur in following stages:
 
 ** though fortran-style array is different from c-style array, only need to consider relationship with flatterned 1d array **
 
-1. ~~for1array is a 1d array defined in [/for90std/for1array.l](/for90std/for1array.h), ~~farray is a nd array defined in [/for90std/farray.l](/for90std/farray.h)
-2. in [/gen_callable.cpp](/gen_callable.cpp), functions and arrays are generated in normal order
-3. in [/gen_vardef.cpp](/gen_vardef.cpp)
+1. ~~for1array is a 1d dynamic array defined in [/for90std/for1array.l](/for90std/for1array.h), ~~farray is a nd array defined in [/for90std/farray.l](/for90std/farray.h)
+2. functions and arrays are generated in normal order in [/gen_callable.cpp](/gen_callable.cpp). 
+3. array declaration is in [/gen_vardef.cpp](/gen_vardef.cpp)
 4. overload `operator()` and  `operator[]` so `a(x, y, z)` is same as `a(x)(y)(z)` where x,y,z are `slice_info` or index
+5. slice selections are handled in [/gen_callable.cpp](/gen_callable.cpp). 
 
 
 ## Parse Tree

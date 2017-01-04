@@ -13,7 +13,7 @@
 #define USE_FORARRAY
 
 namespace for90std {
-	typedef int f1a_size_t;
+	typedef int fa_size_t;
 
 	template<typename T>
 	struct slice_info {
@@ -37,15 +37,37 @@ namespace for90std {
 		slice_info(const slice_info<T> & x) : fr(x.fr), to(x.to), step(x.step) {
 		}
 	};
+	inline std::string fslice(std::string str, const slice_info<std::string::size_type> & tp) {
+		if (tp.to >= str.size()) {
+			size_t appendlen = tp.to - str.size() + 2;
+			str += std::string(appendlen, ' ');
+		}
+		if (tp.step == 1) {
+			return str.substr(tp.fr, tp.to - tp.fr);
+		}
+		else {
+			std::string newstr;
+			for (size_t i = tp.fr; i < tp.to; i += tp.step)
+			{
+				newstr += str[i];
+			}
+			return newstr;
+		}
+	}
 #ifdef USE_FORARRAY
 	template<typename Iterator>
-	std::vector<f1a_size_t> f1a_layer_delta(Iterator begin, Iterator end) {
-		std::vector<f1a_size_t> next_iter_delta(begin, end);
-		f1a_size_t s = 1;
+	std::vector<fa_size_t> f1a_layer_delta(Iterator begin, Iterator end) {
+		std::vector<fa_size_t> next_iter_delta(begin, end);
+		fa_size_t s = 1;
 		std::transform(next_iter_delta.begin(), next_iter_delta.end(), next_iter_delta.begin()
-			, [&s](f1a_size_t x) {f1a_size_t ans = s; s *= x; return ans; });
+			, [&s](fa_size_t x) {fa_size_t ans = s; s *= x; return ans; });
 		return next_iter_delta;
 	}
 #else
 #endif
+	template<typename _Iterator>
+	fa_size_t f1a_getflatsize(_Iterator begin, _Iterator end) {
+		fa_size_t sizeflat = accumulate(begin, end, 1, [](auto x, auto y) {return x * y; });
+		return sizeflat;
+	}
 }

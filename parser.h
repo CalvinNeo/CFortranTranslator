@@ -69,6 +69,7 @@ struct ParseConfig {
 	bool isdebug = false;
 	bool hasfile = false;
 	bool usefor = true;
+	bool usefarray = true;
 };
 
 extern ParseConfig parse_config;

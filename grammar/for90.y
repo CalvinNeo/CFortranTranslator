@@ -336,7 +336,8 @@ using namespace std;
 				/* NOTE that array index can be A(1:2, 3:4) */
 				ParseNode & callable_head = $1;
 				ParseNode & argtable = $3;
-				$$ = gen_function_array(callable_head, argtable);
+				ParseNode newnode = gen_function_array(callable_head, argtable);
+				$$ = newnode;
 				update_pos($$, $1, $4);
 			}
 
@@ -359,7 +360,7 @@ using namespace std;
 				
 		| array_builder
 			{
-				// do not promote to exp
+				// don't promote to exp, and gen_vardel_array will consider this node as array_builder
 				ParseNode & array_builder_elem = $1;
 				$$ = $1;
 				update_pos($$, $1, $1);

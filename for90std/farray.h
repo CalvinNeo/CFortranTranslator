@@ -8,7 +8,7 @@ namespace for90std {
 	template <typename T, int D>
 	struct farray {
 		typedef T value_type;
-		typedef f1a_size_t size_type; // for1array index can be negative
+		typedef fa_size_t size_type; // for1array index can be negative
 		typedef value_type * pointer;
 		typedef value_type & reference;
 		typedef const value_type * const_pointer;
@@ -116,7 +116,7 @@ namespace for90std {
 		size_type lb[D], sz[D];
 	};
 	template <typename T, int D, int X, typename _Iterator_In, typename _Iterator_Out>
-	void slice_impl(const farray<T, D> & narr, int deep, const std::vector<typename farray<T, D>::size_type> step_out
+	void _fslice_impl(const farray<T, D> & narr, int deep, const std::vector<typename farray<T, D>::size_type> step_out
 		, const std::vector<typename farray<T, D>::size_type> & delta_out, const std::vector<typename farray<T, D>::size_type> & delta_in
 		, _Iterator_Out bo, _Iterator_Out eo, _Iterator_In bi, _Iterator_In ei)
 	{
@@ -126,7 +126,7 @@ namespace for90std {
 				*bo = *bi;
 			}
 			else {
-				slice_impl<T, D, X>(narr, deep + 1, step_out, delta_out, delta_in, bo, bo + delta_out[deep], bi, bi + delta_out[deep]);
+				_fslice_impl<T, D, X>(narr, deep + 1, step_out, delta_out, delta_in, bo, bo + delta_out[deep], bi, bi + delta_out[deep]);
 			}
 			if (i != narr.UBound(deep) - 1) {
 				bo += delta_out[deep];
@@ -135,7 +135,7 @@ namespace for90std {
 		}
 	};
 	template <typename T, int D, int X>
-	farray<T, D> slice(const farray<T, D> & farr, const slice_info<typename farray<T, D>::size_type>(&tp)[X]) {
+	farray<T, D> fslice(const farray<T, D> & farr, const slice_info<typename farray<T, D>::size_type>(&tp)[X]) {
 		farray<T, D> narr(farr.cLBound(), farr.csize());
 		std::vector<typename farray<T, D>::size_type> lbound_out(farr.cLBound(), farr.cLBound() + D);
 		std::transform(tp, tp + X, lbound_out.begin(), [](typename slice_info<typename farray<T, D>::size_type> x) {return x.fr; }); // lower bound of each dimension(new array)
@@ -152,7 +152,7 @@ namespace for90std {
 		std::vector<typename farray<T, D>::size_type> delta_out = f1a_layer_delta(narr.csize(), narr.csize() + D);
 		std::vector<typename farray<T, D>::size_type> delta_in = f1a_layer_delta(farr.csize(), farr.csize() + D);
 		narr.parr = std::shared_ptr<std::vector<T>>(new std::vector<T>(totalsize));
-		slice_impl<T, D, X>(narr, 0, step_out, delta_out, delta_in, narr.parr.get()->begin(), narr.parr.get()->end(), farr.parr.get()->begin(), farr.parr.get()->end());
+		_fslice_impl<T, D, X>(narr, 0, step_out, delta_out, delta_in, narr.parr.get()->begin(), narr.parr.get()->end(), farr.parr.get()->begin(), farr.parr.get()->end());
 
 		return narr;
 	}

@@ -25,7 +25,7 @@ ParseNode gen_exp(const ParseNode & exp1, const ParseNode & op, const ParseNode 
 ParseNode gen_exp(const ParseNode & exp1, const ParseNode & op, std::string trans_rule);
 
 ParseNode gen_vardef(const ParseNode & type_spec, const ParseNode & variable_desc, const ParseNode & paramtable);
-std::string gen_vardef_typestr(VariableDescAttr * vardescattr);
+std::string gen_qualified_typestr(std::string type_name, VariableDescAttr * vardescattr);
 
 ParseNode gen_function(const ParseNode & variable_function, const ParseNode & paramtable, const ParseNode & variable_result, ParseNode & suite); // function define
 

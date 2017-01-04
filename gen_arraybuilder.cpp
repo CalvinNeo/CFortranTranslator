@@ -2,13 +2,8 @@
 
 ParseNode gen_array_generate_stmt(const ParseNode & _generate_stmt) {
 	/* give generate stmt */
-	//print_error("LBound don't agree", _generate_stmt);
-	//sprintf(codegen_buf, "for(int %s = %s; %s < %s; %s++){\n%s(%s) = %s;\n}", index->fs.CurrentTerm.what.c_str(), from->fs.CurrentTerm.what.c_str() /* exp_from */
-	//	, index->fs.CurrentTerm.what.c_str(), to->fs.CurrentTerm.what.c_str() /* exp_to */, index->fs.CurrentTerm.what.c_str() /* index variable inc */
-	//	, "\t%s" /* array variable name */, index->fs.CurrentTerm.what.c_str() /* index variable */, exp->fs.CurrentTerm.what.c_str());
-	
 	// use gen_hiddendo
-	return gen_hiddendo(_generate_stmt, TokenMeta::NT_ARRAYBUILDER_EXP);
+	return gen_hiddendo(_generate_stmt, TokenMeta::NT_ARRAYBUILDER_VALUE);
 
 }
 
@@ -20,6 +15,7 @@ ParseNode gen_array_generate_paramtable(const ParseNode & argtable) {
 	for (int i = 0; i < argtable.child.size(); i++)
 	{
 		if (argtable.child[i]->fs.CurrentTerm.token == TokenMeta::NT_EXPRESSION) {
+			ParseNode array_builder_value;
 			if (argtable.child[i]/* NT_EXPRESSION */->child[0]->fs.CurrentTerm.token == TokenMeta::NT_FUCNTIONARRAY) {
 				// slice
 			}
@@ -27,16 +23,14 @@ ParseNode gen_array_generate_paramtable(const ParseNode & argtable) {
 				// hidden_do
 			}
 			else {
-				// just A(1)(2)(3)
+				// just A(1)(2)(3) or A(1, 2, 3)
 			}
-			ParseNode array_builder_value = gen_promote(TokenMeta::NT_ARRAYBUILDER_VALUE, *argtable.child[i]->child[0]);
+			array_builder_value = gen_promote(TokenMeta::NT_ARRAYBUILDER_VALUE, *argtable.child[i]->child[0]);
 			newnode.addchild(new ParseNode(array_builder_value));
 		}
 		else {
 			// set in gen_vardef.cpp
-			//sprintf(codegen_buf, "init_for1array(%%s, %%s, %%s, std::vector<%%s>{%s});\n", /* value */ argtable.fs.CurrentTerm.what.c_str());
 			// use 1d list to initialize the array
-			//sprintf(codegen_buf, "gen_for1array<%%s, %%d>(%%s, %%s, {%s})", argtable.fs.CurrentTerm.what.c_str());
 			sprintf(codegen_buf, "{%s}", argtable.fs.CurrentTerm.what.c_str());
 			goto CAN_ONLY_GEN_ONE;
 		}
@@ -44,7 +38,7 @@ ParseNode gen_array_generate_paramtable(const ParseNode & argtable) {
 	newnode.fs.CurrentTerm = Term{ TokenMeta::NT_ARRAYBUILDER, "" };
 	return newnode;
 CAN_ONLY_GEN_ONE:
-	newnode.fs.CurrentTerm = Term{ TokenMeta::NT_ARRAYBUILDER_VALUE, string(codegen_buf) };
+	newnode.fs.CurrentTerm = Term{ TokenMeta::NT_ARRAYBUILDER_EXP, string(codegen_buf) };
 	newnode.addchild(new ParseNode(argtable)); // argtable
 	return newnode;
 }
