@@ -106,7 +106,7 @@
 //	forprintfree(aaa);
 //	for1array< for1array< for1array<int>  > > b(1, 3);
 //	f1a_init(b, {1, 1, 1}, {1, 2, 3}, {1, 2, 3, 4, 5, 6});
-//	vector<fa_size_t> size = f1a_getsize(b);
+//	vector<fsize_t> size = f1a_getsize(b);
 //	forwritefree(stdout, b);
 //	std::vector< int * >  xxxx = f1a_flatternedptr(b);
 //	for (auto i = 0; i < xxxx.size(); i++)
@@ -131,19 +131,20 @@
 #include "../for90std/for90std.h"
 #define USE_FORARRAY
 
+template <int X, typename F>
+void fff(const fsize_t(&from)[X], const fsize_t(&size)[X], F x) {
+	x(0);
+}
+
+
 int main()
 {
-
-	for1array<int > a(f1a_init_hiddendo(5, 7, [](int i) {return to_int(i) + 1; }));
-
-	for1array< for1array< for1array<int > > > b({ 2,2,2 }, { 5,6,7 }, { 1, 2, 3, 4, 5, 6, 7, 8 });
-
-	//for1array< for1array<int > > c({ 3,3 }, { 5,6 }, fslice(a, { { 5,7 } {foroptional<int>(),foroptional<int>()} }));
-
-	for1array<int > d(fslice(a, { { 5,6 } }) + b(5)(6) + f1a_init_hiddendo(1, 4, [](int i) {return to_int(i) + 1; }));
-
-	for1array< for1array< for1array<int > > > xxx(1, 2 + 1);
-
+	//farray<int, 2> e({ 1,1 }, { 2,2 }, { 1, 2, 3, 4 });
+	//fff({ 1,1 }, { 2,2 }, [](const fsize_t * current) {return 0; });
+	farray<int, 2> e({ 1,1 }, { 2,2 }, [](const fsize_t * current) {return ([](fsize_t i, fsize_t j) {return i + j;  })(current[0], current[1]); });
+	//farray<int, 2> e({ 1,1 }, { 2,2 }, [](const fsize_t(&current)[2]) ->fsize_t {return ([](fsize_t i, fsize_t j) {return i + j;  })(current[0], current[1]); });
+	//[](const fsize_t(&current)[2]) ->fsize_t {return [](fsize_t i, fsize_t j) {return i + j;  }(current[0], current[1]); };
+	//cout << [](int x) {return x + 1; }(1) << endl;
 	return 0;
 }
 ///*******************************************************************/

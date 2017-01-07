@@ -13,7 +13,7 @@
 #define USE_FORARRAY
 
 namespace for90std {
-	typedef int fa_size_t;
+	typedef int fsize_t;
 
 	template<typename T>
 	struct slice_info {
@@ -29,6 +29,9 @@ namespace for90std {
 			}
 			else if (l.size() == 2) {
 				fr = l[0]; step = 1; to = l[1];
+			}
+			else if (l.size() == 0) {
+
 			}
 			else {
 				fr = l[0]; step = l[2]; to = l[1];
@@ -56,18 +59,18 @@ namespace for90std {
 	}
 #ifdef USE_FORARRAY
 	template<typename Iterator>
-	std::vector<fa_size_t> f1a_layer_delta(Iterator begin, Iterator end) {
-		std::vector<fa_size_t> next_iter_delta(begin, end);
-		fa_size_t s = 1;
+	std::vector<fsize_t> fa_layer_delta(Iterator begin, Iterator end) {
+		std::vector<fsize_t> next_iter_delta(begin, end);
+		fsize_t s = 1;
 		std::transform(next_iter_delta.begin(), next_iter_delta.end(), next_iter_delta.begin()
-			, [&s](fa_size_t x) {fa_size_t ans = s; s *= x; return ans; });
+			, [&s](fsize_t x) {fsize_t ans = s; s *= x; return ans; });
 		return next_iter_delta;
 	}
 #else
 #endif
 	template<typename _Iterator>
-	fa_size_t f1a_getflatsize(_Iterator begin, _Iterator end) {
-		fa_size_t sizeflat = accumulate(begin, end, 1, [](auto x, auto y) {return x * y; });
+	fsize_t fa_getflatsize(_Iterator begin, _Iterator end) {
+		fsize_t sizeflat = accumulate(begin, end, 1, [](auto x, auto y) {return x * y; });
 		return sizeflat;
 	}
 }

@@ -16,11 +16,45 @@ ParseNode gen_array_generate_paramtable(const ParseNode & argtable) {
 	{
 		if (argtable.child[i]->fs.CurrentTerm.token == TokenMeta::NT_EXPRESSION) {
 			ParseNode array_builder_value;
-			if (argtable.child[i]/* NT_EXPRESSION */->child[0]->fs.CurrentTerm.token == TokenMeta::NT_FUCNTIONARRAY) {
+			ParseNode * array_builder = argtable.child[i]/* NT_EXPRESSION */->child[0];
+			if (array_builder->fs.CurrentTerm.token == TokenMeta::NT_FUCNTIONARRAY) {
 				// slice
 			}
-			else if (argtable.child[i]/* NT_EXPRESSION */->child[0]->fs.CurrentTerm.token == TokenMeta::NT_HIDDENDO) {
+			else if (array_builder->fs.CurrentTerm.token == TokenMeta::NT_HIDDENDO) {
 				// hidden_do
+				if (parse_config.usefarray)
+				{
+					std::vector<ParseNode *> init_layer;
+					ParseNode * ab = array_builder;
+					while (ab->fs.CurrentTerm.token == TokenMeta::NT_HIDDENDO) {
+						init_layer.push_back(ab);
+						if (ab->child.size() > 0 && ab->child[0]->child.size() > 0){
+							ab = ab->child[0]/*NT_EXPRESSION*/->child[0]/*NT_HIDDENDO*/;
+						}
+						else {
+							break;
+						}
+					}
+					vector<ParseNode *>::iterator x;
+					// refer `gen_hiddendo`
+					string lb_str = make_str_list(init_layer.begin(), init_layer.end(), [](auto x)->string {return (*x)->child[2]->fs.CurrentTerm.what; });
+					string ub_str = make_str_list(init_layer.begin(), init_layer.end(), [](auto x)->string {return (*x)->child[3]->fs.CurrentTerm.what + "+1"; });
+					string indexer_str = make_str_list(init_layer.begin(), init_layer.end(), [](auto x)->string {return "fsize_t " + (*x)->child[1]->fs.CurrentTerm.what; });
+					sprintf(codegen_buf, "[](%s){return %s;}", indexer_str.c_str(), init_layer[init_layer.size() - 1]->child[0]->fs.CurrentTerm.what.c_str());
+					string lambda = string(codegen_buf);
+					string args;
+					for (auto j = 0; j < init_layer.size(); j++)
+					{
+						if (j != 0) {
+							args += ", ";
+						}
+						sprintf(codegen_buf, "current[%d]", (int)j);
+						args += string(codegen_buf);
+					}
+					sprintf(codegen_buf, "[](const fsize_t(&current)[%d]){return %s(%s);}"
+						, (int)init_layer.size(), lambda.c_str(), args.c_str());
+					array_builder->fs.CurrentTerm.what = string(codegen_buf);
+				}
 			}
 			else {
 				// just A(1)(2)(3) or A(1, 2, 3)

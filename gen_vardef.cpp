@@ -91,7 +91,7 @@ std::string gen_lbound_size(const ParseNode * slice) {
 		vec_lb += slice->child[sliceid]->child[0]->fs.CurrentTerm.what; vec_size += codegen_buf;
 	}
 	vec_size += "}", vec_lb += "}";
-	return vec_size + ", " + vec_lb;
+	return vec_lb + ", " + vec_size;
 }
 
 std::string gen_vardef_array(ParseNode * pn, ParseNode * spec_typename, ParseNode * slice, VariableDescAttr * vardescattr) {
@@ -106,7 +106,7 @@ std::string gen_vardef_array(ParseNode * pn, ParseNode * spec_typename, ParseNod
 		string type_str;
 		string innermost_type = gen_qualified_typestr(spec_typename->fs.CurrentTerm.what, vardescattr); // `T`
 		if (parse_config.usefarray) {
-			sprintf(codegen_buf, "farr<%s, %d>", innermost_type.c_str(), (int)slice->child.size());
+			sprintf(codegen_buf, "farray<%s, %d>", innermost_type.c_str(), (int)slice->child.size());
 			type_str = string(codegen_buf);
 		}
 		else {
@@ -157,14 +157,14 @@ std::string gen_vardef_array(ParseNode * pn, ParseNode * spec_typename, ParseNod
 
 				}
 			}
-			if (can_list_init)
+			if (true || can_list_init) 
 			{
-				// can init array from louer_bound, size and initial value
+				// can init array from initializer_list of initial value
 				arr_decl += gen_lbound_size(slice);
 				arr_decl += ", ";
 			}
 			else {
-				// must init array from another array, or array slice selection by a copy/move constructor
+				// must init array from another for1array
 			}
 			for (auto builderid = 0; builderid < compound_arraybuilder->child.size(); builderid++)
 			{

@@ -5,7 +5,7 @@ namespace for90std {
 	template<typename T>
 	struct for1array {
 		typedef T value_type;
-		typedef fa_size_t size_type; // for1array index can be negative
+		typedef fsize_t size_type; // for1array index can be negative
 		typedef value_type * pointer;
 		typedef value_type & reference;
 		typedef const value_type * const_pointer;
@@ -96,11 +96,11 @@ namespace for90std {
 		}
 
 		for1array<T> slice(size_type fr, size_type to, size_type step = 1) const {
-			for1array<T> nfor1(fr, to);
-			size_type j = 0;
+			for1array<T> nfor1(1, to - fr + 1);
+			size_type j = 1;
 			for (size_type i = fr; i < to; i += step, j++)
 			{
-				nfor1(j) = m_arr[i - lb];
+				nfor1(j) = const_get(i);
 			}
 			return nfor1;
 		};
@@ -129,7 +129,6 @@ namespace for90std {
 				m_arr.resize(i - lb + 1);
 				ub = i + 1; // important
 				return m_arr[i - lb];
-				//throw 0;
 			}
 			else {
 				return m_arr[i - lb];
@@ -151,6 +150,7 @@ namespace for90std {
 
 		template<typename _Inner>
 		for1array<T> & operator=(const std::vector<_Inner> & x) {
+			if (this == &x) return *this;
 			f1a_init(*this, f1a_lbound(*this), f1a_getsize(*this), x);
 			return *this;
 		}
@@ -178,11 +178,18 @@ namespace for90std {
 		void resize(size_type l, size_type u) {
 			this->lb = l;
 			this->ub = u;
+			m_arr.resize(u - l); // if removed, f1a_resize will boom
 		}
 		template<typename _InnerT>
 		for1array(const std::vector<size_type> & lower_bound, const std::vector<size_type> & size, const std::initializer_list<_InnerT> & values)
 		{
 			f1a_init(*this, lower_bound, size, values);
+		}
+		for1array(const std::vector<size_type> & lower_bound, const std::vector<size_type> & size, const for1array<T> & x)
+		{
+			m_arr.clear();
+			m_arr = x.m_arr;
+			f1a_resize<typename f1a_gettype<T>::type, T>(*this, lower_bound, size);
 		}
 		for1array(size_type l, size_type u) : lb(l), ub(u) {
 			m_arr.resize(u - l);
@@ -200,14 +207,14 @@ namespace for90std {
 			}
 		}
 
-	protected:
 		std::vector<T> m_arr;
+	protected:
 		size_type lb, ub;
 	};
 
 
 	template <typename T>
-	using f1a_matcher = const_func_matcher<T, fa_size_t, &(T::size)>*;
+	using f1a_matcher = const_func_matcher<T, fsize_t, &(T::size)>*;
 
 	struct is_for1array
 	{
@@ -261,18 +268,18 @@ namespace for90std {
 
 
 	template<typename _Container_value_type>
-	std::vector<fa_size_t> _f1a_getsize_impl(
+	std::vector<fsize_t> _f1a_getsize_impl(
 		const for1array<_Container_value_type> & farr
-		, std::vector<fa_size_t> & size
+		, std::vector<fsize_t> & size
 		, .../* SFINAE */) {
 		size.push_back(farr.size());
 		return size;
 	}
 
 	template<typename _Container_value_type>
-	std::vector<fa_size_t> _f1a_getsize_impl(
+	std::vector<fsize_t> _f1a_getsize_impl(
 		const for1array<_Container_value_type> & farr
-		, std::vector<fa_size_t> & size
+		, std::vector<fsize_t> & size
 		, f1a_matcher<_Container_value_type>/* SFINAE */) {
 		size.push_back(farr.size());
 		_f1a_getsize_impl<typename _Container_value_type::value_type>(farr.const_get(farr.LBound()), size, nullptr);
@@ -280,26 +287,26 @@ namespace for90std {
 	}
 
 	template<typename _Container_value_type>
-	std::vector<fa_size_t> f1a_getsize(const for1array<_Container_value_type> & farr) {
-		std::vector<fa_size_t> size;
+	std::vector<fsize_t> f1a_getsize(const for1array<_Container_value_type> & farr) {
+		std::vector<fsize_t> size;
 		_f1a_getsize_impl<_Container_value_type>(farr, size, nullptr);
 		return size;
 	}
 
 
 	template<typename _Container_value_type>
-	std::vector<fa_size_t> _f1a_lbound_impl(
+	std::vector<fsize_t> _f1a_lbound_impl(
 		const for1array<_Container_value_type> & farr
-		, std::vector<fa_size_t> & lbound
+		, std::vector<fsize_t> & lbound
 		, .../* SFINAE */) {
 		lbound.push_back(farr.LBound());
 		return lbound;
 	}
 
 	template<typename _Container_value_type>
-	std::vector<fa_size_t> _f1a_lbound_impl(
+	std::vector<fsize_t> _f1a_lbound_impl(
 		const for1array<_Container_value_type> & farr
-		, std::vector<fa_size_t> & lbound
+		, std::vector<fsize_t> & lbound
 		, f1a_matcher<_Container_value_type>/* SFINAE */) {
 		lbound.push_back(farr.LBound());
 		_f1a_lbound_impl<typename _Container_value_type::value_type>(farr.const_get(farr.LBound()), lbound, nullptr);
@@ -307,22 +314,48 @@ namespace for90std {
 	}
 
 	template<typename _Container_value_type>
-	std::vector<fa_size_t> f1a_lbound(const for1array<_Container_value_type> & farr) {
-		std::vector<fa_size_t> lbound;
+	std::vector<fsize_t> f1a_lbound(const for1array<_Container_value_type> & farr) {
+		std::vector<fsize_t> lbound;
 		_f1a_lbound_impl<_Container_value_type>(farr, lbound, nullptr);
 		return lbound;
 	}
 #ifdef USE_FORARRAY
+	template<typename _DTYPE, typename _Container_value_type, typename = void>
+	void _f1a_resize_impl(for1array<_DTYPE> & farr, int deep
+		, const std::vector<fsize_t> & lower_bound, const std::vector<fsize_t> & size)
+	{
+		farr.resize(lower_bound[deep], lower_bound[deep] + size[deep]);
+	}
+
+	template<typename _DTYPE, typename _Container_value_type
+		, typename = std::void_t< decltype(std::declval<_Container_value_type>().size()) >>
+		void _f1a_resize_impl(for1array<_Container_value_type> & farr, int deep
+			, const std::vector<fsize_t> & lower_bound
+			, const std::vector<fsize_t> & size)
+	{
+		farr.resize(lower_bound[deep], lower_bound[deep] + size[deep]);
+		for (auto i = lower_bound[deep]; i < lower_bound[deep] + size[deep]; i++)
+		{
+			_f1a_resize_impl<_DTYPE, typename _Container_value_type::value_type>(farr(i), deep + 1, lower_bound, size);
+		}
+	}
+
+	template<typename _DTYPE, typename _Container_value_type>
+	void f1a_resize(for1array<_Container_value_type> & farr
+		, const std::vector<fsize_t> & lower_bound
+		, const std::vector<fsize_t> & size)
+	{
+		_f1a_resize_impl<_DTYPE, _Container_value_type >(farr, 0, lower_bound, size);
+	}
+
 	template<typename _DTYPE, typename _Container_value_type, typename _Iterator, typename = void>
-	void _f1a_init_impl(
-		for1array<_DTYPE> & farr, int deep
-		, const std::vector<fa_size_t> & lower_bound
-		, const std::vector<fa_size_t> & size
-		, const std::vector<fa_size_t> & next_iter_delta
+	void _f1a_init_impl(for1array<_DTYPE> & farr, int deep
+		, const std::vector<fsize_t> & lower_bound
+		, const std::vector<fsize_t> & size
+		, const std::vector<fsize_t> & next_iter_delta
 		, _Iterator b, _Iterator e)
 	{
 		auto iter = b;
-		farr.resize(lower_bound[deep], lower_bound[deep] + size[deep]);
 		for (auto i = lower_bound[deep]; i < lower_bound[deep] + size[deep]; i++)
 		{
 			farr(i) = *iter;
@@ -334,15 +367,13 @@ namespace for90std {
 
 	template<typename _DTYPE, typename _Container_value_type, typename _Iterator
 		, typename = std::void_t< decltype(std::declval<_Container_value_type>().size()) >>
-		void _f1a_init_impl(
-			for1array<_Container_value_type> & farr, int deep
-			, const std::vector<fa_size_t> & lower_bound
-			, const std::vector<fa_size_t> & size
-			, const std::vector<fa_size_t> & next_iter_delta
+		void _f1a_init_impl(for1array<_Container_value_type> & farr, int deep
+			, const std::vector<fsize_t> & lower_bound
+			, const std::vector<fsize_t> & size
+			, const std::vector<fsize_t> & next_iter_delta
 			, _Iterator b, _Iterator e)
 	{
 		auto iter = b;
-		farr.resize(lower_bound[deep], lower_bound[deep] + size[deep]);
 		for (auto i = lower_bound[deep]; i < lower_bound[deep] + size[deep]; i++)
 		{
 			_f1a_init_impl<_DTYPE, typename _Container_value_type::value_type, _Iterator>(farr(i), deep + 1, lower_bound, size
@@ -354,22 +385,26 @@ namespace for90std {
 	};
 
 	template<typename _DTYPE, typename _Container_value_type>
-	void f1a_init(
-		for1array<_Container_value_type> & farr
-		, const std::vector<fa_size_t> & lower_bound
-		, const std::vector<fa_size_t> & size
+	void f1a_init(for1array<_Container_value_type> & farr
+		, const std::vector<fsize_t> & lower_bound
+		, const std::vector<fsize_t> & size
 		, const std::initializer_list<_DTYPE> & values)
 	{
-		/* NOTE: assume the array is already allocated and no need to clear */
-		std::vector<fa_size_t> next_iter_delta = f1a_layer_delta(size.begin(), size.end());
-		_f1a_init_impl<_DTYPE, _Container_value_type, std::initializer_list<_DTYPE>::const_iterator >(farr, 0, lower_bound, size
-			, next_iter_delta, values.begin(), values.end());
+		f1a_resize<_DTYPE, _Container_value_type>(farr, lower_bound, size);
+		std::vector<fsize_t> next_iter_delta = fa_layer_delta(size.begin(), size.end());
+		//_f1a_init_impl<_DTYPE, _Container_value_type, std::initializer_list<_DTYPE>::const_iterator >(farr, 0, lower_bound, size
+		//	, next_iter_delta, values.begin(), values.end());
+		auto vec_ptr = f1a_flatternedptr(farr);
+		auto iter = values.begin();
+		for (auto i = 0; i < vec_ptr.size(); i++, iter++)
+		{
+			*(vec_ptr[i]) = *iter;
+		}
 	};
 
 	template<typename _InnerT, int D>
-	fornarray<_InnerT, D> f1a_gen(
-		const std::vector<fa_size_t> & lower_bound
-		, const std::vector<fa_size_t> & size
+	fornarray<_InnerT, D> f1a_gen(const std::vector<fsize_t> & lower_bound
+		, const std::vector<fsize_t> & size
 		, const std::initializer_list<_InnerT> & values)
 	{
 		fornarray<_InnerT, D> n;
@@ -378,9 +413,8 @@ namespace for90std {
 	};
 
 	template<typename _Container_value_type, typename _DTYPE, typename _Iterator, typename _Return, typename = void>
-	void _f1a_flatmapped_impl(
-		for1array<_DTYPE> & farr, int deep
-		, const std::vector<fa_size_t> & next_iter_delta
+	void _f1a_flatmapped_impl(for1array<_DTYPE> & farr, int deep
+		, const std::vector<fsize_t> & next_iter_delta
 		, _Iterator b, _Iterator e
 		, std::function<_Return(typename _DTYPE *)> mapper)
 	{
@@ -396,17 +430,14 @@ namespace for90std {
 
 	template<typename _Container_value_type, typename _DTYPE, typename _Iterator, typename _Return
 		, typename = std::void_t< decltype(std::declval<_Container_value_type>().size())> >
-		void _f1a_flatmapped_impl(
-			for1array<_Container_value_type> & farr, int deep
-			, const std::vector<fa_size_t> & next_iter_delta
+		void _f1a_flatmapped_impl(for1array<_Container_value_type> & farr, int deep
+			, const std::vector<fsize_t> & next_iter_delta
 			, _Iterator b, _Iterator e
 			, std::function<_Return(typename _DTYPE *)> mapper)
 	{
-		/* deep can never be equal to size.size() - 1 */
 		auto iter = b;
 		for (auto i = farr.LBound(); i < farr.UBound(); i++)
 		{
-			/* NOTE: assume the array is already allocated and no need to clear */
 			_f1a_flatmapped_impl<typename _Container_value_type::value_type, _DTYPE, _Iterator>(
 				farr(i), deep + 1, next_iter_delta, iter, iter + next_iter_delta[deep], mapper);
 			if (i != farr.UBound() - 1) {
@@ -419,8 +450,8 @@ namespace for90std {
 	void f1a_flatmapped(for1array<_Container_value_type> & farr, _Iterator begin, _Iterator end, std::function<_Return(typename f1a_gettype<_Container_value_type>::type *)> mapper)
 	{
 		typedef typename f1a_gettype<_Container_value_type>::type T; // inner most type
-		std::vector<fa_size_t> size = f1a_getsize(farr); // size of each dimension of array
-		std::vector<fa_size_t> next_iter_delta = f1a_layer_delta(size.begin(), size.end());
+		std::vector<fsize_t> size = f1a_getsize(farr); // size of each dimension of array
+		std::vector<fsize_t> next_iter_delta = fa_layer_delta(size.begin(), size.end());
 		_f1a_flatmapped_impl<_Container_value_type, T, _Iterator, _Return >(farr, 0, next_iter_delta, begin, end, mapper);
 	};
 
@@ -434,8 +465,8 @@ namespace for90std {
 	template<typename _Container_value_type>
 	auto f1a_flatterned(const for1array<_Container_value_type> & farr)
 	{
-		std::vector<fa_size_t> size = f1a_getsize(farr); // size of each dimension of array
-		fa_size_t sizeflat = f1a_getflatsize(size.begin(), size.end());
+		std::vector<fsize_t> size = f1a_getsize(farr); // size of each dimension of array
+		fsize_t sizeflat = fa_getflatsize(size.begin(), size.end());
 		std::vector< typename f1a_gettype<_Container_value_type>::type >  ans(sizeflat);
 
 		f1a_flatmapped<_Container_value_type, typename f1a_gettype<_Container_value_type>::type>(
@@ -447,8 +478,8 @@ namespace for90std {
 	auto f1a_flatternedptr(for1array<_Container_value_type> & farr)
 		//-> std::vector< typename f1a_gettype<_Container_value_type>::type * > 
 	{
-		std::vector<fa_size_t> size = f1a_getsize(farr); // size of each dimension of array
-		fa_size_t sizeflat = f1a_getflatsize(size.begin(), size.end());
+		std::vector<fsize_t> size = f1a_getsize(farr); // size of each dimension of array
+		fsize_t sizeflat = fa_getflatsize(size.begin(), size.end());
 		std::vector< typename f1a_gettype<_Container_value_type>::type *>  ans(sizeflat);
 		f1a_flatmapped<_Container_value_type, typename f1a_gettype<_Container_value_type>::type *>(
 			farr, ans.begin(), ans.end(), [](typename f1a_gettype<_Container_value_type>::type * tx) {return tx; });
@@ -481,27 +512,27 @@ namespace for90std {
 
 	template <typename T, int X, int D>
 	struct _f1aslice_impl {
-		static auto get(const for1array<T> & farr, const slice_info<fa_size_t>(&tp)[X]) {
+		static auto get(const for1array<T> & farr, const slice_info<fsize_t>(&tp)[X]) {
 			return _f1aslice_impl<T, X, D - 1>::get(farr.slice(tp[X - D].fr, tp[X - D].to, tp[X - D].step), tp);
 		}
 	};
 	template <typename T, int X>
 	struct _f1aslice_impl<T, X, 0> {
-		static auto get(const for1array<T> & farr, const slice_info<fa_size_t>(&tp)[X]) {
+		static auto get(const for1array<T> & farr, const slice_info<fsize_t>(&tp)[X]) {
 			return farr.slice(tp[X - 1].fr, tp[X - 1].to, tp[X - 1].step);
 		}
 	};
 	
 	template <typename T, int DUMMY = 0, int X>
-	for1array<T> fslice(const for1array<T> & farr, const slice_info<fa_size_t>(&tp)[X]) {
+	for1array<T> fslice(const for1array<T> & farr, const slice_info<fsize_t>(&tp)[X]) {
 		return _f1aslice_impl<T, X, X - 1>::get(farr, tp);
 	}
 
 	//template<int D, typename T>
-	//auto forreshape(const std::initializer_list<T> & values, const fa_size_t(&shape)[D])
+	//auto forreshape(const std::initializer_list<T> & values, const fsize_t(&shape)[D])
 	//{
-	//	std::vector<fa_size_t> lbound = std::vector<fa_size_t>(D, 1);
-	//	std::vector<fa_size_t> size = std::vector<fa_size_t>(shape, shape + D);
+	//	std::vector<fsize_t> lbound = std::vector<fsize_t>(D, 1);
+	//	std::vector<fsize_t> size = std::vector<fsize_t>(shape, shape + D);
 	//	return f1a_gen<T, D>(lbound, size, values);
 	//}
 

@@ -130,3 +130,4 @@ ParseNode gen_merge(const ParseNode & list1, const ParseNode & list2, std::strin
 	}
 	return nn;
 }
+

@@ -40,7 +40,7 @@ int main(int argc, char* argv[], char* env[])
 			parse_config.usefor = false;
 		}
 	}
-	parse_config.usefarray = false;
+	parse_config.usefarray = true;
 	if (parse_config.isdebug) {
 		debug();
 	}

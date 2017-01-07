@@ -128,7 +128,7 @@ void debug() {
 			cout << b(j)(i)(2) << endl;
 		}
 	}
-	vector<fa_size_t> size = f1a_getsize(b);
+	vector<fsize_t> size = f1a_getsize(b);
 	// forstyle should return 1, 2, 3, 4, 5, 6, 7, 8
 
 

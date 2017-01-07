@@ -11,6 +11,18 @@ ParseNode gen_token(Term term);
 ParseNode gen_dummy();
 ParseNode gen_promote(std::string rule, int merged_token_meta, const ParseNode & lower);
 ParseNode gen_promote(int merged_token_meta, const ParseNode & lower);
+template <typename Iterator, typename F>
+std::string make_str_list(Iterator begin, Iterator end, F handler, std::string delim = ", ") {
+	std::string r;
+	for (auto i = begin; i != end; i++)
+	{
+		if (i != begin) {
+			r += delim;
+		}
+		r += handler(i);
+	}
+	return r;
+}
 
 FlexState gen_flex(Term term);
 ParseNode gen_flattern(const ParseNode & item, const ParseNode & list, std::string merge_rule, int merged_token_meta = -1);

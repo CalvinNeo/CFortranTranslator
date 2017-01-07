@@ -29,7 +29,7 @@
 - ~~more precise code/error location, start/end~~
 - optimize ParseNode with rvalue
 - support fortran77 standard
-- rewrite for1array functions using constexpr
+- farray
 - goto stmt
 
 ## todolist(bugfix)
@@ -49,5 +49,5 @@
 - ~~`printf` array~~
 - ~~fixed length character initialize with shorter characters~~
 - global attr and node attr
-- dimen_slice ',' paramtable rule use gen_paramtable directly
-- add arraybuilder rule to exp rules
+- ~~add arraybuilder rule to exp rules~~
+- use `make_str_list` function replace some ugly code

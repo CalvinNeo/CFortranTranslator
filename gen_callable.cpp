@@ -33,6 +33,9 @@ ParseNode gen_function_array(const ParseNode & callable_head, const ParseNode & 
 			string slice_info_str;
 			for (auto i = 0; i < argtable.child.size(); i++)
 			{
+				if (i != 0) {
+					slice_info_str += ",";
+				}
 				slice_info_str += "{";
 				if (argtable.child[i]->fs.CurrentTerm.token == TokenMeta::NT_SLICE) {
 					for (auto j = 0; j < argtable.child[i]->child.size(); j++)

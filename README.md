@@ -1,9 +1,9 @@
 # CFortranTranslator
 A translator from Fortran to C++
 
-Fortran is an efficient tool in scientific calculation. However sometimes translate old fortran codes to c++ will provide more abstract methods, better GUI framework, higher performance IDE and easier interaction.
+Fortran is an efficient tool in scientific calculation. However sometimes translate old fortran codes to c++ will enable more programming abstraction, better GUI framework, higher performance IDE and easier interaction.
 
-This translator is not intended to improve existing codes, but to make convenience.
+This translator is not intended to improve existing codes, but to make convenience for those who need features of c++ and remain fortran traits as much as possible.
 
 # Usage
 ## Install
@@ -22,7 +22,7 @@ Debug origin fortran code or generated c++ code is recommended.
 ## Demo
 demos provided in [demos](/demos)
 
-## fortran std
+## fortran standard library
 include [for90std/for90std.h](/for90std/for90std.h) to use c++ implementation of intrinsic fortran functions and language features
 
 ### inherit function mapping
@@ -98,15 +98,13 @@ refer to [/grammar/for90.y](/grammar/for90.y) for all accepted grammar
     - for a 2d array, it means when initializing by a 1d array, it follows the order of `a(1)(1) -> a(2)(1) -> a(1)(2) -> a(1)(2)` 
     - similarly, for a nd array, dimension 1 increase by 1 first, when dimension 1 equals to upper bound it wrap back and dimension 2 increase by 1..., dimension n increase the last.
     - for details refer to `array_builder` rule in [/grammar/for90.y](/grammar/for90.y)
-2. fortran array default lower bound for each dimension is **1**, and it can be negative, c++ style array has constant lower bound  0
-
+2. fortran array default lower bound for each dimension is **1**, and it can be negative, c++ style array has constant lower bound 0
 
 #### slice
-`struct slice_info<T>` stands for a slice in fortran
+`struct slice_info<T>` implement for a slice in fortran
 1. `slice_info<T>{T x}`: stands for the scalar `x`, mostly `x` is index
 2. `slice_info<T>{T x, T y}`: `x`, `y` stands for a range of **[x, y)** of default step 1
 3. `slice_info<T>{T x, T y, T z}`: `x`, `y`, `z` stands for a range of **[x, y)** step `z`
-4. all slice in c++ is [from, to)
 
 #### farray
 `farray` is a multi-dimentional valarray
@@ -119,10 +117,19 @@ refer to [/grammar/for90.y](/grammar/for90.y) for all accepted grammar
 |:-:|:-:|
 |get|`a(1, 2, 3, 4)` or `a({1, 2, 3, 4})` or `a[{1, 2, 3, 4}]` or `fslice(a, {1, 2, 3, 4})`|
 |fslice|`a[{{1, 3, 1}, {1, 4}, {5}}]` or `fslice(a, {{1, 3, 1}, {1, 4}, {5}})`|
+|reshape|forreshape|
+|spread|not implemented yet|
+|transpose|not implemented yet|
+|maxloc, minloc, maxval, minval|not implemented yet|
+|sum, product|not implemented yet|
+|any, all, count|not implemented yet|
+|pack|not implemented yet|
+|size|not implemented yet|
+|dot_product|not implemented yet|
 
 #### for1array
 `for1array` is a 1-dimentional dynamic array
-1. init a array
+1. initialize an array
     ways to initialize an for1array
     - with `f1a_init(array, lower_bound, size, values)` to init `array`, in which
         1. `array` is reference of a defined array you want to init
@@ -140,30 +147,9 @@ refer to [/grammar/for90.y](/grammar/for90.y) for all accepted grammar
 |:-:|:-:|
 |`#define USE_FORARRAY`|use fortran style array|
 |`#define USE_CARRAY`|use c style array|
-|`f1a_init(array, lowerbound, size, initialvalue list)`|use a 1d list to initialize a 2d(or higher) array|
 |`fia_flattern(array)`|get flatterned size of an array|
 |`f1a_gettype<T>::type`|get innermost type of an array|
 |`f1a_flatmap(array, begin_iterator, end_iterator, lambda)`|return a vector of all elements mapped by function `lambda` in fortran/c order|
-
-
-3. fortran intrinsic functions
-
-|fortran|c++|
-|:-:|:-:|
-|slice||
-
-|fortran|c++|
-|:-:|:-:|
-|reshape|forreshape|
-|spread|not implemented yet|
-|transpose|not implemented yet|
-|maxloc, minloc, maxval, minval|not implemented yet|
-|sum, product|not implemented yet|
-|any, all, count|not implemented yet|
-|pack|for1array_flatmap|
-|size|for1array_flatmap|
-|dot_product|for1array_flatmap|
-
 
 ### variables
 1. all variables must be **explicitly** declared
@@ -247,7 +233,7 @@ their replacement occur in following stages:
 all parse tree nodes are defined in [/Intent.h](/Intent.h) with an `NT_` prefix
 ### struct ParseNode
 1. fs:
-	* fs.CurrentTerm.what: immediate-gen code
+	* fs.CurrentTerm.what: immediate-generated code, generated from child's `fs.CurrentTerm.what`, or from other infomations
 	* fs.CurrentTerm.token: refer [/Intent.h](/Intent.h)
 2. child
 3. attr:
@@ -285,9 +271,11 @@ all parse tree nodes are defined in [/Intent.h](/Intent.h) with an `NT_` prefix
 #### type_spec, type_nospec
 you can use `REAL(x)` to get the float copy of x, however, you can also use `REAL(kind = 8)` to specify a floating number which is same to `long double` rather than `double`, so it may cause conflict. To specify, `type_nospec` is like `INTEGER` and a `type_spec` is like `INTEGER(kind = 4)`, `type_nospec` is `callable_head`, `type_spec` is not.
 
-#### hidden_do, _generate_stmt
+#### array builder
 - `_generate_stmt` is for `array_builder`, `hidden_do` is for `exp`
 - `_generate_stmt` wrapped by "( )" is `hidder_do`, wrapped by "(/ /)" is `array_builder`
+- `NT_FUCNTIONARRAY` and `NT_HIDDENDO` will all be promote to `NT_EXPRESSION`
+- `NT_HIDDENDO` has 4 child elements: lambda, indexer, from, to. refer `gen_hiddendo` in [/gen_do.cpp](/gen_do.cpp)
 
 #### stmt, suite
 - `stmt` is statement end with ';' or '\n'
