@@ -7,8 +7,8 @@
 #include <array>
 #include <random>
 #include <tuple>
-#include "../forlang.h"
-#include "../forutils.h"
+#include "forlang.h"
+#include "forutils.h"
 
 #define USE_FORARRAY
 
@@ -40,7 +40,7 @@ namespace for90std {
 		slice_info(const slice_info<T> & x) : fr(x.fr), to(x.to), step(x.step) {
 		}
 	};
-	inline std::string fslice(std::string str, const slice_info<std::string::size_type> & tp) {
+	inline std::string forslice(std::string str, const slice_info<std::string::size_type> & tp) {
 		if (tp.to >= str.size()) {
 			size_t appendlen = tp.to - str.size() + 2;
 			str += std::string(appendlen, ' ');

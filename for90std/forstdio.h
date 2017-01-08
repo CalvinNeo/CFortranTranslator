@@ -4,6 +4,7 @@
 #include <string>
 #include <fstream>
 #include "for1array.h"
+#include "farray.h"
 #include <complex>
 
 //#define eprintf(f, ...) fprintf(stdin, f, __VA_ARGS__)
@@ -38,6 +39,8 @@ namespace for90std {
 		fprintf(f, _format.c_str(), x.c_str());
 	}
 
+	
+	// format
 	template <typename T>
 	std::string _forwrite_one(FILE * f, std::string format, const T & x) {
 		// clear front
@@ -61,7 +64,7 @@ namespace for90std {
 		}
 	};
 	template <typename T>
-	std::string _forwrite_one_arr(FILE * f, std::string format, const T & x) {
+	std::string _forwrite_one_arr1(FILE * f, std::string format, const T & x) {
 		// clear front
 		std::string _format = _forwrite_noargs(f, format);
 		typedef typename f1a_gettype<T>::type _InnerT;
@@ -78,55 +81,38 @@ namespace for90std {
 		}
 		return _format;
 	};
-
-	template <typename T>
-	void _forwrite_one_arr_noform(FILE * f, const T & x) {
-		typedef typename f1a_gettype<T>::type _InnerT;
-		std::vector<_InnerT> vec = f1a_flatterned(x);
-		for (auto i = 0; i < vec.size(); i++)
+	template <typename T, int D>
+	std::string _forwrite_one_arrf(FILE * f, std::string format, const farray<T, D> & x) {
+		// clear front
+		std::string _format = _forwrite_noargs(f, format);
+		std::vector<T>::iterator iter = x.parr->begin();
+		for (auto i = 0; i < x.flatsize(); i++)
 		{
-			_forwrite_one_noform(f, vec[i]);
+			if (_format == "") {
+				_format = format;
+			}
+			_format = _forwrite_one(f, _format, *(iter + i));
 		}
-	};
-
-	inline void _forwrite_one_noform(FILE * f, int x) {
-		fprintf(f, "%d ", x);
-	};
-	inline void _forwrite_one_noform(FILE * f, long long x) {
-		fprintf(f, "%lld ", x);
-	};
-	inline void _forwrite_one_noform(FILE * f, double x) {
-		fprintf(f, "%lf ", x);
-	};
-	inline void _forwrite_one_noform(FILE * f, long double x) {
-		fprintf(f, "%Lf ", x);
-	};
-	inline void _forwrite_one_noform(FILE * f, std::string x) {
-		fprintf(f, "%s ", x.c_str());
-	};
-	inline void _forwrite_one_noform(FILE * f, bool x) {
-		fprintf(f, "%s ", x ? "true" : "false");
-	};
-	inline void _forwrite_one_noform(FILE * f, const char * x) {
-		fprintf(f, "%s ", x);
+		if (_format.find_first_of("%") != std::string::npos) {
+			fprintf(f, "\n");
+		}
+		return _format;
 	};
 	template <typename T>
-	void _forwrite_one_noform(FILE * f, T x) {
-		fprintf(f, "[object %s] %p ", typeid(T).name(), &x);
+	std::string _forwrite(FILE * f, std::string format, const for1array<T> & x) {
+		return _forwrite_one_arr1(f, format, x);
 	};
-	
-	// format
-	template <typename T, typename... Args>
-	std::string _forwrite(FILE * f, std::string format, const T & x, f1a_matcher<T>) {
-		return _forwrite_one_arr(f, format, x);
+	template <typename T, int D>
+	std::string _forwrite(FILE * f, std::string format, const farray<T, D> & x) {
+		return _forwrite_one_arrf(f, format, x);
 	};
-	template <typename T, typename... Args>
-	std::string _forwrite(FILE * f, std::string format, const T & x, ...) {
+	template <typename T>
+	std::string _forwrite(FILE * f, std::string format, const T & x) {
 		return _forwrite_one(f, format, x);
 	};
 	template <typename T, typename... Args>
 	void forwrite(FILE * f, std::string format, const T & x, Args... args) {
-		format = _forwrite<T>(f, format, x, nullptr);
+		format = _forwrite(f, format, x);
 		forwrite(f, format, forward<Args>(args)...);
 	};
 	inline void forwrite(FILE * f, std::string format) {
@@ -134,25 +120,71 @@ namespace for90std {
 		_forwrite_noargs(f, format);
 	};
 
-
-	// no format
-	template <typename T, typename... Args>
-	void _forwritefree(FILE * f, const T & x, f1a_matcher<T>) {
-		_forwrite_one_arr_noform(f, x);
+	// free format
+	
+	inline void _forwritefree_one(FILE * f, int x) {
+		fprintf(f, "%d ", x);
 	};
-	template <typename T, typename... Args>
-	void _forwritefree(FILE * f, const T & x, ...) {
-		_forwrite_one_noform(f, x);
+	inline void _forwritefree_one(FILE * f, long long x) {
+		fprintf(f, "%lld ", x);
+	};
+	inline void _forwritefree_one(FILE * f, double x) {
+		fprintf(f, "%lf ", x);
+	};
+	inline void _forwritefree_one(FILE * f, long double x) {
+		fprintf(f, "%Lf ", x);
+	};
+	inline void _forwritefree_one(FILE * f, std::string x) {
+		fprintf(f, "%s ", x.c_str());
+	};
+	inline void _forwritefree_one(FILE * f, bool x) {
+		fprintf(f, "%s ", x ? "true" : "false");
+	};
+	inline void _forwritefree_one(FILE * f, const char * x) {
+		fprintf(f, "%s ", x);
+	};
+	template <typename T>
+	void _forwritefree_one(FILE * f, T x) {
+		fprintf(f, "[object %s] %p ", typeid(T).name(), &x);
+	};
+	template <typename T>
+	void _forwritefree_one_arr1(FILE * f, const for1array<T> &  x) {
+		typedef typename f1a_gettype<T>::type _InnerT;
+		std::vector<_InnerT> vec = f1a_flatterned(x);
+		for (auto i = 0; i < vec.size(); i++)
+		{
+			_forwritefree_one(f, vec[i]);
+		}
+	};
+	template <typename T, int D>
+	void _forwritefree_one_arrf(FILE * f, const farray<T, D> & x) {
+		std::vector<T>::iterator iter = x.parr->begin();
+		for (auto i = 0; i < x.flatsize(); i++)
+		{
+			_forwritefree_one(f, *(iter + i));
+		}
+	};
+	template <typename T>
+	void _forwritefree(FILE * f, const for1array<T> & x) {
+		_forwritefree_one_arr1(f, x);
+	};
+	template <typename T, int D>
+	void _forwritefree(FILE * f, const farray<T, D> & x) {
+		_forwritefree_one_arrf(f, x);
+	};
+	template <typename T>
+	void _forwritefree(FILE * f, const T & x) {
+		_forwritefree_one(f, x);
 	};
 
 	template <typename T, typename... Args>
 	void forwritefree(FILE * f, const T & x, Args... args) {
-		_forwritefree<T>(f, x, nullptr);
+		_forwritefree(f, x);
 		forwritefree(f, forward<Args>(args)...);
 	};
 	template <typename T>
 	void forwritefree(FILE * f, const T & x) {
-		_forwritefree<T>(f, x, nullptr);
+		_forwritefree(f, x);
 	};
 
 	template <typename T, typename... Args>
@@ -173,6 +205,8 @@ namespace for90std {
 		forwrite(stdout, format);
 	};
 	
+
+	// read
 	inline std::string _forread_noargs(FILE * f, std::string format) {
 		char x;
 		std::string::iterator it = format.begin();
@@ -200,6 +234,7 @@ namespace for90std {
 	inline void _do_fscanf(FILE * f, std::string _format, std::string & x) {
 		std::cin >> x;
 	}
+	// format
 	template <typename T>
 	void _forread_one(FILE * f, std::string format, T & x) {
 		// clear front
@@ -223,46 +258,71 @@ namespace for90std {
 		}
 	};
 	template <typename T>
-	void _forread_one_arr(FILE * f, std::string format, T & x) {
+	void _forread_one_arr1(FILE * f, std::string format, for1array<T> & x) {
 
-	}; 
-	template <typename T>
-	void _forread_one_noform(FILE * f, T & x) {
+	};
+	template <typename T, int D>
+	void _forread_one_arrf(FILE * f, std::string format, farray<T, D> & x) {
 
 	};
 	template <typename T>
-	void _forread_one_arr_noform(FILE * f, T & x) {
-
+	std::string _forread(FILE * f, std::string format, for1array<T> & x) {
+		return _forread_one_arr1(f, format, x);
 	};
-
-	// format
+	template <typename T, int D>
+	std::string _forread(FILE * f, std::string format, farray<T, D> & x) {
+		return _forread_one_arrf(f, format, x);
+	};
+	template <typename T>
+	std::string _forread(FILE * f, std::string format, T & x) {
+		return _forread_one(f, format, x);
+	};
 	template <typename T, typename... Args>
 	void forread(FILE * f, std::string format, T & x, Args... args) {
-		format = _forread_one(f, format, x);
+		format = _forread(f, format, x);
 		forread(f, format, forward<Args>(args)...);
 	};
 	template <typename T>
 	void forread(FILE * f, std::string format, T & x) {
-		if (is_for1array::test<T>(nullptr)) {
-			format = _forread_one_arr(f, format, x);
-		}
-		else {
-			format = _forread_one(f, format, x);
+		format = _forread(f, format, x);
+	};
+
+	// free format
+	template <typename T>
+	void _forreadfree_one(FILE * f, T & x) {
+		std::cin >> x;
+	};
+	template <typename T>
+	void _forreadfree_one_arr1(FILE * f, for1array<T> & x) {
+
+	};
+	template <typename T, int D>
+	void _forreadfree_one_arrf(FILE * f, farray<T, D> & x) {
+		std::vector<T>::iterator iter = x.parr->begin();
+		for (auto i = 0; i < x.flatsize(); i++)
+		{
+			_forreadfree_one(f, *(iter + i));
 		}
 	};
-	// no format
+	template <typename T>
+	void _forreadfree(FILE * f, for1array<T> & x) {
+		_forreadfree_one_arr1(f, x);
+	};
+	template <typename T, int D>
+	void _forreadfree(FILE * f, farray<T, D> & x) {
+		_forreadfree_one_arrf(f, x);
+	};
+	template <typename T>
+	void _forreadfree(FILE * f, T & x) {
+		_forreadfree_one(f, x);
+	};
 	template <typename T, typename... Args>
 	void forreadfree(FILE * f, T & x, Args... args) {
-		_forread_one_noform(f, x);
-		_forread_one_noform(f, forward<Args>(args)...);
+		_forreadfree(f, x);
+		forreadfree(f, forward<Args>(args)...);
 	};
 	template <typename T>
 	void forreadfree(FILE * f, T & x) {
-		if (is_for1array::test<T>(nullptr)) {
-			_forread_one_arr_noform(f, x);
-		}
-		else {
-			_forread_one_arr_noform(f, x);
-		}
+		_forreadfree(f, x);
 	};
 }

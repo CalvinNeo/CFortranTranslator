@@ -1,5 +1,5 @@
 #pragma once
-#include "for1array/forarray_common.h"
+#include "forarray_common.h"
 
 namespace for90std {
 	template<typename T>
@@ -11,89 +11,6 @@ namespace for90std {
 		typedef const value_type * const_pointer;
 		typedef const value_type & const_reference;
 		typedef size_type difference_type;
-
-		struct iterator {
-			iterator() {}
-			iterator(const iterator & m) : _pos(m._pos), _farr(m._farr) {}
-			iterator(for1array<value_type> * forarray, size_type pos) : _pos(pos), _farr(forarray) {}
-
-			reference operator*() const
-			{	// return designated object
-				return (*_farr)[_pos];
-			}
-
-			pointer operator->() const
-			{	// return pointer to class object
-				return &(*_farr)[_pos];
-			}
-
-			iterator& operator++()
-			{	// preincrement
-				++_pos;
-				return (*this);
-			}
-
-			iterator operator++(int)
-			{	// postincrement
-				iterator tmp = *this;
-				++_pos;
-				return (tmp);
-			}
-
-			iterator& operator--()
-			{	// predecrement
-				--_pos;
-				return (*this);
-			}
-
-			iterator operator--(int)
-			{	// postdecrement
-				iterator tmp = *this;
-				--_pos;
-				return (tmp);
-			}
-
-			bool operator==(const iterator& _right) const
-			{	// test for iterator equality
-				return _right._pos == _pos && _right._farr == _farr;
-			}
-
-			bool operator!=(const iterator& _right) const
-			{	// test for iterator inequality
-				return _right._pos != _pos || _right._farr != _farr;
-			}
-
-			bool operator<(const iterator& _right) const
-			{	// test if this < _Right
-				return _pos < _right._pos;
-			}
-
-			bool operator>(const iterator& _right) const
-			{	// test if this > _Right
-				return _pos > _right._pos;
-			}
-
-			bool operator<=(const iterator& _right) const
-			{	// test if this <= _Right
-				return _pos <= _right._pos;
-			}
-
-			bool operator>=(const iterator& _right) const
-			{	// test if this >= _Right
-				return _pos >= _right._pos;
-			}
-		protected:
-			size_type _pos;
-			for1array<value_type> * _farr;
-		};
-
-		typename for1array<T>::iterator begin() {
-			return iterator(this, this->LBound());
-		}
-
-		typename for1array<T>::iterator end() {
-			return iterator(this, this->UBound());
-		}
 
 		for1array<T> slice(size_type fr, size_type to, size_type step = 1) const {
 			for1array<T> nfor1(1, to - fr + 1);
@@ -214,22 +131,9 @@ namespace for90std {
 
 
 	template <typename T>
-	using f1a_matcher = const_func_matcher<T, fsize_t, &(T::size)>*;
+	using for1array_matcher = const_func_matcher<T, fsize_t, &(T::size)>*;
 
-	struct is_for1array
-	{
-		template<typename T>
-		constexpr static bool test(f1a_matcher<T>)
-		{
-			return true;
-		}
-
-		template<typename T>
-		constexpr static bool test(...)
-		{
-			return false;
-		}
-	};
+	MAKE_TYPE_TEST(for1array, for1array_matcher)
 
 	template<typename T>
 	for1array<T> operator+(const for1array<T> & x, const for1array<T> & y) {
@@ -280,7 +184,7 @@ namespace for90std {
 	std::vector<fsize_t> _f1a_getsize_impl(
 		const for1array<_Container_value_type> & farr
 		, std::vector<fsize_t> & size
-		, f1a_matcher<_Container_value_type>/* SFINAE */) {
+		, for1array_matcher<_Container_value_type>/* SFINAE */) {
 		size.push_back(farr.size());
 		_f1a_getsize_impl<typename _Container_value_type::value_type>(farr.const_get(farr.LBound()), size, nullptr);
 		return size;
@@ -294,29 +198,39 @@ namespace for90std {
 	}
 
 
+	//template<typename _Container_value_type>
+	//std::vector<fsize_t> _f1a_lbound_impl(
+	//	const for1array<_Container_value_type> & farr
+	//	, std::vector<fsize_t> & lbound
+	//	, .../* SFINAE */) {
+	//	lbound.push_back(farr.LBound());
+	//	return lbound;
+	//}
+
+	//template<typename _Container_value_type>
+	//std::vector<fsize_t> _f1a_lbound_impl(
+	//	const for1array<_Container_value_type> & farr
+	//	, std::vector<fsize_t> & lbound
+	//	, for1array_matcher<_Container_value_type>/* SFINAE */) {
+	//	lbound.push_back(farr.LBound());
+	//	_f1a_lbound_impl<typename _Container_value_type::value_type>(farr.const_get(farr.LBound()), lbound, nullptr);
+	//	return lbound;
+	//}
+
 	template<typename _Container_value_type>
-	std::vector<fsize_t> _f1a_lbound_impl(
-		const for1array<_Container_value_type> & farr
-		, std::vector<fsize_t> & lbound
-		, .../* SFINAE */) {
-		lbound.push_back(farr.LBound());
-		return lbound;
+	void _f1a_lbound_impl(_Container_value_type & farr, std::vector<fsize_t> & lbound) {
 	}
 
 	template<typename _Container_value_type>
-	std::vector<fsize_t> _f1a_lbound_impl(
-		const for1array<_Container_value_type> & farr
-		, std::vector<fsize_t> & lbound
-		, f1a_matcher<_Container_value_type>/* SFINAE */) {
+	void _f1a_lbound_impl(const for1array<_Container_value_type> & farr, std::vector<fsize_t> & lbound) {
 		lbound.push_back(farr.LBound());
-		_f1a_lbound_impl<typename _Container_value_type::value_type>(farr.const_get(farr.LBound()), lbound, nullptr);
-		return lbound;
+		_f1a_lbound_impl(farr.const_get(farr.LBound()), lbound); // can not specify
 	}
 
 	template<typename _Container_value_type>
 	std::vector<fsize_t> f1a_lbound(const for1array<_Container_value_type> & farr) {
 		std::vector<fsize_t> lbound;
-		_f1a_lbound_impl<_Container_value_type>(farr, lbound, nullptr);
+		_f1a_lbound_impl(farr, lbound);
 		return lbound;
 	}
 #ifdef USE_FORARRAY
@@ -485,11 +399,6 @@ namespace for90std {
 			farr, ans.begin(), ans.end(), [](typename f1a_gettype<_Container_value_type>::type * tx) {return tx; });
 		return ans;
 	}
-
-	template<typename _Container_value_type>
-	void f1a_mapdim(for1array<_Container_value_type> & farr, std::function<void(typename f1a_gettype<_Container_value_type>::type &)> mapper) {
-
-	}
 #else
 
 #endif
@@ -524,7 +433,7 @@ namespace for90std {
 	};
 	
 	template <typename T, int DUMMY = 0, int X>
-	for1array<T> fslice(const for1array<T> & farr, const slice_info<fsize_t>(&tp)[X]) {
+	for1array<T> forslice(const for1array<T> & farr, const slice_info<fsize_t>(&tp)[X]) {
 		return _f1aslice_impl<T, X, X - 1>::get(farr, tp);
 	}
 
@@ -536,17 +445,6 @@ namespace for90std {
 	//	return f1a_gen<T, D>(lbound, size, values);
 	//}
 
-	//template <typename T>
-	//fornarray<T, 2> fortranspose(const for1array<T> & farr) {
-
-	//}
-
-	//// 1d vector -> 2d matrix
-	//template <typename T>
-	//fornarray<T, 2> f1a_promote(const fornarray<T, 1> & farr) {
-
-	//}
-	
 
 }
 

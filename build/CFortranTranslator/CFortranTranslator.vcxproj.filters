@@ -178,9 +178,6 @@
     <ClInclude Include="..\..\for90std\for1array.h">
       <Filter>for90std</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\for90std\fornarray.h">
-      <Filter>for90std</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\for90std\formath.h">
       <Filter>for90std</Filter>
     </ClInclude>
@@ -200,10 +197,10 @@
     <ClInclude Include="..\..\for90std\forutils.h">
       <Filter>for90std</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\for90std\for1array\forarray_common.h">
+    <ClInclude Include="..\..\for90std\farray.h">
       <Filter>for90std</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\for90std\farray.h">
+    <ClInclude Include="..\..\for90std\forarray_common.h">
       <Filter>for90std</Filter>
     </ClInclude>
   </ItemGroup>

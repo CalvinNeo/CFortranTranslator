@@ -7,6 +7,16 @@ namespace for90std {
 	template<typename T, typename Return, Return(T::*)()const>
 	struct const_func_matcher;
 
+#define MAKE_TYPE_TEST(TYPENAME, MATCHERNAME) struct is_##TYPENAME { \
+		template<typename T> \
+		constexpr static bool test(MATCHERNAME<T>) {\
+			return true; \
+		} \
+		template<typename T> \
+		constexpr static bool test(...){ \
+			return false; \
+		} \
+	};
 
 	template <typename T>
 	struct function_traits

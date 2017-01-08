@@ -1,7 +1,7 @@
 # CFortranTranslator
 A translator from Fortran to C++
 
-Fortran is an efficient tool in scientific calculation. However sometimes translate old fortran codes to c++ will enable more programming abstraction, better GUI framework, higher performance IDE and easier interaction.
+Fortran is an efficient tool in scientific calculation. However sometimes translating old fortran codes to c++ will enable more programming abstraction, better GUI framework, higher performance IDE and easier interaction.
 
 This translator is not intended to improve existing codes, but to make convenience for those who need features of c++ and remain fortran traits as much as possible.
 
@@ -99,6 +99,7 @@ refer to [/grammar/for90.y](/grammar/for90.y) for all accepted grammar
     - similarly, for a nd array, dimension 1 increase by 1 first, when dimension 1 equals to upper bound it wrap back and dimension 2 increase by 1..., dimension n increase the last.
     - for details refer to `array_builder` rule in [/grammar/for90.y](/grammar/for90.y)
 2. fortran array default lower bound for each dimension is **1**, and it can be negative, c++ style array has constant lower bound 0
+3. `#define USE_FORARRAY` to use fortran style array, `#define USE_CARRAY` to use c style array
 
 #### slice
 `struct slice_info<T>` implement for a slice in fortran
@@ -110,22 +111,29 @@ refer to [/grammar/for90.y](/grammar/for90.y) for all accepted grammar
 `farray` is a multi-dimentional valarray
 1. define an array
 2. init a array
+    - from fortran list-initialization: `farray<T, D>(lower_bound, size, values)`
+    - from hidden `do`-loop: `farray<T, D>(lower_bound, size, hidden_do_func)`
 3. array traits
+
+|function|usage|
+|:-:|:-:|
+|`.flat_size` or `fa_getflatsize`|get flat size|
+
 4. fortran intrinsic functions
 
-|fortran|c++|
-|:-:|:-:|
-|get|`a(1, 2, 3, 4)` or `a({1, 2, 3, 4})` or `a[{1, 2, 3, 4}]` or `fslice(a, {1, 2, 3, 4})`|
-|fslice|`a[{{1, 3, 1}, {1, 4}, {5}}]` or `fslice(a, {{1, 3, 1}, {1, 4}, {5}})`|
-|reshape|forreshape|
-|spread|not implemented yet|
-|transpose|not implemented yet|
-|maxloc, minloc, maxval, minval|not implemented yet|
-|sum, product|not implemented yet|
-|any, all, count|not implemented yet|
-|pack|not implemented yet|
-|size|not implemented yet|
-|dot_product|not implemented yet|
+|fortran|c++| |
+|:-:|:-:|:-:|
+|get|`a(1, 2, 3, 4)` or `a({1, 2, 3, 4})` or `a[{1, 2, 3, 4}]` or `fslice(a, {1, 2, 3, 4})`| |
+|fslice|`a[{{1, 3, 1}, {1, 4}, {5}}]` or `fslice(a, {{1, 3, 1}, {1, 4}, {5}})`| |
+|reshape|forreshape| |
+|spread|not implemented yet| |
+|transpose|fortranspose| fortran standard only defined rank 2 situation, for this implementation, the result will be a array with reversed rank |
+|maxloc, minloc, maxval, minval|not implemented yet| |
+|sum, product|not implemented yet| |
+|any, all, count|not implemented yet| |
+|pack|not implemented yet| |
+|size|not implemented yet| |
+|dot_product|not implemented yet| |
 
 #### for1array
 `for1array` is a 1-dimentional dynamic array
@@ -145,9 +153,7 @@ refer to [/grammar/for90.y](/grammar/for90.y) for all accepted grammar
 
 |function|usage|
 |:-:|:-:|
-|`#define USE_FORARRAY`|use fortran style array|
-|`#define USE_CARRAY`|use c style array|
-|`fia_flattern(array)`|get flatterned size of an array|
+|`f1a_flattern(array)`|get flatterned size of an array|
 |`f1a_gettype<T>::type`|get innermost type of an array|
 |`f1a_flatmap(array, begin_iterator, end_iterator, lambda)`|return a vector of all elements mapped by function `lambda` in fortran/c order|
 

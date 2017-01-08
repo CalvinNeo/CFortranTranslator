@@ -25,7 +25,7 @@ using namespace for90std;
 //using for90std::fa_layer_delta;
 //using for90std::f1a_lbound;
 //using for90std::f1a_mapdim;
-//using for90std::f1a_matcher;
+//using for90std::for1array_matcher;
 //using for90std::farray;
 //using for90std::fsize_t;
 //using for90std::flush_fileno;

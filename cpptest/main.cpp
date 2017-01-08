@@ -91,7 +91,7 @@
 //#include "../for90std/for90std.h"
 //
 //template<typename T>
-//void test1(T x, f1a_matcher<T>) {
+//void test1(T x, for1array_matcher<T>) {
 //	cout << "match" << endl;
 //}
 //template<typename T>
@@ -101,7 +101,7 @@
 //
 //int main()
 //{	
-//	for1array<int > d({ 5 }, { 3 }, fslice(a, { { 5,7 } }) + {5}, { 3 }, b(5)(6) + {5}, { 3 }, f1a_init_hiddendo(1, 4, [](int i) {return to_int(i) + 1; }));
+//	for1array<int > d({ 5 }, { 3 }, forslice(a, { { 5,7 } }) + {5}, { 3 }, b(5)(6) + {5}, { 3 }, f1a_init_hiddendo(1, 4, [](int i) {return to_int(i) + 1; }));
 //	for1array< for1array< for1array<int>  > > aaa({ 5,6,7 }, { 2,2,2 }, { 1, 2, 3, 4, 5, 6, 7, 8 });
 //	forprintfree(aaa);
 //	for1array< for1array< for1array<int>  > > b(1, 3);
@@ -141,7 +141,12 @@ int main()
 {
 	//farray<int, 2> e({ 1,1 }, { 2,2 }, { 1, 2, 3, 4 });
 	//fff({ 1,1 }, { 2,2 }, [](const fsize_t * current) {return 0; });
+
 	farray<int, 2> e({ 1,1 }, { 2,2 }, [](const fsize_t * current) {return ([](fsize_t i, fsize_t j) {return i + j;  })(current[0], current[1]); });
+	forprintfree(e);
+	forprint("%d %d\n", e);
+	forreadfree(stdin, e);
+	forprintfree(e);
 	//farray<int, 2> e({ 1,1 }, { 2,2 }, [](const fsize_t(&current)[2]) ->fsize_t {return ([](fsize_t i, fsize_t j) {return i + j;  })(current[0], current[1]); });
 	//[](const fsize_t(&current)[2]) ->fsize_t {return [](fsize_t i, fsize_t j) {return i + j;  }(current[0], current[1]); };
 	//cout << [](int x) {return x + 1; }(1) << endl;

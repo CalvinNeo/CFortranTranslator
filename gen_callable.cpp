@@ -51,7 +51,7 @@ ParseNode gen_function_array(const ParseNode & callable_head, const ParseNode & 
 				}
 				slice_info_str += "}";
 			}
-			sprintf(codegen_buf, "fslice(%s, {%s})", name.c_str(), slice_info_str.c_str());
+			sprintf(codegen_buf, "forslice(%s, {%s})", name.c_str(), slice_info_str.c_str());
 			arr = string(codegen_buf);
 		}
 		else {

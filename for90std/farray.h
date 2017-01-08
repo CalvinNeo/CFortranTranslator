@@ -1,7 +1,6 @@
 #pragma once
-#include "for1array/forarray_common.h"
+#include "forarray_common.h"
 #include <memory>
-#include <valarray>
 #include <cmath>
 
 namespace for90std {
@@ -26,10 +25,10 @@ namespace for90std {
 		size_type size(int dimen) const {
 			return sz[dimen];
 		}
-		const size_type * LBound() {
+		const size_type * LBound() const {
 			return lb;
 		}
-		const size_type * size() {
+		const size_type * size() const {
 			return sz;
 		}
 		const fsize_t flatsize() const {
@@ -80,43 +79,67 @@ namespace for90std {
 		}
 
 		operator farray<T, 1>() {
-			// flattern
+			// flattern all to vector
 			farray<T, 1> r({ 1 }, { flatsize }, parr->begin(), parr->end());
 			return r;
 		}
 		operator farray<T, 2>() {
-			// matrix
-			return farray<T, 2>;
+			// promote vector to matrix
+			farray<T, 2> r({ lb[0], 1 }, { sz[0], 1 }, parr->begin(), parr->end());
+			return r;
 		}
 
+		void transpose() {
+			std::reverse(lb, lb + D);
+			std::reverse(sz, sz + D);
+			std::reverse(parr->begin(), parr->end());
+		}
+		
 		farray(const size_type * lower_bound, const size_type * size)
 		{
+			reset_array(lower_bound, size);
+		}
+		template<int X>
+		void reset_array(const slice_info<fsize_t>(&tp)[X], bool force_lower_bound = false) {
+			// if X < D, use farr as default from dimension X + 1
+			if (force_lower_bound) {
+				// lower bound of each dimension(new array) should be forced to 1
+				std::transform(tp, tp + X, lb, [](typename slice_info<fsize_t> x) {return 1; });
+				if (X < D) {
+					for (auto i = X; i < D; i++)
+					{
+						lb[i] = 1;
+					}
+				}
+			}
+			else {
+				// lower bound of each dimension(new array)
+				std::transform(tp, tp + X, lb, [](typename slice_info<fsize_t> x) {return x.fr; }); 
+			}
+			std::transform(tp, tp + X, sz.begin(), [](typename slice_info<fsize_t> x) {return (x.to - x.fr) / x.step + ((x.to - x.fr) % x.step == 0 ? 0 : 1); }); // size of each dimension(new array)
+		}
+		void reset_array(const size_type * lower_bound, const size_type * size) {
 			std::copy_n(lower_bound, D, this->lb);
 			std::copy_n(size, D, this->sz);
 		}
-		//farray(const size_type(&lower_bound)[D], const size_type(&size)[D])
-		//{
-		//	std::copy_n(lower_bound, D, this->lb);
-		//	std::copy_n(size, D, this->sz);
-		//}
 		template <int X>
-		farray(const size_type(&lower_bound)[D], const size_type(&size)[D], const T(&values)[X])
+		farray(const size_type * lower_bound, const size_type * size, const T(&values)[X])
 		{
-			farray(lower_bound, size);
+			reset_array(lower_bound, size);
 			std::vector<T> * nv = new std::vector<T>(X);
 			std::copy_n(values, X, nv->begin());
 			parr = std::shared_ptr<std::vector<T>>(nv);
 		}
-		template <int X, typename Iterator>
-		farray(const size_type(&lower_bound)[D], const size_type(&size)[D], Iterator begin, Iterator end)
+		template <typename Iterator>
+		farray(const size_type * lower_bound, const size_type * size, Iterator begin, Iterator end)
 		{
-			farray(lower_bound, size);
+			reset_array(lower_bound, size);
 			std::vector<T> * nv = new std::vector<T>(begin, end);
 			parr = std::shared_ptr<std::vector<T>>(nv);
 		}
 		template <int X, typename F>
 		farray(const size_type(&from)[X], const size_type(&size)[X], F f) {
-			farray(lower_bound, size);
+			reset_array(from, size);
 			// important: second argument is size, not to
 			size_type to[X];
 			size_type cur[X];
@@ -157,9 +180,9 @@ namespace for90std {
 
 		}
 		farray(const farray<T, D> & m) {
-			farray(lower_bound, size);
-			std::vector<T> * nv = new std::vector<T>(*m.parr.get());
-			std::copy_n(m.parr.get()->begin(), m.parr.get()->size(), nv->begin());
+			reset_array(m.LBound(), m.size());
+			std::vector<T> * nv = new std::vector<T>(m.flatsize());
+			std::copy_n(m.parr->begin(), m.flatsize(), nv->begin());
 			parr = std::shared_ptr<std::vector<T>>(nv);
 		}
 
@@ -168,7 +191,7 @@ namespace for90std {
 		size_type lb[D], sz[D];
 	};
 	template <typename T, int D, int X, typename _Iterator_In, typename _Iterator_Out>
-	void _fslice_impl(const farray<T, D> & narr, int deep, const std::vector<typename farray<T, D>::size_type> step_out
+	void _forslice_impl(const farray<T, D> & narr, int deep, const std::vector<typename farray<T, D>::size_type> step_out
 		, const std::vector<typename farray<T, D>::size_type> & delta_out, const std::vector<typename farray<T, D>::size_type> & delta_in
 		, _Iterator_Out bo, _Iterator_Out eo, _Iterator_In bi, _Iterator_In ei)
 	{
@@ -178,7 +201,7 @@ namespace for90std {
 				*bo = *bi;
 			}
 			else {
-				_fslice_impl<T, D, X>(narr, deep + 1, step_out, delta_out, delta_in, bo, bo + delta_out[deep], bi, bi + delta_out[deep]);
+				_forslice_impl<T, D, X>(narr, deep + 1, step_out, delta_out, delta_in, bo, bo + delta_out[deep], bi, bi + delta_out[deep]);
 			}
 			if (i != narr.UBound(deep) - 1) {
 				bo += delta_out[deep];
@@ -187,26 +210,47 @@ namespace for90std {
 		}
 	};
 	template <typename T, int D, int X>
-	farray<T, D> fslice(const farray<T, D> & farr, const slice_info<typename farray<T, D>::size_type>(&tp)[X]) {
-		farray<T, D> narr(farr.LBound(), farr.size());
-		std::vector<typename farray<T, D>::size_type> lbound_out(farr.LBound(), farr.LBound() + D);
-		std::transform(tp, tp + X, lbound_out.begin(), [](typename slice_info<typename farray<T, D>::size_type> x) {return x.fr; }); // lower bound of each dimension(new array)
-		std::copy_n(lbound_out.begin(), D, narr.LBound());
+	farray<T, D> forslice(const farray<T, D> & farr, const slice_info<typename farray<T, D>::size_type>(&tp)[X]) {
+		farray<T, D> narr(farr.LBound(), farr.size()); 
+		narr.reset_array(tp, true);
+		//std::vector<typename farray<T, D>::size_type> lbound_out(farr.LBound(), farr.LBound() + D);
+		//std::transform(tp, tp + X, lbound_out.begin(), [](typename slice_info<typename farray<T, D>::size_type> x) {return x.fr; }); // lower bound of each dimension(new array)
+		//std::copy_n(lbound_out.begin(), D, narr.LBound());
 
-		std::vector<typename farray<T, D>::size_type> size_out(farr.size(), farr.size() + D);
-		std::transform(tp, tp + X, size_out.begin(), [](typename slice_info<typename farray<T, D>::size_type> x) {return (x.to - x.fr) / x.step + ((x.to - x.fr) % x.step == 0 ? 0 : 1); }); // size of each dimension(new array)
-		std::copy_n(size_out.begin(), D, narr.size());
-		typename farray<T, D>::size_type totalsize = std::accumulate(size_out.begin(), size_out.end(), 1, [](auto x, auto y) {return x * y; });
+		//std::vector<typename farray<T, D>::size_type> size_out(farr.size(), farr.size() + D);
+		//std::transform(tp, tp + X, size_out.begin(), [](typename slice_info<typename farray<T, D>::size_type> x) {return (x.to - x.fr) / x.step + ((x.to - x.fr) % x.step == 0 ? 0 : 1); }); // size of each dimension(new array)
+		//std::copy_n(size_out.begin(), D, narr.size());
 
 		std::vector<typename farray<T, D>::size_type> step_out(D, 1);
 		std::transform(tp, tp + X, step_out.begin(), [](typename slice_info<typename farray<T, D>::size_type> x) {return x.step; });
 
+		typename farray<T, D>::size_type totalsize = fa_getflatsize(narr.size(), narr.size() + D);
 		std::vector<typename farray<T, D>::size_type> delta_out = fa_layer_delta(narr.size(), narr.size() + D);
 		std::vector<typename farray<T, D>::size_type> delta_in = fa_layer_delta(farr.size(), farr.size() + D);
 		narr.parr = std::shared_ptr<std::vector<T>>(new std::vector<T>(totalsize));
-		_fslice_impl<T, D, X>(narr, 0, step_out, delta_out, delta_in, narr.parr.get()->begin(), narr.parr.get()->end(), farr.parr.get()->begin(), farr.parr.get()->end());
+		_forslice_impl<T, D, X>(narr, 0, step_out, delta_out, delta_in, narr.parr.get()->begin(), narr.parr.get()->end(), farr.parr.get()->begin(), farr.parr.get()->end());
 
 		return narr;
 	}
+
+	template <typename T, int D_In, int D_Out>
+	farray<T, D_Out> forreshape(const farray<T, D_In> & farr, const slice_info<fsize_t>(&newshape)[D_Out]) {
+		farray<T, D_Out> narr;
+		narr.reset_array(newshape);
+		return narr;
+	}
+
+	template <typename T, int D>
+	auto fortranspose(const farray<T, D> & farr) {
+		farray<T, D> narr(farr);
+		narr.transpose();
+		return narr;
+	}
+
+	template <typename T>
+	using farray_matcher = func_matcher<T, void, &(T::clear)>*;
+
+	MAKE_TYPE_TEST(farray, farray_matcher)
+
 }
 
