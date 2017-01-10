@@ -127,7 +127,7 @@ std::string gen_vardef_array(ParseNode * pn, ParseNode * spec_typename, ParseNod
 		if (pn->child[i]->child[1]->fs.CurrentTerm.token == TokenMeta::NT_VARIABLEINITIALDUMMY){
 			// default initialize
 			if (parse_config.usefarray) {
-				arr_decl += "();\n";
+				arr_decl += "{};\n"; // compile reckon "T a();" as function decl, so use `{}` 
 			}
 			else {
 				sprintf(codegen_buf, "(%s, %s + 1)", slice->child[0]->child[0]->fs.CurrentTerm.what.c_str(), slice->child[0]->child[1]->fs.CurrentTerm.what.c_str() /* slice from to */);

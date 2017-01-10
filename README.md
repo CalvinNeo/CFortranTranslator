@@ -49,7 +49,7 @@ refer types:array
 
 |fortran|c++|
 |:-:|:-:|
-|*|get_file(-1)|
+|*|stdin/stdout|
 |5|stdin|
 |6|stdout|
 |id|get_file(id)|
@@ -128,11 +128,12 @@ refer to [/grammar/for90.y](/grammar/for90.y) for all accepted grammar
 |reshape|forreshape| |
 |spread|not implemented yet| |
 |transpose|fortranspose| fortran standard only defined rank 2 situation, for this implementation, the result will be a array with reversed rank |
-|maxloc, minloc, maxval, minval|not implemented yet| |
-|sum, product|not implemented yet| |
-|any, all, count|not implemented yet| |
-|pack|not implemented yet| |
-|size|not implemented yet| |
+|maxloc, minloc, maxval, minval|formaxloc, forminloc, formaxval, formaxloc| |
+|sum, product|forsum, forproduct| call `operator+` and `operator*` |
+|any, all, count|forany, forall, forcount| |
+|pack, unpack|not implemented yet| |
+|merge|not implemented yet| |
+|size, lbound, ubound|not implemented yet| |
 |dot_product|not implemented yet| |
 
 #### for1array
@@ -199,8 +200,9 @@ refer to [/grammar/for90.y](/grammar/for90.y) for all accepted grammar
 
 ## extend new intrinsic function
 1. implement this function and included it in [for90std/for90std.h](/for90std/for90std.h)
-	- if a parameter is **optional** in Fortran, wrap it with `foroptional`
-2. log all parameters of this function in [/gen_config.cpp](/gen_config.cpp)
+	- if a parameter is **optional** in fortran, wrap it with `foroptional`, and log all parameters of this function in [/gen_config.cpp](/gen_config.cpp)
+    - if the parameter is the **only** optional parameter, can omit `foroptional` wrapper
+2. update `funcname_map` in [/gen_config.cpp](/gen_config.cpp) if necessary
 
 ## c++ code generate
 when using immediate code generate(or using lazy gen), upper level non-terminal can channge generated codes by low level non-terminal, so `gen_` functions pass `ParseNode &` other than `const ParseNode &`:

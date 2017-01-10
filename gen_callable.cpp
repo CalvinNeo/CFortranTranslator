@@ -120,17 +120,27 @@ ParseNode gen_function_array(const ParseNode & callable_head, const ParseNode & 
 			}
 		}
 		if (map_func != func_kwargs.end()) {
-			for (int i = normal_count; i < map_func->second.size(); i++)
+			std::vector<keyword_param_info> & params = map_func->second;
+			for (int i = normal_count; i < params.size(); i++)
 			{
-				string this_param_name = map_func->second[i].first;
+				string this_param_name = std::get<0> (params[i]);
+				string this_param_type = std::get<1>(params[i]);
+				string this_param_intial = std::get<2>(params[i]);
 				auto this_arg = kws.find(this_param_name);
 				if (normal_count != 0) {
 					func_header += ", ";
 				}
 				if (this_arg == kws.end()) {
-					func_header += "_D";
+					// if do not give this argument
+					if (this_param_intial == "") {
+						func_header += "_D";
+					}
+					else {
+						func_header += this_param_intial;
+					}
 				}
 				else {
+					// if give this argument
 					func_header += this_arg->second;
 				}
 				normal_count++;

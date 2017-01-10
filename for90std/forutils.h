@@ -1,12 +1,17 @@
 #pragma once
 
 namespace for90std {
+
+#define CHECK_AND_SET(A, INITIAL) if (!A.inited()) { \
+		A = INITIAL; \
+	}
+
 	template<typename T, typename Return, Return(T::*)()>
 	struct func_matcher;
 
 	template<typename T, typename Return, Return(T::*)()const>
 	struct const_func_matcher;
-
+	
 #define MAKE_TYPE_TEST(TYPENAME, MATCHERNAME) struct is_##TYPENAME { \
 		template<typename T> \
 		constexpr static bool test(MATCHERNAME<T>) {\

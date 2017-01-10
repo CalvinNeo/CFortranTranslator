@@ -6,11 +6,23 @@ ParseNode gen_read(const ParseNode & io_info, const ParseNode & argtable) {
 	ParseNode * formatter = io_info.child[1];
 	string device = io_info.child[0]->fs.CurrentTerm.what;
 	if (io_info.child[1]->fs.CurrentTerm.token == TokenMeta::NT_AUTOFORMATTER) {
-		sprintf(codegen_buf, "forread(get_file(%s), %s) ;", device.c_str(), pn->fs.CurrentTerm.what.c_str());
+		if (device == "-1") {
+			//device = "5"; // stdin
+			sprintf(codegen_buf, "forread(stdin, %s) ;", pn->fs.CurrentTerm.what.c_str());
+		}
+		else {
+			sprintf(codegen_buf, "forread(get_file(%s), %s) ;", device.c_str(), pn->fs.CurrentTerm.what.c_str());
+		}
 	}
 	else {
 		string fmt = io_info.child[1]->fs.CurrentTerm.what.substr(1, io_info.child[1]->fs.CurrentTerm.what.size() - 1); // strip " 
-		sprintf(codegen_buf, "forread(get_file(%s), \"%s\\n\", %s) ;", device.c_str(), parse_ioformatter(fmt).c_str(), pn->fs.CurrentTerm.what.c_str());
+		if (device == "-1") {
+			//device = "5"; // stdin
+			sprintf(codegen_buf, "forread(stdin, \"%s\\n\", %s) ;", parse_ioformatter(fmt).c_str(), pn->fs.CurrentTerm.what.c_str());
+		}
+		else {
+			sprintf(codegen_buf, "forread(get_file(%s), \"%s\\n\", %s) ;", device.c_str(), parse_ioformatter(fmt).c_str(), pn->fs.CurrentTerm.what.c_str());
+		}
 	}
 	newnode.fs.CurrentTerm = Term{ TokenMeta::META_NONTERMINAL, string(codegen_buf) };
 	newnode.addchild(new ParseNode(io_info)); // ioinfo
@@ -26,11 +38,23 @@ ParseNode gen_write(const ParseNode & io_info, const ParseNode & argtable) {
 	ParseNode * formatter = io_info.child[1];
 	string device = io_info.child[0]->fs.CurrentTerm.what;
 	if (io_info.child[1]->fs.CurrentTerm.token == TokenMeta::NT_AUTOFORMATTER) {
-		sprintf(codegen_buf, "forwritefree(get_file(%s), %s) ;", device.c_str(), pn->fs.CurrentTerm.what.c_str());
+		if (device == "-1") {
+			// device = "6"; // stdout
+			sprintf(codegen_buf, "forwritefree(stdout, %s) ;", pn->fs.CurrentTerm.what.c_str());
+		}
+		else {
+			sprintf(codegen_buf, "forwritefree(get_file(%s), %s) ;", device.c_str(), pn->fs.CurrentTerm.what.c_str());
+		}
 	}
 	else {
 		string fmt = io_info.child[1]->fs.CurrentTerm.what.substr(1, io_info.child[1]->fs.CurrentTerm.what.size() - 1); // strip " 
-		sprintf(codegen_buf, "forwrite(get_file(%s), \"%s\\n\", %s) ;", device.c_str(), parse_ioformatter(fmt).c_str(), pn->fs.CurrentTerm.what.c_str());
+		if (device == "-1") {
+			// device = "6"; // stdout
+			sprintf(codegen_buf, "forwritefree(stdout, \"%s\\n\", %s) ;", parse_ioformatter(fmt).c_str(), pn->fs.CurrentTerm.what.c_str());
+		}
+		else {
+			sprintf(codegen_buf, "forwrite(get_file(%s), \"%s\\n\", %s) ;", device.c_str(), parse_ioformatter(fmt).c_str(), pn->fs.CurrentTerm.what.c_str());
+		}
 	}
 	newnode.fs.CurrentTerm = Term{ TokenMeta::META_NONTERMINAL, string(codegen_buf) };
 	newnode.addchild(new ParseNode(io_info)); // ioinfo

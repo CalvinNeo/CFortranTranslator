@@ -43,7 +43,8 @@ const std::vector<std::string> intrinsic_lvalue{
 };
 
 // in gen_config.cpp
-extern std::map<std::string, std::vector<std::pair<std::string, std::string>>> func_kwargs;
+typedef std::tuple<std::string, std::string, std::string> keyword_param_info;
+extern std::map<std::string, std::vector<keyword_param_info>> func_kwargs;
 
 const std::string cpp_header = "#include\"for90std.h\" \n";
 

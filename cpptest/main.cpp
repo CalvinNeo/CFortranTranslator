@@ -136,20 +136,24 @@ void fff(const fsize_t(&from)[X], const fsize_t(&size)[X], F x) {
 	x(0);
 }
 
+bool hahaha(int x, int h = 1, int v = 2) {
+	return true;
+}
 
 int main()
 {
-	//farray<int, 2> e({ 1,1 }, { 2,2 }, { 1, 2, 3, 4 });
-	//fff({ 1,1 }, { 2,2 }, [](const fsize_t * current) {return 0; });
+	farray<int, 2> a;
 
-	farray<int, 2> e({ 1,1 }, { 2,2 }, [](const fsize_t * current) {return ([](fsize_t i, fsize_t j) {return i + j;  })(current[0], current[1]); });
-	forprintfree(e);
-	forprint("%d %d\n", e);
-	forreadfree(stdin, e);
-	forprintfree(e);
-	//farray<int, 2> e({ 1,1 }, { 2,2 }, [](const fsize_t(&current)[2]) ->fsize_t {return ([](fsize_t i, fsize_t j) {return i + j;  })(current[0], current[1]); });
-	//[](const fsize_t(&current)[2]) ->fsize_t {return [](fsize_t i, fsize_t j) {return i + j;  }(current[0], current[1]); };
-	//cout << [](int x) {return x + 1; }(1) << endl;
+	farray<int, 2> a2;
+
+	farray<bool, 2> logi;
+
+	a = forreshape({ 1, 2, 3, 4, 5, 6 }, { 2, 3 });
+	a2 = forreshape({ 8, 9, 0, 1, 2, 3 }, { 2, 3 });
+	logi = forreshape({ false, true, true, true, true, false }, { 2, 3 });
+	auto r = formerge(a, a2, logi);
+	forprintfree(r);
+	//forsum(a, _D, _D);
 	return 0;
 }
 ///*******************************************************************/
