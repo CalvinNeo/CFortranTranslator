@@ -273,9 +273,8 @@ using namespace std;
 			}
 		| ':'
 			{
-				/* arr[from : to : step] */
-				ParseNode & lb = gen_promote(TokenMeta::NT_EXPRESSION, gen_token(Term{ TokenMeta::META_INTEGER, "foroptional<int>()" }));
-				ParseNode & ub = gen_promote(TokenMeta::NT_EXPRESSION, gen_token(Term{ TokenMeta::META_INTEGER, "foroptional<int>()" }));
+				ParseNode & lb = gen_promote(TokenMeta::NT_VARIABLEINITIALDUMMY, gen_token(Term{ TokenMeta::META_INTEGER, "foroptional<int>()" }));
+				ParseNode & ub = gen_promote(TokenMeta::NT_VARIABLEINITIALDUMMY, gen_token(Term{ TokenMeta::META_INTEGER, "foroptional<int>()" }));
 				/* target code of slice depend on context */
 				$$ = gen_slice(lb, ub);
 				update_pos($$, $1, $1);

@@ -5,6 +5,8 @@
 #include <string>
 #include <vector>
 
+#define UBOUND_DELTA "1"
+
 // const map has no operator[]
 const std::map<std::string, std::string> pre_map{
 	{ "integer", "int" }
@@ -31,6 +33,15 @@ const std::map<std::string, std::string> funcname_map{
 
 	// array
 	,{ "reshape", "forreshape" }
+	,{ "sum", "forsum" }
+	,{ "product", "forproduct" }
+	,{ "size", "forsize" }
+	,{ "lbound", "forlbound" }
+	,{ "ubound", "forubound" }
+	,{ "maxloc", "formaxloc" }
+	,{ "minloc", "forminloc" }
+	,{ "maxval", "formaxval" }
+	,{ "minval", "forminval" }
 
 	// intrinsic
 	,{ "present", "forpresent" }

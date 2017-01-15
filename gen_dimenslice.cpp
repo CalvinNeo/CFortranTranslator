@@ -26,7 +26,7 @@ ParseNode promote_exp_to_slice(const ParseNode & exp) {
 	newnode.fs.CurrentTerm = Term{ TokenMeta::NT_SLICE, "" };
 	newnode.child.push_back(nullptr);
 	newnode.child.push_back(new ParseNode(exp));
-	ParseNode lb = gen_promote(TokenMeta::NT_EXPRESSION, gen_token(Term{ TokenMeta::NT_EXPRESSION, "1" }));
+	ParseNode lb = gen_promote(TokenMeta::NT_EXPRESSION, gen_token(Term{ TokenMeta::NT_EXPRESSION, "1" })); // default lower bound is 1
 	newnode.child[0] = new ParseNode(lb);
 	return newnode;
 }

@@ -25,10 +25,10 @@ namespace for90std {
 			return lb;
 		};
 		size_type UBound() const {
-			return ub;
+			return lb + sz - 1;
 		};
 		size_type size() const {
-			return ub - lb;
+			return sz;
 		}
 		int f1a_kind() const {
 			return 1;
@@ -44,7 +44,7 @@ namespace for90std {
 		T & get(size_type i) {
 			if (i - lb >= (size_type)m_arr.size() || i < lb) {
 				m_arr.resize(i - lb + 1);
-				ub = i + 1; // important
+				sz = i - lb + 1; // important
 				return m_arr[i - lb];
 			}
 			else {
@@ -72,11 +72,11 @@ namespace for90std {
 			return *this;
 		}
 		for1array<T> & operator+=(const for1array<T> & x) {
-			for (size_type i = x.LBound(); i < x.UBound(); i++)
+			for (size_type i = x.LBound(); i < x.LBound() + x.size(); i++)
 			{
 				m_arr.push_back(x.const_get(i));
 			}
-			this->ub += x.size();
+			this->sz += x.size();
 			return *this;
 		}
 
@@ -92,10 +92,11 @@ namespace for90std {
 		void clear() {
 			m_arr.clear();
 		}
-		void resize(size_type l, size_type u) {
+		void resize(size_type l, size_type s) {
 			this->lb = l;
-			this->ub = u;
-			m_arr.resize(u - l); // if removed, f1a_resize will boom
+			this->sz = s;
+			//this->sz = u - 1 + 1;
+			m_arr.resize(this->sz); // if removed, f1a_resize will boom
 		}
 		template<typename _InnerT>
 		for1array(const std::vector<size_type> & lower_bound, const std::vector<size_type> & size, const std::initializer_list<_InnerT> & values)
@@ -108,17 +109,14 @@ namespace for90std {
 			m_arr = x.m_arr;
 			f1a_resize<typename f1a_gettype<T>::type, T>(*this, lower_bound, size);
 		}
-		for1array(size_type l, size_type u) : lb(l), ub(u) {
-			m_arr.resize(u - l);
-		};
-		for1array() : lb(0), ub(0) {
+		for1array() : lb(0), sz(0) {
 
 		};
 		for1array(const for1array<T> & x) {
 			m_arr.clear();
 			(this->lb) = x.LBound();
-			(this->ub) = x.UBound();
-			for (size_type i = lb; i < ub; i++)
+			(this->sz) = x.size();
+			for (size_type i = lb; i < lb + sz; i++)
 			{
 				m_arr.push_back(x.const_get(i));
 			}
@@ -126,14 +124,16 @@ namespace for90std {
 
 		std::vector<T> m_arr;
 	protected:
-		size_type lb, ub;
+		size_type lb;
+		//size_type ub;
+		size_type sz;
 	};
 
 
 	template <typename T>
 	using for1array_matcher = const_func_matcher<T, fsize_t, &(T::size)>*;
 
-	MAKE_TYPE_TEST(for1array, for1array_matcher)
+	MAKE_FUNC_TEST(for1array, for1array_matcher)
 
 	template<typename T>
 	for1array<T> operator+(const for1array<T> & x, const for1array<T> & y) {
@@ -238,7 +238,7 @@ namespace for90std {
 	void _f1a_resize_impl(for1array<_DTYPE> & farr, int deep
 		, const std::vector<fsize_t> & lower_bound, const std::vector<fsize_t> & size)
 	{
-		farr.resize(lower_bound[deep], lower_bound[deep] + size[deep]);
+		farr.resize(lower_bound[deep], size[deep]);
 	}
 
 	template<typename _DTYPE, typename _Container_value_type
@@ -247,7 +247,7 @@ namespace for90std {
 			, const std::vector<fsize_t> & lower_bound
 			, const std::vector<fsize_t> & size)
 	{
-		farr.resize(lower_bound[deep], lower_bound[deep] + size[deep]);
+		farr.resize(lower_bound[deep], size[deep]);
 		for (auto i = lower_bound[deep]; i < lower_bound[deep] + size[deep]; i++)
 		{
 			_f1a_resize_impl<_DTYPE, typename _Container_value_type::value_type>(farr(i), deep + 1, lower_bound, size);
@@ -333,10 +333,10 @@ namespace for90std {
 		, std::function<_Return(typename _DTYPE *)> mapper)
 	{
 		auto iter = b;
-		for (auto i = farr.LBound(); i < farr.UBound(); i++)
+		for (auto i = farr.LBound(); i < x.LBound() + x.size(); i++)
 		{
 			(*iter) = mapper(&(farr.get(i)));
-			if (i != farr.UBound() - 1) {
+			if (i != x.LBound() + x.size() - 1) {
 				iter += next_iter_delta[deep];
 			}
 		}
@@ -350,11 +350,11 @@ namespace for90std {
 			, std::function<_Return(typename _DTYPE *)> mapper)
 	{
 		auto iter = b;
-		for (auto i = farr.LBound(); i < farr.UBound(); i++)
+		for (auto i = farr.LBound(); i < x.LBound() + x.size(); i++)
 		{
 			_f1a_flatmapped_impl<typename _Container_value_type::value_type, _DTYPE, _Iterator>(
 				farr(i), deep + 1, next_iter_delta, iter, iter + next_iter_delta[deep], mapper);
-			if (i != farr.UBound() - 1) {
+			if (i != x.LBound() + x.size() - 1) {
 				iter += next_iter_delta[deep];
 			}
 		}

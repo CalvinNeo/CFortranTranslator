@@ -25,6 +25,7 @@ namespace for90std {
 			std::vector<T> l(il);
 			if (l.size() == 1)
 			{
+				// a single element, not size
 				fr = l[0]; step = 1; to = l[0];
 			}
 			else if (l.size() == 2) {
@@ -59,8 +60,8 @@ namespace for90std {
 	}
 #ifdef USE_FORARRAY
 	template<typename Iterator>
-	std::vector<fsize_t> fa_layer_delta(Iterator begin, Iterator end) {
-		std::vector<fsize_t> next_iter_delta(begin, end);
+	std::vector<fsize_t> fa_layer_delta(Iterator size_begin, Iterator size_end) {
+		std::vector<fsize_t> next_iter_delta(size_begin, size_end);
 		fsize_t s = 1;
 		std::transform(next_iter_delta.begin(), next_iter_delta.end(), next_iter_delta.begin()
 			, [&s](fsize_t x) {fsize_t ans = s; s *= x; return ans; });

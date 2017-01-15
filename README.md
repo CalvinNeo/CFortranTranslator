@@ -65,10 +65,10 @@ refer types:array
 
 |fortran|c++|
 |:-:|:-:|
-|* and (*,*)|forscanfree/forprintfree|
-|(*,formatter)|forscan/forprint|
-|(device_id,*)|forreadfree/forwritefree|
-|(device_id,formatter)|forread/forwrite|
+|`*` and `(*,*)`|forscanfree/forprintfree|
+|`(*,formatter)`|forscan/forprint|
+|`(device_id,*)`|forreadfree/forwritefree|
+|`(device_id,formatter)`|forread/forwrite|
 
 ## translation results and restrictions
 refer to [/grammar/for90.y](/grammar/for90.y) for all accepted grammar
@@ -99,16 +99,21 @@ refer to [/grammar/for90.y](/grammar/for90.y) for all accepted grammar
     - similarly, for a nd array, dimension 1 increase by 1 first, when dimension 1 equals to upper bound it wrap back and dimension 2 increase by 1..., dimension n increase the last.
     - for details refer to `array_builder` rule in [/grammar/for90.y](/grammar/for90.y)
 2. fortran array default lower bound for each dimension is **1**, and it can be negative, c++ style array has constant lower bound 0
-3. `#define USE_FORARRAY` to use fortran style array, `#define USE_CARRAY` to use c style array
+3. fortran array dimension start from 1, c++ array dimension start from 0
+4. `#define USE_FORARRAY` to use fortran style array, `#define USE_CARRAY` to use c style array
 
 #### slice
 `struct slice_info<T>` implement for a slice in fortran
+
 1. `slice_info<T>{T x}`: stands for the scalar `x`, mostly `x` is index
 2. `slice_info<T>{T x, T y}`: `x`, `y` stands for a range of **[x, y)** of default step 1
 3. `slice_info<T>{T x, T y, T z}`: `x`, `y`, `z` stands for a range of **[x, y)** step `z`
 
 #### farray
 `farray` is a multi-dimentional valarray
+
+**DON'T** call member function of `farray` directly
+
 1. define an array
 2. init a array
     - from fortran list-initialization: `farray<T, D>(lower_bound, size, values)`

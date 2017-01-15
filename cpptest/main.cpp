@@ -131,31 +131,18 @@
 #include "../for90std/for90std.h"
 #define USE_FORARRAY
 
-template <int X, typename F>
-void fff(const fsize_t(&from)[X], const fsize_t(&size)[X], F x) {
-	x(0);
-}
-
-bool hahaha(int x, int h = 1, int v = 2) {
-	return true;
-}
-
 int main()
 {
-	farray<int, 2> a;
+	//farray<int, 2> e({ 1,1 }, { 2,2 }, [](const fsize_t(&current)[2]) {return [](fsize_t i, fsize_t j) {return i + j; }(current[0], current[1]); });
+	//forprintfree(e);
+	farray<int, 3> a{};
 
-	farray<int, 2> a2;
-
-	farray<bool, 2> logi;
-
-	a = forreshape({ 1, 2, 3, 4, 5, 6 }, { 2, 3 });
-	a2 = forreshape({ 8, 9, 0, 1, 2, 3 }, { 2, 3 });
-	logi = forreshape({ false, true, true, true, true, false }, { 2, 3 });
-	auto r = formerge(a, a2, logi);
-	forprintfree(r);
-	//forsum(a, _D, _D);
+	a = forreshape({ 1, 2, 3, 4, 5, 6, 7, 8 }, { 2, 2, 2 });
+	//forprintfree(formaxloc(a));
+	forprintfree(formaxloc(a, 1));
 	return 0;
 }
+
 ///*******************************************************************/
 ///* File:                                                           */
 ///* Author:                                                         */

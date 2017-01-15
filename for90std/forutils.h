@@ -1,5 +1,19 @@
 #pragma once
 
+// WARNING: DEPRECATED
+#if (defined(_MSC_VER) && _MSC_VER <= 1900)
+namespace std {
+	template<class F, class...Args>
+	struct is_callable
+	{
+		template<class U> static auto test(U* p) -> decltype((*p)(std::declval<Args>()...), void(), std::true_type());
+		template<class U> static auto test(...) -> decltype(std::false_type());
+
+		static constexpr bool value = decltype(test<F>(0))::value;
+	};
+}
+#endif
+
 namespace for90std {
 
 #define CHECK_AND_SET(A, INITIAL) if (!A.inited()) { \
@@ -12,7 +26,7 @@ namespace for90std {
 	template<typename T, typename Return, Return(T::*)()const>
 	struct const_func_matcher;
 	
-#define MAKE_TYPE_TEST(TYPENAME, MATCHERNAME) struct is_##TYPENAME { \
+#define MAKE_FUNC_TEST(TYPENAME, MATCHERNAME) struct is_##TYPENAME { \
 		template<typename T> \
 		constexpr static bool test(MATCHERNAME<T>) {\
 			return true; \

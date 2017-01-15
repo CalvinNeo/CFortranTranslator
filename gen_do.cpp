@@ -14,7 +14,7 @@ ParseNode gen_do_range(const ParseNode & loop_variable, const ParseNode & exp1, 
 	ParseNode newnode = ParseNode();
 	suite.fs.CurrentTerm.what = tabber(suite.fs.CurrentTerm.what);
 #ifndef LAZY_GEN
-	sprintf(codegen_buf, "for(%s = %s; %s <= %s; %s+=%s){\n%s}", loop_variable.fs.CurrentTerm.what.c_str(), exp1.fs.CurrentTerm.what.c_str()
+	sprintf(codegen_buf, "for(%s = %s; %s <= %s; %s += %s){\n%s}", loop_variable.fs.CurrentTerm.what.c_str(), exp1.fs.CurrentTerm.what.c_str()
 		, loop_variable.fs.CurrentTerm.what.c_str(), exp2.fs.CurrentTerm.what.c_str()
 		, loop_variable.fs.CurrentTerm.what.c_str(), exp3.fs.CurrentTerm.what.c_str(), suite.fs.CurrentTerm.what.c_str());
 	newnode.fs.CurrentTerm = Term{ TokenMeta::NT_DO, string(codegen_buf) };

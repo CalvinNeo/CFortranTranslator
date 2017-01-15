@@ -38,15 +38,39 @@ ParseNode gen_function_array(const ParseNode & callable_head, const ParseNode & 
 				}
 				slice_info_str += "{";
 				if (argtable.child[i]->fs.CurrentTerm.token == TokenMeta::NT_SLICE) {
-					for (auto j = 0; j < argtable.child[i]->child.size(); j++)
+					ParseNode * slice = argtable.child[i];
+					bool empty_slice = false;
+					int slice_info_arr[] = {1, 1, 1};
+					for (auto j = 0; j < slice->child.size(); j++)
 					{
-						if (j != 0) {
-							slice_info_str += ",";
+						if (slice->child[j]->fs.CurrentTerm.token == TokenMeta::NT_VARIABLEINITIALDUMMY) {
+							// a(:)
+							empty_slice = true;
+							sprintf(codegen_buf, "");
 						}
-						slice_info_str += argtable.child[i]->child[j]->fs.CurrentTerm.what;
+						else {
+							sscanf(slice->child[j]->fs.CurrentTerm.what.c_str(), "%d", slice_info_arr + j);
+						}
 					}
+					if (empty_slice || slice->child.size() == 0) {
+
+					}
+					else if (slice->child.size() == 1) {
+						// a single element, not size
+						sprintf(codegen_buf, "%d", slice_info_arr[0]);
+					}
+					else if (slice->child.size() == 2) {
+						// forslice accepts lowerbound, size
+						sprintf(codegen_buf, "%d, %d", slice_info_arr[0], slice_info_arr[1] - slice_info_arr[0] + 1);
+					}
+					else {
+						sprintf(codegen_buf, "%d, %d, %d", slice_info_arr[0], slice_info_arr[1] - slice_info_arr[0] + 1, slice_info_arr[2]);
+					}
+
+					slice_info_str += string(codegen_buf);
 				}
 				else {
+					// slice like a(1:2, 3, 4)
 					slice_info_str += argtable.child[i]->fs.CurrentTerm.what;
 				}
 				slice_info_str += "}";
@@ -55,12 +79,9 @@ ParseNode gen_function_array(const ParseNode & callable_head, const ParseNode & 
 			arr = string(codegen_buf);
 		}
 		else {
-			// have no slice, just call operator() or get()
-			for (auto i = 0; i < argtable.child.size(); i++)
-			{
-				sprintf(codegen_buf, "(%s)", argtable.child[i]->fs.CurrentTerm.what.c_str());
-				arr += string(codegen_buf);
-			}
+			// dead code
+			// a dimen_slice with no slice, now all promote to slice
+			print_error("Bad Slice", argtable);
 		}
 		newnode.fs.CurrentTerm = Term{ TokenMeta::NT_FUCNTIONARRAY,  arr };
 	}

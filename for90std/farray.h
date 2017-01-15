@@ -20,14 +20,14 @@ namespace for90std {
 		typedef typename std::vector<T>::reverse_iterator reverse_iterator;
 		typedef typename std::vector<T>::iterator const_reverse_iterator;
 
-		size_type LBound(int dimen) const {
-			return lb[dimen];
+		size_type LBound(int dim) const {
+			return lb[dim];
 		};
-		size_type UBound(int dimen) const {
-			return lb[dimen] + sz[dimen];
+		size_type UBound(int dim) const {
+			return lb[dim] + sz[dim] - 1;
 		};
-		size_type size(int dimen) const {
-			return sz[dimen];
+		size_type size(int dim) const {
+			return sz[dim];
 		}
 		const size_type * LBound() const {
 			return lb;
@@ -90,10 +90,16 @@ namespace for90std {
 			reset_value(x.cbegin(), x.cend());
 			return *this;
 		}
-
+		template <int I>
+		struct Int2Type
+		{
+			enum { value = I };
+		};
+		typedef typename std::conditional<D == 1, std::true_type, std::false_type>::type is_vector_t;
 		farray<T, D> & operator+=(const farray<T, D> & x) {
-
+			return _pluseq_impl(x, is_vector_t());
 		}
+
 
 		void clear() {
 			parr.reset();
@@ -143,7 +149,7 @@ namespace for90std {
 			std::copy_n(lower_bound, D, this->lb);
 			std::copy_n(size, D, this->sz);
 		}
-		void reset_value(int X, const T * values) {
+		void reset_value(fsize_t X, const T * values) {
 			std::vector<T> * nv = new std::vector<T>(X);
 			std::copy_n(values, X, nv->begin());
 			parr = std::shared_ptr<std::vector<T>>(nv);
@@ -151,6 +157,10 @@ namespace for90std {
 		template <typename Iterator>
 		void reset_value(Iterator begin, Iterator end) {
 			std::vector<T> * nv = new std::vector<T>(begin, end);
+			parr = std::shared_ptr<std::vector<T>>(nv);
+		}
+		void reset_value(fsize_t X) {
+			std::vector<T> * nv = new std::vector<T>(X);
 			parr = std::shared_ptr<std::vector<T>>(nv);
 		}
 		farray(const T & scalar) {
@@ -174,65 +184,81 @@ namespace for90std {
 			reset_array(lower_bound, size);
 			reset_value(begin, end);
 		}
-		template <int X, typename F>
+
+		template <typename F>
+		void map(F f) const {
+			_map_impl<const farray<T, D>&, F>(*this, f, cbegin());
+		}
+		template <typename F>
+		void map(F f) {
+			_map_impl<farray<T, D>&, F>(*this, f, begin());
+		}
+		template <int X, typename F/*, typename = std::enable_if_t<std::is_callable<F, size_type>::value>*/>
 		farray(const size_type(&from)[X], const size_type(&size)[X], F f) {
 			reset_array(from, size);
 			// important: second argument is size, not to
-			size_type to[X];
-			size_type cur[X];
 			size_type totalsize = flatsize();
-			for (auto i = 0; i < X; i++)
-			{
-				to[i] = from[i] + size[i];
-				cur[i] = from[i];
-			}
-			std::vector<T> * nv = new std::vector<T>(totalsize);
-			parr = std::shared_ptr<std::vector<T>>(nv);
-			std::vector<T>::iterator iter = nv->begin();
-#ifdef USE_FORARRAY
-			int cl = 0; // current layer
-			while (true) {
-				while (cur[cl] < to[cl]) {
-					*iter = f(cur);
-					iter++;
-					cur[cl] ++;
-				}
-				while (cur[cl] >= to[cl]) {
-					// find innermost layer which isn't to end
-					cl++;
-					if (cl == X) {
-						break; // all finished
-					}
-				}
-				cur[cl]++;
-				if (cl >= X || (cl == X - 1 && cur[cl] >= to[cl])) {
-					break; // all finished
-				}
-				std::copy_n(from, cl, cur);
-				cl = 0;
-			}
-#endif
+			reset_value(totalsize);
+			map([&](T & item, const fsize_t(&cur)[D]) {item = f(cur); });
 		}
 		farray() {
 
 		}
 		farray(const farray<T, D> & m) {
 			reset_array(m.LBound(), m.size());
-			std::vector<T> * nv = new std::vector<T>(m.flatsize());
-			std::copy_n(m.parr->begin(), m.flatsize(), nv->begin());
-			parr = std::shared_ptr<std::vector<T>>(nv);
+			reset_value(m.cbegin(), m.cend());
 		}
 
 		std::shared_ptr<std::vector<T>> parr; // use shared can support inplace operation
+
 	protected:
 		size_type lb[D], sz[D];
+
+
+		farray<T, D> & _pluseq_impl(const farray<T, D> & x, std::true_type) {
+			// D = 1: 1-dimension vector
+		}
+		farray<T, D> & _pluseq_impl(const farray<T, D> & x, std::false_type) {
+			// D != 1: normal farray
+		}		
+
+		template <typename THIS, typename F, typename Iterator>
+		static void _map_impl(THIS me, F f, Iterator iter) {
+			size_type cur[D];
+			std::copy_n(me.LBound(), D, cur);
+#ifdef USE_FORARRAY
+			int dim = 0; // current dimension
+			while (true) {
+				while (cur[dim] < me.LBound(dim) + me.size(dim)) {
+					f(*iter, cur);
+					iter++;
+					cur[dim] ++;
+				}
+				while (cur[dim] + 1>= me.LBound(dim) + me.size(dim)) {
+					// find innermost dimension which isn't to end
+					dim++;
+					if (dim == D) {
+						break; // all finished
+					}
+				}
+				if (dim < D) {
+					cur[dim]++;
+				}
+				else {
+					break; // all finished
+				}
+				std::copy_n(me.LBound(), dim, cur); // reset cur
+				dim = 0;
+			}
+#endif
+		}
 	};
 	template <typename T, int D, int X, typename _Iterator_In, typename _Iterator_Out>
 	void _forslice_impl(const farray<T, D> & narr, int deep, const std::vector<typename farray<T, D>::size_type> step_out
 		, const std::vector<typename farray<T, D>::size_type> & delta_out, const std::vector<typename farray<T, D>::size_type> & delta_in
 		, _Iterator_Out bo, _Iterator_Out eo, _Iterator_In bi, _Iterator_In ei)
 	{
-		for (typename farray<T, D>::size_type i = narr.LBound(deep); i < narr.UBound(deep); i+= step_out[deep])
+		for (typename farray<T, D>::size_type i = narr.LBound(deep); i < narr.LBound(deep) + narr.size(deep); i+= step_out[deep])
 		{
 			if (deep == D - 1) {
 				*bo = *bi;
@@ -240,7 +266,7 @@ namespace for90std {
 			else {
 				_forslice_impl<T, D, X>(narr, deep + 1, step_out, delta_out, delta_in, bo, bo + delta_out[deep], bi, bi + delta_out[deep]);
 			}
-			if (i != narr.UBound(deep) - 1) {
+			if (i != narr.LBound(deep) + narr.size(deep) - 1) {
 				bo += delta_out[deep];
 				bi += delta_in[deep];
 			}
@@ -272,17 +298,17 @@ namespace for90std {
 	}
 	
 	template <typename T, int D>
-	auto forlbound(const farray<T, D> & farr, int dim = 1) {
-		return farr.LBound(dim);
+	auto forlbound(const farray<T, D> & farr, int fordim = 1) {
+		return farr.LBound(fordim - 1);
 	}
 	
 	template <typename T, int D>
-	auto forubound(const farray<T, D> & farr, int dim = 1) {
-		return farr.UBound(dim) + 1;
+	auto forubound(const farray<T, D> & farr, int fordim = 1) {
+		return farr.UBound(fordim - 1);
 	}
 
 	template <typename T, int D>
-	farray<fsize_t, 1> forshape(const farray<T, D> & farr, int dim = 1) {
+	farray<fsize_t, 1> forshape(const farray<T, D> & farr, int fordim = 1) {
 		farray<fsize_t, 1> r = farray<fsize_t, 1>({ 1 }, { D }, farr.size(), farr.size() + D);
 		return r;
 	}
@@ -296,24 +322,104 @@ namespace for90std {
 	}
 
 	template <typename T, int D>
-	auto forsize(const farray<T, D> & farr, int dim = 1) {
-		return farr.size(dim);
+	auto forsize(const farray<T, D> & farr, int fordim = 1) {
+		return farr.size(fordim - 1);
 	}
 
-	//template <typename T, int D>
-	//auto forsum(const farray<T, D> & farr, foroptional<int> dim = 1, foroptional<std::function<bool(T)>> mask = nullptr) {
-	//	CHECK_AND_SET(dim, 1)
-	//	if (!mask.inited()) {
-	//		mask = nullptr;
-	//	}
-	//	return 0;
-	//}	
-	//
-	//template <typename T, int D>
-	//auto forproduct(const farray<T, D> & farr, foroptional<int> dim = 1, foroptional<std::function<bool(T)>> mask = nullptr) {
+	template <typename T, int D>
+	void forvectorize(const farray<T, D> & farr, int dim ) {
 
-	//}
+	}
+
+	template <typename T>
+	using mask_wrapper = std::function<bool(T)>;
+
+	template <typename T, int D>
+	auto forsum(const farray<T, D> & farr, foroptional<int> fordim = 1, foroptional<mask_wrapper<T>> mask = foroptional<mask_wrapper<T>>([](T x) {return true; })) {
+		CHECK_AND_SET(fordim, 1)
+		// do not need to CHECK_AND_SET mask because it's the last parameter
+		return 0;
+	}	
 	
+	template <typename T, int D>
+	auto forproduct(const farray<T, D> & farr, foroptional<int> fordim = 1, foroptional<mask_wrapper<T>> mask = foroptional<mask_wrapper<T>>([](T x) {return true; })) {
+		CHECK_AND_SET(fordim, 1)
+		return 0;
+	}
+
+
+	template <typename T, int D>
+	auto forreorganize(const farray<T, D> & farr, int dim) {
+		std::vector<fsize_t> delta = fa_layer_delta(farr.size(), farr.size() + farr.dimension);
+		std::vector<T> new_vec(farr.flatsize());
+		auto iter = farr.cbegin();
+		for (fsize_t back = 0; back < delta[farr.dimension - 1] / delta[dim]; back++)
+		{
+			for (fsize_t dim_current = 0; dim_current < farr.size(dim); dim_current++)
+			{
+				// delta[0..(dim-1)]
+				fsize_t dim_index = dim_current + farr.LBound(dim);
+				if (dim > 0) {
+					for (fsize_t front = 0; front < delta[dim - 1]; front++)
+					{
+						iter++;
+					}
+				}
+				else {
+					iter++;
+				}
+			}
+		}
+	}
+
+	template <typename T, int D>
+	auto formaxloc(const farray<T, D> & farr, foroptional<int> fordim, foroptional<mask_wrapper<T>> mask = foroptional<mask_wrapper<T>>([](T x) {return true; })) {
+		// return maxvalue of every subarray
+		int dim = fordim - 1;
+		std::vector<T> maxv(farr.size(dim));
+		std::vector<bool> vis(farr.size(dim));
+		std::vector<std::array<fsize_t, D - 1>> loc(farr.size(dim));
+
+		farr.map([&](const T & item, const fsize_t(&cur)[D]) {
+			size_t plain_index = cur[dim] - farr.LBound(dim);
+			if (!vis[plain_index]  || maxv[plain_index] < item) {
+				int k = 0;
+				for (auto j = 0; j < D; j++)
+				{
+					if (j != dim)
+					{
+						loc[plain_index][k++] = cur[j];
+					}
+				}
+				vis[plain_index] = true;
+				maxv[plain_index] = item;
+			}
+		});
+		return 0;
+		//return farray<fsize_t, D - 1>({ 1 }, { farr.size(dim) }, loc, loc + D);
+	}
+	template <typename T, int D>
+	auto formaxloc(const farray<T, D> & farr, foroptional<mask_wrapper<T>> mask = foroptional<mask_wrapper<T>>([](T x) {return true; })) {
+		T maxv = *farr.cbegin(); // set default to the first element
+		fsize_t loc[D]; std::copy_n(farr.LBound(), D, loc);
+
+		farr.map([&](const T & item, const fsize_t(&cur)[D]) {
+			if (maxv < item) {
+				std::copy_n(cur, D, loc);
+				maxv = item;
+			}
+		});
+		return farray<fsize_t, 1>({ 1 }, { D }, loc, loc + D);
+	}
+	
+	template <typename T, int D>
+	auto formaxval(const farray<T, D> & farr, foroptional<int> fordim = 1, foroptional<mask_wrapper<T>> mask = foroptional<mask_wrapper<T>>([](T x) {return true; })) {
+		// return maxvalue of every subarray
+		CHECK_AND_SET(fordim, 1)
+		return 0;
+	}
+
+
 	template <typename T1, typename T2, int D>
 	auto formerge(const farray<T1, D> & tarr, const farray<T2, D> & farr, const farray<bool, D> & mask) {
 		/***
@@ -336,12 +442,5 @@ namespace for90std {
 		}
 		return narr;
 	}
-
-
-	template <typename T>
-	using farray_matcher = func_matcher<T, void, &(T::clear)>*;
-
-	MAKE_TYPE_TEST(farray, farray_matcher)
-
 }
 
