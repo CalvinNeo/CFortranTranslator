@@ -13,9 +13,10 @@ namespace for90std {
 		typedef size_type difference_type;
 
 		for1array<T> slice(size_type fr, size_type to, size_type step = 1) const {
-			for1array<T> nfor1(1, to - fr + 1);
+			// [from, to]
+			for1array<T> nfor1(1, to + 1 - fr);
 			size_type j = 1;
-			for (size_type i = fr; i < to; i += step, j++)
+			for (size_type i = fr; i <= to; i += step, j++)
 			{
 				nfor1(j) = const_get(i);
 			}

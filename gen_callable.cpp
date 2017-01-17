@@ -61,10 +61,10 @@ ParseNode gen_function_array(const ParseNode & callable_head, const ParseNode & 
 					}
 					else if (slice->child.size() == 2) {
 						// forslice accepts lowerbound, size
-						sprintf(codegen_buf, "%d, %d", slice_info_arr[0], slice_info_arr[1] - slice_info_arr[0] + 1);
+						sprintf(codegen_buf, "%d, %d", slice_info_arr[0], slice_info_arr[1] - slice_info_arr[0] ); // to = from + size - 1
 					}
 					else {
-						sprintf(codegen_buf, "%d, %d, %d", slice_info_arr[0], slice_info_arr[1] - slice_info_arr[0] + 1, slice_info_arr[2]);
+						sprintf(codegen_buf, "%d, %d, %d", slice_info_arr[0], slice_info_arr[1] - slice_info_arr[0] , slice_info_arr[2]);
 					}
 
 					slice_info_str += string(codegen_buf);

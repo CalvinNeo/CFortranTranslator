@@ -85,7 +85,7 @@ namespace for90std {
 	std::string _forwrite_one_arrf(FILE * f, std::string format, const farray<T, D> & x) {
 		// clear front
 		std::string _format = _forwrite_noargs(f, format);
-		std::vector<T>::iterator iter = x.parr->begin();
+		auto iter = x.cbegin();
 		for (auto i = 0; i < x.flatsize(); i++)
 		{
 			if (_format == "") {
@@ -158,7 +158,7 @@ namespace for90std {
 	};
 	template <typename T, int D>
 	void _forwritefree_one_arrf(FILE * f, const farray<T, D> & x) {
-		std::vector<T>::iterator iter = x.parr->begin();
+		auto iter = x.cbegin();
 		for (auto i = 0; i < x.flatsize(); i++)
 		{
 			_forwritefree_one(f, *(iter + i));
@@ -298,7 +298,7 @@ namespace for90std {
 	};
 	template <typename T, int D>
 	void _forreadfree_one_arrf(FILE * f, farray<T, D> & x) {
-		std::vector<T>::iterator iter = x.parr->begin();
+		auto iter = x.begin();
 		for (auto i = 0; i < x.flatsize(); i++)
 		{
 			_forreadfree_one(f, *(iter + i));

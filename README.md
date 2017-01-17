@@ -96,18 +96,18 @@ refer to [/grammar/for90.y](/grammar/for90.y) for all accepted grammar
 
 1. fortran store array in a **column-first order**
     - for a 2d array, it means when initializing by a 1d array, it follows the order of `a(1)(1) -> a(2)(1) -> a(1)(2) -> a(1)(2)` 
-    - similarly, for a nd array, dimension 1 increase by 1 first, when dimension 1 equals to upper bound it wrap back and dimension 2 increase by 1..., dimension n increase the last.
+    - similarly, for a nd array, rank 1 increase by 1 first, when rank 1 equals to upper bound it wrap back and rank 2 increase by 1..., rank n increase the last.
     - for details refer to `array_builder` rule in [/grammar/for90.y](/grammar/for90.y)
-2. fortran array default lower bound for each dimension is **1**, and it can be negative, c++ style array has constant lower bound 0
-3. fortran array dimension start from 1, c++ array dimension start from 0
+2. fortran array default lower bound for each rank is **1**, and it can be negative; each dimension of c++ style array has constant lower bound 0
+3. fortran array **rank** start from 1, c++ array **dimension** start from 0, parameter for most `for-` functions are index of rank, though they are called "dim" in standard, they are called `fordim` in this implementation
 4. `#define USE_FORARRAY` to use fortran style array, `#define USE_CARRAY` to use c style array
 
 #### slice
 `struct slice_info<T>` implement for a slice in fortran
 
-1. `slice_info<T>{T x}`: stands for the scalar `x`, mostly `x` is index
-2. `slice_info<T>{T x, T y}`: `x`, `y` stands for a range of **[x, y)** of default step 1
-3. `slice_info<T>{T x, T y, T z}`: `x`, `y`, `z` stands for a range of **[x, y)** step `z`
+1. `slice_info<T>{T x}`: stands for the scalar `x`, `x` is an index not a range
+2. `slice_info<T>{T x, T y}`: `x`, `y` stands for a range of **[x, y]** of default step 1
+3. `slice_info<T>{T x, T y, T z}`: `x`, `y`, `z` stands for a range of **[x, y]** step `z`
 
 #### farray
 `farray` is a multi-dimentional valarray
@@ -233,12 +233,12 @@ their replacement occur in following stages:
 
 ### array
 
-** though fortran-style array is different from c-style array, only need to consider relationship with flatterned 1d array **
+**though fortran-style array is different from c-style array, only need to consider relationship with flatterned 1d array**
 
-1. ~~for1array is a 1d dynamic array defined in [/for90std/for1array.l](/for90std/for1array.h), ~~farray is a nd array defined in [/for90std/farray.l](/for90std/farray.h)
+1. for1array is a 1d dynamic array defined in [/for90std/for1array.l](/for90std/for1array.h), farray is a nd array defined in [/for90std/farray.l](/for90std/farray.h)
 2. functions and arrays are generated in normal order in [/gen_callable.cpp](/gen_callable.cpp). 
 3. array declaration is in [/gen_vardef.cpp](/gen_vardef.cpp)
-4. overload `operator()` and  `operator[]` so `a(x, y, z)` is same as `a(x)(y)(z)` where x,y,z are `slice_info` or index
+4. overload `operator()` and  `operator[]` so `a(x, y, z)`(fortran-style) is same as `a(x)(y)(z)`(c-style) where x,y,z are `slice_info` or index
 5. slice selections are handled in [/gen_callable.cpp](/gen_callable.cpp). 
 
 
