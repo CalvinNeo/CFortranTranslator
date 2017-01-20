@@ -4,7 +4,7 @@
 #include <cmath>
 
 namespace for90std {
-	template <typename T, int D>
+	template <typename T>
 	struct farray {
 		typedef T value_type;
 		typedef fsize_t size_type; // fortran array index can be negative
@@ -14,10 +14,12 @@ namespace for90std {
 		typedef const value_type & const_reference;
 		typedef size_type difference_type;
 		typedef slice_info<typename size_type> slice_type;
-		const int dimension = D;
+		int dimension;
 		const bool is_view;
 		typedef typename T * iterator;
 		typedef typename const T * const_iterator;
+		typedef typename std::reverse_iterator<iterator> reverse_iterator;
+		typedef typename std::reverse_iterator<const_iterator> const_reverse_iterator;
 
 		size_type LBound(int dim) const {
 			return lb[dim];
@@ -35,7 +37,7 @@ namespace for90std {
 			return sz;
 		}
 		fsize_t flatsize() const {
-			return fa_getflatsize(sz, sz + D);
+			return fa_getflatsize(sz, sz + dimension);
 		}
 		const fsize_t * get_delta() const {
 			return delta;
@@ -81,59 +83,55 @@ namespace for90std {
 
 		template<int X>
 		auto & operator[](const slice_type (&index)[X]) {
-			return 0;
+			return get(index);
 		}
 
-		farray<T, D> & operator=(const farray<T, D> & x) {
+		farray<T> & operator=(const farray<T> & x) {
 			if (this == &x) return *this;
+			this->dimension = x.dimension;
 			reset_array(x.LBound(), x.size());
 			reset_value(x.cbegin(), x.cend());
 			return *this;
 		}
-		template <int I>
-		struct Int2Type
-		{
-			enum { value = I };
-		};
-		typedef typename std::conditional<D == 1, std::true_type, std::false_type>::type is_vector_t;
-		farray<T, D> & operator+=(const farray<T, D> & x) {
-			return _pluseq_impl(x, is_vector_t());
-		}
-
-
-		operator farray<T, 1>() {
-			// flattern all to vector
-			farray<T, 1> r({ 1 }, { flatsize }, begin(), end());
-			return r;
-		}
-		operator farray<T, 2>() {
-			// promote vector to matrix
-			farray<T, 2> r({ lb[0], 1 }, { sz[0], 1 }, begin(), end());
-			return r;
+		//typedef typename std::conditional<D == 1, std::true_type, std::false_type>::type is_vector_t;
+		friend farray<T> & operator+(const farray<T> & x, const farray<T> & y);
+		friend farray<T> & operator+(const T & x, const farray<T> & y);
+		farray<T> & operator+=(const farray<T> & x) {
+			// element-wise add operation
+			auto tb = begin(); 
+			auto xb = x.cbegin();
+			while (tb < end()) {
+				*tb = *xb;
+				tb++; xb++;
+			}
+			return *this;
 		}
 
 		void transpose() {
-			std::reverse(lb, lb + D);
-			std::reverse(sz, sz + D);
+			std::reverse(lb, lb + dimension);
+			std::reverse(sz, sz + dimension);
 			std::reverse(begin(), end());
-			fa_layer_delta(this->sz, this->sz + D, delta);
+			fa_layer_delta(this->sz, this->sz + dimension, delta);
 		}
+
 		template <typename F>
 		void map(F f) const {
-			_map_impl<const farray<T, D>&, F>(*this, f, cbegin());
+			_map_impl<const farray<T>&, F>(*this, f, cbegin());
 		}
 		template <typename F>
 		void map(F f) {
-			_map_impl<farray<T, D>&, F>(*this, f, begin());
+			_map_impl<farray<T>&, F>(*this, f, begin());
 		}
 		template<int X>
 		void reset_array(const slice_info<fsize_t>(&tp)[X], bool force_lower_bound = false) {
-			// if X < D, use farr as default from dimension X + 1
+			delete[] lb; delete[] sz; delete[] delta;
+			lb = new fsize_t[dimension]; sz = new fsize_t[dimension]; delta = new fsize_t[dimension];
+			// if X < dimension, use farr as default from dimension X + 1
 			if (force_lower_bound) {
 				// lower bound of each dimension(new array) should be forced to 1
 				std::transform(tp, tp + X, lb, [](typename slice_info<fsize_t> x) {return 1; });
-				if (X < D) {
-					for (auto i = X; i < D; i++)
+				if (X < dimension) {
+					for (auto i = X; i < dimension; i++)
 					{
 						lb[i] = 1;
 					}
@@ -146,12 +144,21 @@ namespace for90std {
 			std::transform(tp, tp + X, sz, [](typename slice_info<fsize_t> x) {
 				return (x.to + 1 - x.fr) / x.step + ((x.to + 1 - x.fr) % x.step == 0 ? 0 : 1); 
 			}); // size of each dimension(new array)
-			fa_layer_delta(this->sz, this->sz + D, delta);
+			fa_layer_delta(this->sz, this->sz + dimension, delta);
 		}
 		void reset_array(const size_type * lower_bound, const size_type * size) {
-			std::copy_n(lower_bound, D, this->lb);
-			std::copy_n(size, D, this->sz);
-			fa_layer_delta(this->sz, this->sz + D, delta);
+			delete[] lb; delete[] sz; delete[] delta;
+			lb = new fsize_t[dimension]; sz = new fsize_t[dimension]; delta = new fsize_t[dimension];
+			std::copy_n(lower_bound, dimension, this->lb);
+			std::copy_n(size, dimension, this->sz);
+			fa_layer_delta(this->sz, this->sz + dimension, delta);
+		}
+		void reset_array() {
+			delete[] lb; delete[] sz; delete[] delta;
+			lb = new fsize_t[dimension]; sz = new fsize_t[dimension]; delta = new fsize_t[dimension];
+			std::fill_n(lb, dimension, 1);
+			std::fill_n(sz, dimension, 1);
+			fa_layer_delta(this->sz, this->sz + dimension, delta);
 		}
 		void clear() {
 			delete[] parr;
@@ -162,6 +169,21 @@ namespace for90std {
 			parr = new T[flatsize()];
 			std::copy_n(values, X, parr);
 		}
+		void reset_value(int X, const farray<T> * farrs) {
+			clear();
+			fsize_t flatsize = 0;
+			for (int i = 0; i < X; i++)
+			{
+				flatsize += (farrs + i)->flatsize();
+			}
+			parr = new T[flatsize];
+			auto parr1 = parr;
+			for (int i = 0; i < X; i++)
+			{
+				std::copy_n((farrs + i)->cbegin(), X, parr1);
+				parr1 += (farrs + i)->flatsize();
+			}
+		}
 		template <typename Iterator>
 		void reset_value(Iterator b, Iterator e) {
 			clear();
@@ -170,73 +192,85 @@ namespace for90std {
 		}
 		void reset_value(fsize_t X) {
 			clear();
-			parr = new T[flatsize()];
-		}
-		farray(const size_type * lower_bound, const size_type * size) : is_view(false)
-		{
-			reset_array(lower_bound, size);
+			fsize_t totalsize = flatsize();
+			parr = new T[totalsize];
 		}
 		farray(const T & scalar) : is_view(false) {
-			// ISO/IEC 1539:1991 1.5.2
-			// A scalar is conformable with any array
-			// A rank-one array may be constructed from scalars and other arrays and may be reshaped into any allowable array shape
-			std::fill_n(lb, D, 1);
-			std::fill_n(sz, D, 1);
+			/***
+			 ISO/IEC 1539:1991 1.5.2
+			 A scalar is conformable with any array
+			 A rank-one array may be constructed from scalars and other arrays and may be reshaped into any allowable array shape
+			 ***/
+			// implicitly use a scalr to initialize an array, so shape of array is undetermined
+			reset_array();
 			reset_value(1, &scalar);
 		}
 		template <int X>
-		farray(const size_type(&lower_bound)[D], const size_type(&size)[D], const T(&values)[X]) : is_view(false)
+		farray(const T(&values)[X]) : is_view(false) {
+			reset_array({ 1 }, {X});
+			reset_value(X, values);
+		}
+		template <int X, typename Iterator>
+		farray(Iterator b, Iterator e) : is_view(false) {
+			reset_array({ 1 }, { e - b });
+			reset_value(b, e);
+		}
+		farray(const size_type * lower_bound, const size_type * size, int D, bool isview = false) : is_view(isview), dimension(D)
 		{
+			reset_array(lower_bound, size);
+		}
+		template <int D, int X>
+		farray(const size_type(&lower_bound)[D], const size_type(&size)[D], const T(&values)[X]) : is_view(false), dimension(D)
+		{
+			// X == 1 means explicitly use a scalar to initialize an array
 			reset_array(lower_bound, size);
 			reset_value(X, values);
 		}
-		template <typename Iterator>
-		farray(const size_type(&lower_bound)[D], const size_type(&size)[D], Iterator begin, Iterator end) : is_view(false)
+		template <int D, int X>
+		farray(const size_type(&lower_bound)[D], const size_type(&size)[D], const farray<T>(&farrs)[X]) : is_view(false), dimension(D)
+		{
+			// concat several farrays
+			reset_array(lower_bound, size);
+			reset_value(X, farrs);
+		}
+		template <int D, typename Iterator>
+		farray(const size_type(&lower_bound)[D], const size_type(&size)[D], Iterator begin, Iterator end) : is_view(false), dimension(D)
 		{
 			reset_array(lower_bound, size);
 			reset_value(begin, end);
 		}
-
-		
 		template <int X, typename F/*, typename = std::enable_if_t<std::is_callable<F, size_type>::value>*/>
-		farray(const size_type(&from)[X], const size_type(&size)[X], F f) : is_view(false) {
+		farray(const size_type(&from)[X], const size_type(&size)[X], F f) : is_view(false), dimension(X) {
 			reset_array(from, size);
 			// important: second argument is size, not to
 			size_type totalsize = flatsize();
 			reset_value(totalsize);
-			map([&](T & item, const fsize_t(&cur)[D]) {
+			map([&](T & item, const fsize_t *cur) {
 				item = f(cur); 
 			});
 		}
-		farray() : is_view(false) {
-
+		farray() : is_view(false), dimension(1) {
+			reset_array();
 		}
-		farray(const farray<T, D> & m) : is_view(false) {
+		farray(const farray<T> & m) : is_view(false), dimension(m.dimension) {
 			reset_array(m.LBound(), m.size());
 			reset_value(m.cbegin(), m.cend());
 		}
-		explicit farray(const farray<T, D> & m, bool view) : is_view(view) {
 
+		~farray() {
+			if (!is_view) {
+				delete[] parr;
+			}
+			delete[] lb; delete[] sz; delete[] delta;
 		}
-
-		//std::shared_ptr<std::vector<T>> parr; // use shared can support inplace operation
-		//std::vector<std::shared_ptr<T>> parr;
 		T * parr = nullptr; // support inplace operation of each element
 	protected:
-		size_type lb[D], sz[D], delta[D];
-
-
-		farray<T, D> & _pluseq_impl(const farray<T, D> & x, std::true_type) {
-			// D = 1: 1-dimension vector
-		}
-		farray<T, D> & _pluseq_impl(const farray<T, D> & x, std::false_type) {
-			// D != 1: normal farray
-		}		
+		size_type * lb = nullptr, * sz = nullptr, * delta = nullptr;
 
 		template <typename THIS, typename F, typename Iterator>
 		static void _map_impl(THIS me, F f, Iterator iter) {
-			size_type cur[D];
-			std::copy_n(me.LBound(), D, cur);
+			size_type * cur = new size_type[me.dimension];
+			std::copy_n(me.LBound(), me.dimension, cur);
 #ifdef USE_FORARRAY
 			int dim = 0; // current dimension
 			while (true) {
@@ -248,11 +282,11 @@ namespace for90std {
 				while (cur[dim] + 1>= me.LBound(dim) + me.size(dim)) {
 					// find innermost dimension which isn't to end
 					dim++;
-					if (dim == D) {
+					if (dim == me.dimension) {
 						break; // all finished
 					}
 				}
-				if (dim < D) {
+				if (dim < me.dimension) {
 					cur[dim]++;
 				}
 				else {
@@ -262,19 +296,41 @@ namespace for90std {
 				dim = 0;
 			}
 #endif
+			delete[] cur;
 		}
 	};
-	template <typename T, int D, int X, typename _Iterator_In, typename _Iterator_Out>
-	void _forslice_impl(const farray<T, D> & narr, int deep, const fsize_t * step_out, const fsize_t * delta_out, const fsize_t * delta_in
+
+	template <typename T>
+	farray<T> operator+(const farray<T> & x, const farray<T> & y) {
+		// element-wise add operation
+		// must make sure flatsize() is conformed
+		farray<T> narr(x);
+		x += y;
+	}
+	template <typename T>
+	farray<T> operator+(const T & x, const farray<T> & y) {
+		farray<T> narr(y);
+		narr.map([&](T & item, const fsize_t * cur) {
+			item += x;
+		});
+	}
+	template <typename T>
+	farray<T> operator+(const farray<T> & x, const T & y) {
+		return y + x;
+	}
+
+
+	template <typename T, int X, typename _Iterator_In, typename _Iterator_Out>
+	void _forslice_impl(const farray<T> & narr, int deep, const fsize_t * step_out, const fsize_t * delta_out, const fsize_t * delta_in
 		, _Iterator_Out bo, _Iterator_Out eo, _Iterator_In bi, _Iterator_In ei)
 	{
-		for (typename farray<T, D>::size_type i = narr.LBound(deep); i < narr.LBound(deep) + narr.size(deep); i+= step_out[deep])
+		for (typename farray<T>::size_type i = narr.LBound(deep); i < narr.LBound(deep) + narr.size(deep); i+= step_out[deep])
 		{
-			if (deep == D - 1) {
+			if (deep == narr.dimension - 1) {
 				*bo = *bi;
 			}
 			else {
-				_forslice_impl<T, D, X>(narr, deep + 1, step_out, delta_out, delta_in, bo, bo + delta_out[deep], bi, bi + delta_out[deep]);
+				_forslice_impl<T, X>(narr, deep + 1, step_out, delta_out, delta_in, bo, bo + delta_out[deep], bi, bi + delta_out[deep]);
 			}
 			if (i != narr.LBound(deep) + narr.size(deep) - 1) {
 				bo += delta_out[deep];
@@ -282,64 +338,65 @@ namespace for90std {
 			}
 		}
 	};
-	template <typename T, int D, int X>
-	auto forslice(const farray<T, D> & farr, const slice_info<typename farray<T, D>::size_type>(&tp)[X]) {
+	template <typename T, int X>
+	auto forslice(const farray<T> & farr, const slice_info<fsize_t>(&tp)[X]) {
 		// by fortran standard, slice must return by ref, now by val
-		farray<T, D> narr(farr.LBound(), farr.size()); // if X < D, unspecified ranks of narr will remain the same as farr
+		farray<T> narr(farr.LBound(), farr.size(), farr.dimension); // if X < dimension, unspecified ranks of narr will remain the same as farr
 		narr.reset_array(tp, true);
 
-		fsize_t step_out[D];
-		std::fill_n(step_out, D, 1); // if X < D, unspecified stride of narr will be 1
-		std::transform(tp, tp + X, step_out, [](fsize_t> x) {return x.step; });
+		fsize_t * step_out = new fsize_t[farr.dimension]; // msvc conform to C90 standard
+		std::fill_n(step_out, farr.dimension, 1); // if X < dimension, unspecified stride of narr will be 1
+		std::transform(tp, tp + X, step_out, [](const slice_info<fsize_t> & x) {return x.step; });
 
 		fsize_t totalsize = narr.flatsize();
 		narr.reset_value(totalsize);
-		_forslice_impl<T, D, X>(narr, 0, step_out, narr.get_delta(), farr.get_delta(), narr.begin(), narr.end(), farr.cbegin(), farr.cend());
+		_forslice_impl<T, X>(narr, 0, step_out, narr.get_delta(), farr.get_delta(), narr.begin(), narr.end(), farr.cbegin(), farr.cend());
 
+		delete[] step_out;
 		return narr;
 	}
-	template <typename T, int D>
-	farray<T, D - 1> forreorganize(const farray<T, D> & farr, int dim, fsize_t index) {
+	template <typename T>
+	farray<T> forreorganize(const farray<T> & farr, int dim, fsize_t index) {
 		// return a rank D - 1 sub array of farr
-		farray<T, D - 1> narr;
-		slice_info<fsize_t> sl[D];
-		for (auto i = 0; i < D; i++)
+		farray<T> narr;
+		slice_info<fsize_t> sl[farr.dimension];
+		for (auto i = 0; i < farr.dimension; i++)
 		{
 			sl[i] = slice_info<fsize_t>(); // select all elements
 		}
 		sl[dim] = slice_info<fsize_t>({ index, index }); // choose index in rank dim
 		narr.reset_array(sl, false); // do not reset lower bound to 1
 
-		fsize_t step_out[D];
-		std::fill_n(step_out, D, 1); // 1
+		fsize_t step_out[farr.dimension];
+		std::fill_n(step_out, farr.dimension, 1); // 1
 
 		fsize_t totalsize = narr.flatsize();
 		narr.reset_value(totalsize);
 
-		_forslice_impl<T, D, X>(narr, 0, step_out, narr.get_delta(), farr.get_delta(), narr.begin(), narr.end(), farr.cbegin(), farr.cend());
+		_forslice_impl<T, X>(narr, 0, step_out, narr.get_delta(), farr.get_delta(), narr.begin(), narr.end(), farr.cbegin(), farr.cend());
 		return narr;
 	}
 
-	template <typename T, int D>
-	auto fortranspose(const farray<T, D> & farr) {
-		farray<T, D> narr(farr);
+	template <typename T>
+	auto fortranspose(const farray<T> & farr) {
+		farray<T> narr(farr);
 		narr.transpose();
 		return narr;
 	}
 	
-	template <typename T, int D>
-	auto forlbound(const farray<T, D> & farr, int fordim = 1) {
+	template <typename T>
+	auto forlbound(const farray<T> & farr, int fordim = 1) {
 		return farr.LBound(fordim - 1);
 	}
 	
-	template <typename T, int D>
-	auto forubound(const farray<T, D> & farr, int fordim = 1) {
+	template <typename T>
+	auto forubound(const farray<T> & farr, int fordim = 1) {
 		return farr.UBound(fordim - 1);
 	}
 
-	template <typename T, int D>
-	farray<fsize_t, 1> forshape(const farray<T, D> & farr, int fordim = 1) {
-		farray<fsize_t, 1> r = farray<fsize_t, 1>({ 1 }, { D }, farr.size(), farr.size() + D);
+	template <typename T>
+	farray<fsize_t> forshape(const farray<T> & farr, int fordim = 1) {
+		farray<fsize_t> r = farray<fsize_t>({ 1 }, { farr.dimension }, farr.size(), farr.size() + farr.dimension);
 		return r;
 	}
 
@@ -347,65 +404,66 @@ namespace for90std {
 	auto forreshape(const T(&value)[X], const fsize_t(&shape)[D]){
 		fsize_t lb[D];
 		std::fill_n(lb, D, 1);
-		farray<T, D> r = farray<T, D>(lb, shape, value , value + X);
+		farray<T> r = farray<T>(lb, shape, value, value + X);
 		return r;
 	}
 
-	template <typename T, int D>
-	auto forsize(const farray<T, D> & farr, int fordim = 1) {
+	template <typename T>
+	auto forsize(const farray<T> & farr, int fordim = 1) {
 		return farr.size(fordim - 1);
 	}
 
 	template <typename T>
 	using mask_wrapper = std::function<bool(T)>;
 
-	template <typename T, int D>
-	auto forsum(const farray<T, D> & farr, foroptional<int> fordim = 1, foroptional<mask_wrapper<T>> mask = foroptional<mask_wrapper<T>>([](T x) {return true; })) {
+	template <typename T>
+	auto forsum(const farray<T> & farr, foroptional<int> fordim = 1, foroptional<mask_wrapper<T>> mask = foroptional<mask_wrapper<T>>([](T x) {return true; })) {
 		CHECK_AND_SET(fordim, 1)
 		// do not need to CHECK_AND_SET mask because it's the last parameter
 		return 0;
 	}	
 	
-	template <typename T, int D>
-	auto forproduct(const farray<T, D> & farr, foroptional<int> fordim = 1, foroptional<mask_wrapper<T>> mask = foroptional<mask_wrapper<T>>([](T x) {return true; })) {
+	template <typename T>
+	auto forproduct(const farray<T> & farr, foroptional<int> fordim = 1, foroptional<mask_wrapper<T>> mask = foroptional<mask_wrapper<T>>([](T x) {return true; })) {
 		CHECK_AND_SET(fordim, 1)
 		return 0;
 	}
 
-	template <typename T, int D>
-	auto formaxloc(const farray<T, D> & farr, foroptional<int> fordim, foroptional<mask_wrapper<T>> mask = foroptional<mask_wrapper<T>>([](T x) {return true; })) {
+	template <typename T>
+	auto formaxloc(const farray<T> & farr, foroptional<int> fordim, foroptional<mask_wrapper<T>> mask = foroptional<mask_wrapper<T>>([](T x) {return true; })) {
 		// return maxvalue of every subarray
 		int dim = fordim - 1;
 
 		for (auto i = farr.LBound(); i < farr.LBound() + farr.size(); i++)
 		{
-			farray<T, D - 1> sub_rank = forreorganize(farr, dim, i);
+			farray<T> sub_rank = forreorganize(farr, dim, i);
 		}
 	}
-	template <typename T, int D>
-	auto formaxloc(const farray<T, D> & farr, foroptional<mask_wrapper<T>> mask = foroptional<mask_wrapper<T>>([](T x) {return true; })) {
+	template <typename T>
+	auto formaxloc(const farray<T> & farr, foroptional<mask_wrapper<T>> mask = foroptional<mask_wrapper<T>>([](T x) {return true; })) {
 		T maxv = *farr.cbegin(); // set default to the first element
-		fsize_t loc[D]; std::copy_n(farr.LBound(), D, loc);
+		std::vector<fsize_t> loc = std::vector<fsize_t>(farr.dimension);
+		std::copy_n(farr.LBound(), farr.dimension, loc.begin());
 
-		farr.map([&](const T & item, const fsize_t(&cur)[D]) {
+		farr.map([&](const T & item, const fsize_t * cur) {
 			if (maxv < item) {
-				std::copy_n(cur, D, loc);
+				std::copy_n(cur, farr.dimension, loc.begin());
 				maxv = item;
 			}
 		});
-		return farray<fsize_t, 1>({ 1 }, { D }, loc, loc + D);
+		return farray<fsize_t>({ 1 }, { farr.dimension }, loc.begin(), loc.end());
 	}
 	
-	template <typename T, int D>
-	auto formaxval(const farray<T, D> & farr, foroptional<int> fordim = 1, foroptional<mask_wrapper<T>> mask = foroptional<mask_wrapper<T>>([](T x) {return true; })) {
+	template <typename T>
+	auto formaxval(const farray<T> & farr, foroptional<int> fordim = 1, foroptional<mask_wrapper<T>> mask = foroptional<mask_wrapper<T>>([](T x) {return true; })) {
 		// return maxvalue of every subarray
 		CHECK_AND_SET(fordim, 1)
 		return 0;
 	}
 
 
-	template <typename T1, typename T2, int D>
-	auto formerge(const farray<T1, D> & tarr, const farray<T2, D> & farr, const farray<bool, D> & mask) {
+	template <typename T1, typename T2>
+	auto formerge(const farray<T1> & tarr, const farray<T2> & farr, const farray<bool> & mask) {
 		/***
 			a = reshape((/ 1, 2, 3, 4, 5, 6 /), (/ 2, 3 /))
 			a2 = reshape((/ 8, 9, 0, 1, 2, 3 /), (/ 2, 3 /))
@@ -413,7 +471,7 @@ namespace for90std {
 			return  8 2 3 4 5 3
 		***/
 		typedef decltype(std::declval<T1>() + std::declval<T2>()) TR;
-		farray<TR, D> narr(tarr);
+		farray<TR> narr(tarr);
 		fsize_t fs = mask.flatsize();
 		auto mask_iter = mask.cbegin();
 		auto farr_iter = farr.cbegin();

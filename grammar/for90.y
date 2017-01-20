@@ -124,7 +124,6 @@ using namespace std;
 
 				slice.addchild(new ParseNode(exp_from)); // slice from 1
 				slice.addchild(new ParseNode(exp_to)); // slice to
-				// sprintf(codegen_buf, "%s", /* from 1, to */exp_to.fs.CurrentTerm.what.c_str());				
 
 				ParseNode * dimen = new ParseNode(gen_promote("", TokenMeta::NT_DIMENSLICE, slice));
 				newnode->addchild(dimen); // def slice
@@ -312,8 +311,6 @@ using namespace std;
 			{
 				ParseNode & exp = $1;
 				ParseNode & argtable = $3;
-				// gen_argtable(exp, argtable);
-				//$$ = gen_flattern(exp, argtable, "%s, %s", TokenMeta::NT_ARGTABLE_PURE);
 				ParseNode newnode = ParseNode();
 				switch (argtable.fs.CurrentTerm.token) {
 					case TokenMeta::NT_ARGTABLE_PURE:
@@ -559,7 +556,6 @@ using namespace std;
 
 	stmt : exp _crlf_semicolon
 			{
-				// TODO IMPORTANT
 				/*
 					一般来说, 可以不单独建立stmt的ParseNode, 再添加唯一的child(exp, var_def, compound_stmt等).
 					但是考虑到在cpp等语言中可能出现使用,分隔多个语句的情况(这种情况是有作用的, 表明编译器可以按照自己的顺序求值)
@@ -667,7 +663,6 @@ using namespace std;
 		| interface_decl suite
 			{
 				$$ = gen_flattern($1, $2, "%s%s", TokenMeta::NT_SUITE);
-				//$$.fs.CurrentTerm.what = $2.fs.CurrentTerm.what;
 				update_pos($$, $1, $2);
 			}
 
@@ -785,7 +780,6 @@ using namespace std;
     type_spec : YY_INTEGER_T '(' typecast_spec ')'
 			{
 				// now translated in pre_map
-				//$1.fs.CurrentTerm.what = typename_map.at($1.fs.CurrentTerm.what);
 				$$ = gen_type($1, $3);
 				update_pos($$, $1, $4);
 			}
@@ -853,7 +847,6 @@ using namespace std;
 
 		| exp '=' array_builder
 			{
-				// initial value is required in parse tree because it can be an non-terminal `exp` 
 				// array initial values 
 				// 因为使用forarray作为数组, 故需要知道类型信息, 不在此处赋值, 在上层的var_def赋初值 
 				$$ = gen_keyvalue_from_arraybuilder($1, $3);
@@ -1177,9 +1170,6 @@ using namespace std;
 
 	interface_decl : YY_INTERFACE _optional_name crlf wrappers crlf YY_END YY_INTERFACE _optional_name crlf
 			{
-				// drop interface directly
-				//ParseNode newnode = ParseNode(gen_flex(Term{ TokenMeta::META_NONTERMINAL, "" }), nullptr);
-				// no child
 				$$ = gen_interface($4);
 				update_pos($$, $1, $9);
 			}

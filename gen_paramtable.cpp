@@ -97,7 +97,6 @@ ParseNode gen_paramtable(ParseNode & paramtable_elem, ParseNode & paramtable) {
 	else if(paramtable.fs.CurrentTerm.token == TokenMeta::NT_PARAMTABLE){
 		// there is keyvalue pair
 		// this is possible because of rule `dimen_slice : exp ',' paramtable `
-		// there is keyvalue
 		if (dimen1) {
 			// promote dimen_slice to paramtable
 			for (int i = 0; i < paramtable_elem.child.size(); i++)
@@ -107,7 +106,6 @@ ParseNode gen_paramtable(ParseNode & paramtable_elem, ParseNode & paramtable) {
 		}
 		else {
 			// do not promote exp to keyvalue
-			// TODO
 			newnode.addchild(new ParseNode(paramtable_elem));
 		}
 		// assume paramtable is flatterned

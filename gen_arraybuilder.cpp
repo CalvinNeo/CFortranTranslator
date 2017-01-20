@@ -38,7 +38,7 @@ ParseNode gen_array_generate_paramtable(const ParseNode & argtable) {
 					vector<ParseNode *>::iterator x;
 					// refer `gen_hiddendo`
 					string lb_str = make_str_list(init_layer.begin(), init_layer.end(), [](auto x)->string {return (*x)->child[2]->fs.CurrentTerm.what; });
-					string ub_str = make_str_list(init_layer.begin(), init_layer.end(), [](auto x)->string {return (*x)->child[3]->fs.CurrentTerm.what + "+1"; });
+					string ub_str = make_str_list(init_layer.begin(), init_layer.end(), [](auto x)->string {return (*x)->child[3]->fs.CurrentTerm.what; });
 					string indexer_str = make_str_list(init_layer.begin(), init_layer.end(), [](auto x)->string {return "fsize_t " + (*x)->child[1]->fs.CurrentTerm.what; });
 					sprintf(codegen_buf, "[](%s){return %s;}", indexer_str.c_str(), init_layer[init_layer.size() - 1]->child[0]->fs.CurrentTerm.what.c_str());
 					string lambda = string(codegen_buf);

@@ -174,8 +174,8 @@ std::string parse_ioformatter(const std::string & src) {
 			break;
 		case ')':
 			memset(buf, 0, sizeof(buf));
-			sprintf(buf, s.c_str(), mid.c_str()); // mis is precision specifier
-												  // handle`1` of `1X`
+			sprintf(buf, s.c_str(), mid.c_str()); // mid is precision specifier
+												  // handle `1` from `1X`
 			for (int j = 0; j < repeat[repeat.size() - 1]; j++)
 			{
 				rt += buf;

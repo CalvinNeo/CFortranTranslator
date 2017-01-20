@@ -95,7 +95,6 @@ std::string gen_lbound_size(const ParseNode * slice) {
 }
 
 std::string gen_vardef_array(ParseNode * pn, ParseNode * spec_typename, ParseNode * slice, VariableDescAttr * vardescattr) {
-	// ARRAY
 	/* in cpp code, definition of an array is inherit attribute(¼Ì³ÐÊôÐÔ) grammar */
 	string arr_decl = "";
 	// pn is flattened
@@ -106,11 +105,11 @@ std::string gen_vardef_array(ParseNode * pn, ParseNode * spec_typename, ParseNod
 		string type_str;
 		string innermost_type = gen_qualified_typestr(spec_typename->fs.CurrentTerm.what, vardescattr); // `T`
 		if (parse_config.usefarray) {
-			sprintf(codegen_buf, "farray<%s, %d>", innermost_type.c_str(), (int)slice->child.size());
+			//sprintf(codegen_buf, "farray<%s, %d>", innermost_type.c_str(), (int)slice->child.size());
+			sprintf(codegen_buf, "farray<%s>", innermost_type.c_str());
 			type_str = string(codegen_buf);
 		}
 		else {
-			// use for1array
 			sprintf(codegen_buf, "for1array<%s>", innermost_type.c_str());
 			type_str = string(codegen_buf);
 			for (sliceid = slice->child.size() - 2; sliceid >= 0; sliceid--)
@@ -157,24 +156,37 @@ std::string gen_vardef_array(ParseNode * pn, ParseNode * spec_typename, ParseNod
 
 				}
 			}
-			if (true || can_list_init) 
+			string lbound_size = gen_lbound_size(slice);
+			arr_decl += lbound_size;
+			arr_decl += ", ";
+			if (can_list_init) 
 			{
 				// can init array from initializer_list of initial value
-				arr_decl += gen_lbound_size(slice);
-				arr_decl += ", ";
+				for (auto builderid = 0; builderid < compound_arraybuilder->child.size(); builderid++)
+				{
+					ParseNode * array_builder = compound_arraybuilder->child[builderid];
+					sprintf(codegen_buf, "%s", array_builder->fs.CurrentTerm.what.c_str());
+					if (builderid > 0) {
+						arr_decl += " , ";
+					}
+					arr_decl += codegen_buf;
+				}
 			}
 			else {
-				// must init array from another for1array
-			}
-			for (auto builderid = 0; builderid < compound_arraybuilder->child.size(); builderid++)
-			{
-				ParseNode * array_builder = compound_arraybuilder->child[builderid];
-				sprintf(codegen_buf, "%s", array_builder->fs.CurrentTerm.what.c_str());
-				if (builderid > 0) {
-					arr_decl += " + ";
+				// must init array from another farray/for1array
+				arr_decl += "{";
+				for (auto builderid = 0; builderid < compound_arraybuilder->child.size(); builderid++)
+				{
+					ParseNode * array_builder = compound_arraybuilder->child[builderid];
+					sprintf(codegen_buf, "farray<T>(%s, %s)", lbound_size.c_str(), array_builder->fs.CurrentTerm.what.c_str());
+					if (builderid > 0) {
+						arr_decl += " , ";
+					}
+					arr_decl += codegen_buf;
 				}
-				arr_decl += codegen_buf;
+				arr_decl += "}";
 			}
+			
 			arr_decl += ");\n";
 		}
 	}

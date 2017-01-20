@@ -96,7 +96,6 @@ namespace for90std {
 		void resize(size_type l, size_type s) {
 			this->lb = l;
 			this->sz = s;
-			//this->sz = u - 1 + 1;
 			m_arr.resize(this->sz); // if removed, f1a_resize will boom
 		}
 		template<typename _InnerT>
@@ -126,7 +125,6 @@ namespace for90std {
 		std::vector<T> m_arr;
 	protected:
 		size_type lb;
-		//size_type ub;
 		size_type sz;
 	};
 

@@ -1,7 +1,7 @@
 # CFortranTranslator
 A translator from Fortran to C++
 
-Fortran is an efficient tool in scientific calculation. However sometimes translating old fortran codes to c++ will enable more programming abstraction, better GUI framework, higher performance IDE and easier interaction.
+Fortran is an efficient tool in scientific calculation. However sometimes translating old fortran codes to c++ will enable more programming abstraction, better GUI framework support, higher performance IDE and easier interaction.
 
 This translator is not intended to improve existing codes, but to make convenience for those who need features of c++ and remain fortran traits as much as possible.
 
@@ -83,19 +83,18 @@ refer to [/grammar/for90.y](/grammar/for90.y) for all accepted grammar
 
 |fortran|c++|
 |:-:|:-:|
-|INTEGER(all length)|int|
-|REAL(all length)|double|
-|LOGICAL|bool|
-|COMPLEX|struct forcomplex|
-|CHARACTER|std::string|
-|array(1d)|for1array&lt;T&gt;|
-|array(nd)|for1array&lt;for1array&lt; ...for1array&lt;T&gt;&gt;&gt; or fornarray&lt;T, D&gt;|
+|INTEGER(all length)|`int`|
+|REAL(all length)|`double`|
+|LOGICAL|`bool`|
+|COMPLEX|`struct forcomplex`|
+|CHARACTER|`std::string`|
+|array|`farray<T>`|
 
 ### array
 #### fortran-style array and c-style array
 
 1. fortran store array in a **column-first order**
-    - for a 2d array, it means when initializing by a 1d array, it follows the order of `a(1)(1) -> a(2)(1) -> a(1)(2) -> a(1)(2)` 
+    - for a 2d array, it means when initializing a 1d array by sequence, it follows the order of `a(1)(1) -> a(2)(1) -> a(1)(2) -> a(1)(2)` 
     - similarly, for a nd array, rank 1 increase by 1 first, when rank 1 equals to upper bound it wrap back and rank 2 increase by 1..., rank n increase the last.
     - for details refer to `array_builder` rule in [/grammar/for90.y](/grammar/for90.y)
 2. fortran array default lower bound for each rank is **1**, and it can be negative; each dimension of c++ style array has constant lower bound 0
@@ -116,8 +115,8 @@ refer to [/grammar/for90.y](/grammar/for90.y) for all accepted grammar
 
 1. define an array
 2. init a array
-    - from fortran list-initialization: `farray<T, D>(lower_bound, size, values)`
-    - from hidden `do`-loop: `farray<T, D>(lower_bound, size, hidden_do_func)`
+    - from fortran list-initialization: `farray<T>(lower_bound, size, values)`
+    - from hidden `do`-loop: `farray<T>(lower_bound, size, hidden_do_func)`
 3. array traits
 
 |function|usage|
