@@ -77,6 +77,7 @@ refer to [/grammar/for90.y](/grammar/for90.y) for all accepted grammar
 1. you can rename keyword parameter in `interface` block
 2. you can use anonymous grammar structures
 3. variable definitions and interfaces is not forced before any other statements
+    1. you can initialize array immediately like `integer,dimension(3)::A = (/1, 2, 3/)`, in gfortran you must assign initial value after all variables/arrays are defined
 
 ### types
 #### type mapping
@@ -316,7 +317,7 @@ you can use `REAL(x)` to get the float copy of x, however, you can also use `REA
 | suite | NT_SUITE | NT_STATEMENT \* |
 | stmt | NT_STATEMENT | exp / var_def / compound_stmt / output_stmt / input_stmt / dummy_stmt / let_stmt / jump_stmt / interface_decl |
 | | NT_ARRAYBUILDER | NT_ARRAYBUILDER_VALUE + |
-| | NT_ARRAYBUILDER_VALUE | argtable / NT_ARRAYBUILDER_EXP / exp |
+| | NT_ARRAYBUILDER_VALUE | argtable / NT_ARRAYBUILDER_LIST / exp |
 | callable_head |  | variable / type_nospec |
 | type_spec |  | type_nospec / (type_nospec, typecast_spec) |
 

@@ -40,6 +40,29 @@ ParseNode gen_do_while(const ParseNode & exp, ParseNode & suite) {
 	return newnode;
 }
 
+std::string gen_nested_hiddendo(const std::vector<const ParseNode *> & hiddendo_layer) {
+	vector<ParseNode *>::iterator x;
+	// refer `gen_hiddendo`
+	string lb_str = make_str_list(hiddendo_layer.begin(), hiddendo_layer.end(), [](auto x)->string {return (*x)->child[2]->fs.CurrentTerm.what; });
+	string ub_str = make_str_list(hiddendo_layer.begin(), hiddendo_layer.end(), [](auto x)->string {return (*x)->child[3]->fs.CurrentTerm.what; });
+	string indexer_str = make_str_list(hiddendo_layer.begin(), hiddendo_layer.end(), [](auto x)->string {return "fsize_t " + (*x)->child[1]->fs.CurrentTerm.what; });
+	sprintf(codegen_buf, "[](%s){return %s;}", indexer_str.c_str(), hiddendo_layer[hiddendo_layer.size() - 1]->child[0]->fs.CurrentTerm.what.c_str());
+	string lambda = string(codegen_buf);
+	string args;
+	for (auto j = 0; j < hiddendo_layer.size(); j++)
+	{
+		if (j != 0) {
+			args += ", ";
+		}
+		sprintf(codegen_buf, "current[%d]", (int)j);
+		args += string(codegen_buf);
+	}
+	// map array to parameter
+	sprintf(codegen_buf, "[](const fsize_t(&current)[%d]){return %s(%s);}"
+		, (int)hiddendo_layer.size(), lambda.c_str(), args.c_str());
+	return string(codegen_buf);
+}
+
 ParseNode gen_hiddendo(const ParseNode & _generate_stmt, TokenMeta_T return_token ) {
 	/* give generate stmt */
 	ParseNode newnode = ParseNode();
@@ -47,16 +70,34 @@ ParseNode gen_hiddendo(const ParseNode & _generate_stmt, TokenMeta_T return_toke
 	ParseNode * index = _generate_stmt.child[1];
 	ParseNode * from = _generate_stmt.child[2];
 	ParseNode * to = _generate_stmt.child[3];
-	string rt = "";
-	sprintf(codegen_buf, "[](int %s){return %s ;}", index->fs.CurrentTerm.what.c_str(), exp->fs.CurrentTerm.what.c_str());
-	string str_lambda_body = string(codegen_buf);
-	sprintf(codegen_buf, "f1a_init_hiddendo(%s, %s, %s)"
-		, from->fs.CurrentTerm.what.c_str()/* exp_from */
-		, to->fs.CurrentTerm.what.c_str()/* exp_to */
-		, str_lambda_body.c_str());
-	string str_init = string(codegen_buf);
-	rt += str_init;
-	newnode.fs.CurrentTerm = Term{ return_token, rt };
+
+	if (parse_config.usefarray)
+	{
+		std::vector<const ParseNode *> hiddendo_layer;
+		const ParseNode * ab = &_generate_stmt;
+		while (ab->fs.CurrentTerm.token == TokenMeta::NT_HIDDENDO) {
+			hiddendo_layer.push_back(ab);
+			if (ab->child.size() > 0 && ab->child[0]->child.size() > 0) {
+				ab = ab->child[0]/*NT_EXPRESSION*/->child[0]/*NT_HIDDENDO*/;
+			}
+			else {
+				break;
+			}
+		}
+		newnode.fs.CurrentTerm = Term{ TokenMeta::NT_HIDDENDO, gen_nested_hiddendo(hiddendo_layer) };
+	}
+	else {
+		string rt = "";
+		sprintf(codegen_buf, "[](int %s){return %s ;}", index->fs.CurrentTerm.what.c_str(), exp->fs.CurrentTerm.what.c_str());
+		string str_lambda_body = string(codegen_buf);
+		sprintf(codegen_buf, "f1a_init_hiddendo(%s, %s, %s)"
+			, from->fs.CurrentTerm.what.c_str()/* exp_from */
+			, to->fs.CurrentTerm.what.c_str()/* exp_to */
+			, str_lambda_body.c_str());
+		string str_init = string(codegen_buf);
+		rt += str_init;
+	}
+
 	newnode.addchild(new ParseNode(*exp)); // exp
 	newnode.addchild(new ParseNode(*index)); // index variable
 	newnode.addchild(new ParseNode(*from)); // exp_from

@@ -909,10 +909,10 @@ using namespace std;
 			{
 				// give initial value 
 				// `B(1:2:3)` can be either a single-element argtable or a exp, this can probably lead to reduction conflicts, so merge rules
-				$$ = gen_array_generate_paramtable($2);
+				$$ = gen_array_from_paramtable($2);
 				update_pos($$, $1, $3);
 			}
-		| YY_ARRAYINITIAL_START _generate_stmt YY_ARRAYINITIAL_END
+		| YY_ARRAYINITIAL_START hidden_do YY_ARRAYINITIAL_END
 			{
 				/* give generate stmt */
 				$$ = gen_array_generate_stmt($2);

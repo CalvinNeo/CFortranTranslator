@@ -163,6 +163,7 @@ namespace for90std {
 		{
 			_forwritefree_one(f, *(iter + i));
 		}
+		fprintf(f, "\n");
 	};
 	template <typename T>
 	void _forwritefree(FILE * f, const for1array<T> & x) {

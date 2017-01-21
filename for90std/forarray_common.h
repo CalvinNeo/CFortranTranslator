@@ -90,8 +90,8 @@ namespace for90std {
 #else
 #endif
 	template<typename _Iterator>
-	fsize_t fa_getflatsize(_Iterator begin, _Iterator end) {
-		fsize_t sizeflat = accumulate(begin, end, 1, [](auto x, auto y) {return x * y; });
+	fsize_t fa_getflatsize(_Iterator b, _Iterator e) {
+		fsize_t sizeflat = accumulate(b, e, 1, [](auto x, auto y) {return x * y; });
 		return sizeflat;
 	}
 }

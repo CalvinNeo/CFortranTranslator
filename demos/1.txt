@@ -1,10 +1,13 @@
 program array_test
 	implicit none
-	integer,dimension(5:7)::D=(/ 1,2,3,4,5,6,7 /)
-	integer,dimension(5:7)::D=(/ a(5:7) , b(5)(6)(7) , (int(i) + 1, i=1,4) /)
-	integer,dimension(2, 2)::E=(/ ((i + j, j=1,2), i=1,2) /)	
-	integer, dimension(2, 3)::a
-	a = reshape((/ 1, 2, 3, 4, 5, 6 /), (/ 2, 3 /))
-	print *, maxloc(a, 1)
-	print *, maxloc(a)
+	integer,dimension(5:7)::A=(/ ( int(i) + 1, i=5,7 )/)
+	! integer,dimension(5:7)::D = (/ a(5:7), b(5, 6, 7), ( int(i) + 1, i=5,7 ) /)
+	integer::i
+	integer,dimension(5:7)::A
+	integer,dimension(5:6, 6:7, 7:8)::B
+	integer,dimension(5)::D
+	A = (/ 5,6,7 /)
+	B = reshape((/1, 2, 3, 4, 5, 6, 7, 8/), (/2, 2, 2/))
+	D=(/ 5,6, A /)
+	print *, D
 end program

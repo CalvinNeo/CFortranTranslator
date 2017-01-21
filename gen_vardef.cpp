@@ -149,7 +149,7 @@ std::string gen_vardef_array(ParseNode * pn, ParseNode * spec_typename, ParseNod
 					can_list_init = false;
 					break;
 				}
-				else if (array_builder->fs.CurrentTerm.token == TokenMeta::NT_ARRAYBUILDER_EXP) {
+				else if (array_builder->fs.CurrentTerm.token == TokenMeta::NT_ARRAYBUILDER_LIST) {
 
 				}
 				else {
@@ -174,17 +174,23 @@ std::string gen_vardef_array(ParseNode * pn, ParseNode * spec_typename, ParseNod
 			}
 			else {
 				// must init array from another farray/for1array
-				arr_decl += "{";
+				arr_decl += "forconcat({";
 				for (auto builderid = 0; builderid < compound_arraybuilder->child.size(); builderid++)
 				{
 					ParseNode * array_builder = compound_arraybuilder->child[builderid];
-					sprintf(codegen_buf, "farray<T>(%s, %s)", lbound_size.c_str(), array_builder->fs.CurrentTerm.what.c_str());
+					if (array_builder->child[0]->fs.CurrentTerm.token == TokenMeta::NT_HIDDENDO) {
+						sprintf(codegen_buf, "make_farray(%s, %s)", lbound_size.c_str(), array_builder->fs.CurrentTerm.what.c_str());
+						//sprintf(codegen_buf, "farray<%s>(%s, %s)", innermost_type.c_str(), lbound_size.c_str(), array_builder->fs.CurrentTerm.what.c_str());
+					}
+					else {
+						sprintf(codegen_buf, "make_farray(%s)", array_builder->fs.CurrentTerm.what.c_str());
+					}
 					if (builderid > 0) {
 						arr_decl += " , ";
 					}
 					arr_decl += codegen_buf;
 				}
-				arr_decl += "}";
+				arr_decl += " })";
 			}
 			
 			arr_decl += ");\n";

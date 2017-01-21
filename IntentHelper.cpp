@@ -215,7 +215,7 @@ std::map<int, std::string> IntentName = {
 	,{ -2014, "NT_SUITE" }
 	,{ -2015, "NT_FUCNTIONARRAY" }
 	,{ -2016, "NT_ARRAYBUILDER_VALUE" }
-	,{ -2017, "NT_ARRAYBUILDER_EXP" }
+	,{ -2017, "NT_ARRAYBUILDER_LIST" }
 	,{ -2018, "NT_DIMENSLICE" }
 	,{ -2019, "NT_PARAMTABLE_DIMENSLICE" }
 	,{ -2020, "NT_SLICE" }

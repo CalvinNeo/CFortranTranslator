@@ -237,7 +237,7 @@ namespace IntentMeta {
 		NT_SUITE = -2014,
 		NT_FUCNTIONARRAY = -2015,
 		NT_ARRAYBUILDER_VALUE = -2016, /* 使用初始化列表初始化数组 */
-		NT_ARRAYBUILDER_EXP = -2017, /* 使用产生式初始化数组 */
+		NT_ARRAYBUILDER_LIST = -2017, /* 使用产生式初始化数组 */
 		NT_DIMENSLICE = -2018, /* 1:2, 3:4 in `dimen_slice` level */
 		NT_PARAMTABLE_DIMENSLICE = -2019, /* 1:2, 3:4 in `paramtable` level*/
 		NT_SLICE = -2020,

@@ -133,15 +133,18 @@
 
 int main()
 {
-	//farray<int> e({ 1,1 }, { 2,2 }, [](const fsize_t * current) {return [](fsize_t i, fsize_t j) {return i + j; }(current[0], current[1]); });
-	//forprintfree(e);
-	cout << sizeof farray<int> << endl;
-	farray<int> a{};
-	a = forreshape({ 1, 2, 3, 4, 5, 6, 7, 8 }, { 2, 2, 2 });
-	farray<int> fff = forslice(a, { { 1, 1 },{ 1, 1 },{ 1, 1 } });
-	forprintfree(fff);
-	forprintfree(formaxloc(a));
-	//forprintfree(formaxloc(a, 1));
+	int i;
+	farray<int > a{};
+
+	farray<int > b{};
+
+	farray<int > d{};
+
+	a = { 5, 6, 7 };
+	b = forreshape({ 1, 2, 3, 4, 5, 6, 7, 8 }, { 2, 2, 2 });
+	d = { 5, 6, a };
+	forprintfree(d, "\n");
+	system("pause");
 	return 0;
 }
 
