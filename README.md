@@ -153,7 +153,6 @@ refer to [/grammar/for90.y](/grammar/for90.y) for all accepted grammar
     - with `f1a_gen` and return a copy directly
     - with constructor `for1array(lower_bound, size, values)`
     - with `f1a_init_hiddendo` in [/for90std/for1array.h](/for90std/for1array.h) to init array by hidden do
-        - when use `hidden_do` to generate array, array's LBound and hidden_do index's initial value must agree
 
 2. array traits
 
@@ -285,8 +284,13 @@ all parse tree nodes are defined in [/Intent.h](/Intent.h) with an `NT_` prefix
 you can use `REAL(x)` to get the float copy of x, however, you can also use `REAL(kind = 8)` to specify a floating number which is same to `long double` rather than `double`, so it may cause conflict. To specify, `type_nospec` is like `INTEGER` and a `type_spec` is like `INTEGER(kind = 4)`, `type_nospec` is `callable_head`, `type_spec` is not.
 
 #### array builder
-- `_generate_stmt` is for `array_builder`, `hidden_do` is for `exp`
-- `_generate_stmt` wrapped by "( )" is `hidder_do`, wrapped by "(/ /)" is `array_builder`
+- `_generate_stmt` wrapped by `"( )"` is `hidder_do`
+- `hidden_do` wrapped by `"(/ /)"` is `NT_ARRAYBUILDER_VALUE`
+- `array_builder` can be composed of several kind of `array_builder_elem`:
+    - `NT_ARRAYBUILDER_VALUE`
+    - `NT_ARRAYBUILDER_LIST`
+
+    a `array_builder` will be translated into a array object in c++ code
 - `NT_FUCNTIONARRAY` and `NT_HIDDENDO` will all be promote to `NT_EXPRESSION`
 - `NT_HIDDENDO` has 4 child elements: lambda, indexer, from, to. refer `gen_hiddendo` in [/gen_do.cpp](/gen_do.cpp)
 
@@ -313,11 +317,11 @@ you can use `REAL(x)` to get the float copy of x, however, you can also use `REA
 | dimen_slice | NT_DIMENSLICE | NT_SLICE |
 | dimen_slice | NT_ARGTABLE_PURE | NT_EXPRESSION |
 | variable_desc_elem | NT_VARIABLEDESC | dimen_slice |
-| ~~argtable~~ | NT_PARAMTABLE_DIMENSLICE / NT_ARGTABLE_PURE | dimen_slice |
 | suite | NT_SUITE | NT_STATEMENT \* |
 | stmt | NT_STATEMENT | exp / var_def / compound_stmt / output_stmt / input_stmt / dummy_stmt / let_stmt / jump_stmt / interface_decl |
-| | NT_ARRAYBUILDER | NT_ARRAYBUILDER_VALUE + |
-| | NT_ARRAYBUILDER_VALUE | argtable / NT_ARRAYBUILDER_LIST / exp |
+| | NT_ARRAYBUILDER | (NT_ARRAYBUILDER_VALUE / NT_ARRAYBUILDER_LIST) + |
+| | NT_ARRAYBUILDER_VALUE |  |
+| | NT_ARRAYBUILDER_LIST |  |
 | callable_head |  | variable / type_nospec |
 | type_spec |  | type_nospec / (type_nospec, typecast_spec) |
 

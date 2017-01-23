@@ -88,11 +88,17 @@ namespace for90std {
 
 		farray<T> & operator=(const farray<T> & x) {
 			if (this == &x) return *this;
-			this->dimension = x.dimension;
+			reset_value(x.cbegin(), x.cend());
+			return *this;
+		}
+		farray<T> & reset(const farray<T> & x) {
+			if (this == &x) return *this;
+			 this->dimension = x.dimension;
 			reset_array(x.LBound(), x.size());
 			reset_value(x.cbegin(), x.cend());
 			return *this;
 		}
+
 		//typedef typename std::conditional<D == 1, std::true_type, std::false_type>::type is_vector_t;
 		friend farray<T> & operator+(const farray<T> & x, const farray<T> & y);
 		friend farray<T> & operator+(const T & x, const farray<T> & y);
@@ -108,9 +114,33 @@ namespace for90std {
 		}
 
 		void transpose() {
+			T * na = new T[flatsize()];
+			map([&](T & item, const fsize_t * cur) {
+				fsize_t oldindex = 0;
+				fsize_t newindex = 0;
+				for (int i = 0; i < dimension; i++)
+				{
+					fsize_t oldt = 1;
+					for (int j = i + 1; j < dimension; j++)
+					{
+						oldt *= sz[j];
+					}
+					oldindex += (cur[i] - lb[i]) * oldt;
+
+					fsize_t newt = 1;
+					for (int j = i + 1; j < dimension; j++)
+					{
+						newt *= sz[j];
+					}
+					newindex += (cur[dimension - 1 - i] - lb[dimension - 1 - i]) * newt;
+				}
+				na[newindex] = parr[oldindex];
+			});
+			std::swap(na, parr);
+			delete[] na;
+			//std::reverse(begin(), end());
 			std::reverse(lb, lb + dimension);
 			std::reverse(sz, sz + dimension);
-			std::reverse(begin(), end());
 			fa_layer_delta(this->sz, this->sz + dimension, delta);
 		}
 
@@ -238,9 +268,8 @@ namespace for90std {
 			reset_array();
 		}
 		farray(const farray<T> & m) : is_view(false), dimension(m.dimension) {
-			// copyconstructor
-			reset_array(m.LBound(), m.size());
-			reset_value(m.cbegin(), m.cend());
+			// copy constructor
+			reset(m);
 		}
 
 		~farray() {
@@ -343,7 +372,7 @@ namespace for90std {
 	template <typename T, int D>
 	farray<T> make_farray(const T(&values)[D]){
 		farray<T> narr({ 1 }, { D }, 1);
-		narr.reset_value(X, values);
+		narr.reset_value(D, values);
 		return narr;
 	}
 	template <typename T>

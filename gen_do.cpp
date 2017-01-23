@@ -40,9 +40,24 @@ ParseNode gen_do_while(const ParseNode & exp, ParseNode & suite) {
 	return newnode;
 }
 
+std::vector<const ParseNode *> gen_nested_hiddendo_layers(const ParseNode & hiddendo) {
+	std::vector<const ParseNode *> hiddendo_layer;
+	const ParseNode * pn = &hiddendo;
+	while (pn->fs.CurrentTerm.token == TokenMeta::NT_HIDDENDO) {
+		hiddendo_layer.push_back(pn);
+		if (pn->child.size() > 0 && pn->child[0]->child.size() > 0) {
+			pn = pn->child[0]/*NT_EXPRESSION*/->child[0]/*NT_HIDDENDO*/;
+		}
+		else {
+			break;
+		}
+	}
+	return hiddendo_layer;
+}
+
 std::string gen_nested_hiddendo(const std::vector<const ParseNode *> & hiddendo_layer) {
 	vector<ParseNode *>::iterator x;
-	// refer `gen_hiddendo`
+	// refer `make_str_list`
 	string lb_str = make_str_list(hiddendo_layer.begin(), hiddendo_layer.end(), [](auto x)->string {return (*x)->child[2]->fs.CurrentTerm.what; });
 	string ub_str = make_str_list(hiddendo_layer.begin(), hiddendo_layer.end(), [](auto x)->string {return (*x)->child[3]->fs.CurrentTerm.what; });
 	string indexer_str = make_str_list(hiddendo_layer.begin(), hiddendo_layer.end(), [](auto x)->string {return "fsize_t " + (*x)->child[1]->fs.CurrentTerm.what; });
@@ -98,9 +113,9 @@ ParseNode gen_hiddendo(const ParseNode & _generate_stmt, TokenMeta_T return_toke
 		rt += str_init;
 	}
 
-	newnode.addchild(new ParseNode(*exp)); // exp
-	newnode.addchild(new ParseNode(*index)); // index variable
-	newnode.addchild(new ParseNode(*from)); // exp_from
-	newnode.addchild(new ParseNode(*to)); // exp_to
+	newnode.addchild(new ParseNode(*exp)); // 0 exp
+	newnode.addchild(new ParseNode(*index)); // 1 index variable
+	newnode.addchild(new ParseNode(*from)); // 2 exp_from
+	newnode.addchild(new ParseNode(*to)); // 3 exp_to
 	return newnode;
 }

@@ -78,20 +78,17 @@ std::string gen_qualified_typestr(std::string type_name, VariableDescAttr * vard
 }
 
 std::string gen_lbound_size(const ParseNode * slice) {
-	std::string vec_size = "{", vec_lb = "{";
-	for (auto sliceid = 0; sliceid < slice->child.size(); sliceid++)
-	{
-		if (sliceid != 0) {
-			vec_lb += ","; vec_size += ",";
-		}
+	std::string vec_size = "{", vec_from = "{";
+	vec_from += make_str_list(slice->child.begin(), slice->child.end(), [](auto x)->string {return (*x)->child[0]->fs.CurrentTerm.what; });
+	vec_size += make_str_list(slice->child.begin(), slice->child.end(), [](auto x)->string {
 		int lb, ub;
-		sscanf(slice->child[sliceid]->child[0]->fs.CurrentTerm.what.c_str(), "%d", &lb);
-		sscanf(slice->child[sliceid]->child[1]->fs.CurrentTerm.what.c_str(), "%d", &ub);
+		sscanf((*x)->child[0]->fs.CurrentTerm.what.c_str(), "%d", &lb);
+		sscanf((*x)->child[1]->fs.CurrentTerm.what.c_str(), "%d", &ub);
 		sprintf(codegen_buf, "%d", ub - lb + 1);
-		vec_lb += slice->child[sliceid]->child[0]->fs.CurrentTerm.what; vec_size += codegen_buf;
-	}
-	vec_size += "}", vec_lb += "}";
-	return vec_lb + ", " + vec_size;
+		return string(codegen_buf);
+	});
+	vec_size += "}", vec_from += "}";
+	return vec_from + ", " + vec_size;
 }
 
 std::string gen_vardef_array(ParseNode * pn, ParseNode * spec_typename, ParseNode * slice, VariableDescAttr * vardescattr) {
@@ -126,7 +123,8 @@ std::string gen_vardef_array(ParseNode * pn, ParseNode * spec_typename, ParseNod
 		if (pn->child[i]->child[1]->fs.CurrentTerm.token == TokenMeta::NT_VARIABLEINITIALDUMMY){
 			// default initialize
 			if (parse_config.usefarray) {
-				arr_decl += "{};\n"; // compile reckon "T a();" as function decl, so use `{}` 
+				sprintf(codegen_buf, "{%s};\n", gen_lbound_size(slice).c_str()); // compile reckon "T a();" as function decl, so use `{}` 
+				arr_decl += string(codegen_buf); 
 			}
 			else {
 				sprintf(codegen_buf, "(%s, %s + 1)", slice->child[0]->child[0]->fs.CurrentTerm.what.c_str(), slice->child[0]->child[1]->fs.CurrentTerm.what.c_str() /* slice from to */);
@@ -138,62 +136,17 @@ std::string gen_vardef_array(ParseNode * pn, ParseNode * spec_typename, ParseNod
 		}
 		else {
 			// init from array_builder
-			arr_decl += "(";
-			ParseNode * variable_initial = pn->child[i];
+			sprintf(codegen_buf, "{%s};\n", gen_lbound_size(slice).c_str()); 
+			arr_decl += string(codegen_buf);
+			sprintf(codegen_buf, "%s = ", pn->child[i]->child[0]->fs.CurrentTerm.what.c_str());
+			arr_decl += string(codegen_buf);
+			ParseNode * variable_initial = pn->child[i]; /*NT_VARIABLEINITIAL = NT_KEYVALUE*/
+
 			ParseNode * compound_arraybuilder = variable_initial->child[1]; // NT_ARRAYBUILDER
-			bool can_list_init = true;
-			for (auto builderid = 0; builderid < compound_arraybuilder->child.size(); builderid++)
-			{
-				ParseNode * array_builder = compound_arraybuilder->child[builderid];
-				if (array_builder->fs.CurrentTerm.token == TokenMeta::NT_ARRAYBUILDER_VALUE) {
-					can_list_init = false;
-					break;
-				}
-				else if (array_builder->fs.CurrentTerm.token == TokenMeta::NT_ARRAYBUILDER_LIST) {
 
-				}
-				else {
-
-				}
-			}
-			string lbound_size = gen_lbound_size(slice);
-			arr_decl += lbound_size;
-			arr_decl += ", ";
-			if (can_list_init) 
-			{
-				// can init array from initializer_list of initial value
-				for (auto builderid = 0; builderid < compound_arraybuilder->child.size(); builderid++)
-				{
-					ParseNode * array_builder = compound_arraybuilder->child[builderid];
-					sprintf(codegen_buf, "%s", array_builder->fs.CurrentTerm.what.c_str());
-					if (builderid > 0) {
-						arr_decl += " , ";
-					}
-					arr_decl += codegen_buf;
-				}
-			}
-			else {
-				// must init array from another farray/for1array
-				arr_decl += "forconcat({";
-				for (auto builderid = 0; builderid < compound_arraybuilder->child.size(); builderid++)
-				{
-					ParseNode * array_builder = compound_arraybuilder->child[builderid];
-					if (array_builder->child[0]->fs.CurrentTerm.token == TokenMeta::NT_HIDDENDO) {
-						sprintf(codegen_buf, "make_farray(%s, %s)", lbound_size.c_str(), array_builder->fs.CurrentTerm.what.c_str());
-						//sprintf(codegen_buf, "farray<%s>(%s, %s)", innermost_type.c_str(), lbound_size.c_str(), array_builder->fs.CurrentTerm.what.c_str());
-					}
-					else {
-						sprintf(codegen_buf, "make_farray(%s)", array_builder->fs.CurrentTerm.what.c_str());
-					}
-					if (builderid > 0) {
-						arr_decl += " , ";
-					}
-					arr_decl += codegen_buf;
-				}
-				arr_decl += " })";
-			}
-			
-			arr_decl += ");\n";
+			gen_arraybuilder_str(*compound_arraybuilder);
+			arr_decl += compound_arraybuilder->fs.CurrentTerm.what;
+			arr_decl += ";";
 		}
 	}
 	return arr_decl;

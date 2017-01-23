@@ -1,9 +1,8 @@
 program array_test
 	implicit none
-	integer,dimension(5:7)::A=(/ ( int(i) + 1, i=5,7 )/)
 	! integer,dimension(5:7)::D = (/ a(5:7), b(5, 6, 7), ( int(i) + 1, i=5,7 ) /)
 	integer::i
-	integer,dimension(5:7)::A
+	integer,dimension(5:7)::A = (/5, 6, 7/)
 	integer,dimension(5:6, 6:7, 7:8)::B
 	integer,dimension(5)::D
 	A = (/ 5,6,7 /)

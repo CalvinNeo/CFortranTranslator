@@ -915,7 +915,7 @@ using namespace std;
 		| YY_ARRAYINITIAL_START hidden_do YY_ARRAYINITIAL_END
 			{
 				/* give generate stmt */
-				$$ = gen_array_generate_stmt($2);
+				$$ = gen_array_from_hiddendo($2);
 				update_pos($$, $1, $3);
 				// rule `YY_ARRAYINITIAL_START variable '(' dimen_slice ')' YY_ARRAYINITIAL_END ` is included in this rule because \
 				// these two rules can not be splitted because `exp` and `variable` + '(' can cause reduction conflict 
@@ -933,22 +933,27 @@ using namespace std;
 				else {
 					$$ = gen_promote("%s", TokenMeta::NT_ARRAYBUILDER, array_builder_elem); // array_builder_elem
 				}
+				gen_arraybuilder_str($$);
 				update_pos($$, $1, $1);
 			}
-		| array_builder_elem ',' array_builder
+		/* | array_builder_elem ',' array_builder
 			{
 				ParseNode & array_builder_elem = $1;
 				ParseNode & array_builder = $3;
-				if (array_builder_elem.fs.CurrentTerm.token == TokenMeta::NT_ARRAYBUILDER)
-				{
-					$$ = gen_merge(array_builder_elem, array_builder, "", TokenMeta::NT_ARRAYBUILDER);
-				}
-				else {
-					$$ = gen_flattern(array_builder_elem, array_builder, "", TokenMeta::NT_ARRAYBUILDER);
-				}
-				update_pos($$, $1, $3);
+				print_error("nested arraybuilder is not supported");
+				//ParseNode & array_builder_elem = $1;
+				//ParseNode & array_builder = $3;
+				//if (array_builder_elem.fs.CurrentTerm.token == TokenMeta::NT_ARRAYBUILDER)
+				//{
+				//	$$ = gen_merge(array_builder_elem, array_builder, "", TokenMeta::NT_ARRAYBUILDER);
+				//}
+				//else {
+				//	$$ = gen_flattern(array_builder_elem, array_builder, "", TokenMeta::NT_ARRAYBUILDER);
+				//}
+				//update_pos($$, $1, $3);
 
 			}
+		*/
 
 	_yy_endif : YY_END YY_IF
 		| YY_ENDIF

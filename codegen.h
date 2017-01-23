@@ -53,6 +53,7 @@ ParseNode gen_do(ParseNode & suite);
 ParseNode gen_do_range(const ParseNode & loop_variable, const ParseNode & exp1, const ParseNode & exp2, const ParseNode & exp3, ParseNode & suite);
 ParseNode gen_do_while(const ParseNode & exp, ParseNode & suite);
 ParseNode gen_hiddendo(const ParseNode & _generate_stmt, TokenMeta_T return_token = TokenMeta::NT_HIDDENDO);
+std::vector<const ParseNode *> gen_nested_hiddendo_layers(const ParseNode & hiddendo);
 std::string gen_nested_hiddendo(const std::vector<const ParseNode *> & hiddendo_layer);
 
 ParseNode gen_function_array(const ParseNode & callable_head, const ParseNode & argtable); // callable, function call or array
@@ -79,8 +80,10 @@ ParseNode gen_argtable(ParseNode & dimen_slice);
 ParseNode gen_stmt(const ParseNode & content);
 ParseNode gen_stmt(const ParseNode & content, const std::string & rules);
 
-ParseNode gen_array_generate_stmt(ParseNode & hiddendo);
+ParseNode gen_array_from_hiddendo(ParseNode & hiddendo);
 ParseNode gen_array_from_paramtable(const ParseNode & argtable);
+std::string gen_lbound_size(const ParseNode * slice);
+ParseNode & gen_arraybuilder_str(ParseNode & arraybuilder);
 
 void set_variabledesc_attr(ParseNode * newnode, optionalparam<bool> reference, optionalparam<bool> constant, optionalparam<bool> optional, optionalparam<struct ParseNode *> slice, optionalparam<int> kind);
 ParseNode gen_variabledesc_from_dimenslice(ParseNode & dimen_slice);
