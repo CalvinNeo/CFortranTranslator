@@ -123,29 +123,29 @@ namespace for90std {
 	// free format
 	
 	inline void _forwritefree_one(FILE * f, int x) {
-		fprintf(f, "%d ", x);
+		fprintf(f, "%d", x);
 	};
 	inline void _forwritefree_one(FILE * f, long long x) {
-		fprintf(f, "%lld ", x);
+		fprintf(f, "%lld", x);
 	};
 	inline void _forwritefree_one(FILE * f, double x) {
-		fprintf(f, "%lf ", x);
+		fprintf(f, "%lf", x);
 	};
 	inline void _forwritefree_one(FILE * f, long double x) {
-		fprintf(f, "%Lf ", x);
+		fprintf(f, "%Lf", x);
 	};
 	inline void _forwritefree_one(FILE * f, std::string x) {
-		fprintf(f, "%s ", x.c_str());
+		fprintf(f, "%s", x.c_str());
 	};
 	inline void _forwritefree_one(FILE * f, bool x) {
-		fprintf(f, "%s ", x ? "true" : "false");
+		fprintf(f, "%s", x ? "true" : "false");
 	};
 	inline void _forwritefree_one(FILE * f, const char * x) {
-		fprintf(f, "%s ", x);
+		fprintf(f, "%s", x);
 	};
 	template <typename T>
 	void _forwritefree_one(FILE * f, T x) {
-		fprintf(f, "[object %s] %p ", typeid(T).name(), &x);
+		fprintf(f, "[object %s] %p", typeid(T).name(), &x);
 	};
 	template <typename T>
 	void _forwritefree_one_arr1(FILE * f, const for1array<T> &  x) {

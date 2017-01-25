@@ -2,6 +2,7 @@
 #include "parser.h"
 #include "Function.h"
 #include "Variable.h"
+#include <boost/optional/optional.hpp>
 
 // 在初始化之后是否值是否被修改
 template<class T>
@@ -43,46 +44,9 @@ private:
 
 // for90std.h中foroptional的副本
 // 传入optionalparam<T>()表示不传参
-template <class T>
-struct optionalparam
-{
-	operator T() const {
-		return value;
-	}
+//template<typename T>
+//using optionalparam = boost::optional<T>;
 
-	T & operator= (const T & newv) {
-		// 赋值运算符
-		invalid = true;
-		value = newv;
-		return value;
-	}
-	optionalparam(const T & newv) {
-		// 给定值初始化，说明不是默认初始化
-		invalid = true;
-		value = newv;
-	}
-	optionalparam(const optionalparam<T> & newv) {
-		// 复制构造函数
-		invalid = newv.inited();
-		value = newv.const_get();
-	}
-	optionalparam() {
-		// 默认初始化
-		invalid = false;
-	}
-	bool inited() const {
-		return invalid;
-	}
-	T get() {
-		return value;
-	}
-	const T & const_get() const {
-		return value;
-	}
-private:
-	T value;
-	bool invalid = false;
-};
 
 // Parse时候记录性质
 struct FunctionDesc {

@@ -52,6 +52,10 @@ int main(int argc, char* argv[], char* env[])
 	else {
 
 	}
+	boost::optional<int> a = 0;
+	boost::optional<int> b = boost::none;
+	cout << a.is_initialized() << endl;
+	cout << b.is_initialized() << endl;
 	system("pause");
 	return 0;
 }

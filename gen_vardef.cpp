@@ -123,7 +123,7 @@ std::string gen_vardef_array(ParseNode * pn, ParseNode * spec_typename, ParseNod
 		if (pn->child[i]->child[1]->fs.CurrentTerm.token == TokenMeta::NT_VARIABLEINITIALDUMMY){
 			// default initialize
 			if (parse_config.usefarray) {
-				sprintf(codegen_buf, "{%s};\n", gen_lbound_size(slice).c_str()); // compile reckon "T a();" as function decl, so use `{}` 
+				sprintf(codegen_buf, "{%s};", gen_lbound_size(slice).c_str()); // compile reckon "T a();" as function decl, so use `{}` 
 				arr_decl += string(codegen_buf); 
 			}
 			else {

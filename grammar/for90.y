@@ -83,14 +83,14 @@ using namespace std;
 	variable_desc_elem : YY_INTENT '(' YY_IN ')'
 			{
 				ParseNode * newnode = new ParseNode(gen_flex(Term{ TokenMeta::NT_VARIABLEDESC, "NT_VARIABLEDESC" }), nullptr); // intent(in)
-				set_variabledesc_attr(newnode, true, true, optionalparam<bool>(), optionalparam<ParseNode *>(), optionalparam<int>());
+				set_variabledesc_attr(newnode, true, true, boost::none, boost::none, boost::none);
 				$$ = *newnode;
 				update_pos($$, $1, $4);
 			}
 		| YY_INTENT '(' YY_OUT ')'
 			{
 				ParseNode * newnode = new ParseNode(gen_flex(Term{ TokenMeta::NT_VARIABLEDESC, "NT_VARIABLEDESC" }), nullptr); // intent(out)
-				set_variabledesc_attr(newnode, true, false, optionalparam<bool>(), optionalparam<ParseNode *>(), optionalparam<int>());
+				set_variabledesc_attr(newnode, true, false, boost::none, boost::none, boost::none);
 				$$ = *newnode;
 				update_pos($$, $1, $4);
 			}
@@ -98,7 +98,7 @@ using namespace std;
 		| YY_INTENT '(' YY_INOUT ')'
 			{
 				ParseNode * newnode = new ParseNode(gen_flex(Term{ TokenMeta::NT_VARIABLEDESC, "NT_VARIABLEDESC" }), nullptr); // intent(inout)
-				set_variabledesc_attr(newnode, true, false, optionalparam<bool>(), optionalparam<ParseNode *>(), optionalparam<int>());
+				set_variabledesc_attr(newnode, true, false, boost::none, boost::none, boost::none);
 				$$ = *newnode;
 				update_pos($$, $1, $4);
 			}
@@ -110,7 +110,7 @@ using namespace std;
 				ParseNode * newnode = new ParseNode(gen_flex(Term{ TokenMeta::NT_VARIABLEDESC, "NT_VARIABLEDESC" }), nullptr);
 				ParseNode * dimen = new ParseNode(gen_variabledesc_from_dimenslice($3));
 				newnode->addchild(dimen); // def slice
-				set_variabledesc_attr(newnode, optionalparam<bool>(), optionalparam<bool>(), optionalparam<bool>(), dimen, optionalparam<int>());
+				set_variabledesc_attr(newnode, boost::none, boost::none, boost::none, dimen, boost::none);
 				$$ = *newnode;
 				update_pos($$, $1, $4);
 			}
@@ -128,14 +128,14 @@ using namespace std;
 				ParseNode * dimen = new ParseNode(gen_promote("", TokenMeta::NT_DIMENSLICE, slice));
 				newnode->addchild(dimen); // def slice
 
-				set_variabledesc_attr(newnode, optionalparam<bool>(), optionalparam<bool>(), optionalparam<bool>(), dimen, optionalparam<int>());
+				set_variabledesc_attr(newnode, boost::none, boost::none, boost::none, dimen, boost::none);
 				$$ = *newnode;
 				update_pos($$, $1, $4);
 			}
 		| YY_OPTIONAL
 			{
 				ParseNode * newnode = new ParseNode(gen_flex(Term{ TokenMeta::NT_VARIABLEDESC, "NT_VARIABLEDESC" }), nullptr); // optional
-				set_variabledesc_attr(newnode, optionalparam<bool>(), optionalparam<bool>(), true, optionalparam<ParseNode *>(), optionalparam<int>());
+				set_variabledesc_attr(newnode, boost::none, boost::none, true, boost::none, boost::none);
 				$$ = *newnode;
 				update_pos($$, $1, $1);
 			}
@@ -143,7 +143,7 @@ using namespace std;
 			{
 				/* const value */
 				ParseNode * newnode = new ParseNode(gen_flex(Term{ TokenMeta::NT_VARIABLEDESC, "NT_VARIABLEDESC" }), nullptr); // const
-				set_variabledesc_attr(newnode, optionalparam<bool>(), true, optionalparam<bool>(), optionalparam<ParseNode *>(), optionalparam<int>());
+				set_variabledesc_attr(newnode, boost::none, true, boost::none, boost::none, boost::none);
 				$$ = *newnode;
 				update_pos($$, $1, $1);
 			}
@@ -182,7 +182,7 @@ using namespace std;
 
 				/* type size */
 				ParseNode * newnode = new ParseNode(gen_flex(Term{ TokenMeta::NT_VARIABLEDESC, "NT_VARIABLEDESC" }), nullptr); // kind
-				set_variabledesc_attr(newnode, optionalparam<bool>(), true, optionalparam<bool>(), optionalparam<ParseNode *>(), kind);
+				set_variabledesc_attr(newnode, boost::none, true, boost::none, boost::none, kind);
 				$$ = *newnode;
 				update_pos($$, $1, $3);
 			}
@@ -195,7 +195,7 @@ using namespace std;
 
 				/* string length */
 				ParseNode * newnode = new ParseNode(gen_flex(Term{ TokenMeta::NT_VARIABLEDESC, "NT_VARIABLEDESC" }), nullptr); // len
-				set_variabledesc_attr(newnode, optionalparam<bool>(), optionalparam<bool>(), optionalparam<bool>(), optionalparam<ParseNode *>(), len);
+				set_variabledesc_attr(newnode, boost::none, boost::none, boost::none, boost::none, len);
 				$$ = *newnode;
 				update_pos($$, $1, $3);
 			}
@@ -808,8 +808,7 @@ using namespace std;
 				ParseNode newnode = gen_type($1);
 				int len;
 				sscanf($3.fs.CurrentTerm.what.c_str(), "%d", &len);
-				set_variabledesc_attr(&newnode, optionalparam<bool>(), optionalparam<bool>(), optionalparam<bool>()
-					, optionalparam<ParseNode *>(), len);
+				set_variabledesc_attr(&newnode, boost::none, boost::none, boost::none, boost::none, len);
 				update_pos($$, $1, $4);
 			}
 		| YY_CHARACTER_T '*' YY_INTEGER

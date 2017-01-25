@@ -25,14 +25,22 @@ void test_transpose(){
 	a = forreshape({ 1, 2, 3, 4, 5, 6, 7, 8 }, { 2, 2, 2 });
 	b = forreshape({ 1, 2, 3, 4, 5, 6, 7, 8 }, { 2, 2, 2 });
 	b.transpose();
-	farray<int> c({ 1,1 }, { 2,2 });
-	farray<int> d({ 1,1 }, { 2,2 });
-	c = forreshape({ 1, 2, 3, 4 }, { 2, 2 });
-	d = forreshape({ 1, 2, 3, 4 }, { 2, 2 });
+	//forprintfree(a(2, 2, 1) , "  ", b(1 ,2 ,2));
+	farray<int> c({ 1,1 }, { 2,3 });
+	farray<int> d({ 1,1 }, { 2,3 });
+	c = forreshape({ 1, 2, 3, 4, 5, 6 }, { 2, 3 });
+	d = forreshape({ 1, 2, 3, 4, 5, 6 }, { 2, 3 });
 	d.transpose();
-	forprintfree(a(2, 2, 1) , "  ", b(1 ,2 ,2));
-	forprintfree(c(2, 1));
-	forprintfree(d(1, 2));
+	for (int i = 1; i <= 2; i++)
+	{
+		for (int j = 1; j <= 3; j++)
+		{
+			forprintfree(i, j);
+			forprintfree(c(i, j));
+			forprintfree(d(j, i));
+			forprintfree("\n");
+		}
+	}
 	system("pause");
 	return 0;
 }

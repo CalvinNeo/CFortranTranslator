@@ -36,6 +36,7 @@ const std::map<std::string, std::string> funcname_map{
 	,{ "sum", "forsum" }
 	,{ "product", "forproduct" }
 	,{ "size", "forsize" }
+	,{ "shape", "forshape" }
 	,{ "lbound", "forlbound" }
 	,{ "ubound", "forubound" }
 	,{ "maxloc", "formaxloc" }

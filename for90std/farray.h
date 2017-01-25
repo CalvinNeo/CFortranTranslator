@@ -121,16 +121,16 @@ namespace for90std {
 				for (int i = 0; i < dimension; i++)
 				{
 					fsize_t oldt = 1;
-					for (int j = i + 1; j < dimension; j++)
+					for (int j = 0; j <= i - 1; j++)
 					{
 						oldt *= sz[j];
 					}
 					oldindex += (cur[i] - lb[i]) * oldt;
 
 					fsize_t newt = 1;
-					for (int j = i + 1; j < dimension; j++)
+					for (int j = 0; j <= i - 1; j++)
 					{
-						newt *= sz[j];
+						newt *= sz[dimension - 1 - j];
 					}
 					newindex += (cur[dimension - 1 - i] - lb[dimension - 1 - i]) * newt;
 				}
@@ -155,25 +155,43 @@ namespace for90std {
 		template<int X>
 		void reset_array(const slice_info<fsize_t>(&tp)[X], bool force_lower_bound = false) {
 			delete[] lb; delete[] sz; delete[] delta;
+			// modify dimension because not all element of tp is slice, probably index instead
+			dimension = 0;
+			int dim;
+			for (auto i = 0; i < X; i++)
+			{
+				if ((tp[i]).isslice)
+				{
+					dimension++;
+				}
+			}
 			lb = new fsize_t[dimension]; sz = new fsize_t[dimension]; delta = new fsize_t[dimension];
 			// if X < dimension, use farr as default from dimension X + 1
 			if (force_lower_bound) {
 				// lower bound of each dimension(new array) should be forced to 1
-				std::transform(tp, tp + X, lb, [](typename slice_info<fsize_t> x) {return 1; });
-				if (X < dimension) {
-					for (auto i = X; i < dimension; i++)
-					{
-						lb[i] = 1;
-					}
-				}
+				std::fill_n(lb, dimension, 1);
 			}
 			else {
 				// lower bound of each dimension(new array)
-				std::transform(tp, tp + X, lb, [](typename slice_info<fsize_t> x) {return x.fr; }); 
+				dim = 0;
+				for (auto i = 0; i < X; i++)
+				{
+					if ((tp[i]).isslice)
+					{
+						lb[dim++] = tp[i].fr;
+					}
+				}
 			}
-			std::transform(tp, tp + X, sz, [](typename slice_info<fsize_t> x) {
-				return (x.to + 1 - x.fr) / x.step + ((x.to + 1 - x.fr) % x.step == 0 ? 0 : 1); 
-			}); // size of each dimension(new array)
+			// size of each dimension(new array)
+			dim = 0;
+			for (auto i = 0; i < X; i++)
+			{
+				if ((tp[i]).isslice)
+				{
+					const slice_info<fsize_t> & x = tp[i];
+					sz[dim++] = (x.to + 1 - x.fr) / x.step + ((x.to + 1 - x.fr) % x.step == 0 ? 0 : 1);;
+				}
+			}
 			fa_layer_delta(this->sz, this->sz + dimension, delta);
 		}
 		void reset_array(const size_type * lower_bound, const size_type * size, int dim) {
@@ -413,19 +431,18 @@ namespace for90std {
 	};
 	template <typename T, int X>
 	auto forslice(const farray<T> & farr, const slice_info<fsize_t>(&tp)[X]) {
-		// by fortran standard, slice must return by ref, now by val
-		farray<T> narr(farr.LBound(), farr.size(), farr.dimension); // if X < dimension, unspecified ranks of narr will remain the same as farr
+		// by fortran standard, slice must return by ref
+		farray<T> narr(farr.LBound(), farr.size(), farr.dimension); // dimension will be modified in reset_array
 		narr.reset_array(tp, true);
 
-		fsize_t * step_out = new fsize_t[farr.dimension]; // msvc conform to C90 standard
-		std::fill_n(step_out, farr.dimension, 1); // if X < dimension, unspecified stride of narr will be 1
+		fsize_t step_out[X]; // msvc conform to C90 standard, so no VLA, but dimension is not more than X
+		std::fill_n(step_out, X, 1); // if X < dimension, unspecified stride of narr will be 1
 		std::transform(tp, tp + X, step_out, [](const slice_info<fsize_t> & x) {return x.step; });
 
 		fsize_t totalsize = narr.flatsize();
 		narr.reset_value(totalsize);
 		_forslice_impl<T, X>(narr, 0, step_out, narr.get_delta(), farr.get_delta(), narr.begin(), narr.end(), farr.cbegin(), farr.cend());
 
-		delete[] step_out;
 		return narr;
 	}
 	template <typename T>

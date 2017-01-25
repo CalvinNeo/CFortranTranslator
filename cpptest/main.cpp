@@ -133,19 +133,15 @@
 
 int main()
 {
-	farray<int> a({ 1,1,1 }, { 2,2,2 });
-	farray<int> b({ 1,1,1 }, { 2,2,2 });
-	a = forreshape({ 1, 2, 3, 4, 5, 6, 7, 8 }, { 2, 2, 2 });
-	b = forreshape({ 1, 2, 3, 4, 5, 6, 7, 8 }, { 2, 2, 2 });
-	b.transpose();
-	farray<int> c({ 1,1 }, { 2,2 });
-	farray<int> d({ 1,1 }, { 2,2 });
-	c = forreshape({ 1, 2, 3, 4 }, { 2, 2 });
-	d = forreshape({ 1, 2, 3, 4 }, { 2, 2 });
-	d.transpose();
-	forprintfree(a(2, 2, 1) , "  ", b(1 ,2 ,2));
-	forprintfree(c(2, 1));
-	forprintfree(d(1, 2));
+	farray<int > a{ { 1, 1, 1 },{ 2, 2, 2 }, {1,2,3,4,5,6,7,8} };
+
+	forprintfree(a(1, 1, 1), "\n");
+	forprintfree(a(1, 1, 1), "\n");
+	// forprintfree(forshape(a(1, 1, 1)), "\n");
+	//forprintfree(forslice(a, { { 1, 1 },{ 1 },{ 1 } }), "\n");
+	//forprintfree(forshape(forslice(a, { { 1, 1 },{ 1 },{ 1 } })), "\n");
+	//forprintfree(forslice(a, { { 1, 2 },{ 1 },{ 1 } }), "\n");
+	//forprintfree(forshape(forslice(a, { { 1, 2 },{ 1, 1 },{ 1 } })), "\n");
 	system("pause");
 	return 0;
 }

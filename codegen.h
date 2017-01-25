@@ -85,7 +85,7 @@ ParseNode gen_array_from_paramtable(const ParseNode & argtable);
 std::string gen_lbound_size(const ParseNode * slice);
 ParseNode & gen_arraybuilder_str(ParseNode & arraybuilder);
 
-void set_variabledesc_attr(ParseNode * newnode, optionalparam<bool> reference, optionalparam<bool> constant, optionalparam<bool> optional, optionalparam<struct ParseNode *> slice, optionalparam<int> kind);
+void set_variabledesc_attr(ParseNode * newnode, boost::optional<bool> reference, boost::optional<bool> constant, boost::optional<bool> optional, boost::optional<struct ParseNode *> slice, boost::optional<int> kind);
 ParseNode gen_variabledesc_from_dimenslice(ParseNode & dimen_slice);
 
 ParseNode gen_interface(const ParseNode & wrappers);

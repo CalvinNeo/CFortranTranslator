@@ -1,19 +1,19 @@
 #include "gen_common.h"
 
-void set_variabledesc_attr(ParseNode * newnode, optionalparam<bool> reference, optionalparam<bool> constant, optionalparam<bool> optional, optionalparam<struct ParseNode *> slice, optionalparam<int> kind ) {
+void set_variabledesc_attr(ParseNode * newnode, boost::optional<bool> reference, boost::optional<bool> constant, boost::optional<bool> optional, boost::optional<struct ParseNode *> slice, boost::optional<int> kind ) {
 	if (newnode->attr == nullptr) {
 		newnode->attr = new VariableDescAttr(newnode);
 	}
-	if(reference.inited())
-		dynamic_cast<VariableDescAttr *>(newnode->attr)->desc.reference = reference;
-	if (constant.inited())
-		dynamic_cast<VariableDescAttr *>(newnode->attr)->desc.constant = constant;
-	if (optional.inited())
-		dynamic_cast<VariableDescAttr *>(newnode->attr)->desc.optional = optional;
-	if (slice.inited())
-		dynamic_cast<VariableDescAttr *>(newnode->attr)->desc.slice = slice;
-	if (kind.inited())
-		dynamic_cast<VariableDescAttr *>(newnode->attr)->desc.kind = kind;
+	if(reference.is_initialized())
+		dynamic_cast<VariableDescAttr *>(newnode->attr)->desc.reference = reference.value();
+	if (constant.is_initialized())
+		dynamic_cast<VariableDescAttr *>(newnode->attr)->desc.constant = constant.value();
+	if (optional.is_initialized())
+		dynamic_cast<VariableDescAttr *>(newnode->attr)->desc.optional = optional.value();
+	if (slice.is_initialized())
+		dynamic_cast<VariableDescAttr *>(newnode->attr)->desc.slice = slice.value();
+	if (kind.is_initialized())
+		dynamic_cast<VariableDescAttr *>(newnode->attr)->desc.kind = kind.value();
 }
 
 ParseNode gen_variabledesc_from_dimenslice(ParseNode & dimen_slice) {
