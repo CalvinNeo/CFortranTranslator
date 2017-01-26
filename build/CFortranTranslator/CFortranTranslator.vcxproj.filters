@@ -135,6 +135,9 @@
     <ClCompile Include="..\..\gen_label.cpp">
       <Filter>target90</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\gen_module.cpp">
+      <Filter>target90</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\grammar\for90.tab.h">

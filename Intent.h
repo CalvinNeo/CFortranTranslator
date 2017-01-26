@@ -236,7 +236,7 @@ namespace IntentMeta {
 		/* 在fortran类语言中, 函数的参数表不包含变量的类型, 参数的实际定义在函数体内, 所以翻译成C时, 需要将这部分定义外提到参数表中, 此时置源语句的函数定义不是NT_VARIABLEINITIAL而是NT_DECLAREDVARIABLE */	
 		NT_SUITE = -2014,
 		NT_FUCNTIONARRAY = -2015,
-		NT_ARRAYBUILDER_VALUE = -2016, /*  */
+		NT_ARRAYBUILDER_LAMBDA = -2016, /*  */
 		NT_ARRAYBUILDER_LIST = -2017, /*  */
 		NT_DIMENSLICE = -2018, /* 1:2, 3:4 in `dimen_slice` level */
 		NT_PARAMTABLE_DIMENSLICE = -2019, /* 1:2, 3:4 in `paramtable` level*/

@@ -1,7 +1,7 @@
 void test_hiddendo_constructor(){
-	farray<int> e({ 1,1 }, { 2,2 }, [](const fsize_t * current) {return ([](fsize_t i, fsize_t j) {return i + j;  })(current[0], current[1]); });
-	forprintfree(e);
-	forprint("%d %d\n", e);
+	farray<int> e = make_farray({ 1,1 }, { 2,2 }, [](const fsize_t * current) {return ([](fsize_t i, fsize_t j) {return i + j;  })(current[0], current[1]); });
+	forprintfree(e); // 2 3 3 4
+	forprint("%d %d\n", e); // 2 3\n 3 4
 	forreadfree(stdin, e);
 	forprintfree(e);
 }
@@ -36,11 +36,18 @@ void test_transpose(){
 		for (int j = 1; j <= 3; j++)
 		{
 			forprintfree(i, j);
-			forprintfree(c(i, j));
+			forprintfree(c(i, j)); // c(i, j) must equal with d(j, i)
 			forprintfree(d(j, i));
 			forprintfree("\n");
 		}
 	}
 	system("pause");
 	return 0;
+}
+
+void test_maxloc(){
+// result in http://www.lahey.com/docs/lfprohelp/F95ARMAXLOCFn.htm
+	farray<int > a{ { 1, 1 },{ 2, 3 }, { -14,3,0,-2,19,1 } };
+	forprintfree(formaxloc(a, 1), "\n"); // 2 1 1
+	forprintfree(formaxloc(a, 2), "\n"); // 3 1
 }

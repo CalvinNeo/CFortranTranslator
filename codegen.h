@@ -94,7 +94,9 @@ void add_function_forward(const ParseNode & function_decl);
 
 ParseNode gen_vardef_simple(const ParseNode & type, std::string name);
 
-ParseNode gen_label(const ParseNode & tag);
+ParseNode gen_label(const ParseNode & tag); 
+void log_format_index(std::string format_index);
+void require_format_index(std::string format_index);
 
 std::string gen_rights(std::string filename, std::string author);
 ParseNode gen_header();

@@ -53,7 +53,7 @@ namespace for90std {
 				isslice = true;
 			}
 		}
-		slice_info(const slice_info<T> & x) : fr(x.fr), to(x.to), step(x.step) {
+		slice_info(const slice_info<T> & x) : fr(x.fr), to(x.to), step(x.step), isall(x.isall), isslice(x.isslice) {
 		}
 	};
 	inline std::string forslice(std::string str, const slice_info<std::string::size_type> & tp) {

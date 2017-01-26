@@ -73,8 +73,8 @@ std::string gen_nested_hiddendo(const std::vector<const ParseNode *> & hiddendo_
 		args += string(codegen_buf);
 	}
 	// map array to parameter
-	sprintf(codegen_buf, "[](const fsize_t(&current)[%d]){return %s(%s);}"
-		, (int)hiddendo_layer.size(), lambda.c_str(), args.c_str());
+	//sprintf(codegen_buf, "[](const fsize_t(&current)[%d]){return %s(%s);}", (int)hiddendo_layer.size(), lambda.c_str(), args.c_str());
+	sprintf(codegen_buf, "[](const fsize_t * current){return %s(%s);}", lambda.c_str(), args.c_str());
 	return string(codegen_buf);
 }
 

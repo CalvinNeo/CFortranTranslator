@@ -129,7 +129,7 @@ ParseNode gen_function_array(const ParseNode & callable_head, const ParseNode & 
 						if (i != 0 || j != 0) {
 							func_header += " ,";
 						}
-						if (args[j]->fs.CurrentTerm.token == TokenMeta::NT_ARRAYBUILDER_VALUE) {
+						if (args[j]->fs.CurrentTerm.token == TokenMeta::NT_ARRAYBUILDER_LAMBDA) {
 							func_header += "{" + args[j]->child[0]->fs.CurrentTerm.what + "}";
 						}
 						else {

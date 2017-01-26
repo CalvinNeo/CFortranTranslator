@@ -303,6 +303,10 @@ const vector<KeywordMeta> keywords = {
 		, TokenMeta::Format
 		, YY_FORMAT
 	}
+	, KeywordMeta{ "common"
+		, TokenMeta::META_ANY
+		, YY_COMMON
+	}
 };
 
 

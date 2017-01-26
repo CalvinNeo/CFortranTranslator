@@ -2,8 +2,8 @@ program array_test
 	implicit none
 	integer,dimension(5:7)::A=(/ (int(i) + 1, i=5,7) /)
 	integer,dimension(5:6, 6:7, 7:8)::B=(/1, 2, 3, 4, 5, 6, 7, 8/) 
-	integer,dimension(5:7, 6:8)::C = A(5:7, :)
+	integer,dimension(3)::C = A(:)
 	integer,dimension(5:7)::D = (/ a(5:7), b(5, 6, 7), ( int(i) + 1, i=5,7 ) /)
 	integer,dimension(2, 2)::E = (/ ((i + j, j=1,2), i=1,2) /)
-	print *, A(6), B(5)(6)(7), C(6, 7)
+	print *, A(6), B(5,6,7), C(1)
 end program

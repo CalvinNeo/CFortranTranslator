@@ -285,9 +285,9 @@ you can use `REAL(x)` to get the float copy of x, however, you can also use `REA
 
 #### array builder
 - `_generate_stmt` wrapped by `"( )"` is `hidder_do`
-- `hidden_do` wrapped by `"(/ /)"` is `NT_ARRAYBUILDER_VALUE`
+- `hidden_do` wrapped by `"(/ /)"` is `NT_ARRAYBUILDER_LAMBDA`
 - `array_builder` can be composed of several kind of `array_builder_elem`:
-    - `NT_ARRAYBUILDER_VALUE`
+    - `NT_ARRAYBUILDER_LAMBDA`
     - `NT_ARRAYBUILDER_LIST`
 
     a `array_builder` will be translated into a array object in c++ code
@@ -319,8 +319,8 @@ you can use `REAL(x)` to get the float copy of x, however, you can also use `REA
 | variable_desc_elem | NT_VARIABLEDESC | dimen_slice |
 | suite | NT_SUITE | NT_STATEMENT \* |
 | stmt | NT_STATEMENT | exp / var_def / compound_stmt / output_stmt / input_stmt / dummy_stmt / let_stmt / jump_stmt / interface_decl |
-| | NT_ARRAYBUILDER | (NT_ARRAYBUILDER_VALUE / NT_ARRAYBUILDER_LIST) + |
-| | NT_ARRAYBUILDER_VALUE |  |
+| | NT_ARRAYBUILDER | (NT_ARRAYBUILDER_LAMBDA / NT_ARRAYBUILDER_LIST) + |
+| | NT_ARRAYBUILDER_LAMBDA |  |
 | | NT_ARRAYBUILDER_LIST |  |
 | callable_head |  | variable / type_nospec |
 | type_spec |  | type_nospec / (type_nospec, typecast_spec) |

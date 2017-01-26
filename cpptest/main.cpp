@@ -133,15 +133,17 @@
 
 int main()
 {
-	farray<int > a{ { 1, 1, 1 },{ 2, 2, 2 }, {1,2,3,4,5,6,7,8} };
-
-	forprintfree(a(1, 1, 1), "\n");
-	forprintfree(a(1, 1, 1), "\n");
-	// forprintfree(forshape(a(1, 1, 1)), "\n");
-	//forprintfree(forslice(a, { { 1, 1 },{ 1 },{ 1 } }), "\n");
-	//forprintfree(forshape(forslice(a, { { 1, 1 },{ 1 },{ 1 } })), "\n");
-	//forprintfree(forslice(a, { { 1, 2 },{ 1 },{ 1 } }), "\n");
-	//forprintfree(forshape(forslice(a, { { 1, 2 },{ 1, 1 },{ 1 } })), "\n");
+	farray<int > a{ { 5 },{ 3 } };
+	a = make_farray({ 5 }, { 3 }, [](const fsize_t * current) {return [](fsize_t i) {return to_int(i) + 1; }(current[0]); });
+	farray<int > b{ { 5, 6, 7 },{ 2, 2, 2 } };
+	b = make_farray({ 1, 2, 3, 4, 5, 6, 7, 8 });
+	farray<int > c{ { 1 },{ 3 } };
+	c = make_farray(forslice(a, { {} }));
+	farray<int > d{ { 5 },{ 3 } };
+	d = make_farray({ 5 }, { 3 }, [](const fsize_t * current) {return [](fsize_t i) {return to_int(i) + 1; }(current[0]); });
+	farray<int > e{ { 1, 1 },{ 2, 2 } };
+	e = make_farray({ 1, 1 }, { 2, 2 }, [](const fsize_t * current) {return [](fsize_t i, fsize_t j) {return i + j; }(current[0], current[1]); });
+	forprintfree(a(6), b(5, 6, 7), c(1), "\n");
 	system("pause");
 	return 0;
 }
