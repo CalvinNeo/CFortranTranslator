@@ -18,10 +18,10 @@ ParseNode gen_read(const ParseNode & io_info, const ParseNode & argtable) {
 		string fmt = io_info.child[1]->fs.CurrentTerm.what.substr(1, io_info.child[1]->fs.CurrentTerm.what.size() - 1); // strip " 
 		if (device == "-1") {
 			//device = "5"; // stdin
-			sprintf(codegen_buf, "forread(stdin, \"%s\\n\", %s) ;", parse_ioformatter(fmt).c_str(), pn->fs.CurrentTerm.what.c_str());
+			sprintf(codegen_buf, "forread(stdin, \"%s\", %s) ;", parse_ioformatter(fmt).c_str(), pn->fs.CurrentTerm.what.c_str());
 		}
 		else {
-			sprintf(codegen_buf, "forread(get_file(%s), \"%s\\n\", %s) ;", device.c_str(), parse_ioformatter(fmt).c_str(), pn->fs.CurrentTerm.what.c_str());
+			sprintf(codegen_buf, "forread(get_file(%s), \"%s\", %s) ;", device.c_str(), parse_ioformatter(fmt).c_str(), pn->fs.CurrentTerm.what.c_str());
 		}
 	}
 	newnode.fs.CurrentTerm = Term{ TokenMeta::META_NONTERMINAL, string(codegen_buf) };

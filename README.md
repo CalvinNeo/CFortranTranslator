@@ -137,7 +137,7 @@ refer to [/grammar/for90.y](/grammar/for90.y) for all accepted grammar
 |sum, product|forsum, forproduct| call `operator+` and `operator*` |
 |any, all, count|forany, forall, forcount| |
 |pack, unpack|not implemented yet| |
-|merge|not implemented yet| |
+|merge|formerge| |
 |size, lbound, ubound|not implemented yet| |
 |dot_product|not implemented yet| |
 

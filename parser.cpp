@@ -84,7 +84,7 @@ ParseConfig parse_config;
 
 void preorder(ParseNode * ptree) {
 	using namespace std;
-	ParseNode * p = nullptr;
+	ParseNode * p;
 	stack< pair< ParseNode * , int> > s;
 
 	s.push(make_pair(ptree, 0));
@@ -98,7 +98,7 @@ void preorder(ParseNode * ptree) {
 		}
 		else {
 			cout << string(deep * 2, ' ') << p->fs.CurrentTerm.token << ", " << p->fs.CurrentTerm.what << endl;
-			for (auto i = p->child.size() - 1; i >= 0; i--)
+			for (int/*must be int, not size_t*/ i = p->child.size() - 1; i >= 0; i--)
 			{
 				s.push(make_pair(p->child[i], deep + 1));
 			}

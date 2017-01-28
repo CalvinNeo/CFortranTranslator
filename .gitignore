@@ -53,3 +53,4 @@ build/CFortran77Translator/x64/
 *.db
 *.lnk
 *.log
+*.tmp

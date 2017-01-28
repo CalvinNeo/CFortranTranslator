@@ -143,10 +143,11 @@ namespace for90std {
 				for (int i = 0; i < dimension; i++)
 				{
 					fsize_t oldt = 1;
-					for (int j = 0; j <= i - 1; j++)
-					{
-						oldt *= sz[j];
-					}
+					oldt = delta[j];
+					//for (int j = 0; j <= i - 1; j++)
+					//{
+					//	oldt *= sz[j];
+					//}
 					oldindex += (cur[i] - lb[i]) * oldt;
 
 					fsize_t newt = 1;
@@ -451,18 +452,18 @@ namespace for90std {
 	}
 
 	template <typename T, int X, typename _Iterator_In, typename _Iterator_Out>
-	void _forslice_impl(const farray<T> & narr, int deep, const fsize_t * step_out, const fsize_t * delta_out, const fsize_t * delta_in
+	void _forslice_impl(const slice_info<fsize_t>(&tp)[X], const farray<T> & narr, int deep, const fsize_t * delta_out, const fsize_t * delta_in
 		, _Iterator_Out bo, _Iterator_Out eo, _Iterator_In bi, _Iterator_In ei)
 	{
-		for (typename farray<T>::size_type i = narr.LBound(deep); i < narr.LBound(deep) + narr.size(deep); i+= (step_out == nullptr? 1 :step_out[deep]))
+		for (fsize_t i = tp[deep].fr; i <= tp[deep].to; i+= tp[deep].step)
 		{
-			if (deep == narr.dimension - 1) {
+			if (deep == X) { // if X not equal to narr.dimension, behaviour is not defined
 				*bo = *bi;
 			}
 			else {
-				_forslice_impl<T, X>(narr, deep + 1, step_out, delta_out, delta_in, bo, bo + delta_out[deep], bi, bi + delta_out[deep]);
+				_forslice_impl<T, X>(tp, narr, deep + 1, delta_out, delta_in, bo, bo + delta_out[deep], bi, bi + delta_out[deep]);
 			}
-			if (i != narr.LBound(deep) + narr.size(deep) - 1) {
+			if (i != tp[deep].to) {
 				bo += delta_out[deep];
 				bi += delta_in[deep];
 			}
@@ -484,13 +485,9 @@ namespace for90std {
 		}
 		narr.reset_array(ntp, true);
 
-		fsize_t step_out[X]; // msvc conform to C90 standard, so no VLA, but dimension is not more than X
-		std::fill_n(step_out, X, 1); // if X < dimension, unspecified stride of narr will be 1
-		std::transform(ntp, ntp + X, step_out, [](const slice_info<fsize_t> & x) {return x.step; });
-
 		fsize_t totalsize = narr.flatsize();
 		narr.reset_value(totalsize);
-		_forslice_impl<T, X>(narr, 0, step_out, narr.get_delta(), farr.get_delta(), narr.begin(), narr.end(), farr.cbegin(), farr.cend());
+		_forslice_impl<T, X>(ntp, narr, 0, narr.get_delta(), farr.get_delta(), narr.begin(), narr.end(), farr.cbegin(), farr.cend());
 
 		return narr;
 	}
@@ -509,7 +506,7 @@ namespace for90std {
 		fsize_t totalsize = narr.flatsize();
 		narr.reset_value(totalsize);
 
-		_forslice_impl<T, X>(narr, 0, nullptr /*step_out = nullptr*/, narr.get_delta(), farr.get_delta(), narr.begin(), narr.end(), farr.cbegin(), farr.cend());
+		_forslice_impl<T, X>(narr, 0, narr.get_delta(), farr.get_delta(), narr.begin(), narr.end(), farr.cbegin(), farr.cend());
 		return narr;
 	}
 
@@ -566,7 +563,7 @@ namespace for90std {
 	}
 
 	template <typename T, typename F>
-	farray<T> _forloc_impl(F predicate, const farray<T> & farr, foroptional<int> fordim, foroptional<mask_wrapper<T>> mask = foroptional<mask_wrapper<T>>([](T x) {return true; })) {
+	farray<T> _forloc_impl(F predicate, const farray<T> & farr, int fordim, foroptional<mask_wrapper<T>> mask = foroptional<mask_wrapper<T>>([](T x) {return true; })) {
 		/***
 		ISO/IEC 1539:1991 1.5.2
 		has not specify actions for this overload version
@@ -628,7 +625,7 @@ namespace for90std {
 	template <typename T>
 	auto formaxval(const farray<T> & farr, foroptional<int> fordim = 1, foroptional<mask_wrapper<T>> mask = foroptional<mask_wrapper<T>>([](T x) {return true; })) {
 		// return maxvalue of every subarray
-		CHECK_AND_SET(fordim, 1)
+		int dim = fordim.value_or(1) - 1;
 		return 0;
 	}
 

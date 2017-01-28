@@ -237,19 +237,21 @@ using namespace std;
 				$$ = newnode;
 				update_pos($$, $1, $1);
 			}
-
+/*
 	callable_head : variable 
 			{
-				/* array index and function name and type cast */
+				// array index and function name and type cast 
 				string x = $1.fs.CurrentTerm.what;
 				$$ = $1;
 			}
 		| type_nospec
 			{
-				/* array index and function name and type cast */
+				// array index and function name and type cast 
 				string x = $1.fs.CurrentTerm.what;
 				$$ = $1;
 			}
+
+*/
 	
 	slice : exp ':' exp
 			{
@@ -326,7 +328,17 @@ using namespace std;
 				update_pos($$, $1, $3);
 			}
 
-	function_array_body : callable_head '(' paramtable ')'
+	function_array_body : variable '(' paramtable ')'
+			{
+				/* function call OR array index */
+				/* NOTE that array index can be A(1:2, 3:4) */
+				ParseNode & callable_head = $1;
+				ParseNode & argtable = $3;
+				ParseNode newnode = gen_function_array(callable_head, argtable);
+				$$ = newnode;
+				update_pos($$, $1, $4);
+			}
+		| type_nospec '(' paramtable ')'
 			{
 				/* function call OR array index */
 				/* NOTE that array index can be A(1:2, 3:4) */
@@ -528,13 +540,21 @@ using namespace std;
 		| literal 
             { 
 				$$ = $1;
+				update_pos($$, $1, $1);
 			}
+		| variable
+			{
+				$$ = $1;
+				update_pos($$, $1, $1);
+			}
+		/*
 		| callable_head
 			{
 				// may cause reduction-reduction conflict when use `variable` instead of `callable_head`
 				// TODO : i am a little strange that `integer::a, b, c` works well because i am afraid that callable_head will reduce to exp from here. however according to LR(1), `::` is not in FOLLOW(exp)
 				$$ = $1;
 			}
+		*/
 
 	_crlf_semicolon: crlf
 		| ';' crlf
@@ -811,9 +831,9 @@ using namespace std;
 				set_variabledesc_attr(&newnode, boost::none, boost::none, boost::none, boost::none, len);
 				update_pos($$, $1, $4);
 			}
-		| YY_CHARACTER_T '*' YY_INTEGER
+		| type_nospec '*' YY_INTEGER
 			{
-				$$ = gen_type($1, $3);
+				// $$ = gen_type($1, $3);
 				update_pos($$, $1, $3);
 			}
 		| type_nospec
@@ -837,6 +857,7 @@ using namespace std;
 			{
 				
 			}
+
     var_def : type_spec variable_desc YY_DOUBLECOLON paramtable
 			{
 				/* array decl */
@@ -847,6 +868,17 @@ using namespace std;
 				$$ = gen_vardef(type_spec, variable_desc, paramtable);
 				update_pos($$, $1, $4);
 			}
+		| type_spec variable_desc paramtable
+			{
+				/* array decl */
+				ParseNode & type_spec = $1;
+				ParseNode & variable_desc = $2;
+				ParseNode & paramtable = $3;
+
+				$$ = gen_vardef(type_spec, variable_desc, paramtable);
+				update_pos($$, $1, $3);
+			}
+
     keyvalue : variable
 			{ 
 				// useless reduction

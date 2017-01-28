@@ -77,78 +77,96 @@ std::string gen_qualified_typestr(std::string type_name, VariableDescAttr * vard
 	return string(codegen_buf);
 }
 
-std::string gen_lbound_size(const ParseNode * slice) {
-	std::string vec_size = "{", vec_from = "{";
-	vec_from += make_str_list(slice->child.begin(), slice->child.end(), [](auto x)->string {return (*x)->child[0]->fs.CurrentTerm.what; });
-	vec_size += make_str_list(slice->child.begin(), slice->child.end(), [](auto x)->string {
-		int lb, ub;
-		sscanf((*x)->child[0]->fs.CurrentTerm.what.c_str(), "%d", &lb);
-		sscanf((*x)->child[1]->fs.CurrentTerm.what.c_str(), "%d", &ub);
-		sprintf(codegen_buf, "%d", ub - lb + 1);
-		return string(codegen_buf);
+std::string gen_lbound_size_str(const std::tuple<std::vector<int>, std::vector<int>> & shape) {
+	std::string size_str = "{", lbound_str = "{";
+	lbound_str += make_str_list(get<0>(shape).begin(), get<0>(shape).end(), [&](auto x) {
+		sprintf(codegen_buf, "%d", *x); return string(codegen_buf);
 	});
-	vec_size += "}", vec_from += "}";
-	return vec_from + ", " + vec_size;
+	size_str += make_str_list(get<1>(shape).begin(), get<1>(shape).end(), [&](auto x) {
+		sprintf(codegen_buf, "%d", *x); return string(codegen_buf);
+	});
+	size_str += "}"; lbound_str += "}";
+	return lbound_str + ", " + size_str;
 }
 
-std::string gen_vardef_array(ParseNode * pn, ParseNode * spec_typename, ParseNode * slice, VariableDescAttr * vardescattr) {
+std::tuple<std::vector<int>, std::vector<int>> gen_lbound_size(const ParseNode * slice) {
+	std::vector<int> lb(slice->child.size()), sz(slice->child.size());
+	transform(slice->child.begin(), slice->child.end(), lb.begin(), [](const ParseNode * x) {
+		int l; sscanf(x->child[0]->fs.CurrentTerm.what.c_str(), "%d", &l);
+		return l;
+	});
+	transform(slice->child.begin(), slice->child.end(), sz.begin(), [](const ParseNode * x) {
+		int u; sscanf(x->child[1]->fs.CurrentTerm.what.c_str(), "%d", &u);
+		int l; sscanf(x->child[0]->fs.CurrentTerm.what.c_str(), "%d", &l);
+		return u - l + 1;
+	});
+	return make_tuple(lb, sz);
+}
+
+std::string gen_vardef_array_initial(ParseNode * entity_variable, ParseNode * slice) {
+	/* set initial value from array_builder */
+	/* entity_variable is NT_VARIABLEINITIAL = NT_KEYVALUE*/
+	string arr_decl;
+
+	return arr_decl;
+}
+
+std::string gen_vardef_array(ParseNode * entity_variable, ParseNode * spec_typename, const std::tuple<std::vector<int>, std::vector<int>> & shape, VariableDescAttr * vardescattr) {
+	return gen_vardef_array(entity_variable->child[0]->fs.CurrentTerm.what.c_str(), entity_variable, spec_typename, shape, vardescattr);
+}
+std::string gen_vardef_array(std::string alias_name, ParseNode * entity_variable, ParseNode * spec_typename, const std::tuple<std::vector<int>, std::vector<int>> & shape, VariableDescAttr * vardescattr) {
 	/* in cpp code, definition of an array is inherit attribute(继承属性) grammar */
 	string arr_decl = "";
-	// pn is flattened
-	for (auto i = 0; i < pn->child.size(); i++)
-	{
-		// for each variable in flatterned paramtable
-		int sliceid = 0;
-		string type_str;
-		string innermost_type = gen_qualified_typestr(spec_typename->fs.CurrentTerm.what, vardescattr); // `T`
+	// entity_variable is 
+	// NT_VARIABLEINITIAL(entity_variable) -> NT_EXPRESSION(entity_variable_name) -> NT_FUCNTIONARRAY -> (UnknownVariant, NT_ARGTABLE_PURE) or NT_VARIABLEINITIAL
+	// or NT_VARIABLEINITIAL(entity_variable) -> (UnknownVariant, NT_VARIABLEINITIALDUMMY or else)
+	int sliceid = 0;
+	int dimension = get<0>(shape).size();
+	string type_str;
+	string innermost_type = gen_qualified_typestr(spec_typename->fs.CurrentTerm.what, vardescattr); // `T`
+	if (parse_config.usefarray) {
+		sprintf(codegen_buf, "farray<%s>", innermost_type.c_str());
+		type_str = string(codegen_buf);
+	}
+	else {
+		sprintf(codegen_buf, "for1array<%s>", innermost_type.c_str());
+		type_str = string(codegen_buf);
+		for (sliceid = dimension - 2; sliceid >= 0; sliceid--)
+		{
+			sprintf(codegen_buf, "for1array< %s >", type_str.c_str());
+			type_str = string(codegen_buf);
+		}
+	}
+
+	// no desc if var_def is not in paramtable
+	sprintf(codegen_buf, "%s %s", type_str.c_str(), alias_name.c_str()  /* array name */);
+	arr_decl += string(codegen_buf);
+	if (entity_variable->child[1]->fs.CurrentTerm.token == TokenMeta::NT_VARIABLEINITIALDUMMY) {
+		// default initialize
 		if (parse_config.usefarray) {
-			//sprintf(codegen_buf, "farray<%s, %d>", innermost_type.c_str(), (int)slice->child.size());
-			sprintf(codegen_buf, "farray<%s>", innermost_type.c_str());
-			type_str = string(codegen_buf);
+			sprintf(codegen_buf, "{%s};", gen_lbound_size_str(shape).c_str()); // compile reckon "T a();" as function decl, so use `{}` 
+			arr_decl += string(codegen_buf);
 		}
 		else {
-			sprintf(codegen_buf, "for1array<%s>", innermost_type.c_str());
-			type_str = string(codegen_buf);
-			for (sliceid = slice->child.size() - 2; sliceid >= 0; sliceid--)
-			{
-				sprintf(codegen_buf, "for1array< %s >", type_str.c_str());
-				type_str = string(codegen_buf);
-			}
-		}
-
-		// no desc if var_def is not in paramtable
-		sprintf(codegen_buf, "%s %s", type_str.c_str(), pn->child[i]->child[0]->fs.CurrentTerm.what.c_str() /* array name */);
-		arr_decl += string(codegen_buf);
-		/* set initial value from array_builder */
-		if (pn->child[i]->child[1]->fs.CurrentTerm.token == TokenMeta::NT_VARIABLEINITIALDUMMY){
-			// default initialize
-			if (parse_config.usefarray) {
-				sprintf(codegen_buf, "{%s};", gen_lbound_size(slice).c_str()); // compile reckon "T a();" as function decl, so use `{}` 
-				arr_decl += string(codegen_buf); 
-			}
-			else {
-				sprintf(codegen_buf, "(%s, %s + 1)", slice->child[0]->child[0]->fs.CurrentTerm.what.c_str(), slice->child[0]->child[1]->fs.CurrentTerm.what.c_str() /* slice from to */);
-				string dimension = string(codegen_buf);
-				arr_decl += dimension;
-				arr_decl += ";\n";
-				sprintf(codegen_buf, "");
-			}
-		}
-		else {
-			// init from array_builder
-			sprintf(codegen_buf, "{%s};\n", gen_lbound_size(slice).c_str()); 
+			sprintf(codegen_buf, "(%d, %d)", get<0>(shape)[0], get<0>(shape)[0] + get<1>(shape)[0] + 1 /* slice from to */);
 			arr_decl += string(codegen_buf);
-			sprintf(codegen_buf, "%s = ", pn->child[i]->child[0]->fs.CurrentTerm.what.c_str());
-			arr_decl += string(codegen_buf);
-			ParseNode * variable_initial = pn->child[i]; /*NT_VARIABLEINITIAL = NT_KEYVALUE*/
-
-			ParseNode * compound_arraybuilder = variable_initial->child[1]; // NT_ARRAYBUILDER
-
-			gen_arraybuilder_str(*compound_arraybuilder);
-			arr_decl += compound_arraybuilder->fs.CurrentTerm.what;
 			arr_decl += ";";
 		}
 	}
+	else {
+		// init from array_builder
+		sprintf(codegen_buf, "{%s};\n", gen_lbound_size_str(shape).c_str());
+		arr_decl += string(codegen_buf);
+		sprintf(codegen_buf, "%s = ", alias_name.c_str());
+		arr_decl += string(codegen_buf);
+		ParseNode * variable_initial = entity_variable;
+		ParseNode * compound_arraybuilder = entity_variable->child[1]; // NT_ARRAYBUILDER
+
+		gen_arraybuilder_str(*compound_arraybuilder);
+		arr_decl += compound_arraybuilder->fs.CurrentTerm.what;
+		arr_decl += ";";
+	}
+	arr_decl += "\n";
 	return arr_decl;
 }
 
@@ -174,7 +192,11 @@ ParseNode gen_vardef(const ParseNode & type_spec, const ParseNode & variable_des
 	if (do_arr)
 	{
 		// ARRAY
-		arr_decl = gen_vardef_array(pn, spec_typename, slice, vardescattr);
+		for (auto i = 0; i < pn->child.size(); i++)
+		{
+			// pn is flattened
+			arr_decl += gen_vardef_array(pn->child[i], spec_typename, gen_lbound_size(slice), vardescattr);
+		}
 		newnode.fs.CurrentTerm = Term{ TokenMeta::NT_VARIABLEDEFINE, arr_decl };
 	}
 	else {
@@ -182,12 +204,12 @@ ParseNode gen_vardef(const ParseNode & type_spec, const ParseNode & variable_des
 		string typestr = gen_qualified_typestr(spec_typename->fs.CurrentTerm.what, vardescattr);
 		var_decl += typestr;
 		bool hitted = false; // 是否至少有一个变量，因为有的变量定义可能是函数的声明，这在c++规范是不允许的，所以可能出现空int，空逗号的情况。
-		// pn is flattened
+		// pn is flattened, for each variable in flatterned paramtable
 		for (auto i = 0; i < pn->child.size(); i++)
 		{
-			ParseNode * this_variable = new ParseNode(*pn->child[i]);
+			ParseNode * entity_variable = pn->child[i];
 			// skip if it is a function, no module currently
-			if (get_function("", this_variable->fs.CurrentTerm.what)) {
+			if (get_function("", entity_variable->fs.CurrentTerm.what)) {
 				continue;
 			}
 			if (hitted) {
@@ -195,20 +217,32 @@ ParseNode gen_vardef(const ParseNode & type_spec, const ParseNode & variable_des
 			}
 			hitted = true;
 
-			// variable name
-			var_decl += this_variable->child[0]->fs.CurrentTerm.what;
-
-			// variable initial value
-			if (this_variable->child[1]->fs.CurrentTerm.token != TokenMeta::NT_VARIABLEINITIALDUMMY) {
-				/* if initial value is not dummy but `exp` */
-				var_decl += " = ";
-				var_decl += this_variable->child[1]->fs.CurrentTerm.what;
+			ParseNode * entity_variable_name = entity_variable->child[0];
+			// from entity_variable
+			// NT_VARIABLEINITIAL(entity_variable) -> NT_EXPRESSION(entity_variable_name) -> NT_FUCNTIONARRAY -> (UnknownVariant, NT_ARGTABLE_PURE)
+			if (entity_variable_name->fs.CurrentTerm.token == TokenMeta::NT_EXPRESSION && entity_variable_name->child[0]->fs.CurrentTerm.token == TokenMeta::NT_FUCNTIONARRAY)
+			{
+				ParseNode * argtable = entity_variable_name->child[0]->child[1];
+				std::vector<int> lb(argtable->child.size()), sz(argtable->child.size());
+				std::fill(lb.begin(), lb.end(), 1);
+				std::transform(argtable->child.begin(), argtable->child.end(), sz.begin(), [](auto x) {
+					int y;  sscanf(x->fs.CurrentTerm.what.c_str(), "%d", &y);
+					return y;
+				});
+				var_decl = gen_vardef_array(entity_variable_name->child[0]->child[0]->fs.CurrentTerm.what, entity_variable, spec_typename, make_tuple(lb, sz), vardescattr);
+			}
+			else {
+				var_decl += entity_variable_name->fs.CurrentTerm.what;
+				if (entity_variable->child[1]->fs.CurrentTerm.token != TokenMeta::NT_VARIABLEINITIALDUMMY) {
+					/* if initial value is not dummy but `exp` */
+					var_decl += " = ";
+					var_decl += entity_variable->child[1]->fs.CurrentTerm.what;
+				}
+				var_decl += ";";
 			}
 			/* desc */
-			this_variable->attr = vardescattr->clone();
-			delete this_variable; // TODO temporarily not use this_variable
+			entity_variable->attr = vardescattr->clone();
 		}
-		var_decl += ";";
 		if (!hitted) {
 			// all function then remove even type declarator
 			var_decl = "";
@@ -223,4 +257,3 @@ ParseNode gen_vardef(const ParseNode & type_spec, const ParseNode & variable_des
 	}
 	return newnode;
 }
-

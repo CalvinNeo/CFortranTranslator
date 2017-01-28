@@ -48,6 +48,17 @@ namespace for90std {
 		const T & const_get() const {
 			return value;
 		}
+
+		T value_or(T def){
+			if (inited())
+			{
+				return value;
+			}
+			else {
+				return def;
+			}
+		}
+
 	protected:
 		T value;
 		bool invalid = false;
