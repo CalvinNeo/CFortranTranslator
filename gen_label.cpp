@@ -20,10 +20,11 @@ ParseNode gen_label(const ParseNode & tag) {
 	return newnode;
 }
 
-void log_format_index(std::string format_index) {
-
+void log_format_index(std::string format_index, ParseNode * stmt) {
+	
 }
 
-void require_format_index(std::string format_index) {
-
+ParseNode * require_format_index(std::string format_index) {
+	// read/write 语句可以直接使用format语句的行号作为参数
+	return nullptr;
 }

@@ -81,7 +81,8 @@ ParseNode & gen_arraybuilder_str(ParseNode & arraybuilder) {
 		for (auto builderid = 0; builderid < compound_arraybuilder->child.size(); builderid++)
 		{
 			ParseNode * array_builder = compound_arraybuilder->child[builderid];
-			sprintf(codegen_buf, "make_farray(%s)", array_builder->fs.CurrentTerm.what.c_str());
+			// init from list
+			sprintf(codegen_buf, "make_init_list(%s)", array_builder->fs.CurrentTerm.what.c_str());
 			if (builderid > 0) {
 				arr_decl += ", ";
 			}
@@ -106,10 +107,11 @@ ParseNode & gen_arraybuilder_str(ParseNode & arraybuilder) {
 					sprintf(codegen_buf, "%d", to - from + 1);
 					return string(codegen_buf); 
 				});
-				sprintf(codegen_buf, "make_farray({%s}, {%s}, %s)", vec_from.c_str(), vec_to.c_str(), array_builder->fs.CurrentTerm.what.c_str());
+				// init from hidden do
+				sprintf(codegen_buf, "make_init_list({%s}, {%s}, %s)", vec_from.c_str(), vec_to.c_str(), array_builder->fs.CurrentTerm.what.c_str());
 			}
 			else {
-				sprintf(codegen_buf, "make_farray(%s)", array_builder->fs.CurrentTerm.what.c_str());
+				sprintf(codegen_buf, "make_init_list(%s)", array_builder->fs.CurrentTerm.what.c_str());
 			}
 			if (builderid > 0) {
 				arr_decl += " , ";

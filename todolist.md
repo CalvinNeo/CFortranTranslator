@@ -35,6 +35,7 @@
 - promote return type in formerge so it can accept 2 different type farray
 - `fslice` return by reference
 - C.13.2.1 Unconditional array computations and C.13.2.2 Conditional array computations
+- underscore kind param, like `.93E7_QUAD` ref standard 4.3.1.2
 
 ## todolist(bugfix)
 - ~~if slice can be a scalar x and equal to (1: x + 1), there will be conflict in argtable~~

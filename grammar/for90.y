@@ -161,7 +161,7 @@ using namespace std;
 				ParseNode newnode = ParseNode(gen_flex(Term{ TokenMeta::NT_VARIABLEDESC, "NT_VARIABLEDESC" }), nullptr);
 				/* merge attrs */
 				newnode.attr = variable_iden_1.attr->clone();
-				(dynamic_cast<VariableDescAttr *>(newnode.attr))->merge(*dynamic_cast<VariableDescAttr *>(variable_iden->attr));
+				dynamic_cast<VariableDescAttr *>(newnode.attr)->merge(*dynamic_cast<VariableDescAttr *>(variable_iden->attr));
 				// TODO do not add child
 				$$ = newnode;
 				update_pos($$, $1, $3);

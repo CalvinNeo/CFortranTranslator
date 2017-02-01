@@ -15,9 +15,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\cpptest\main.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\for90std\for90std.cpp">
       <Filter>头文件</Filter>
     </ClCompile>
@@ -28,6 +25,12 @@
       <Filter>头文件</Filter>
     </ClCompile>
     <ClCompile Include="..\..\for90std\forstdio.cpp">
+      <Filter>头文件</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\cpptest\main.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\for90std\farray.cpp">
       <Filter>头文件</Filter>
     </ClCompile>
   </ItemGroup>

@@ -117,6 +117,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\..\cpptest\main.cpp" />
+    <ClCompile Include="..\..\for90std\farray.cpp" />
     <ClCompile Include="..\..\for90std\for90std.cpp" />
     <ClCompile Include="..\..\for90std\forfilesys.cpp" />
     <ClCompile Include="..\..\for90std\forlang.cpp" />

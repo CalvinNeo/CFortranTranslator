@@ -10,71 +10,14 @@ ParseNode gen_vardef_simple(const ParseNode & type, std::string name) {
 	return newnode;
 }
 
-
-ParseNode * promote_type(const ParseNode & type_spec, VariableDescAttr * vardescattr) {
-	// reset type according to kind
-	ParseNode * ty = new ParseNode(type_spec); // type
-	VariableDescAttr * ty_a = dynamic_cast<VariableDescAttr *>(type_spec.attr);
-	/* merge type_spec and variable_desc attr */
-	vardescattr->merge(*ty_a);
-	if (vardescattr->desc.kind != 0) {
-		if (type_spec.fs.CurrentTerm.token == TokenMeta::Int_Def) {
-			if (vardescattr->desc.kind == 1) {
-				ty->fs.CurrentTerm.what = "char";
-			}
-			else if (vardescattr->desc.kind == 2) {
-				ty->fs.CurrentTerm.what = "int";
-			}
-			else if (vardescattr->desc.kind == 4) {
-				ty->fs.CurrentTerm.what = "int";
-			}
-			else if (vardescattr->desc.kind == 8) {
-				ty->fs.CurrentTerm.what = "long long";
-			}
-		}
-		else if (type_spec.fs.CurrentTerm.token == TokenMeta::Float_Def) {
-			if (vardescattr->desc.kind == 1) {
-				ty->fs.CurrentTerm.what = "float";
-			}
-			else if (vardescattr->desc.kind == 2) {
-				ty->fs.CurrentTerm.what = "double";
-			}
-			else if (vardescattr->desc.kind == 4) {
-				ty->fs.CurrentTerm.what = "double";
-			}
-			else if (vardescattr->desc.kind == 8) {
-				ty->fs.CurrentTerm.what = "long double";
-			}
-		}
-	}
-	return ty;
-}
-
-std::string gen_qualified_typestr(std::string type_name, VariableDescAttr * vardescattr) {
-	string var_pattern;
-	if (vardescattr == nullptr) {
-		var_pattern = "%s ";
+ParseNode implicit_type_from_name(std::string name) {
+	if (name.size() > 0 && name[0] < 'n' && name[1] > 'i')
+	{
+		return gen_type(Term{ TokenMeta::Int_Def, "int" });
 	}
 	else {
-		if (vardescattr->desc.reference) {
-			if (vardescattr->desc.constant) {
-				var_pattern = "const %s & ";
-			}
-			else {
-				var_pattern = "%s & ";
-			}
-		}
-		else {
-			if (vardescattr->desc.constant) {
-				var_pattern = "const %s ";
-			}
-			else {
-				var_pattern = "%s ";
-			}
-		}
+		return gen_type(Term{ TokenMeta::Float_Def, "double" });
 	}
-	sprintf(codegen_buf, var_pattern.c_str(), type_name.c_str());
-	return string(codegen_buf);
 }
 
 std::string gen_lbound_size_str(const std::tuple<std::vector<int>, std::vector<int>> & shape) {
@@ -103,18 +46,10 @@ std::tuple<std::vector<int>, std::vector<int>> gen_lbound_size(const ParseNode *
 	return make_tuple(lb, sz);
 }
 
-std::string gen_vardef_array_initial(ParseNode * entity_variable, ParseNode * slice) {
-	/* set initial value from array_builder */
-	/* entity_variable is NT_VARIABLEINITIAL = NT_KEYVALUE*/
-	string arr_decl;
-
-	return arr_decl;
-}
-
-std::string gen_vardef_array(ParseNode * entity_variable, ParseNode * spec_typename, const std::tuple<std::vector<int>, std::vector<int>> & shape, VariableDescAttr * vardescattr) {
+std::string gen_vardef_array(ParseNode * entity_variable, ParseNode spec_typename, const std::tuple<std::vector<int>, std::vector<int>> & shape, VariableDescAttr * vardescattr) {
 	return gen_vardef_array(entity_variable->child[0]->fs.CurrentTerm.what.c_str(), entity_variable, spec_typename, shape, vardescattr);
 }
-std::string gen_vardef_array(std::string alias_name, ParseNode * entity_variable, ParseNode * spec_typename, const std::tuple<std::vector<int>, std::vector<int>> & shape, VariableDescAttr * vardescattr) {
+std::string gen_vardef_array(std::string alias_name, ParseNode * entity_variable, ParseNode spec_typename, const std::tuple<std::vector<int>, std::vector<int>> & shape, VariableDescAttr * vardescattr) {
 	/* in cpp code, definition of an array is inherit attribute(继承属性) grammar */
 	string arr_decl = "";
 	// entity_variable is 
@@ -123,7 +58,7 @@ std::string gen_vardef_array(std::string alias_name, ParseNode * entity_variable
 	int sliceid = 0;
 	int dimension = get<0>(shape).size();
 	string type_str;
-	string innermost_type = gen_qualified_typestr(spec_typename->fs.CurrentTerm.what, vardescattr); // `T`
+	string innermost_type = gen_qualified_typestr(spec_typename.fs.CurrentTerm.what, vardescattr); // `T`
 	if (parse_config.usefarray) {
 		sprintf(codegen_buf, "farray<%s>", innermost_type.c_str());
 		type_str = string(codegen_buf);
@@ -175,7 +110,7 @@ ParseNode gen_vardef(const ParseNode & type_spec, const ParseNode & variable_des
 	string arr_decl = ""; string var_decl = ""; bool do_arr = false;
 	VariableDescAttr * vardescattr = dynamic_cast<VariableDescAttr *>(variable_desc.attr);
 	ParseNode * slice = vardescattr->desc.slice;
-	ParseNode * spec_typename = promote_type(type_spec, vardescattr); // reset type according to kind
+	ParseNode spec_typename = promote_type(type_spec, vardescattr); // reset type according to kind
 	if (slice == nullptr) {
 		// slice == nullptr if this is not array
 		/* must assure no ParseNode * is nullptr */
@@ -184,9 +119,9 @@ ParseNode gen_vardef(const ParseNode & type_spec, const ParseNode & variable_des
 	else {
 		do_arr = true;
 	}
-	newnode.addchild(spec_typename); // type
+	newnode.addchild(new ParseNode(spec_typename)); // type
 	newnode.addchild(slice); // variable_desc
-	ParseNode * pn = new ParseNode(gen_promote_paramtable(paramtable));
+	ParseNode * pn = new ParseNode(gen_promote_paramtable(paramtable)); // a flatterned paramtable with all keyvalue elements
 	newnode.addchild(pn); // paramtable
 	newnode.attr = new VariableDescAttr(*dynamic_cast<VariableDescAttr *>(variable_desc.attr)); // attr
 	if (do_arr)
@@ -201,7 +136,7 @@ ParseNode gen_vardef(const ParseNode & type_spec, const ParseNode & variable_des
 	}
 	else {
 		// SCALAR
-		string typestr = gen_qualified_typestr(spec_typename->fs.CurrentTerm.what, vardescattr);
+		string typestr = gen_qualified_typestr(spec_typename.fs.CurrentTerm.what, vardescattr);
 		var_decl += typestr;
 		bool hitted = false; // 是否至少有一个变量，因为有的变量定义可能是函数的声明，这在c++规范是不允许的，所以可能出现空int，空逗号的情况。
 		// pn is flattened, for each variable in flatterned paramtable

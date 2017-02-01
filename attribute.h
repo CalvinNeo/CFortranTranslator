@@ -11,19 +11,19 @@ struct dirty {
 		return value;
 	}
 	T & operator= (const T & newv) {
-		// 赋值是赋值
+		// 赋值
 		changed = true;
 		value = newv;
 		return value;
 	}
 	dirty(const T & newv) {
-		// 初始化是初始化
+		// 初始化
 		changed = false;
 		value = newv;
 	}
 	dirty(const dirty<T> & d) {
 		// 复制构造函数
-		// 初始化是初始化
+		// 初始化
 		changed = false;
 		changed = d.isdirty();
 		value = d;
@@ -96,6 +96,9 @@ struct VariableAttr : public ParseAttr {
 };
 
 struct VariableDescAttr : public ParseAttr {
+	//5.1.2 Attributes
+	//	The additional attributes that may appear in the attribute specification of a type declaration statement further
+	//	specify the nature of the entities being declared or specify restrictions on their use in the program.
 	VariableDesc desc;
 
 	VariableDescAttr(ParseNode * parsenode) : ParseAttr(parsenode) {}
@@ -104,7 +107,9 @@ struct VariableDescAttr : public ParseAttr {
 		this->desc = va.desc;
 	}
 	ParseAttr * clone() { return new VariableDescAttr(*this); }
+	void hack() {
 
+	}
 	void merge(const VariableDescAttr & x2) {
 		if (!desc.constant.isdirty() && x2.desc.constant.isdirty()) {
 			desc.constant = x2.desc.constant;

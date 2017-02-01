@@ -8,6 +8,7 @@
 #include <complex>
 
 //#define eprintf(f, ...) fprintf(stdin, f, __VA_ARGS__)
+// 若编辑符表中含有重复使用的编辑符组，如2(2X,F3)，则当所有编辑符用完之后，返回至最右边的编辑符组开始使用
 
 namespace for90std {
 	inline std::string _forwrite_noargs(FILE * f, const std::string & format) {
@@ -121,7 +122,7 @@ namespace for90std {
 	};
 
 	// free format
-	
+	// step 2
 	inline void _forwritefree_one(FILE * f, int x) {
 		fprintf(f, "%d", x);
 	};
@@ -154,6 +155,7 @@ namespace for90std {
 		for (auto i = 0; i < vec.size(); i++)
 		{
 			_forwritefree_one(f, vec[i]);
+			fprintf(f, "\t");
 		}
 	};
 	template <typename T>
@@ -162,9 +164,11 @@ namespace for90std {
 		for (auto i = 0; i < x.flatsize(); i++)
 		{
 			_forwritefree_one(f, *(iter + i));
+			fprintf(f, "\t");
 		}
 		fprintf(f, "\n");
 	};
+	// step 1
 	template <typename T>
 	void _forwritefree(FILE * f, const for1array<T> & x) {
 		_forwritefree_one_arr1(f, x);
@@ -178,6 +182,7 @@ namespace for90std {
 		_forwritefree_one(f, x);
 	};
 
+	// step 0
 	template <typename T, typename... Args>
 	void forwritefree(FILE * f, const T & x, Args... args) {
 		_forwritefree(f, x);

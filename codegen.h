@@ -37,9 +37,8 @@ ParseNode gen_exp(const ParseNode & exp1, const ParseNode & op, const ParseNode 
 ParseNode gen_exp(const ParseNode & exp1, const ParseNode & op, std::string trans_rule);
 
 ParseNode gen_vardef(const ParseNode & type_spec, const ParseNode & variable_desc, const ParseNode & paramtable);
-std::string gen_vardef_array(std::string alias_name, ParseNode * entity_variable, ParseNode * spec_typename, const std::tuple<std::vector<int>, std::vector<int>> & shape, VariableDescAttr * vardescattr);
-std::string gen_vardef_array(ParseNode * entity_variable, ParseNode * spec_typename, const std::tuple<std::vector<int>, std::vector<int>> & shape, VariableDescAttr * vardescattr);
-std::string gen_qualified_typestr(std::string type_name, VariableDescAttr * vardescattr);
+std::string gen_vardef_array(std::string alias_name, ParseNode * entity_variable, ParseNode spec_typename, const std::tuple<std::vector<int>, std::vector<int>> & shape, VariableDescAttr * vardescattr);
+std::string gen_vardef_array(ParseNode * entity_variable, ParseNode spec_typename, const std::tuple<std::vector<int>, std::vector<int>> & shape, VariableDescAttr * vardescattr);
 std::string gen_lbound_size_str(const std::tuple<std::vector<int>, std::vector<int>> & shape);
 std::tuple<std::vector<int>, std::vector<int>> gen_lbound_size(const ParseNode * slice);
 ParseNode gen_vardef_simple(const ParseNode & type, std::string name);
@@ -79,6 +78,9 @@ ParseNode gen_promote_paramtable(const ParseNode paramtable);
 ParseNode gen_type(const ParseNode & type_nospec, const ParseNode & _type_kind);
 ParseNode gen_type(const ParseNode & type_nospec);
 ParseNode gen_type(Term typeterm);
+ParseNode promote_type(const ParseNode & type_spec, VariableDescAttr * vardescattr); 
+std::string gen_qualified_typestr(std::string type_name, VariableDescAttr * vardescattr);
+
 
 ParseNode gen_argtable(ParseNode & dimen_slice);
 
@@ -97,8 +99,8 @@ ParseNode gen_interface(const ParseNode & wrappers);
 void add_function_forward(const ParseNode & function_decl);
 
 ParseNode gen_label(const ParseNode & tag); 
-void log_format_index(std::string format_index);
-void require_format_index(std::string format_index);
+void log_format_index(std::string format_index, ParseNode * stmt);
+ParseNode * require_format_index(std::string format_index);
 
 std::string gen_rights(std::string filename, std::string author);
 ParseNode gen_header();

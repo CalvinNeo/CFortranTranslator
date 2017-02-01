@@ -26,7 +26,7 @@ demos provided in [demos](/demos)
 include [for90std/for90std.h](/for90std/for90std.h) to use c++ implementation of intrinsic fortran functions and language features
 
 ### inherit function mapping
-#### type cast
+#### type and type cast function
 |fortran|c++|
 |:-:|:-:|
 |INTEGER()|to_int|
@@ -101,6 +101,7 @@ refer to [/grammar/for90.y](/grammar/for90.y) for all accepted grammar
 2. fortran array default lower bound for each rank is **1**, and it can be negative; each dimension of c++ style array has constant lower bound 0
 3. fortran array **rank** start from 1, c++ array **dimension** start from 0, parameter for most `for-` functions are index of rank, though they are called "dim" in standard, they are called `fordim` in this implementation
 4. `#define USE_FORARRAY` to use fortran style array, `#define USE_CARRAY` to use c style array
+5. `farray` set no limit to rank, in fortran90, the maximun rank is 7
 
 #### slice
 `struct slice_info<T>` implement for a slice in fortran

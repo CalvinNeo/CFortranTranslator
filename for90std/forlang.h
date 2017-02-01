@@ -21,6 +21,10 @@ namespace for90std {
 			value = newv;
 			return value;
 		}
+		T & operator= (const foroptional_dummy & dummy) {
+			invalid = false;
+			return value;
+		}
 		foroptional(const T & newv) {
 			// 给定值初始化，说明不是默认初始化
 			invalid = true;
@@ -31,8 +35,7 @@ namespace for90std {
 			invalid = newv.inited();
 			value = newv.const_get();
 		}
-		foroptional(const foroptional_dummy & newv) {
-			// 语法糖
+		foroptional(const foroptional_dummy & dummy) {
 			invalid = false;
 		}
 		foroptional() {
@@ -56,6 +59,16 @@ namespace for90std {
 			}
 			else {
 				return def;
+			}
+		}
+		template<typename F>
+		T value_or_eval(F f) {
+			if (inited())
+			{
+				return value;
+			}
+			else {
+				return f();
 			}
 		}
 
