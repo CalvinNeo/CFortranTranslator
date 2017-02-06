@@ -1,0 +1,1 @@
+print *, maxval(A, mask = B < 5)

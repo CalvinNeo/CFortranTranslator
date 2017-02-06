@@ -36,13 +36,16 @@ ParseNode gen_print(const ParseNode & io_info, const ParseNode & argtable);
 ParseNode gen_exp(const ParseNode & exp1, const ParseNode & op, const ParseNode & exp2, std::string trans_rule);
 ParseNode gen_exp(const ParseNode & exp1, const ParseNode & op, std::string trans_rule);
 
+std::string get_variable_name(ParseNode * entity_variable);
 ParseNode gen_vardef(const ParseNode & type_spec, const ParseNode & variable_desc, const ParseNode & paramtable);
 std::string gen_vardef_array(std::string alias_name, ParseNode * entity_variable, ParseNode spec_typename, const std::tuple<std::vector<int>, std::vector<int>> & shape, VariableDescAttr * vardescattr);
 std::string gen_vardef_array(ParseNode * entity_variable, ParseNode spec_typename, const std::tuple<std::vector<int>, std::vector<int>> & shape, VariableDescAttr * vardescattr);
+std::string gen_vardef_scalar(ParseNode * entity_variable, ParseNode spec_typename, VariableDescAttr * vardescattr);
 std::string gen_lbound_size_str(const std::tuple<std::vector<int>, std::vector<int>> & shape);
 std::tuple<std::vector<int>, std::vector<int>> gen_lbound_size(const ParseNode * slice);
 ParseNode gen_vardef_simple(const ParseNode & type, std::string name);
 
+std::vector<ParseNode *> get_all_declared(ParseNode & suite);
 ParseNode gen_function(const ParseNode & variable_function, const ParseNode & paramtable, const ParseNode & variable_result, ParseNode & suite); // function define
 
 ParseNode gen_select(const ParseNode & exp, const ParseNode & case_stmt);
@@ -81,7 +84,6 @@ ParseNode gen_type(Term typeterm);
 ParseNode promote_type(const ParseNode & type_spec, VariableDescAttr * vardescattr); 
 std::string gen_qualified_typestr(std::string type_name, VariableDescAttr * vardescattr);
 
-
 ParseNode gen_argtable(ParseNode & dimen_slice);
 
 ParseNode gen_stmt(const ParseNode & content);
@@ -105,6 +107,11 @@ ParseNode * require_format_index(std::string format_index);
 std::string gen_rights(std::string filename, std::string author);
 ParseNode gen_header();
 
+ParseNode gen_common(const ParseNode & common_block, const ParseNode & paramtable);
+
+ParseNode gen_program_explicit(ParseNode & suite);
 ParseNode gen_program(ParseNode & suite);
 
 void do_trans(const std::string & src);
+
+extern std::vector<std::string> common_decls;

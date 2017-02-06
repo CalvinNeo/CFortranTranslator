@@ -1,16 +1,18 @@
 #pragma once
 #include <string>
 #include <vector>
+#include "parser.h"
 
-struct Variable
+struct VariableInfo
 {
 	std::string name;
 	bool is_array;
+	std::string typestr;
+	struct ParseNode * pn;
 };
 
-typedef void * variableptr_t;
+typedef VariableInfo * variableptr_t;
 
+variableptr_t get_variable(std::string module_name, std::string function_name, std::string variable_name);
 
-variableptr_t get_variable(std::string module_name, std::string function_name);
-
-bool add_variable(std::string module_name, std::string function_name, std::string variable_name, const variableptr_t & fptr);
+bool add_variable(std::string module_name, std::string function_name, std::string variable_name, const VariableInfo & variable);

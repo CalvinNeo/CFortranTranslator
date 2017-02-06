@@ -181,18 +181,18 @@ std::string compose_marker(std::string cont, int place, int end) {
 void print_error(const std::string & error_info, const ParseNode & yylval) {
 	using namespace std;
 	printf("\nError : %s\n", error_info.c_str());
-	printf("(%d:%d, index = %d, len = %d), current token is %s(id = %d) : \"%s\" \n"
+	printf("(line %d:%d, index = %d, len = %d), current token is %s(id = %d) : \"%s\" \n"
 		, get_flex_state().parse_line + 1, get_flex_state().line_pos, get_flex_state().parse_pos, get_flex_state().parse_len
 		, get_intent_name(yylval.fs.CurrentTerm.token).c_str(), yylval.fs.CurrentTerm.token, yylval.fs.CurrentTerm.what.c_str());
 	char buf[255];
-	const int length = 20;
-	int left = max(0, get_flex_state().parse_pos - length);
-	int left_length = get_flex_state().parse_pos - left;
-	int right = min((int)global_code.size(), get_flex_state().parse_pos + length);
+	const int length = 20; // print `length * 2 + len(parse_len)` context characters if possible
+	int left = max(0, get_flex_state().parse_pos - get_flex_state().parse_len - length); // left-most character index
+	int left_indent = get_flex_state().parse_pos - get_flex_state().parse_len - left; // error start position
+	int right = min((int)global_code.size(), get_flex_state().parse_pos + length); // right-most character index
 	int right_length = right - get_flex_state().parse_pos;
-	sprintf(buf, "%s", global_code.substr(left, left_length + right_length).c_str());
+	sprintf(buf, "%s", global_code.substr(left, left_indent + get_flex_state().parse_len + right_length).c_str());
 	string cont = string(buf);
-	string marker = compose_marker(cont, left_length, left_length + get_flex_state().parse_len);
+	string marker = compose_marker(cont, left_indent, left_indent + get_flex_state().parse_len);
 	replace_all_distinct(cont, "\n", "\\n");
 	cont += marker;
 	printf("%s", cont.c_str());

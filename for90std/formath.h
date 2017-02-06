@@ -42,6 +42,12 @@ namespace for90std {
 	long double power(T1 x, T2 y) {
 		return powl(x, y);
 	}
-
-#define mod modfl
+	
+	template<typename T1, typename T2>
+	inline auto mod(T1 x, T2 y) {
+		return modfl(x, y);
+	}
+	inline long long mod(long long x, long long y) {
+		return x % y;
+	}
 }

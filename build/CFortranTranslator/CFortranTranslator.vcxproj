@@ -49,7 +49,7 @@
     <ClCompile Include="..\..\gen_if.cpp" />
     <ClCompile Include="..\..\gen_interface.cpp" />
     <ClCompile Include="..\..\gen_io.cpp" />
-    <ClCompile Include="..\..\gen_module.cpp" />
+    <ClCompile Include="..\..\gen_program_unit.cpp" />
     <ClCompile Include="..\..\gen_paramtable.cpp" />
     <ClCompile Include="..\..\gen_select.cpp" />
     <ClCompile Include="..\..\gen_dimenslice.cpp" />
@@ -232,7 +232,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>F:\Codes\CommonLib\boost_1_60_0\libs;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>F:\Codes\CommonLib\boost_1_60_0\stage\lib;F:\Codes\CommonLib\boost_1_60_0\libs;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <Flex>
       <Debug>false</Debug>
@@ -246,11 +246,13 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;_SCL_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>F:\Codes\CommonLib\boost_1_60_0;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>F:\Codes\CommonLib\boost_1_60_0\libs;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>F:\Codes\CommonLib\boost_1_60_0\stage\lib;F:\Codes\CommonLib\boost_1_60_0\libs;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <Flex>
       <Debug>false</Debug>

@@ -85,9 +85,9 @@ struct TypeAttr : public ParseAttr {
 };
 
 struct VariableAttr : public ParseAttr {
-	Variable * variable;
+	VariableInfo * variable;
 
-	VariableAttr(ParseNode * parsenode, Variable * v) : ParseAttr(parsenode), variable(v) {}
+	VariableAttr(ParseNode * parsenode, VariableInfo * v) : ParseAttr(parsenode), variable(v) {}
 	VariableAttr(const VariableAttr & va) {
 		// do not call `clone()` else will cause stackoverflow
 	}
@@ -107,9 +107,7 @@ struct VariableDescAttr : public ParseAttr {
 		this->desc = va.desc;
 	}
 	ParseAttr * clone() { return new VariableDescAttr(*this); }
-	void hack() {
 
-	}
 	void merge(const VariableDescAttr & x2) {
 		if (!desc.constant.isdirty() && x2.desc.constant.isdirty()) {
 			desc.constant = x2.desc.constant;

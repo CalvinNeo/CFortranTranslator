@@ -123,7 +123,8 @@ refer to [/grammar/for90.y](/grammar/for90.y) for all accepted grammar
 
 |function|usage|
 |:-:|:-:|
-|`.flat_size` or `fa_getflatsize`|get flat size|
+|`.flatsize()`|get flatterned size|
+|`forconcat(x, y)`|concat array x and y|
 
 4. fortran intrinsic functions
 

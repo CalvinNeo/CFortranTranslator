@@ -3,69 +3,94 @@
 #include <algorithm>
 #include <functional>
 #include <type_traits>
+#include <limits>
+#include <cassert>
 
 namespace for90std {
 	struct foroptional_dummy {};
+	extern foroptional_dummy None;
 	#define _D foroptional_dummy()
 
 	template <typename T>
 	struct foroptional
 	{
 		operator T() const {
-			return value;
+			assert(inited());
+			return *value_ptr;
 		}
-
-		T & operator= (const T & newv) {
-			// 赋值运算符
-			invalid = true;
-			value = newv;
-			return value;
+		foroptional<T> & operator= (const T & newv) {
+			delete value_ptr;
+			value_ptr = new T(newv);
+			return *this;
 		}
-		T & operator= (const foroptional_dummy & dummy) {
-			invalid = false;
-			return value;
+		foroptional<T> & operator= (const foroptional<T> & newv) {
+			invalid = (newv.inited());
+			if (newv.inited())
+			{
+				delete value_ptr;
+				value_ptr = new T(newv.const_get());
+			}
+			else {
+				delete value_ptr;
+				value_ptr = nullptr;
+			}
+			return *this;
 		}
-		foroptional(const T & newv) {
-			// 给定值初始化，说明不是默认初始化
-			invalid = true;
-			value = newv;
+		foroptional<T> & operator= (const foroptional_dummy & dummy) {
+			delete value_ptr;
+			value_ptr = nullptr;
+			return *this;
+		}
+		foroptional(const T & newv){
+			// code here is not initialize but operator=
+			delete value_ptr;
+			value_ptr = new T(newv);
 		}
 		foroptional(const foroptional<T> & newv) {
-			// 复制构造函数
-			invalid = newv.inited();
-			value = newv.const_get();
+			// copy constructor
+			if (newv.inited())
+			{
+				// explicitly call copy constructor to avoid 
+				delete value_ptr;
+				value_ptr = new T(newv.const_get());
+			}
+			else {
+				delete value_ptr;
+				value_ptr = nullptr;
+			}
 		}
 		foroptional(const foroptional_dummy & dummy) {
-			invalid = false;
+			delete value_ptr;
+			value_ptr = nullptr;
 		}
 		foroptional() {
-			// 默认初始化
-			invalid = false;
+			delete value_ptr;
+			value_ptr = nullptr;
 		}
 		bool inited() const {
-			return invalid;
+			return value_ptr != nullptr;
 		}
-		T get() {
-			return value;
+		T & get() {
+			return *value_ptr;
 		}
 		const T & const_get() const {
-			return value;
+			return *value_ptr;
 		}
 
-		T value_or(T def){
+		const T & value_or(const T & def){
 			if (inited())
 			{
-				return value;
+				return *value_ptr;
 			}
 			else {
 				return def;
 			}
 		}
 		template<typename F>
-		T value_or_eval(F f) {
+		const T & value_or_eval(F f) {
 			if (inited())
 			{
-				return value;
+				return *value_ptr;
 			}
 			else {
 				return f();
@@ -73,8 +98,7 @@ namespace for90std {
 		}
 
 	protected:
-		T value;
-		bool invalid = false;
+		T * value_ptr = nullptr;
 	};
 
 	template <typename T>
@@ -106,4 +130,44 @@ namespace for90std {
 	extern double to_double(std::string x, foroptional<int> kind);
 	extern long double to_longdouble(std::string x, foroptional<int> kind);
 
+	inline int8_t forhuge(int8_t x) {
+		return INT8_MAX;
+	}
+	inline int16_t forhuge(int16_t x) {
+		return INT16_MAX;
+	}
+	inline int32_t forhuge(int32_t x) {
+		return INT32_MAX;
+	}
+	inline int64_t forhuge(int64_t x) {
+		return INT64_MAX;
+	}
+	inline float forhuge(float x) {
+		return FLT_MAX;
+	}
+	inline double forhuge(double x) {
+		return DBL_MAX;
+	}
+	inline long double forhuge(long double x) {
+		return LDBL_MAX;
+	}
+
+	inline float fortiny(float x) {
+		return FLT_MIN;
+	}
+	inline double fortiny(double x) {
+		return DBL_MIN;
+	}
+	inline long double fortiny(long double x) {
+		return LDBL_MIN;
+	}
+
+	template<typename T>
+	T forhuge() {
+		return std::numeric_limits<T>::max();
+	}
+	template<typename T>
+	T fortiny() {
+		return std::numeric_limits<T>::max();
+	}
 }

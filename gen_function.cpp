@@ -301,12 +301,3 @@ ParseNode gen_function(const ParseNode & variable_function, const ParseNode & pa
 	// return
 	return newnode;
 }
-
-ParseNode gen_program(ParseNode & suite) {
-	sprintf(codegen_buf, "int main()\n{\n%s\treturn 0;\n}", tabber(suite.fs.CurrentTerm.what).c_str());
-	ParseNode newnode = ParseNode(gen_flex(Term{ TokenMeta::NT_PROGRAM, string(codegen_buf) }), nullptr);
-	// get all variables declared in this function
-	vector<ParseNode *> param_definition = get_all_declared(suite);
-	newnode.addchild(new ParseNode(suite)); //suite
-	return newnode;
-}

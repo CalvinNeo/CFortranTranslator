@@ -11,4 +11,4 @@ typedef FunctionInfo * funcptr_t;
 
 FunctionInfo * get_function(std::string module_name, std::string function_name);
 
-bool add_function(std::string module_name, std::string function_name, const FunctionInfo & finfo);
+bool add_function(std::string module_name, std::string function_name, const FunctionInfo & function);

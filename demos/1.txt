@@ -1,7 +1,10 @@
+integer:: a = 5
+a + 1
 program array_test
 	implicit none
-	
-	REAL A(10) = (/1,2,3,4,5,6,7,8,9,0/)
-	integer,parameter,intent(inout),dimension(1, 2, 3,4,5)::aaaaaaaaaaaa, bbbbb, ccccc, dddd
-	character*10  c
+	COMMON /GA/ MA(26000)
+	! REAL A(10) = (/1,2,3,4,5,6,7,8,9,0/)
+	print *, maxval(A, mask = B .lt. 5)
+	print *, A < 5
+	! A(B(2, 3), 4)
 end program

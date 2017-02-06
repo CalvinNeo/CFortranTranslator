@@ -2,10 +2,10 @@
 #include "tokenizer.h"
 
 
-std::map < std::string, Variable > variables;
+std::map < std::string, VariableInfo > variables;
 
 
-Variable * get_variable(std::string module_name, std::string function_name, std::string variable_name ) {
+variableptr_t get_variable(std::string module_name, std::string function_name, std::string variable_name) {
 	std::string fullname = module_name + "::" + function_name + "::" + variable_name;
 	if (variables.find(fullname) != variables.end()) {
 		return &variables[fullname];
@@ -15,7 +15,7 @@ Variable * get_variable(std::string module_name, std::string function_name, std:
 	}
 }
 
-bool add_variable(std::string module_name, std::string function_name, std::string variable_name, const Variable & variable) {
+bool add_variable(std::string module_name, std::string function_name, std::string variable_name, const VariableInfo & variable) {
 	std::string fullname = module_name + "::" + function_name + "::" + variable.name;
 	if (variables.find(fullname) != variables.end()) {
 		return false;

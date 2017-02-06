@@ -31,7 +31,7 @@ using namespace std;
 %token /*_YY_OP*/ YY_GT YY_GE YY_EQ YY_LE YY_LT YY_NEQ YY_NEQV YY_EQV YY_ANDAND YY_OROR YY_NOT YY_POWER YY_DOUBLECOLON YY_NEG YY_POS
 %token /*_YY_TYPE*/ YY_INTEGER YY_FLOAT YY_WORD YY_OPERATOR YY_STRING YY_ILLEGAL YY_COMPLEX YY_TRUE YY_FALSE
 %token /*_YY_CONTROL*/ YY_LABEL YY_END YY_IF YY_THEN YY_ELSE YY_ELSEIF YY_ENDIF YY_DO YY_ENDDO YY_CONTINUE YY_BREAK YY_WHILE YY_ENDWHILE YY_WHERE YY_ENDWHERE YY_CASE YY_ENDCASE YY_SELECT YY_ENDSELECT YY_GOTO YY_DOWHILE YY_DEFAULT
-%token /*_YY_DELIM*/ YY_PROGRAM YY_ENDPROGRAM YY_FUNCTION YY_ENDFUNCTION YY_RECURSIVE YY_RESULT YY_SUBROUTINE YY_ENDSUBROUTINE YY_MODULE YY_ENDMODULE YY_BLOCK YY_ENDBLOCK YY_INTERFACE YY_ENDINTERFACE YY_COMMON
+%token /*_YY_DELIM*/ YY_PROGRAM YY_ENDPROGRAM YY_FUNCTION YY_ENDFUNCTION YY_RECURSIVE YY_RESULT YY_SUBROUTINE YY_ENDSUBROUTINE YY_MODULE YY_ENDMODULE YY_BLOCK YY_ENDBLOCK YY_INTERFACE YY_ENDINTERFACE YY_COMMON YY_DATA
 %token /*_YY_DESCRIBER*/ YY_IMPLICIT YY_NONE YY_USE YY_PARAMETER YY_ENTRY YY_DIMENSION YY_ARRAYINITIAL_START YY_ARRAYINITIAL_END YY_INTENT YY_IN YY_OUT YY_INOUT YY_OPTIONAL YY_LEN YY_KIND
 %token /*_YY_TYPEDEF*/ YY_INTEGER_T YY_FLOAT_T YY_STRING_T YY_COMPLEX_T YY_BOOL_T YY_CHARACTER_T
 %token /*_YY_COMMAND*/ YY_WRITE YY_READ YY_PRINT YY_CALL YY_FORMAT
@@ -237,21 +237,6 @@ using namespace std;
 				$$ = newnode;
 				update_pos($$, $1, $1);
 			}
-/*
-	callable_head : variable 
-			{
-				// array index and function name and type cast 
-				string x = $1.fs.CurrentTerm.what;
-				$$ = $1;
-			}
-		| type_nospec
-			{
-				// array index and function name and type cast 
-				string x = $1.fs.CurrentTerm.what;
-				$$ = $1;
-			}
-
-*/
 	
 	slice : exp ':' exp
 			{
@@ -547,14 +532,7 @@ using namespace std;
 				$$ = $1;
 				update_pos($$, $1, $1);
 			}
-		/*
-		| callable_head
-			{
-				// may cause reduction-reduction conflict when use `variable` instead of `callable_head`
-				// TODO : i am a little strange that `integer::a, b, c` works well because i am afraid that callable_head will reduce to exp from here. however according to LR(1), `::` is not in FOLLOW(exp)
-				$$ = $1;
-			}
-		*/
+
 
 	_crlf_semicolon: crlf
 		| ';' crlf
@@ -625,7 +603,7 @@ using namespace std;
 			{
 				update_pos($$, $1, $1);
 			}
-		| commom_stmt
+		| common_stmt
 			{
 				$$ = $1;
 			}
@@ -840,7 +818,8 @@ using namespace std;
 
 	_blockname_or_none : '/' variable '/'
 			{
-				$$ = $1;
+				$$ = $2;
+				update_pos($$, $1, $3);
 			}
 		| '/' '/'
 			{
@@ -853,9 +832,13 @@ using namespace std;
 				ParseNode newnode = ParseNode(gen_flex(Term{ TokenMeta::UnknownVariant, "" }), nullptr);// variant
 				$$ = newnode;
 			}
-	commom_stmt : YY_COMMON _blockname_or_none paramtable
+
+	common_stmt : YY_COMMON _blockname_or_none paramtable
 			{
-				
+				ParseNode & blockname = $2;
+				ParseNode & paramtable = $3;
+				$$ = gen_common(blockname, paramtable);
+				update_pos($$, $1, $3);
 			}
 
     var_def : type_spec variable_desc YY_DOUBLECOLON paramtable
@@ -1184,8 +1167,19 @@ using namespace std;
     program : YY_PROGRAM _optional_name crlf suite YY_END YY_PROGRAM _optional_name crlf
 			{
 				ParseNode & suite = $4;
-				$$ = gen_program(suite);
+				$$ = gen_program_explicit(suite);
 				update_pos($$, $1, $8);
+			}
+		| suite
+			/* R1101 main-program is [ program-stmt ]
+				[ specification-part ]
+				[ execution-part ]
+				[ internal-subprogram-part ]
+				end-program-stmt */
+			{
+				ParseNode & suite = $1;
+				$$ = gen_program(suite);
+				update_pos($$, $1, $1);
 			}
 
 
