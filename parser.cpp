@@ -2,12 +2,19 @@
 #include "attribute.h"
 #include "tokenizer.h"
 #include "gen_config.h"
+#include "codegen.h"
 #include <stack>
 #include <iostream>
 #include <cstdio>
 #include <map>
 #include <boost/algorithm/string.hpp>
 #include <cmath>
+
+void reset_parser() {
+	func_kwargs = func_kwargs_preset;
+	labels.clear();
+	clear_variables();
+}
 
 ParseNode::~ParseNode()
 {
@@ -129,7 +136,7 @@ std::string & replace_all_distinct(std::string & str, const std::string & old_va
 }
 std::string & repalce_all_my(std::string & str, const std::string & old_value, const std::string & new_value)
 {
-	for (int pos = 0; pos != -1; pos += new_value.length())
+	for (std::string::size_type pos = 0; pos != -1; pos += new_value.length())
 		if ((pos = str.find(old_value, pos)) != -1)
 			str.replace(pos, old_value.length(), new_value);
 		else break;

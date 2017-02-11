@@ -16,7 +16,7 @@ ParseNode gen_select(const ParseNode & exp, const ParseNode & case_stmt) {
 
 	ParseNode newnode = ParseNode();
 	string codegen = "";
-	for (int i = 0; i < case_stmt.child.size(); i++)
+	for (size_t i = 0; i < case_stmt.child.size(); i++)
 	{
 		ParseNode & case_stmt_elem = *case_stmt.child[i];
 		ParseNode & dimen_slice = *case_stmt_elem.child[1];

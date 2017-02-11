@@ -239,6 +239,8 @@ std::map<int, std::string> IntentName = {
 	, {-2037, "NT_PARAMTABLE_PURE"}
 	, {-2038, "NT_FORMAT"}
 	, {-2039, "NT_LABEL"}
+	, {-2040, "NT_PROGRAM_EXPLICIT"}
+	, {-2041, "NT_COMMONBLOCK"}
 	,{ -9999, "NT_DUMMY"}
 };
 

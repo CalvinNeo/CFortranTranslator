@@ -48,14 +48,24 @@ const std::map<std::string, std::string> funcname_map{
 	,{ "present", "forpresent" }
 };
 
+typedef std::tuple<std::string, std::string, std::string> keyword_param_info;
+const std::map<std::string, std::vector<keyword_param_info>> func_kwargs_preset{
+	{ "foropenfile",{ { "unit", "int", "" },{ "file", "string", "" },{ "access", "string", "" },{ "action", "string" , "" },{ "status", "string", "" },{ "iostat", "int", "" } } }
+	,{ "forclosefile",{ { "unit", "int", "" },{ "status", "string", "" },{ "iostat", "int", "" } } }
+	,{ "forread",{ { "unit", "int" , "" },{ "fmt", "string", "" },{ "iostat", "int", "" } } }
 
-// system left value
-const std::vector<std::string> intrinsic_lvalue{
-	"iostat"
+	,{ "forsum",{ { "dim", "int", "" },{ "mask", "mask_wrapper_t", "" } } }
+	,{ "forproduct",{ { "dim", "int", "" },{ "mask", "mask_wrapper_t", "" } } }
+	,{ "formaxval",{ { "dim", "int", "" },{ "mask", "mask_wrapper_t", "" } } }
+	,{ "forminval",{ { "dim", "int", "" },{ "mask", "mask_wrapper_t", "" } } }
+	,{ "formaxloc",{ { "dim", "int", "" },{ "mask", "mask_wrapper_t", "" } } }
+	,{ "forminloc",{ { "dim", "int", "" },{ "mask", "mask_wrapper_t", "" } } }
+	//,{ "forsize", { { "dim", "int", "" } } }
+	//,{ "forlbound",{ { "dim", "int", "" } } }
+	//,{ "forubound",{ { "dim", "int", "" } } }
 };
 
 // in gen_config.cpp
-typedef std::tuple<std::string, std::string, std::string> keyword_param_info;
 extern std::map<std::string, std::vector<keyword_param_info>> func_kwargs;
 
 const std::string cpp_header = "#include\"for90std.h\" \n";

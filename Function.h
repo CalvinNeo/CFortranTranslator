@@ -3,12 +3,25 @@
 #include <vector>
 #include <map>
 
+
+struct FunctionDesc {
+	// all variables passed as paramtable(must also be declared in function) and declared in the function
+	std::vector<struct ParseNode *> declared_variables;
+	// tuple (name, type node, variable_initial node) of all parameters
+	std::vector<std::tuple<std::string, ParseNode, struct ParseNode *>> paramtable_info;
+	FunctionDesc(const std::vector<struct ParseNode *> &declared_variables
+		, const std::vector<std::tuple<std::string, ParseNode, struct ParseNode *>> & paramtable_info)
+	: paramtable_info(paramtable_info), declared_variables(declared_variables){
+
+	}
+};
 struct FunctionInfo {
-	std::vector<struct ParseNode *> param_definition;
+	FunctionDesc funcdesc;
+	FunctionInfo(const FunctionDesc & desc) : funcdesc(desc) {
+
+	}
 };
 
-typedef FunctionInfo * funcptr_t;
-
 FunctionInfo * get_function(std::string module_name, std::string function_name);
-
-bool add_function(std::string module_name, std::string function_name, const FunctionInfo & function);
+FunctionInfo * add_function(std::string module_name, std::string function_name, const FunctionInfo & function);
+void clear_functions();

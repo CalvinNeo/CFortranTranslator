@@ -42,7 +42,7 @@ CAN_ONLY_GEN_ONE:
 	return newnode;
 }
 
-ParseNode & gen_arraybuilder_str(ParseNode & arraybuilder) {
+void gen_arraybuilder_str(ParseNode & arraybuilder) {
 	// wrap arraybuilder.fs.CurrentTerm.what with make_farray function
 	string arr_decl;
 	ParseNode * compound_arraybuilder = &arraybuilder; // NT_ARRAYBUILDER
@@ -123,5 +123,5 @@ ParseNode & gen_arraybuilder_str(ParseNode & arraybuilder) {
 		}
 	}
 	arraybuilder.fs.CurrentTerm.what = arr_decl;
-	return arraybuilder;
+	return;
 }

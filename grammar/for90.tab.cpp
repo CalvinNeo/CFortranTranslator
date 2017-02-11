@@ -629,20 +629,20 @@ static const yytype_uint16 yyrline[] =
      208,   212,   217,   221,   225,   232,   234,   241,   250,   260,
      269,   279,   290,   297,   316,   326,   337,   341,   346,   354,
      362,   370,   378,   386,   394,   402,   410,   418,   425,   432,
-     440,   448,   456,   464,   472,   480,   487,   495,   503,   511,
-     519,   525,   530,   537,   538,   540,   545,   549,   555,   565,
-     571,   575,   579,   583,   587,   592,   597,   602,   606,   612,
-     613,   615,   617,   618,   619,   621,   622,   623,   629,   638,
-     645,   650,   655,   660,   667,   668,   669,   670,   671,   672,
-     673,   677,   681,   685,   690,   697,   708,   722,   730,   739,
-     747,   752,   757,   762,   767,   772,   778,   784,   789,   794,
-     799,   804,   812,   817,   819,   824,   831,   836,   844,   854,
-     865,   870,   879,   888,   892,   896,   903,   912,   919,   931,
-     939,   946,   957,   989,   990,   997,  1004,  1012,  1020,  1029,
-    1036,  1044,  1052,  1061,  1062,  1064,  1070,  1080,  1090,  1098,
-    1099,  1101,  1109,  1117,  1125,  1136,  1142,  1148,  1149,  1151,
-    1164,  1165,  1167,  1173,  1186,  1191,  1197,  1206,  1218,  1224,
-    1228
+     440,   449,   457,   466,   474,   482,   489,   497,   505,   513,
+     521,   527,   532,   539,   540,   542,   547,   551,   557,   567,
+     573,   577,   581,   585,   589,   594,   599,   604,   608,   614,
+     615,   617,   619,   620,   621,   623,   624,   625,   631,   640,
+     647,   652,   657,   662,   669,   670,   671,   672,   673,   674,
+     675,   679,   683,   687,   692,   699,   710,   724,   732,   741,
+     749,   754,   759,   764,   769,   774,   780,   786,   791,   796,
+     801,   806,   814,   819,   821,   826,   833,   838,   846,   856,
+     867,   872,   881,   890,   894,   898,   905,   914,   921,   933,
+     941,   948,   959,   991,   992,   999,  1006,  1014,  1022,  1031,
+    1038,  1046,  1054,  1063,  1064,  1066,  1072,  1082,  1092,  1100,
+    1101,  1103,  1111,  1119,  1127,  1138,  1144,  1150,  1151,  1153,
+    1166,  1167,  1169,  1175,  1188,  1193,  1199,  1208,  1220,  1226,
+    1230
 };
 #endif
 
@@ -2701,17 +2701,18 @@ yyreduce:
 /* Line 1792 of yacc.c  */
 #line 441 "for90.y"
     {
+				// xor
 				ParseNode & exp1 = (yyvsp[(1) - (3)]);
 				ParseNode & op = (yyvsp[(2) - (3)]);
 				ParseNode & exp2 = (yyvsp[(3) - (3)]);
-				(yyval) = gen_exp(exp1, op, exp2, "%s != %s");
+				(yyval) = gen_exp(exp1, op, exp2, "%s ^ %s");
 				update_pos((yyval), (yyvsp[(1) - (3)]), (yyvsp[(3) - (3)]));
 			}
     break;
 
   case 51:
 /* Line 1792 of yacc.c  */
-#line 449 "for90.y"
+#line 450 "for90.y"
     {
 				ParseNode & exp1 = (yyvsp[(1) - (3)]);
 				ParseNode & op = (yyvsp[(2) - (3)]);
@@ -2723,19 +2724,20 @@ yyreduce:
 
   case 52:
 /* Line 1792 of yacc.c  */
-#line 457 "for90.y"
+#line 458 "for90.y"
     {
+				// nor
 				ParseNode & exp1 = (yyvsp[(1) - (3)]);
 				ParseNode & op = (yyvsp[(2) - (3)]);
 				ParseNode & exp2 = (yyvsp[(3) - (3)]);
-				(yyval) = gen_exp(exp1, op, exp2, "%s == %s");
+				(yyval) = gen_exp(exp1, op, exp2, "!(%s == %s)");
 				update_pos((yyval), (yyvsp[(1) - (3)]), (yyvsp[(3) - (3)]));
 			}
     break;
 
   case 53:
 /* Line 1792 of yacc.c  */
-#line 465 "for90.y"
+#line 467 "for90.y"
     {
 				ParseNode & exp1 = (yyvsp[(1) - (3)]);
 				ParseNode & op = (yyvsp[(2) - (3)]);
@@ -2747,7 +2749,7 @@ yyreduce:
 
   case 54:
 /* Line 1792 of yacc.c  */
-#line 473 "for90.y"
+#line 475 "for90.y"
     {
 				ParseNode & exp1 = (yyvsp[(1) - (3)]);
 				ParseNode & op = (yyvsp[(2) - (3)]);
@@ -2759,7 +2761,7 @@ yyreduce:
 
   case 55:
 /* Line 1792 of yacc.c  */
-#line 481 "for90.y"
+#line 483 "for90.y"
     {
 				ParseNode & exp1 = (yyvsp[(2) - (2)]);
 				ParseNode & op = (yyvsp[(1) - (2)]);
@@ -2770,7 +2772,7 @@ yyreduce:
 
   case 56:
 /* Line 1792 of yacc.c  */
-#line 488 "for90.y"
+#line 490 "for90.y"
     {
 				ParseNode & exp1 = (yyvsp[(1) - (3)]);
 				ParseNode & op = (yyvsp[(2) - (3)]);
@@ -2782,7 +2784,7 @@ yyreduce:
 
   case 57:
 /* Line 1792 of yacc.c  */
-#line 496 "for90.y"
+#line 498 "for90.y"
     {
 				ParseNode & exp1 = (yyvsp[(1) - (3)]);
 				ParseNode & op = (yyvsp[(2) - (3)]);
@@ -2794,7 +2796,7 @@ yyreduce:
 
   case 58:
 /* Line 1792 of yacc.c  */
-#line 504 "for90.y"
+#line 506 "for90.y"
     {
 				ParseNode & exp1 = (yyvsp[(1) - (3)]);
 				ParseNode & op = (yyvsp[(2) - (3)]);
@@ -2806,7 +2808,7 @@ yyreduce:
 
   case 59:
 /* Line 1792 of yacc.c  */
-#line 512 "for90.y"
+#line 514 "for90.y"
     {
 				ParseNode & exp1 = (yyvsp[(1) - (3)]);
 				ParseNode & op = (yyvsp[(2) - (3)]);
@@ -2818,7 +2820,7 @@ yyreduce:
 
   case 60:
 /* Line 1792 of yacc.c  */
-#line 520 "for90.y"
+#line 522 "for90.y"
     {
 				ParseNode & hidden_do = (yyvsp[(1) - (1)]);
 				(yyval) = gen_promote(TokenMeta::NT_EXPRESSION, hidden_do);
@@ -2828,7 +2830,7 @@ yyreduce:
 
   case 61:
 /* Line 1792 of yacc.c  */
-#line 526 "for90.y"
+#line 528 "for90.y"
     { 
 				(yyval) = (yyvsp[(1) - (1)]);
 				update_pos((yyval), (yyvsp[(1) - (1)]), (yyvsp[(1) - (1)]));
@@ -2837,7 +2839,7 @@ yyreduce:
 
   case 62:
 /* Line 1792 of yacc.c  */
-#line 531 "for90.y"
+#line 533 "for90.y"
     {
 				(yyval) = (yyvsp[(1) - (1)]);
 				update_pos((yyval), (yyvsp[(1) - (1)]), (yyvsp[(1) - (1)]));
@@ -2846,7 +2848,7 @@ yyreduce:
 
   case 65:
 /* Line 1792 of yacc.c  */
-#line 541 "for90.y"
+#line 543 "for90.y"
     {
 				(yyval) = (yyvsp[(1) - (1)]);
 			}
@@ -2854,7 +2856,7 @@ yyreduce:
 
   case 66:
 /* Line 1792 of yacc.c  */
-#line 545 "for90.y"
+#line 547 "for90.y"
     {
 				(yyval).fs.CurrentTerm = Term{ TokenMeta::Nop, "" };
 			}
@@ -2862,7 +2864,7 @@ yyreduce:
 
   case 67:
 /* Line 1792 of yacc.c  */
-#line 550 "for90.y"
+#line 552 "for90.y"
     {
 			(yyval) = gen_label((yyvsp[(1) - (1)]));
 			update_pos((yyval), (yyvsp[(1) - (1)]), (yyvsp[(1) - (1)]));
@@ -2871,7 +2873,7 @@ yyreduce:
 
   case 68:
 /* Line 1792 of yacc.c  */
-#line 556 "for90.y"
+#line 558 "for90.y"
     {
 				/*
 					一般来说, 可以不单独建立stmt的ParseNode, 再添加唯一的child(exp, var_def, compound_stmt等).
@@ -2885,7 +2887,7 @@ yyreduce:
 
   case 69:
 /* Line 1792 of yacc.c  */
-#line 566 "for90.y"
+#line 568 "for90.y"
     {
 				/* 因为var_def本身可能生成多行代码, 因此此处生成代码不应当带分号`;` */
 				(yyval) = gen_stmt((yyvsp[(1) - (2)]), "%s ");
@@ -2895,7 +2897,7 @@ yyreduce:
 
   case 70:
 /* Line 1792 of yacc.c  */
-#line 572 "for90.y"
+#line 574 "for90.y"
     {
 				(yyval) = (yyvsp[(1) - (1)]);
 			}
@@ -2903,7 +2905,7 @@ yyreduce:
 
   case 71:
 /* Line 1792 of yacc.c  */
-#line 576 "for90.y"
+#line 578 "for90.y"
     {
 				(yyval) = (yyvsp[(1) - (1)]);
 			}
@@ -2911,7 +2913,7 @@ yyreduce:
 
   case 72:
 /* Line 1792 of yacc.c  */
-#line 580 "for90.y"
+#line 582 "for90.y"
     {
 				(yyval) = (yyvsp[(1) - (1)]);
 			}
@@ -2919,7 +2921,7 @@ yyreduce:
 
   case 73:
 /* Line 1792 of yacc.c  */
-#line 584 "for90.y"
+#line 586 "for90.y"
     {
 				(yyval) = (yyvsp[(1) - (1)]);
 			}
@@ -2927,7 +2929,7 @@ yyreduce:
 
   case 74:
 /* Line 1792 of yacc.c  */
-#line 588 "for90.y"
+#line 590 "for90.y"
     {
 				(yyval) = gen_stmt((yyvsp[(1) - (1)]));
 				update_pos((yyval), (yyvsp[(1) - (1)]), (yyvsp[(1) - (1)]));
@@ -2936,7 +2938,7 @@ yyreduce:
 
   case 75:
 /* Line 1792 of yacc.c  */
-#line 593 "for90.y"
+#line 595 "for90.y"
     {
 				(yyval) = gen_stmt((yyvsp[(1) - (1)]));
 				update_pos((yyval), (yyvsp[(1) - (1)]), (yyvsp[(1) - (1)]));
@@ -2945,7 +2947,7 @@ yyreduce:
 
   case 76:
 /* Line 1792 of yacc.c  */
-#line 598 "for90.y"
+#line 600 "for90.y"
     {
 				ParseNode & xx = (yyvsp[(1) - (2)]);
 				update_pos((yyval), (yyvsp[(1) - (2)]), (yyvsp[(2) - (2)]));
@@ -2954,7 +2956,7 @@ yyreduce:
 
   case 77:
 /* Line 1792 of yacc.c  */
-#line 603 "for90.y"
+#line 605 "for90.y"
     {
 				update_pos((yyval), (yyvsp[(1) - (1)]), (yyvsp[(1) - (1)]));
 			}
@@ -2962,7 +2964,7 @@ yyreduce:
 
   case 78:
 /* Line 1792 of yacc.c  */
-#line 607 "for90.y"
+#line 609 "for90.y"
     {
 				(yyval) = (yyvsp[(1) - (1)]);
 			}
@@ -2970,7 +2972,7 @@ yyreduce:
 
   case 87:
 /* Line 1792 of yacc.c  */
-#line 624 "for90.y"
+#line 626 "for90.y"
     {
 				(yyval) = gen_token(Term{TokenMeta::Goto, "goto " + (yyvsp[(1) - (3)]).fs.CurrentTerm.what + ";\n"});
 				update_pos((yyval), (yyvsp[(1) - (3)]), (yyvsp[(3) - (3)]));
@@ -2979,7 +2981,7 @@ yyreduce:
 
   case 88:
 /* Line 1792 of yacc.c  */
-#line 630 "for90.y"
+#line 632 "for90.y"
     {
 				ParseNode & exp1 = (yyvsp[(1) - (4)]);
 				ParseNode & op = (yyvsp[(2) - (4)]);
@@ -2991,7 +2993,7 @@ yyreduce:
 
   case 89:
 /* Line 1792 of yacc.c  */
-#line 639 "for90.y"
+#line 641 "for90.y"
     {
 				// dummy stmt
 				(yyval) = gen_token(Term{ TokenMeta::NT_STATEMENT, "" });
@@ -3001,7 +3003,7 @@ yyreduce:
 
   case 90:
 /* Line 1792 of yacc.c  */
-#line 646 "for90.y"
+#line 648 "for90.y"
     {
 				(yyval) = gen_promote("%s\n", TokenMeta::NT_SUITE, (yyvsp[(1) - (1)]));
 				update_pos((yyval), (yyvsp[(1) - (1)]), (yyvsp[(1) - (1)]));
@@ -3010,7 +3012,7 @@ yyreduce:
 
   case 91:
 /* Line 1792 of yacc.c  */
-#line 651 "for90.y"
+#line 653 "for90.y"
     {
 				(yyval) = gen_flattern((yyvsp[(1) - (2)]), (yyvsp[(2) - (2)]), "%s\n%s", TokenMeta::NT_SUITE);;
 				update_pos((yyval), (yyvsp[(1) - (2)]), (yyvsp[(2) - (2)]));
@@ -3019,7 +3021,7 @@ yyreduce:
 
   case 92:
 /* Line 1792 of yacc.c  */
-#line 656 "for90.y"
+#line 658 "for90.y"
     {
 				(yyval) = gen_promote("", TokenMeta::NT_SUITE, (yyvsp[(1) - (1)]));
 				update_pos((yyval), (yyvsp[(1) - (1)]), (yyvsp[(1) - (1)]));
@@ -3028,7 +3030,7 @@ yyreduce:
 
   case 93:
 /* Line 1792 of yacc.c  */
-#line 661 "for90.y"
+#line 663 "for90.y"
     {
 				(yyval) = gen_flattern((yyvsp[(1) - (2)]), (yyvsp[(2) - (2)]), "%s%s", TokenMeta::NT_SUITE);
 				update_pos((yyval), (yyvsp[(1) - (2)]), (yyvsp[(2) - (2)]));
@@ -3037,7 +3039,7 @@ yyreduce:
 
   case 100:
 /* Line 1792 of yacc.c  */
-#line 674 "for90.y"
+#line 676 "for90.y"
     {
 				(yyval).fs.CurrentTerm = Term{ TokenMeta::META_NONTERMINAL, "-1" }; // -1 stands for stdin/stdout, and will be translated at read/write stmt
 			}
@@ -3045,7 +3047,7 @@ yyreduce:
 
   case 101:
 /* Line 1792 of yacc.c  */
-#line 678 "for90.y"
+#line 680 "for90.y"
     {
 				(yyval).fs.CurrentTerm = Term{ TokenMeta::META_NONTERMINAL, (yyvsp[(1) - (1)]).fs.CurrentTerm.what };
 			}
@@ -3053,7 +3055,7 @@ yyreduce:
 
   case 102:
 /* Line 1792 of yacc.c  */
-#line 682 "for90.y"
+#line 684 "for90.y"
     {
 				(yyval).fs.CurrentTerm = Term{ TokenMeta::NT_AUTOFORMATTER, "" };
 			}
@@ -3061,7 +3063,7 @@ yyreduce:
 
   case 103:
 /* Line 1792 of yacc.c  */
-#line 686 "for90.y"
+#line 688 "for90.y"
     {
 				// use format stmt at line $1 to format
 				require_format_index((yyvsp[(1) - (1)]).fs.CurrentTerm.what);
@@ -3070,7 +3072,7 @@ yyreduce:
 
   case 104:
 /* Line 1792 of yacc.c  */
-#line 691 "for90.y"
+#line 693 "for90.y"
     {
 				// replace `'` with `"`
 				string modified = "\"" + (yyvsp[(1) - (1)]).fs.CurrentTerm.what.substr(1, (yyvsp[(1) - (1)]).fs.CurrentTerm.what.size() - 2) + "\"";
@@ -3080,7 +3082,7 @@ yyreduce:
 
   case 105:
 /* Line 1792 of yacc.c  */
-#line 698 "for90.y"
+#line 700 "for90.y"
     {
 				ParseNode newnode = ParseNode(gen_flex(Term{ TokenMeta::META_NONTERMINAL, "" }), nullptr);
 				ParseNode & _optional_device = (yyvsp[(2) - (5)]);
@@ -3095,7 +3097,7 @@ yyreduce:
 
   case 106:
 /* Line 1792 of yacc.c  */
-#line 709 "for90.y"
+#line 711 "for90.y"
     {
 				ParseNode newnode = ParseNode(gen_flex(Term{ TokenMeta::META_NONTERMINAL, "" }), nullptr);
 				ParseNode _optional_device = ParseNode();
@@ -3111,7 +3113,7 @@ yyreduce:
 
   case 107:
 /* Line 1792 of yacc.c  */
-#line 723 "for90.y"
+#line 725 "for90.y"
     {
 				ParseNode & io_info = (yyvsp[(2) - (3)]);
 				ParseNode & argtable = (yyvsp[(3) - (3)]);
@@ -3122,7 +3124,7 @@ yyreduce:
 
   case 108:
 /* Line 1792 of yacc.c  */
-#line 731 "for90.y"
+#line 733 "for90.y"
     {
 				ParseNode & io_info = (yyvsp[(2) - (3)]);
 				ParseNode & argtable = (yyvsp[(3) - (3)]);
@@ -3133,7 +3135,7 @@ yyreduce:
 
   case 109:
 /* Line 1792 of yacc.c  */
-#line 740 "for90.y"
+#line 742 "for90.y"
     {
 				ParseNode & io_info = (yyvsp[(2) - (3)]);
 				ParseNode & argtable = (yyvsp[(3) - (3)]);
@@ -3144,7 +3146,7 @@ yyreduce:
 
   case 110:
 /* Line 1792 of yacc.c  */
-#line 748 "for90.y"
+#line 750 "for90.y"
     {
 				(yyval) = gen_type((yyvsp[(1) - (1)]));
 				update_pos((yyval), (yyvsp[(1) - (1)]), (yyvsp[(1) - (1)]));
@@ -3153,7 +3155,7 @@ yyreduce:
 
   case 111:
 /* Line 1792 of yacc.c  */
-#line 753 "for90.y"
+#line 755 "for90.y"
     {
 				(yyval) = gen_type((yyvsp[(1) - (1)]));
 				update_pos((yyval), (yyvsp[(1) - (1)]), (yyvsp[(1) - (1)]));
@@ -3162,7 +3164,7 @@ yyreduce:
 
   case 112:
 /* Line 1792 of yacc.c  */
-#line 758 "for90.y"
+#line 760 "for90.y"
     {
 				(yyval) = gen_type((yyvsp[(1) - (1)]));
 				update_pos((yyval), (yyvsp[(1) - (1)]), (yyvsp[(1) - (1)]));
@@ -3171,7 +3173,7 @@ yyreduce:
 
   case 113:
 /* Line 1792 of yacc.c  */
-#line 763 "for90.y"
+#line 765 "for90.y"
     {
 				(yyval) = gen_type((yyvsp[(1) - (1)]));
 				update_pos((yyval), (yyvsp[(1) - (1)]), (yyvsp[(1) - (1)]));
@@ -3180,7 +3182,7 @@ yyreduce:
 
   case 114:
 /* Line 1792 of yacc.c  */
-#line 768 "for90.y"
+#line 770 "for90.y"
     {
 				(yyval) = gen_type((yyvsp[(1) - (1)]));
 				update_pos((yyval), (yyvsp[(1) - (1)]), (yyvsp[(1) - (1)]));
@@ -3189,7 +3191,7 @@ yyreduce:
 
   case 115:
 /* Line 1792 of yacc.c  */
-#line 773 "for90.y"
+#line 775 "for90.y"
     {
 				(yyval) = gen_type((yyvsp[(1) - (1)]));
 				update_pos((yyval), (yyvsp[(1) - (1)]), (yyvsp[(1) - (1)]));
@@ -3198,7 +3200,7 @@ yyreduce:
 
   case 116:
 /* Line 1792 of yacc.c  */
-#line 779 "for90.y"
+#line 781 "for90.y"
     {
 				// now translated in pre_map
 				(yyval) = gen_type((yyvsp[(1) - (4)]), (yyvsp[(3) - (4)]));
@@ -3208,7 +3210,7 @@ yyreduce:
 
   case 117:
 /* Line 1792 of yacc.c  */
-#line 785 "for90.y"
+#line 787 "for90.y"
     {
 				(yyval) = gen_type((yyvsp[(1) - (4)]), (yyvsp[(3) - (4)]));
 				update_pos((yyval), (yyvsp[(1) - (4)]), (yyvsp[(4) - (4)]));
@@ -3217,7 +3219,7 @@ yyreduce:
 
   case 118:
 /* Line 1792 of yacc.c  */
-#line 790 "for90.y"
+#line 792 "for90.y"
     {
 				(yyval) = gen_type((yyvsp[(1) - (4)]), (yyvsp[(3) - (4)]));
 				update_pos((yyval), (yyvsp[(1) - (4)]), (yyvsp[(4) - (4)]));
@@ -3226,7 +3228,7 @@ yyreduce:
 
   case 119:
 /* Line 1792 of yacc.c  */
-#line 795 "for90.y"
+#line 797 "for90.y"
     {
 				(yyval) = gen_type((yyvsp[(1) - (4)]), (yyvsp[(3) - (4)]));
 				update_pos((yyval), (yyvsp[(1) - (4)]), (yyvsp[(4) - (4)]));
@@ -3235,7 +3237,7 @@ yyreduce:
 
   case 120:
 /* Line 1792 of yacc.c  */
-#line 800 "for90.y"
+#line 802 "for90.y"
     {
 				(yyval) = gen_type((yyvsp[(1) - (4)]), (yyvsp[(3) - (4)]));
 				update_pos((yyval), (yyvsp[(1) - (4)]), (yyvsp[(4) - (4)]));
@@ -3244,7 +3246,7 @@ yyreduce:
 
   case 121:
 /* Line 1792 of yacc.c  */
-#line 805 "for90.y"
+#line 807 "for90.y"
     {
 				ParseNode newnode = gen_type((yyvsp[(1) - (4)]));
 				int len;
@@ -3256,7 +3258,7 @@ yyreduce:
 
   case 122:
 /* Line 1792 of yacc.c  */
-#line 813 "for90.y"
+#line 815 "for90.y"
     {
 				// $$ = gen_type($1, $3);
 				update_pos((yyval), (yyvsp[(1) - (3)]), (yyvsp[(3) - (3)]));
@@ -3265,7 +3267,7 @@ yyreduce:
 
   case 124:
 /* Line 1792 of yacc.c  */
-#line 820 "for90.y"
+#line 822 "for90.y"
     {
 				(yyval) = (yyvsp[(2) - (3)]);
 				update_pos((yyval), (yyvsp[(1) - (3)]), (yyvsp[(3) - (3)]));
@@ -3274,7 +3276,7 @@ yyreduce:
 
   case 125:
 /* Line 1792 of yacc.c  */
-#line 825 "for90.y"
+#line 827 "for90.y"
     {
 				ParseNode newnode = ParseNode(gen_flex(Term{ TokenMeta::UnknownVariant, "" }), nullptr);// variant
 				(yyval) = newnode;
@@ -3284,7 +3286,7 @@ yyreduce:
 
   case 126:
 /* Line 1792 of yacc.c  */
-#line 831 "for90.y"
+#line 833 "for90.y"
     {
 				ParseNode newnode = ParseNode(gen_flex(Term{ TokenMeta::UnknownVariant, "" }), nullptr);// variant
 				(yyval) = newnode;
@@ -3293,7 +3295,7 @@ yyreduce:
 
   case 127:
 /* Line 1792 of yacc.c  */
-#line 837 "for90.y"
+#line 839 "for90.y"
     {
 				ParseNode & blockname = (yyvsp[(2) - (3)]);
 				ParseNode & paramtable = (yyvsp[(3) - (3)]);
@@ -3304,7 +3306,7 @@ yyreduce:
 
   case 128:
 /* Line 1792 of yacc.c  */
-#line 845 "for90.y"
+#line 847 "for90.y"
     {
 				/* array decl */
 				ParseNode & type_spec = (yyvsp[(1) - (4)]);
@@ -3318,7 +3320,7 @@ yyreduce:
 
   case 129:
 /* Line 1792 of yacc.c  */
-#line 855 "for90.y"
+#line 857 "for90.y"
     {
 				/* array decl */
 				ParseNode & type_spec = (yyvsp[(1) - (3)]);
@@ -3332,7 +3334,7 @@ yyreduce:
 
   case 130:
 /* Line 1792 of yacc.c  */
-#line 866 "for90.y"
+#line 868 "for90.y"
     { 
 				// useless reduction
 				/* paramtable is used in function decl */
@@ -3341,7 +3343,7 @@ yyreduce:
 
   case 131:
 /* Line 1792 of yacc.c  */
-#line 871 "for90.y"
+#line 873 "for90.y"
     {
 				/* initial value is required in parse tree because it can be an non-terminal `exp` */
 				/* non-array initial values */
@@ -3353,7 +3355,7 @@ yyreduce:
 
   case 132:
 /* Line 1792 of yacc.c  */
-#line 880 "for90.y"
+#line 882 "for90.y"
     {
 				// array initial values 
 				// 因为使用forarray作为数组, 故需要知道类型信息, 不在此处赋值, 在上层的var_def赋初值 
@@ -3364,7 +3366,7 @@ yyreduce:
 
   case 133:
 /* Line 1792 of yacc.c  */
-#line 889 "for90.y"
+#line 891 "for90.y"
     {
 				// from rule ` dimen_slice : exp ',' paramtable `
 			}
@@ -3372,14 +3374,14 @@ yyreduce:
 
   case 134:
 /* Line 1792 of yacc.c  */
-#line 893 "for90.y"
+#line 895 "for90.y"
     {
 			}
     break;
 
   case 135:
 /* Line 1792 of yacc.c  */
-#line 897 "for90.y"
+#line 899 "for90.y"
     {
 				ParseNode & paramtable_elem = (yyvsp[(1) - (1)]);
 				ParseNode & newnode = gen_paramtable(paramtable_elem);
@@ -3390,7 +3392,7 @@ yyreduce:
 
   case 136:
 /* Line 1792 of yacc.c  */
-#line 904 "for90.y"
+#line 906 "for90.y"
     {
 				ParseNode & paramtable_elem = (yyvsp[(1) - (3)]);
 				ParseNode & paramtable = (yyvsp[(3) - (3)]);
@@ -3402,7 +3404,7 @@ yyreduce:
 
   case 137:
 /* Line 1792 of yacc.c  */
-#line 912 "for90.y"
+#line 914 "for90.y"
     {
 				/* no params */
 				ParseNode newnode = ParseNode(gen_flex(Term{ TokenMeta::NT_PARAMTABLE, "" }), nullptr);
@@ -3413,7 +3415,7 @@ yyreduce:
 
   case 138:
 /* Line 1792 of yacc.c  */
-#line 920 "for90.y"
+#line 922 "for90.y"
     {
 				/* something like `abs(i), i=1,4` */
 				ParseNode newnode = ParseNode(gen_flex(Term{ TokenMeta::NT_HIDDENDO, "" }), nullptr);
@@ -3428,7 +3430,7 @@ yyreduce:
 
   case 139:
 /* Line 1792 of yacc.c  */
-#line 932 "for90.y"
+#line 934 "for90.y"
     {
 				/* something like `abs(i), i=1,4` */
 				ParseNode & _generate_stmt = (yyvsp[(2) - (3)]);
@@ -3439,7 +3441,7 @@ yyreduce:
 
   case 140:
 /* Line 1792 of yacc.c  */
-#line 940 "for90.y"
+#line 942 "for90.y"
     {
 				// give initial value 
 				// `B(1:2:3)` can be either a single-element argtable or a exp, this can probably lead to reduction conflicts, so merge rules
@@ -3450,7 +3452,7 @@ yyreduce:
 
   case 141:
 /* Line 1792 of yacc.c  */
-#line 947 "for90.y"
+#line 949 "for90.y"
     {
 				/* give generate stmt */
 				(yyval) = gen_array_from_hiddendo((yyvsp[(2) - (3)]));
@@ -3463,7 +3465,7 @@ yyreduce:
 
   case 142:
 /* Line 1792 of yacc.c  */
-#line 958 "for90.y"
+#line 960 "for90.y"
     {
 				ParseNode & array_builder_elem = (yyvsp[(1) - (1)]);
 				if (array_builder_elem.fs.CurrentTerm.token == TokenMeta::NT_ARRAYBUILDER)
@@ -3480,7 +3482,7 @@ yyreduce:
 
   case 145:
 /* Line 1792 of yacc.c  */
-#line 998 "for90.y"
+#line 1000 "for90.y"
     {
 				ParseNode & exp = (yyvsp[(2) - (7)]);
 				ParseNode & suite_true = (yyvsp[(5) - (7)]); 
@@ -3491,7 +3493,7 @@ yyreduce:
 
   case 146:
 /* Line 1792 of yacc.c  */
-#line 1005 "for90.y"
+#line 1007 "for90.y"
     {
 				ParseNode & exp = (yyvsp[(2) - (10)]);
 				ParseNode & suite_true = (yyvsp[(5) - (10)]); 
@@ -3503,7 +3505,7 @@ yyreduce:
 
   case 147:
 /* Line 1792 of yacc.c  */
-#line 1013 "for90.y"
+#line 1015 "for90.y"
     {
 				ParseNode & exp = (yyvsp[(2) - (8)]);
 				ParseNode & suite_true = (yyvsp[(5) - (8)]);
@@ -3515,7 +3517,7 @@ yyreduce:
 
   case 148:
 /* Line 1792 of yacc.c  */
-#line 1021 "for90.y"
+#line 1023 "for90.y"
     {
 				ParseNode & exp = (yyvsp[(2) - (11)]);
 				ParseNode & suite_true = (yyvsp[(5) - (11)]);
@@ -3528,7 +3530,7 @@ yyreduce:
 
   case 149:
 /* Line 1792 of yacc.c  */
-#line 1030 "for90.y"
+#line 1032 "for90.y"
     {
 				ParseNode & exp = (yyvsp[(2) - (4)]);
 				ParseNode & stmt_true = (yyvsp[(4) - (4)]); 
@@ -3539,7 +3541,7 @@ yyreduce:
 
   case 150:
 /* Line 1792 of yacc.c  */
-#line 1037 "for90.y"
+#line 1039 "for90.y"
     {
 				ParseNode & exp = (yyvsp[(2) - (3)]);
 				ParseNode & stmt_true = (yyvsp[(3) - (3)]);
@@ -3550,7 +3552,7 @@ yyreduce:
 
   case 151:
 /* Line 1792 of yacc.c  */
-#line 1045 "for90.y"
+#line 1047 "for90.y"
     {
 				ParseNode & exp = (yyvsp[(2) - (5)]);
 				ParseNode & suite_true = (yyvsp[(5) - (5)]);
@@ -3561,7 +3563,7 @@ yyreduce:
 
   case 152:
 /* Line 1792 of yacc.c  */
-#line 1053 "for90.y"
+#line 1055 "for90.y"
     {
 				ParseNode & exp = (yyvsp[(2) - (6)]);
 				ParseNode & suite_true = (yyvsp[(5) - (6)]);
@@ -3573,7 +3575,7 @@ yyreduce:
 
   case 155:
 /* Line 1792 of yacc.c  */
-#line 1065 "for90.y"
+#line 1067 "for90.y"
     {
 				ParseNode & suite = (yyvsp[(3) - (5)]); 
 				(yyval) = gen_do(suite);
@@ -3583,7 +3585,7 @@ yyreduce:
 
   case 156:
 /* Line 1792 of yacc.c  */
-#line 1071 "for90.y"
+#line 1073 "for90.y"
     {
 				ParseNode & loop_variable = (yyvsp[(2) - (10)]);
 				ParseNode & exp_from = (yyvsp[(4) - (10)]);
@@ -3597,7 +3599,7 @@ yyreduce:
 
   case 157:
 /* Line 1792 of yacc.c  */
-#line 1081 "for90.y"
+#line 1083 "for90.y"
     {
 				ParseNode & loop_variable = (yyvsp[(2) - (12)]);
 				ParseNode & exp1 = (yyvsp[(4) - (12)]);
@@ -3611,7 +3613,7 @@ yyreduce:
 
   case 158:
 /* Line 1792 of yacc.c  */
-#line 1091 "for90.y"
+#line 1093 "for90.y"
     {
 				ParseNode & exp = (yyvsp[(2) - (6)]);
 				ParseNode & suite = (yyvsp[(4) - (6)]); 
@@ -3622,7 +3624,7 @@ yyreduce:
 
   case 161:
 /* Line 1792 of yacc.c  */
-#line 1102 "for90.y"
+#line 1104 "for90.y"
     {
 				ParseNode & select = (yyvsp[(1) - (9)]);
 				ParseNode & exp = (yyvsp[(4) - (9)]);
@@ -3634,7 +3636,7 @@ yyreduce:
 
   case 162:
 /* Line 1792 of yacc.c  */
-#line 1110 "for90.y"
+#line 1112 "for90.y"
     {
 				// one case
 				ParseNode & dimen_slice = (yyvsp[(3) - (6)]);
@@ -3646,7 +3648,7 @@ yyreduce:
 
   case 163:
 /* Line 1792 of yacc.c  */
-#line 1118 "for90.y"
+#line 1120 "for90.y"
     {
 				ParseNode & case_stmt_elem = (yyvsp[(1) - (1)]);
 				ParseNode newnode = ParseNode(gen_flex(Term{ TokenMeta::NT_CASES, "" }), nullptr);
@@ -3658,7 +3660,7 @@ yyreduce:
 
   case 164:
 /* Line 1792 of yacc.c  */
-#line 1126 "for90.y"
+#line 1128 "for90.y"
     {
 				ParseNode & case_stmt_elem = (yyvsp[(1) - (2)]);
 				ParseNode & case_stmt = (yyvsp[(2) - (2)]);
@@ -3672,7 +3674,7 @@ yyreduce:
 
   case 165:
 /* Line 1792 of yacc.c  */
-#line 1137 "for90.y"
+#line 1139 "for90.y"
     {
 				(yyval) = (yyvsp[(3) - (4)]);
 				update_pos((yyval), (yyvsp[(1) - (4)]), (yyvsp[(4) - (4)]));
@@ -3681,7 +3683,7 @@ yyreduce:
 
   case 166:
 /* Line 1792 of yacc.c  */
-#line 1142 "for90.y"
+#line 1144 "for90.y"
     {
 				ParseNode newnode = ParseNode(gen_flex(Term{ TokenMeta::UnknownVariant, "" }), nullptr); // return nothing
 				(yyval) = newnode;
@@ -3691,7 +3693,7 @@ yyreduce:
 
   case 169:
 /* Line 1792 of yacc.c  */
-#line 1152 "for90.y"
+#line 1154 "for90.y"
     {
 				/* fortran90 does not declare type of arguments in function declaration statement*/
 				ParseNode & variable_function = (yyvsp[(3) - (12)]); // function name
@@ -3707,7 +3709,7 @@ yyreduce:
 
   case 172:
 /* Line 1792 of yacc.c  */
-#line 1168 "for90.y"
+#line 1170 "for90.y"
     {
 				ParseNode & suite = (yyvsp[(4) - (8)]);
 				(yyval) = gen_program_explicit(suite);
@@ -3717,7 +3719,7 @@ yyreduce:
 
   case 173:
 /* Line 1792 of yacc.c  */
-#line 1179 "for90.y"
+#line 1181 "for90.y"
     {
 				ParseNode & suite = (yyvsp[(1) - (1)]);
 				(yyval) = gen_program(suite);
@@ -3727,7 +3729,7 @@ yyreduce:
 
   case 174:
 /* Line 1792 of yacc.c  */
-#line 1187 "for90.y"
+#line 1189 "for90.y"
     {
 				sprintf(codegen_buf, "%s", (yyvsp[(1) - (1)]).fs.CurrentTerm.what.c_str());
 				(yyval) = (yyvsp[(1) - (1)]);
@@ -3736,7 +3738,7 @@ yyreduce:
 
   case 175:
 /* Line 1792 of yacc.c  */
-#line 1192 "for90.y"
+#line 1194 "for90.y"
     {
 				sprintf(codegen_buf, "%s", (yyvsp[(1) - (1)]).fs.CurrentTerm.what.c_str());
 				(yyval) = (yyvsp[(1) - (1)]);
@@ -3745,7 +3747,7 @@ yyreduce:
 
   case 176:
 /* Line 1792 of yacc.c  */
-#line 1198 "for90.y"
+#line 1200 "for90.y"
     {
 				ParseNode newnode = ParseNode();
 				newnode.addchild(new ParseNode((yyvsp[(1) - (1)]))); // wrapper
@@ -3758,7 +3760,7 @@ yyreduce:
 
   case 177:
 /* Line 1792 of yacc.c  */
-#line 1207 "for90.y"
+#line 1209 "for90.y"
     {
 				ParseNode * newnode = new ParseNode();
 				newnode->addchild(new ParseNode((yyvsp[(1) - (2)]))); // wrapper
@@ -3773,7 +3775,7 @@ yyreduce:
 
   case 178:
 /* Line 1792 of yacc.c  */
-#line 1219 "for90.y"
+#line 1221 "for90.y"
     {
 				(yyval) = gen_interface((yyvsp[(4) - (9)]));
 				update_pos((yyval), (yyvsp[(1) - (9)]), (yyvsp[(9) - (9)]));
@@ -3782,15 +3784,15 @@ yyreduce:
 
   case 179:
 /* Line 1792 of yacc.c  */
-#line 1225 "for90.y"
+#line 1227 "for90.y"
     {
-				program_tree = (yyvsp[(1) - (1)]);
+				gen_fortran_program((yyvsp[(1) - (1)]));
 			}
     break;
 
 
 /* Line 1792 of yacc.c  */
-#line 3794 "for90.tab.cpp"
+#line 3796 "for90.tab.cpp"
       default: break;
     }
   /* User semantic actions sometimes alter yychar, and that requires
@@ -4022,7 +4024,7 @@ yyreturn:
 
 
 /* Line 2055 of yacc.c  */
-#line 1231 "for90.y"
+#line 1233 "for90.y"
 
 //extern "C" int yylex();
 

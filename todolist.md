@@ -31,11 +31,12 @@
 - support fortran77 standard
 - ~~farray~~
 - ~~goto stmt~~
-- use fortran array [from, to] rather than [from, to)
+- ~~use fortran array [from, to] rather than [from, to)~~
 - promote return type in formerge so it can accept 2 different type farray
-- `fslice` return by reference
+- ~~`fslice` return by reference~~
 - C.13.2.1 Unconditional array computations and C.13.2.2 Conditional array computations
 - underscore kind param, like `.93E7_QUAD` ref standard 4.3.1.2
+- keyword conflict between fortran and c++, such as `class`, `struct`, `int`
 
 ## todolist(bugfix)
 - ~~if slice can be a scalar x and equal to (1: x + 1), there will be conflict in argtable~~
@@ -55,4 +56,4 @@
 - ~~fixed length character initialize with shorter characters~~
 - global attr and node attr
 - ~~add arraybuilder rule to exp rules~~
-- use `make_str_list` function replace some ugly code
+- ~use `make_str_list` function replace some ugly code~

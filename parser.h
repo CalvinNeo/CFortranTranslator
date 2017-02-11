@@ -2,9 +2,45 @@
 #include <string>
 #include <vector>
 #include <iostream>
-#include <boost/shared_ptr.hpp>
-#include <boost/algorithm/string.hpp>
 #include "tokenizer.h"
+#include <boost/optional/optional.hpp>
+#include <boost/algorithm/string.hpp>
+
+// 在初始化之后是否值是否被修改
+template<class T>
+struct dirty {
+	operator T() const {
+		return value;
+	}
+	T & operator= (const T & newv) {
+		changed = true;
+		value = newv;
+		return value;
+	}
+	dirty(const T & newv) {
+		// constructor by T
+		changed = false;
+		value = newv;
+	}
+	dirty(const dirty<T> & d) {
+		// copy constructor
+		changed = false;
+		changed = d.isdirty();
+		value = d;
+	}
+	bool isdirty() const {
+		return changed;
+	}
+	T get() {
+		return value;
+	}
+	const T & const_get() const {
+		return value;
+	}
+private:
+	T value;
+	bool changed = false;
+};
 
 // 分析树
 struct ParseNode {
@@ -40,6 +76,7 @@ struct ParseNode {
 
 
 int parse(std::string code);
+void reset_parser();
 extern ParseNode program_tree;
 extern std::string global_code;
 void preorder(ParseNode * ptree);

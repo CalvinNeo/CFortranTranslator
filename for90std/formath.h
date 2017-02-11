@@ -6,6 +6,7 @@
 #include <numeric>
 #include <type_traits>
 #include <complex>
+#include "farray.h"
 
 namespace for90std {
 
@@ -39,10 +40,10 @@ namespace for90std {
 	//};
 
 	template<class T1, class T2>
-	long double power(T1 x, T2 y) {
+	auto power(T1 x, T2 y) {
 		return powl(x, y);
 	}
-	
+
 	template<typename T1, typename T2>
 	inline auto mod(T1 x, T2 y) {
 		return modfl(x, y);

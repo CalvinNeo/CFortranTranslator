@@ -53,6 +53,7 @@ void test_maxloc(){
 	forprintfree(formaxval(a, 1), "\n"); // 3 0 19
 	forprintfree(formaxval(a, 2), "\n"); // 19 3
 	forprintfree(formaxval(a), "\n"); // 19
+	forprintfree(formaxval(a, 1, a > 1), "\n"); // 3 -2147483647(-HUGE) 19
 }
 
 void test_operator(){
@@ -65,6 +66,17 @@ void test_operator(){
 	forprintfree(a - 2);
 	forprintfree(a * 6);
 	forprintfree(a / 5);
+	forprintfree(!a);
+	forprintfree(!!a);
 	system("pause");
 	return 0;
+}
+
+void test_slice(){
+	farray<int > b{ { 1, 1 },{ 2, 2 },{ 1,2,3,4 } };
+	forprintfree("--------------\n");
+	forprintfree(forslice(b, { { }, { 1 } }));
+	forprintfree(forslice(b, { { }, { 2,2 } }));
+	forprintfree(forslice(b, { { 1,1 },{  } }));
+	forprintfree(forslice(b, { { 2 },{} }));
 }

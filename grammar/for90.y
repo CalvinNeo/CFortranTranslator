@@ -439,10 +439,11 @@ using namespace std;
 			}
 		| exp YY_NEQV exp 
 			{
+				// xor
 				ParseNode & exp1 = $1;
 				ParseNode & op = $2;
 				ParseNode & exp2 = $3;
-				$$ = gen_exp(exp1, op, exp2, "%s != %s");
+				$$ = gen_exp(exp1, op, exp2, "%s ^ %s");
 				update_pos($$, $1, $3);
 			}
 		| exp YY_EQ exp 
@@ -455,10 +456,11 @@ using namespace std;
 			}
 		| exp YY_EQV exp 
 			{
+				// nor
 				ParseNode & exp1 = $1;
 				ParseNode & op = $2;
 				ParseNode & exp2 = $3;
-				$$ = gen_exp(exp1, op, exp2, "%s == %s");
+				$$ = gen_exp(exp1, op, exp2, "!(%s == %s)");
 				update_pos($$, $1, $3);
 			}
 		| exp YY_ANDAND exp 
@@ -1223,7 +1225,7 @@ using namespace std;
 
 	fortran_program : wrappers
 			{
-				program_tree = $1;
+				gen_fortran_program($1);
 			}
 		|
 

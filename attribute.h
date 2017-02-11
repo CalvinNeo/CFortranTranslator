@@ -2,63 +2,11 @@
 #include "parser.h"
 #include "Function.h"
 #include "Variable.h"
-#include <boost/optional/optional.hpp>
 
-// 在初始化之后是否值是否被修改
-template<class T>
-struct dirty {
-	operator T() const {
-		return value;
-	}
-	T & operator= (const T & newv) {
-		// 赋值
-		changed = true;
-		value = newv;
-		return value;
-	}
-	dirty(const T & newv) {
-		// 初始化
-		changed = false;
-		value = newv;
-	}
-	dirty(const dirty<T> & d) {
-		// 复制构造函数
-		// 初始化
-		changed = false;
-		changed = d.isdirty();
-		value = d;
-	}
-	bool isdirty() const {
-		return changed;
-	}
-	T get() {
-		return value;
-	}
-	const T & const_get() const {
-		return value;
-	}
-private:
-	T value;
-	bool changed = false;
-};
 
-// for90std.h中foroptional的副本
-// 传入optionalparam<T>()表示不传参
+// 传入optionalparam<T>()表示不传参，原为for90std.h中foroptional的副本
 //template<typename T>
 //using optionalparam = boost::optional<T>;
-
-
-// Parse时候记录性质
-struct FunctionDesc {
-
-};
-struct VariableDesc {
-	dirty<bool> reference = false;
-	dirty<bool> constant = false;
-	dirty<bool> optional = false;
-	dirty<struct ParseNode *> slice = nullptr;
-	dirty<int> kind = 0;
-};
 
 // 属性文法
 struct ParseAttr {
@@ -85,11 +33,12 @@ struct TypeAttr : public ParseAttr {
 };
 
 struct VariableAttr : public ParseAttr {
-	VariableInfo * variable;
+	VariableInfo * vinfoptr = nullptr;
 
-	VariableAttr(ParseNode * parsenode, VariableInfo * v) : ParseAttr(parsenode), variable(v) {}
+	VariableAttr(ParseNode * parsenode, VariableInfo * vptr) : ParseAttr(parsenode), vinfoptr(vptr) {}
 	VariableAttr(const VariableAttr & va) {
 		// do not call `clone()` else will cause stackoverflow
+		this->vinfoptr = new VariableInfo(*va.vinfoptr);
 	}
 	ParseAttr * clone() { return new VariableAttr(*this); }
 
@@ -109,47 +58,16 @@ struct VariableDescAttr : public ParseAttr {
 	ParseAttr * clone() { return new VariableDescAttr(*this); }
 
 	void merge(const VariableDescAttr & x2) {
-		if (!desc.constant.isdirty() && x2.desc.constant.isdirty()) {
-			desc.constant = x2.desc.constant;
-		}
-		if (!desc.reference.isdirty() && x2.desc.reference.isdirty()) {
-			desc.reference = x2.desc.reference;
-		}
-		if (!desc.optional.isdirty() && x2.desc.optional.isdirty()) {
-			desc.optional = x2.desc.optional;
-		}
-		if (!desc.slice.isdirty() && x2.desc.slice.isdirty()) {
-			desc.slice = x2.desc.slice;
-		}
-		if (!desc.kind.isdirty() && x2.desc.kind.isdirty()) {
-			desc.kind = x2.desc.kind;
-		}
-	}
-};
-
-struct KwArgsAttr : public ParseAttr {
-	std::map<std::string, std::string> key_value;
-
-	KwArgsAttr(ParseNode * parsenode) : ParseAttr(parsenode) {}
-	KwArgsAttr(const KwArgsAttr & va) {
-		// do not call `clone()` else will cause stackoverflow
-		this->key_value = va.key_value;
-	}
-	ParseAttr * clone() { return new KwArgsAttr(*this); }
-
-	void merge(const KwArgsAttr & x2) {
-
+		desc.merge(x2.desc);
 	}
 };
 
 struct FunctionAttr : public ParseAttr {
-	std::vector<struct ParseNode *> param_definition;
-	std::vector<std::tuple<std::string, ParseNode, struct ParseNode *>> param_name_typename;
-	FunctionAttr(struct ParseNode * parsenode) : ParseAttr(parsenode) {}
-	FunctionAttr(const FunctionAttr & va) {
+	FunctionInfo * finfoptr;
+	FunctionAttr(ParseNode * parsenode, FunctionInfo * fptr) : ParseAttr(parsenode), finfoptr(fptr) {}
+	FunctionAttr(const FunctionAttr & fa) {
 		// do not call `clone()` else will cause stackoverflow
-		this->param_definition = va.param_definition;
-		this->param_name_typename = va.param_name_typename;
+		this->finfoptr = fa.finfoptr;
 	}
 	ParseAttr * clone() { return new FunctionAttr(*this); }
 
@@ -157,4 +75,3 @@ struct FunctionAttr : public ParseAttr {
 
 	}
 };
-// struct ArrayAttr FormatterAttr

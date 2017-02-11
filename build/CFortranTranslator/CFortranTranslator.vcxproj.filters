@@ -218,6 +218,8 @@
   <ItemGroup>
     <None Include="..\..\README.md" />
     <None Include="..\..\todolist.md" />
+    <None Include="..\..\cn.md" />
+    <None Include="..\..\Develop.md" />
   </ItemGroup>
   <ItemGroup>
     <Flex Include="..\..\grammar\for90.l">

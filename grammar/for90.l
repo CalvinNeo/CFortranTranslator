@@ -28,14 +28,14 @@ static bool abandon = false;
 #ifdef USE_YACC
 // yacc
 // USE WHTN USE YACC EITHER
-#define YYRTN(TOK, YYTOK)  update_yylval(Term{TOK, std::string(yytext)});  update_flex(yyleng);  return YYTOK; 
+#define YYRTN(TOK, YYTOK)  update_yylval(Term{TOK, std::string(yytext)});  update_flex((int)yyleng);  return YYTOK; 
 // 对于非char运算符要预先解析
-#define YYRTOP(TOK, YYTOK) update_yylval(Term{TOK, std::string(yytext)});  update_flex(yyleng);  return YYTOK; 
+#define YYRTOP(TOK, YYTOK) update_yylval(Term{TOK, std::string(yytext)});  update_flex((int)yyleng);  return YYTOK; 
 // include literal const such as pi, true, false, etc.
 #define YYRTWORD() {  /*do not update yylval because some tokens need to be looked ahead, such as `else if` */ int p = word_parse(); \
 	if (p != YY_REQ_MORE) \
-	{ update_flex(yyleng);  return p;  } \
-	else{  update_flex(yyleng); } }
+	{ update_flex((int)yyleng);  return p;  } \
+	else{  update_flex((int)yyleng); } }
 
 #define YYRTINT(TOK) YYRTN(TOK, YY_INTEGER) 
 #define YYRTFLOAT(TOK) YYRTN(TOK, YY_FLOAT) 
@@ -43,8 +43,8 @@ static bool abandon = false;
 #define YYRTCOMPLEX(TOK) YYRTN(TOK, YY_COMPLEX) 
 // 规则中被定义的终结符, **包括ascii表内的单个字符**
 #define YYRTILLEGAL(TOK) update_yylval( Term{TOK, std::string(yytext)});  	 update_flex(1);	return yytext[0]; 
-#define YYRTCRLF()  update_yylval( Term{TokenMeta::CRLF, std::string(yytext)}); update_flex(yyleng, true); return YY_CRLF;
-#define YYRTNOP() update_yylval( Term{TokenMeta::Nop, std::string(yytext)},  true);  update_flex(yyleng);
+#define YYRTCRLF()  update_yylval( Term{TokenMeta::CRLF, std::string(yytext)}); update_flex((int)yyleng, true); return YY_CRLF;
+#define YYRTNOP() update_yylval( Term{TokenMeta::Nop, std::string(yytext)},  true);  update_flex((int)yyleng);
 
 #define RTN(TOK, YYTOK) YYRTN(TOK, YYTOK) 
 #define RTOP(TOK, YYTOK) YYRTOP(TOK, YYTOK)

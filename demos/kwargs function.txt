@@ -1,6 +1,7 @@
 function kwargs(a, b, c) result (r)
 	implicit none
 	integer::r, a, b, c
+	integer::i ! must declare i
 	r = 0
 	do i = 1, n
 		r = r + 1

@@ -1,10 +1,22 @@
-integer:: a = 5
-a + 1
+subroutine proc(a, b, fun)
+	interface
+		function fun(x,y) result (fun_result)
+			integer,intent(in)::x, y
+			integer::fun_result
+		end function
+	end interface
+	integer,intent(in)::a, b
+	print *, fun(a, b) 
+end subroutine
+function kwargs(a, b, c) result (r)
+	implicit none
+	integer::r, a, b, c
+	r = 0
+	do i = 1, n
+		r = r + 1
+	end do
+end function
 program array_test
 	implicit none
 	COMMON /GA/ MA(26000)
-	! REAL A(10) = (/1,2,3,4,5,6,7,8,9,0/)
-	print *, maxval(A, mask = B .lt. 5)
-	print *, A < 5
-	! A(B(2, 3), 4)
 end program

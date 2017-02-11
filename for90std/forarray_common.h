@@ -35,13 +35,16 @@ namespace for90std {
 			std::vector<T> l(il);
 			if (l.size() == 1)
 			{
-				// a single element, not slice
+				// a single element, not slice. squash this dimension
 				fr = l[0]; step = 1; to = l[0];
 				isslice = false;
+				isall = false;
 			}
 			else if (l.size() == 2) {
+				// [from, to]
 				fr = l[0]; step = 1; to = l[1];
 				isslice = true;
+				isall = false;
 			}
 			else if (l.size() == 0) {
 				// select all
@@ -49,6 +52,7 @@ namespace for90std {
 				isall = true;
 			}
 			else {
+				// [from, to] step
 				fr = l[0]; step = l[2]; to = l[1];
 				isslice = true;
 			}
@@ -91,7 +95,7 @@ namespace for90std {
 #endif
 	template<typename _Iterator>
 	fsize_t fa_getflatsize(_Iterator b, _Iterator e) {
-		fsize_t sizeflat = accumulate(b, e, 1, [](auto x, auto y) {return x * y; });
+		fsize_t sizeflat = std::accumulate(b, e, 1, [](auto x, auto y) {return x * y; });
 		return sizeflat;
 	}
 }

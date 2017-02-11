@@ -39,7 +39,8 @@ namespace for90std {
 			return sz;
 		}
 		fsize_t flatsize() const {
-			return fa_getflatsize(sz, sz + dimension);
+			//return fa_getflatsize(sz, sz + dimension);
+			return this->delta[this->dimension - 1] * this->sz[this->dimension - 1];
 		}
 		const fsize_t * get_delta() const {
 			return delta;
@@ -164,38 +165,20 @@ namespace for90std {
 		template<typename U> friend farray<bool> operator!=(const farray<U> & x, const farray<U> & y);
 		template<typename U> friend farray<bool> operator!=(const U & x, const farray<U> & y);
 		template<typename U> friend farray<bool> operator!=(const farray<U> & x, const U & y);
-		farray<T> & operator+=(const farray<T> & x) {
-			std::transform(begin(), end(), x.cbegin(), begin(), [](auto x, auto y) {return x + y; });
-			return *this;
+
+#define MAKE_ARITH_OPERATORS_UNARY(op, op2) farray<T> & operator##op(const farray<T> & x) { \
+			std::transform(begin(), end(), x.cbegin(), begin(), [](auto x, auto y) {return x op2 y; }); \
+			return *this; \
+		} \
+		farray<T> & operator##op(const T & x) { \
+			map([&](T & item, const fsize_t * cur) {item op x;}); \
+			return *this; \
 		}
-		farray<T> & operator+=(const T & x) {
-			map([&](T & item, const fsize_t * cur) {item += x;});
-			return *this;
-		}
-		farray<T> & operator-=(const farray<T> & x) {
-			std::transform(begin(), end(), x.cbegin(), begin(), [](auto x, auto y) {return x - y; });
-			return *this;
-		}
-		farray<T> & operator-=(const T & x) {
-			map([&](T & item, const fsize_t * cur) {item -= x; });
-			return *this;
-		}
-		farray<T> & operator*=(const farray<T> & x) {
-			std::transform(begin(), end(), x.cbegin(), begin(), [](auto x, auto y) {return x * y; });
-			return *this;
-		}
-		farray<T> & operator*=(const T & x) {
-			map([&](T & item, const fsize_t * cur) {item *= x; });
-			return *this;
-		}
-		farray<T> & operator/=(const farray<T> & x) {
-			std::transform(begin(), end(), x.cbegin(), begin(), [](auto x, auto y) {return x / y; });
-			return *this;
-		}
-		farray<T> & operator/=(const T & x) {
-			map([&](T & item, const fsize_t * cur) {item /= x; });
-			return *this;
-		}
+
+		MAKE_ARITH_OPERATORS_UNARY(+=, +);
+		MAKE_ARITH_OPERATORS_UNARY(-=, -);
+		MAKE_ARITH_OPERATORS_UNARY(*=, *);
+		MAKE_ARITH_OPERATORS_UNARY(/=, / );
 
 		void transpose() {
 			T * na = new T[flatsize()];
@@ -276,7 +259,7 @@ namespace for90std {
 				if ((tp[i]).isslice)
 				{
 					const slice_info<fsize_t> & x = tp[i];
-					sz[dim++] = (x.to + 1 - x.fr) / x.step + ((x.to + 1 - x.fr) % x.step == 0 ? 0 : 1);;
+					sz[dim++] = (x.to + 1 - x.fr) / x.step + ((x.to + 1 - x.fr) % x.step == 0 ? 0 : 1);
 				}
 			}
 			fa_layer_delta(this->sz, this->sz + dimension, delta);
@@ -397,7 +380,7 @@ namespace for90std {
 			copy_from(m);
 		}
 		farray<T> & move_from(farray<T> && m) {
-			if (this == &x) return *this;
+			if (this == &m) return *this;
 			this->dimension = m.dimension;
 			this->lb = m.lb;
 			this->sz = m.sz;
@@ -409,9 +392,9 @@ namespace for90std {
 			m.parr = nullptr;
 			return *this;
 		}
-		//farray(farray<T> && m) noexcept : is_view(false) {
-		//	move_from(m);
-		//}
+		farray(farray<T> && m) noexcept : is_view(false) {
+			move_from(std::move(m));
+		}
 
 		~farray() {
 			if (!is_view) {
@@ -456,7 +439,27 @@ namespace for90std {
 		}
 	};
 
-#define MAKE_ARITH_OPERATORS(op) template <typename T> \
+template <typename T1, typename T2> 
+auto power(const farray<T1> & x, const farray<T2> & y) { 
+	assert(x.flatsize() == y.flatsize()); 
+	decltype(std::declval<T1>() * std::declval<T2>()) narr(x);
+	std::transform(narr.begin(), narr.end(), x.cbegin(), narr.begin(), [](auto m, auto n) {return power(m, n); });
+	return narr; 
+}
+template <typename T1, typename T2>
+auto power(const T1 & x, const farray<T2> & y) {
+	decltype(std::declval<T1>() * std::declval<T2>()) narr(y);
+	std::transform(narr.begin(), narr.end(), narr.begin(), [&](auto m) {return power(x, m); });
+	return narr; 
+}
+template <typename T1, typename T2>
+auto power(const farray<T1> & x, const T2 & y) {
+	decltype(std::declval<T1>() * std::declval<T2>()) narr(x);
+	std::transform(narr.begin(), narr.end(), narr.begin(), [&](auto m) {return power(m, y); });
+	return narr; 
+}
+
+#define MAKE_ARITH_OPERATORS_BIN(op) template <typename T> \
 	farray<T> operator##op(const farray<T> & x, const farray<T> & y) { \
 		assert(x.flatsize() == y.flatsize()); \
 		farray<T> narr(x); \
@@ -475,10 +478,10 @@ namespace for90std {
 		narr op ## = y; \
 		return narr; \
 	}
-	MAKE_ARITH_OPERATORS(+);
-	MAKE_ARITH_OPERATORS(-);
-	MAKE_ARITH_OPERATORS(*);
-	MAKE_ARITH_OPERATORS(/ );
+	MAKE_ARITH_OPERATORS_BIN(+);
+	MAKE_ARITH_OPERATORS_BIN(-);
+	MAKE_ARITH_OPERATORS_BIN(*);
+	MAKE_ARITH_OPERATORS_BIN(/ );
 
 #define MAKE_CMP_OPERATORS(op) template <typename T> \
 	farray<bool> operator##op(const farray<T> & x, const farray<T> & y) { \
@@ -512,6 +515,18 @@ namespace for90std {
 	MAKE_CMP_OPERATORS(>= );
 	MAKE_CMP_OPERATORS(== );
 	MAKE_CMP_OPERATORS(!= );
+	MAKE_CMP_OPERATORS(&& );
+	MAKE_CMP_OPERATORS(|| );
+	MAKE_CMP_OPERATORS(^ );
+
+	template <typename T>
+	farray<bool> operator!(const farray<T> & x) {
+		farray<bool> narr(x.dimension, x.LBound(), x.size());
+		narr.map([&](bool & item, const fsize_t * cur) {
+			item = (! x.const_get(cur, cur + x.dimension));
+		});
+		return narr; 
+	}
 
 	template <typename T, int X>
 	farray<T> forconcat(const farray<T>(&farrs)[X])
@@ -575,19 +590,25 @@ namespace for90std {
 	}
 
 	template <typename T, int X, typename _Iterator_In, typename _Iterator_Out>
-	void _forslice_impl(const slice_info<fsize_t>(&tp)[X], const farray<T> & narr, int deep, const fsize_t * delta_out, const fsize_t * delta_in
+	void _forslice_impl(const slice_info<fsize_t>(&tp)[X], const farray<T> & farr, int deep, const fsize_t * delta_out, const fsize_t * delta_in
 		, _Iterator_Out bo, _Iterator_Out eo, _Iterator_In bi, _Iterator_In ei)
 	{
-		for (fsize_t i = tp[deep].fr; i <= tp[deep].to; i+= tp[deep].step)
+		int _X = X;
+		for (fsize_t i = farr.LBound(deep); i < farr.LBound(deep) + farr.size(deep); i++)
 		{
-			if (deep == X) { // if X not equal to narr.dimension, behaviour is not defined
-				*bo = *bi;
+			bool hit = i >= tp[deep].fr && i <= tp[deep].to && ((i - tp[deep].fr) % tp[deep].step) == 0;
+			if (hit) {
+				if (deep + 1 == _X) { // if X not equal to narr.dimension, behaviour is not defined
+					*bo = *bi;
+				}
+				else { 
+					_forslice_impl<T, X>(tp, farr, deep + 1, delta_out, delta_in, bo, bo + delta_out[deep], bi, bi + delta_out[deep]);
+				}
 			}
-			else {
-				_forslice_impl<T, X>(tp, narr, deep + 1, delta_out, delta_in, bo, bo + delta_out[deep], bi, bi + delta_out[deep]);
-			}
-			if (i != tp[deep].to) {
-				bo += delta_out[deep];
+			if (i != farr.LBound(deep) + farr.size(deep)) {
+				if (hit) {
+					bo += delta_out[deep];
+				}
 				bi += delta_in[deep];
 			}
 		}
@@ -595,22 +616,26 @@ namespace for90std {
 	template <typename T, int X>
 	auto forslice(const farray<T> & farr, const slice_info<fsize_t>(&tp)[X]) {
 		// by fortran standard, slice must return by ref
-		farray<T> narr(farr.dimension, farr.LBound(), farr.size()); // dimension will be modified in reset_array
+		farray<T> narr{}; // dimension will be reset later in reset_array
 		slice_info<fsize_t> ntp[X];
 		for (auto i = 0; i < X; i++)
 		{
-			if (ntp[i].isall) {
-				ntp[i] = slice_info<fsize_t>({ farr.LBound(i), farr.LBound(i) + farr.size(i) });
+			if (tp[i].isall) {
+				// [from, to]
+				ntp[i] = slice_info<fsize_t>({ farr.LBound(i), farr.UBound(i) });
 			}
 			else {
+				// just copy
 				ntp[i] = slice_info<fsize_t>(tp[i]);
 			}
 		}
 		narr.reset_array(ntp, true);
-
-		fsize_t totalsize = narr.flatsize();
-		narr.reset_value(totalsize);
-		_forslice_impl<T, X>(ntp, narr, 0, narr.get_delta(), farr.get_delta(), narr.begin(), narr.end(), farr.cbegin(), farr.cend());
+		narr.reset_value();
+		// 因为narr的维数不一定等于farr的维数，所以不能直接用narr.get_delta()
+		fsize_t ndelta[X];
+		std::transform(ntp, ntp + X, ndelta, [](auto x) {return (x.to + 1 - x.fr) / x.step + ((x.to + 1 - x.fr) % x.step == 0 ? 0 : 1); }); // size
+		fa_layer_delta(ndelta, ndelta + X, ndelta);
+		_forslice_impl<T, X>(ntp, farr, 0, ndelta, farr.get_delta(), narr.begin(), narr.end(), farr.cbegin(), farr.cend());
 
 		return narr;
 	}
@@ -625,11 +650,9 @@ namespace for90std {
 		}
 		sl[dim] = slice_info<fsize_t>({ {index} }); // choose index(isslice = false) in rank dim
 		narr.reset_array(sl, false); // do not reset lower bound to 1
+		narr.reset_value();
 
-		fsize_t totalsize = narr.flatsize();
-		narr.reset_value(totalsize);
-
-		_forslice_impl<T, X>(narr, 0, narr.get_delta(), farr.get_delta(), narr.begin(), narr.end(), farr.cbegin(), farr.cend());
+		_forslice_impl<T, X>(farr, 0, farr.get_delta(), narr.begin(), farr.cbegin(), farr.cend());
 		return narr;
 	}
 
@@ -763,19 +786,19 @@ namespace for90std {
 					return;
 				}
 			}
-			T & initial = initial_set.get(subcur.begin(), subcur.end());
+			R & initial = initial_set.get(subcur.begin(), subcur.end());
 			initial = binop(initial, current_value);
 		});
 		return initial_set;
 	}
 
 	template <typename T>
-	auto forsum(const farray<T> & farr, int fordim = 1, foroptional<mask_wrapper_t> mask = None) {
-		int dim = fordim - 1;
+	auto forsum(const farray<T> & farr, foroptional<int> fordim, foroptional<mask_wrapper_t> mask = None) {
+		int dim = fordim.value_or(1) - 1;
 		// do not need to CHECK_AND_SET mask because it's the last parameter
 		std::vector<fsize_t> lb(farr.LBound(), farr.LBound() + farr.dimension); lb.erase(lb.cbegin() + dim); // remove dimension dim
 		std::vector<fsize_t> sz(farr.size(), farr.size() + farr.dimension); sz.erase(sz.cbegin() + dim);
-		farray<T> ans(farr.dimension - 1, lb.cbegin(), sz.cbegin()); ans.reset_value(); // only allocate
+		farray<T> ans(farr.dimension - 1, lb.cbegin(), sz.cbegin()); ans.reset_value(0); // only allocate
 		return forreduce([&](const T & op1, const T & op2) {
 			return op1 + op2;
 		}, ans, farr, dim, mask);
@@ -785,29 +808,86 @@ namespace for90std {
 	auto forsum(const farray<T> & farr, foroptional<mask_wrapper_t> mask = None) {
 		return forreduce([&](const T & op1, const T & op2) -> T {
 			return op1 + op2;
-		}, T(), farr, mask);
+		}, 0, farr, mask);
 	}
 
 	template <typename T>
-	auto forproduct(const farray<T> & farr, int fordim = 1, foroptional<mask_wrapper_t> mask = None) {
-		int dim = fordim - 1;
+	auto forproduct(const farray<T> & farr, foroptional<int> fordim, foroptional<mask_wrapper_t> mask = None) {
+		int dim = fordim.value_or(1) - 1;
 		std::vector<fsize_t> lb(farr.LBound(), farr.LBound() + farr.dimension); lb.erase(lb.cbegin() + dim); // remove dimension dim
 		std::vector<fsize_t> sz(farr.size(), farr.size() + farr.dimension); sz.erase(sz.cbegin() + dim);
-		farray<T> ans(farr.dimension - 1, lb.cbegin(), sz.cbegin()); ans.reset_value(); // only allocate
+		farray<T> ans(farr.dimension - 1, lb.cbegin(), sz.cbegin()); ans.reset_value(1); // only allocate
 		return forreduce([&](const T & op1, const T & op2) {
 			return op1 * op2;
 		}, ans, farr, dim, mask);
 	}
 	template <typename T>
 	auto forproduct(const farray<T> & farr, foroptional<mask_wrapper_t> mask = None) {
-		int dim = fordim - 1;
 		return forreduce([&](const T & op1, const T & op2) -> T {
-			return op1 + op2;
-		}, T(), farr, mask);
+			return op1 * op2;
+		}, 1, farr, mask);
+	}
+
+	inline farray<bool> forall(mask_wrapper_t mask, int fordim) {
+		int dim = fordim - 1;
+		std::vector<fsize_t> lb(mask.LBound(), mask.LBound() + mask.dimension); lb.erase(lb.cbegin() + dim); // remove dimension dim
+		std::vector<fsize_t> sz(mask.size(), mask.size() + mask.dimension); sz.erase(sz.cbegin() + dim);
+		farray<bool> ans(mask.dimension - 1, lb.cbegin(), sz.cbegin()); ans.reset_value(true); // only allocate
+		return forreduce([&](const bool & op1, const bool & op2) -> bool {
+			return op1 && op2;
+		}, ans, mask, dim, None);
+	}
+
+	inline bool forall(mask_wrapper_t mask) {
+		return forreduce([&](const bool & op1, const bool & op2) -> bool {
+			return op1 && op2;
+		}, true, mask, None);
+	}
+	
+	inline farray<bool> forany(mask_wrapper_t mask, int fordim) {
+		int dim = fordim - 1;
+		std::vector<fsize_t> lb(mask.LBound(), mask.LBound() + mask.dimension); lb.erase(lb.cbegin() + dim); // remove dimension dim
+		std::vector<fsize_t> sz(mask.size(), mask.size() + mask.dimension); sz.erase(sz.cbegin() + dim);
+		farray<bool> ans(mask.dimension - 1, lb.cbegin(), sz.cbegin()); ans.reset_value(false); // only allocate
+		return forreduce([&](const bool & op1, const bool & op2) -> bool {
+			return op1 || op2;
+		}, ans, mask, dim, None);
+	}
+
+	inline bool forany(mask_wrapper_t mask) {
+		return forreduce([&](const bool & op1, const bool & op2) -> bool {
+			return op1 || op2;
+		}, false, mask, None);
+	}
+
+	inline farray<fsize_t> forcount(mask_wrapper_t mask, int fordim) {
+		int dim = fordim - 1;
+		std::vector<fsize_t> lb(mask.LBound(), mask.LBound() + mask.dimension); lb.erase(lb.cbegin() + dim); // remove dimension dim
+		std::vector<fsize_t> sz(mask.size(), mask.size() + mask.dimension); sz.erase(sz.cbegin() + dim);
+		farray<fsize_t> ans(mask.dimension - 1, lb.cbegin(), sz.cbegin()); ans.reset_value(0); // only allocate
+		return forreduce([&](const fsize_t & op1, const bool & op2) -> fsize_t {
+			if (op2) {
+				return op1 + 1;
+			}
+			else {
+				return op1;
+			}
+		}, ans, mask, dim, None);
+	}
+
+	inline fsize_t forcount(mask_wrapper_t mask) {
+		return forreduce([&](const fsize_t & op1, const bool & op2) -> fsize_t {
+			if (op2) {
+				return op1 + 1;
+			}
+			else {
+				return op1;
+			}
+		}, 0, mask, None);
 	}
 
 	template <typename T, typename F>
-	T _forval_impl(F predicate, const T & initial_value, const farray<T> & farr, foroptional<mask_wrapper_t> mask = None) {
+	T _forcmpval_impl(F predicate, const T & initial_value, const farray<T> & farr, foroptional<mask_wrapper_t> mask = None) {
 		return forreduce([&](const T & op1, const T & op2) -> T {
 			if (predicate(op2, op1))
 			{
@@ -819,7 +899,7 @@ namespace for90std {
 		}, initial_value, farr, mask);
 	}
 	template <typename T, typename F>
-	farray<T> _forval_impl(F predicate, const T & initial_value, const farray<T> & farr, int fordim, foroptional<mask_wrapper_t> mask = None) {
+	farray<T> _forcmpval_impl(F predicate, const T & initial_value, const farray<T> & farr, int fordim, foroptional<mask_wrapper_t> mask = None) {
 		int dim = fordim - 1;
 		std::vector<fsize_t> lb(farr.LBound(), farr.LBound() + farr.dimension); lb.erase(lb.cbegin() + dim); // remove dimension dim
 		std::vector<fsize_t> sz(farr.size(), farr.size() + farr.dimension); sz.erase(sz.cbegin() + dim);
@@ -861,19 +941,19 @@ namespace for90std {
 
 	template <typename T>
 	auto formaxval(const farray<T> & farr, foroptional<mask_wrapper_t> mask = None) {
-		return _forval_impl(std::greater<T>(), -forhuge<T>(),farr, mask);
+		return _forcmpval_impl(std::greater<T>(), -forhuge<T>(),farr, mask);
 	}
 	template <typename T>
 	auto formaxval(const farray<T> & farr, foroptional<int> fordim, foroptional<mask_wrapper_t> mask = None) {
-		return _forval_impl(std::greater<T>(), -forhuge<T>(), farr, fordim,  mask);
+		return _forcmpval_impl(std::greater<T>(), -forhuge<T>(), farr, fordim,  mask);
 	}
 	template <typename T>
 	auto forminval(const farray<T> & farr, foroptional<mask_wrapper_t> mask = None) {
-		return _forval_impl(std::less<T>(), +forhuge<T>(), farr, mask);
+		return _forcmpval_impl(std::less<T>(), +forhuge<T>(), farr, mask);
 	}
 	template <typename T>
 	auto forminval(const farray<T> & farr, foroptional<int> fordim, foroptional<mask_wrapper_t> mask = None) {
-		return _forval_impl(std::less<T>(), +forhuge<T>(), farr, fordim, mask);
+		return _forcmpval_impl(std::less<T>(), +forhuge<T>(), farr, fordim, mask);
 	}
 
 	template <typename T1, typename T2>

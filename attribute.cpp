@@ -5,11 +5,3 @@
 #include <map>
 #include <boost/algorithm/string.hpp>
 
-
-//void VariableAttr::parse() {
-//
-//}
-//void TypeAttr::parse() {
-//
-//}
-
