@@ -33,13 +33,14 @@ std::string regen_suite(ParseNode * oldsuite) {
 	for (int i = 0; i < oldsuite->child.size(); i++)
 	{
 		// oldsuite->child[i]: stmt/ interface_decl
-		if (oldsuite->child[i]->child.size() > 0 && oldsuite->child[i]->child[0]->fs.CurrentTerm.token == TokenMeta::NT_VARIABLEDEFINE)
+		ParseNode * stmt = oldsuite->child[i];
+		if (stmt->child.size() > 0 && stmt->child[0]->fs.CurrentTerm.token == TokenMeta::NT_VARIABLEDEFINE)
 		{
 			// examine all variable define stmt
-			ParseNode * typeinfo = oldsuite->child[i]->child[0]->child[0];
-			// oldsuite->child[i]->child[0]: NT_VARIABLEDEFINE
-			// oldsuite->child[i]->child[0]->child[2]: NT_PARAMTABLE
-			ParseNode * pn = oldsuite->child[i]->child[0]->child[2];
+			ParseNode * vardef = stmt->child[0];
+			ParseNode * typeinfo = stmt->child[0]->child[0];
+			ParseNode * vardescattr = vardef->child[1];
+			ParseNode * pn = vardef->child[2];
 			do {
 				// for all non-flatterned paramtable
 				for (int j = 0; j < pn->child.size(); j++)
@@ -49,18 +50,25 @@ std::string regen_suite(ParseNode * oldsuite) {
 					/* pn->child[i]->child[0] is varname string */
 					if (pn->child[j]->fs.CurrentTerm.token == TokenMeta::NT_VARIABLEINITIAL) {
 						// for every variable, generate independent definition
-						newsuitestr += typeinfo->fs.CurrentTerm.what; // type
-						newsuitestr += " ";
-						newsuitestr += pn->child[j]->child[0]->fs.CurrentTerm.what; // varname
-						if (pn->child[j]->child[1]->fs.CurrentTerm.token != TokenMeta::NT_VARIABLEINITIALDUMMY) {
-							// default value
-							newsuitestr += " = ";
-							newsuitestr += pn->child[j]->child[1]->fs.CurrentTerm.what;
-						}
-						newsuitestr += " ;\n";
+						//newsuitestr += typeinfo->fs.CurrentTerm.what; // type
+						//newsuitestr += " ";
+						//newsuitestr += pn->child[j]->child[0]->fs.CurrentTerm.what; // varname
+						//if (pn->child[j]->child[1]->fs.CurrentTerm.token != TokenMeta::NT_VARIABLEINITIALDUMMY) {
+						//	//default value
+						//	newsuitestr += " = ";
+						//	newsuitestr += pn->child[j]->child[1]->fs.CurrentTerm.what;
+						//}
+						//newsuitestr += ";\n";
+						ParseNode newdefinenode;
+						regen_vardef(newdefinenode, *typeinfo, *vardescattr, pn->child[j]);
+						newsuitestr += newdefinenode.fs.CurrentTerm.what;
+						newsuitestr += "\n";
 					}
 					else if (pn->child[j]->fs.CurrentTerm.token == TokenMeta::NT_DECLAREDVARIABLE) {
-						// declared NT_DECLAREDVARIABLE
+						// declared variable
+					}
+					else if (get_function("", pn->child[i]->child[0]->fs.CurrentTerm.what) != nullptr){
+						// declared function
 					}
 				}
 				if (pn->child.size() >= 2)
@@ -69,12 +77,12 @@ std::string regen_suite(ParseNode * oldsuite) {
 				}
 			} while (pn->child.size() == 2 && pn->child[1]->fs.CurrentTerm.token == TokenMeta::NT_PARAMTABLE);
 		}
-		else if (oldsuite->child[i]->fs.CurrentTerm.token == TokenMeta::NT_INTERFACE) {
+		else if (stmt->fs.CurrentTerm.token == TokenMeta::NT_INTERFACE) {
 			// do not generate declared string
 		}
 		else {
 			// normal stmt
-			newsuitestr += oldsuite->child[i]->fs.CurrentTerm.what;
+			newsuitestr += stmt->fs.CurrentTerm.what;
 			newsuitestr += '\n';
 		}
 	}

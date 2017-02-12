@@ -31,6 +31,3 @@ ParseNode promote_exp_to_slice(const ParseNode & exp) {
 	return newnode;
 }
 
-
-// 下面多个的用gen_flattern
-

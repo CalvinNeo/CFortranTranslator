@@ -99,11 +99,11 @@ void gen_arraybuilder_str(ParseNode & arraybuilder) {
 			ParseNode * array_builder = compound_arraybuilder->child[builderid];
 			if (array_builder->child[0]->fs.CurrentTerm.token == TokenMeta::NT_HIDDENDO) {
 				vector<const ParseNode *> hiddendo_layer = gen_nested_hiddendo_layers(*array_builder->child[0]);
-				std::string vec_from = make_str_list(hiddendo_layer.begin(), hiddendo_layer.end(), [](auto x)->string {return (*x)->child[2]->fs.CurrentTerm.what; });
+				std::string vec_from = make_str_list(hiddendo_layer.begin(), hiddendo_layer.end(), [](auto x)->string {return (x)->child[2]->fs.CurrentTerm.what; });
 				std::string vec_to = make_str_list(hiddendo_layer.begin(), hiddendo_layer.end(), [](auto x)->string {
 					int from, to;
-					sscanf((*x)->child[2]->fs.CurrentTerm.what.c_str(), "%d", &from);
-					sscanf((*x)->child[3]->fs.CurrentTerm.what.c_str(), "%d", &to);
+					sscanf((x)->child[2]->fs.CurrentTerm.what.c_str(), "%d", &from);
+					sscanf((x)->child[3]->fs.CurrentTerm.what.c_str(), "%d", &to);
 					sprintf(codegen_buf, "%d", to - from + 1);
 					return string(codegen_buf); 
 				});

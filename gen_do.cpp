@@ -57,10 +57,9 @@ std::vector<const ParseNode *> gen_nested_hiddendo_layers(const ParseNode & hidd
 
 std::string gen_nested_hiddendo(const std::vector<const ParseNode *> & hiddendo_layer) {
 	vector<ParseNode *>::iterator x;
-	// refer `make_str_list`
-	string lb_str = make_str_list(hiddendo_layer.begin(), hiddendo_layer.end(), [](auto x)->string {return (*x)->child[2]->fs.CurrentTerm.what; });
-	string ub_str = make_str_list(hiddendo_layer.begin(), hiddendo_layer.end(), [](auto x)->string {return (*x)->child[3]->fs.CurrentTerm.what; });
-	string indexer_str = make_str_list(hiddendo_layer.begin(), hiddendo_layer.end(), [](auto x)->string {return "fsize_t " + (*x)->child[1]->fs.CurrentTerm.what; });
+	string lb_str = make_str_list(hiddendo_layer.begin(), hiddendo_layer.end(), [](auto x)->string {return (x)->child[2]->fs.CurrentTerm.what; });
+	string ub_str = make_str_list(hiddendo_layer.begin(), hiddendo_layer.end(), [](auto x)->string {return (x)->child[3]->fs.CurrentTerm.what; });
+	string indexer_str = make_str_list(hiddendo_layer.begin(), hiddendo_layer.end(), [](auto x)->string {return "fsize_t " + (x)->child[1]->fs.CurrentTerm.what; });
 	sprintf(codegen_buf, "[](%s){return %s;}", indexer_str.c_str(), hiddendo_layer[hiddendo_layer.size() - 1]->child[0]->fs.CurrentTerm.what.c_str());
 	string lambda = string(codegen_buf);
 	string args;

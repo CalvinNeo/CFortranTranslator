@@ -24,6 +24,16 @@ ParseNode gen_type(Term typeterm) {
 	return gen_type(newnode);
 }
 
+ParseNode implicit_type_from_name(std::string name) {
+	if (name.size() > 0 && name[0] < 'n' && name[1] > 'i')
+	{
+		return gen_type(Term{ TokenMeta::Int_Def, "int" });
+	}
+	else {
+		return gen_type(Term{ TokenMeta::Float_Def, "double" });
+	}
+}
+
 ParseNode promote_type(const ParseNode & type_spec, VariableDesc & vardesc) {
 	// reset type according to kind
 	ParseNode promoted_type = ParseNode(type_spec); // type

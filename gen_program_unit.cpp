@@ -36,19 +36,29 @@ void gen_fortran_program(const ParseNode & wrappers) {
 	std::string codes;
 	std::string main_code;
 	program_tree = wrappers;
+	for (std::map<std::string, CommonBlockInfo>::iterator iter = commonblocks.begin(); iter != commonblocks.end(); iter++)
+	{
+		string xx = gen_common_definition(iter->first).fs.CurrentTerm.what;
+		codes += xx;
+	}
 	for (size_t i = 0; i < wrappers.child.size(); i++)
 	{
 		ParseNode & wrapper = *wrappers.child[i];
 		if (wrapper.fs.CurrentTerm.token == TokenMeta::NT_PROGRAM_EXPLICIT)
 		{
-			main_code = wrapper.fs.CurrentTerm.what;
+			string newsuitestr = regen_suite(wrapper.child[0]);
+			main_code = tabber(newsuitestr);
 		}
 		else if(wrapper.fs.CurrentTerm.token == TokenMeta::NT_PROGRAM){
-			main_code += wrapper.fs.CurrentTerm.what;
+			string newsuitestr = regen_suite(wrapper.child[0]);
+			main_code += tabber(newsuitestr);
 		}
 		else if (wrapper.fs.CurrentTerm.token == TokenMeta::NT_FUNCTIONDECLARE) {
 			codes += wrapper.fs.CurrentTerm.what;
 			codes += "\n";
+		}
+		else {
+			print_error("Unexpected wrappers");
 		}
 	}
 	sprintf(codegen_buf, "int main()\n{\n%s\treturn 0;\n}", main_code.c_str());

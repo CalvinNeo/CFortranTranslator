@@ -51,7 +51,8 @@ struct VariableInfo
 	}
 	std::string type;
 	VariableDesc desc;
-	VariableInfo(std::string typestr, const VariableDesc vdesc) : type(typestr) , desc(vdesc){
+	ParseNode variable_initial; // TokenMeta::NT_VARIABLEINITIALDUMMY if no initial
+	VariableInfo(std::string typestr, const VariableDesc & vdesc, const ParseNode & variable_initial_node) : type(typestr) , desc(vdesc), variable_initial(variable_initial_node){
 
 	}
 };

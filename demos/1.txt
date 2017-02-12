@@ -1,22 +1,5 @@
-subroutine proc(a, b, fun)
-	interface
-		function fun(x,y) result (fun_result)
-			integer,intent(in)::x, y
-			integer::fun_result
-		end function
-	end interface
-	integer,intent(in)::a, b
-	print *, fun(a, b) 
-end subroutine
-function kwargs(a, b, c) result (r)
-	implicit none
-	integer::r, a, b, c
-	r = 0
-	do i = 1, n
-		r = r + 1
-	end do
+function sum(x,y) result (sum_result)
+	integer,intent(in)::x, y
+	integer::sum_result
+	sum_result = x + y
 end function
-program array_test
-	implicit none
-	COMMON /GA/ MA(26000)
-end program

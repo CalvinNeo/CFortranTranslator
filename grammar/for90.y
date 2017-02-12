@@ -561,7 +561,7 @@ using namespace std;
 					但是考虑到在cpp等语言中可能出现使用,分隔多个语句的情况(这种情况是有作用的, 表明编译器可以按照自己的顺序求值)
 					所以单独建立stmt节点兵添加$1位stmt节点的唯一的儿子
 				*/
-				$$ = gen_stmt($1, "%s ;");
+				$$ = gen_stmt($1, "%s;");
 				update_pos($$, $1, $2);
 			}
 		| var_def _crlf_semicolon

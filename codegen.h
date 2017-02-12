@@ -2,6 +2,7 @@
 
 #include "parser.h"
 #include "attribute.h"
+#include <boost/lexical_cast.hpp>
 
 std::string for2cpp(std::string for_code);
 ParseNode * flattern_bin(ParseNode * pn);
@@ -19,7 +20,7 @@ std::string make_str_list(Iterator begin, Iterator end, F handler, std::string d
 		if (i != begin) {
 			r += delim;
 		}
-		r += handler(i);
+		r += handler(*i);
 	}
 	return r;
 }
@@ -38,7 +39,7 @@ ParseNode gen_exp(const ParseNode & exp1, const ParseNode & op, std::string tran
 
 std::string get_variable_name(ParseNode * entity_variable);
 ParseNode gen_vardef(const ParseNode & type_nospec, const ParseNode & variable_desc, const ParseNode & paramtable);
-void regen_vardef(ParseNode & newnode, const ParseNode * belong);
+void regen_vardef(ParseNode & newnode, const ParseNode & type_nospec, const ParseNode & vardescattr_node, ParseNode * entity_variable);
 std::string gen_vardef_array_str(std::string alias_name, ParseNode * entity_variable, const ParseNode & type_spec, const std::tuple<std::vector<int>, std::vector<int>> & shape, VariableDescAttr * vardescattr);
 std::string gen_vardef_array_str(ParseNode * entity_variable, const ParseNode & type_spec, const std::tuple<std::vector<int>, std::vector<int>> & shape, VariableDescAttr * vardescattr);
 std::string gen_vardef_scalar_str(ParseNode * entity_variable, const ParseNode & type_spec, VariableDescAttr * vardescattr);
@@ -79,6 +80,7 @@ ParseNode gen_paramtable(ParseNode & paramtable_elem, ParseNode & paramtable);
 ParseNode gen_promote_exp_to_keyvalue(const ParseNode & paramtable_elem);
 ParseNode gen_promote_paramtable(const ParseNode paramtable); 
 
+ParseNode implicit_type_from_name(std::string name);
 ParseNode gen_type(const ParseNode & type_nospec, const ParseNode & _type_kind);
 ParseNode gen_type(const ParseNode & type_nospec);
 ParseNode gen_type(Term typeterm);
@@ -110,9 +112,10 @@ std::string gen_rights(std::string filename, std::string author);
 ParseNode gen_header();
 
 struct CommonBlockInfo {
-	std::string common_decl;
-	std::vector<ParseNode> variables;
-};
+	std::string common_name;
+	std::vector<VariableInfo> variables;
+}; 
+ParseNode gen_common_definition(std::string common_name);
 ParseNode gen_common(const ParseNode & common_block, const ParseNode & paramtable);
 
 ParseNode gen_program_explicit(ParseNode & suite);

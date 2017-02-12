@@ -241,6 +241,8 @@ std::map<int, std::string> IntentName = {
 	, {-2039, "NT_LABEL"}
 	, {-2040, "NT_PROGRAM_EXPLICIT"}
 	, {-2041, "NT_COMMONBLOCK"}
+	, {-2042, "NT_COMMONBLOCKDEFINE"}
+	, {-2043, "NT_VARIABLEDEFINESET"}
 	,{ -9999, "NT_DUMMY"}
 };
 
