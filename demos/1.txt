@@ -1,5 +1,8 @@
-function sum(x,y) result (sum_result)
-	integer,intent(in)::x, y
+function sum(x) result (sum_result)
+	integer,intent(in)::x
 	integer::sum_result
-	sum_result = x + y
+	integer::a
+	integer,dimension(1:2, 3:4)::dim
+	common /cb/ a, b
+	sum_result = x
 end function

@@ -6,18 +6,28 @@
 char codegen_buf[MAX_CODE_LENGTH];
 #endif
 
+TranslateContext & get_context() {
+	static TranslateContext tc;
+	if (tc.inited == false)
+	{
+		tc.func_kwargs = func_kwargs_preset;
+		tc.inited = true;
+	}
+	return tc;
+}
+
 void do_trans(const std::string & src) {
-	global_code = src;
-	parse(global_code);
+	get_context().global_code = src;
+	parse(get_context().global_code);
 	//program_tree.addchild(new ParseNode(gen_header()), false);
-	program_tree.fs.CurrentTerm.what = gen_header().fs.CurrentTerm.what + program_tree.fs.CurrentTerm.what;
+	get_context().program_tree.fs.CurrentTerm.what = gen_header().fs.CurrentTerm.what + get_context().program_tree.fs.CurrentTerm.what;
 }
 
 std::string for2cpp(std::string for_code) {
 	using namespace std;
 	string cpp_code = cpp_header;
 	parse(for_code);
-	cpp_code += program_tree.fs.CurrentTerm.what;
+	cpp_code += get_context().program_tree.fs.CurrentTerm.what;
 	return cpp_code;
 }
 

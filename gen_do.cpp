@@ -85,7 +85,7 @@ ParseNode gen_hiddendo(const ParseNode & _generate_stmt, TokenMeta_T return_toke
 	ParseNode * from = _generate_stmt.child[2];
 	ParseNode * to = _generate_stmt.child[3];
 
-	if (parse_config.usefarray)
+	if (get_context().parse_config.usefarray)
 	{
 		std::vector<const ParseNode *> hiddendo_layer;
 		const ParseNode * ab = &_generate_stmt;

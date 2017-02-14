@@ -11,8 +11,8 @@
 #include <cmath>
 
 void reset_parser() {
-	func_kwargs = func_kwargs_preset;
-	labels.clear();
+	get_context().func_kwargs = func_kwargs_preset;
+	get_context().labels.clear();
 	clear_variables();
 }
 
@@ -84,10 +84,6 @@ void ParseNode::replace(int childid, const ParseNode & pn) {
 	delete this->child[childid];
 	this->child[childid] = new ParseNode(pn);
 }
-
-ParseNode program_tree;
-ParseNode * curnode;
-ParseConfig parse_config;
 
 void preorder(ParseNode * ptree) {
 	using namespace std;
@@ -195,9 +191,9 @@ void print_error(const std::string & error_info, const ParseNode & yylval) {
 	const int length = 20; // print `length * 2 + len(parse_len)` context characters if possible
 	int left = max(0, get_flex_state().parse_pos - get_flex_state().parse_len - length); // left-most character index
 	int left_indent = get_flex_state().parse_pos - get_flex_state().parse_len - left; // error start position
-	int right = min((int)global_code.size(), get_flex_state().parse_pos + length); // right-most character index
+	int right = min((int)get_context().global_code.size(), get_flex_state().parse_pos + length); // right-most character index
 	int right_length = right - get_flex_state().parse_pos;
-	sprintf(buf, "%s", global_code.substr(left, left_indent + get_flex_state().parse_len + right_length).c_str());
+	sprintf(buf, "%s", get_context().global_code.substr(left, left_indent + get_flex_state().parse_len + right_length).c_str());
 	string cont = string(buf);
 	string marker = compose_marker(cont, left_indent, left_indent + get_flex_state().parse_len);
 	replace_all_distinct(cont, "\n", "\\n");

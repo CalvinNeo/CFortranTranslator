@@ -213,7 +213,6 @@ ParseNode gen_argtable(ParseNode & dimen_slice) {
 		}
 		else if(dimen_slice.fs.CurrentTerm.token == TokenMeta::NT_ARGTABLE_PURE){
 			// NT_ARGTABLE_PURE
-			// exp
 			isdimen = false;
 			newnode.addchild(new ParseNode(*dimen_slice.child[sliceid]));
 			sprintf(codegen_buf, "%s", dimen_slice.child[sliceid]->fs.CurrentTerm.what.c_str());

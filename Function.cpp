@@ -1,14 +1,15 @@
 #include "Function.h"
 #include "tokenizer.h"
+#include "codegen.h"
 #include "parser.h"
 
-std::map < std::string, FunctionInfo* > functions;
+//std::map < std::string, FunctionInfo* > functions;
 
 
 FunctionInfo * get_function(std::string module_name, std::string function_name) {
 	std::string fullname = module_name + "::" + function_name;
-	if (functions.find(fullname) != functions.end()) {
-		return functions[fullname];
+	if (get_context().functions.find(fullname) != get_context().functions.end()) {
+		return get_context().functions[fullname];
 	}
 	else {
 		return nullptr;
@@ -17,12 +18,12 @@ FunctionInfo * get_function(std::string module_name, std::string function_name) 
 
 FunctionInfo * add_function(std::string module_name, std::string function_name, const FunctionInfo & finfo) {
 	std::string fullname = module_name + "::" + function_name;
-	if (functions.find(fullname) != functions.end()) {
+	if (get_context().functions.find(fullname) != get_context().functions.end()) {
 		return nullptr;
 	}
 	else {
-		functions[fullname] = new FunctionInfo(finfo);
-		return functions[fullname];
+		get_context().functions[fullname] = new FunctionInfo(finfo);
+		return get_context().functions[fullname];
 	}
 }
 

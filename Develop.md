@@ -124,7 +124,7 @@ you can use `REAL(x)` to get the float copy of x, however, you can also use `REA
 | wrapper | / | function_decl / program |
 | function_decl | NT_FUNCTIONDECLARE |  |
 | var_def | NT_VARIABLEDEFINE | typeinfo, NT_DIMENSLICE / dummy, NT_PARAMTABLE |
-| paramtable_elem | / | dimen_slice / keyvalue / NT_DECLAREDVARIABLE |
+| paramtable_elem | / | dimen_slice / keyvalue / exp |
 | paramtable | NT_PARAMTABLE | paramtable_elem + |
 | | NT_DECLAREDVARIABLE | no rules, renamed from keyvalue |
 | keyvalue | NT_VARIABLEINITIAL(namely NT_KEYVALUE) | variable, NT_EXPRESSION / NT_VARIABLEINITIALDUMMY |

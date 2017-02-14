@@ -6,17 +6,17 @@ ParseNode gen_read(const ParseNode & io_info, const ParseNode & argtable) {
 	ParseNode * formatter = io_info.child[1];
 	string device = io_info.child[0]->fs.CurrentTerm.what;
 	if (io_info.child[1]->fs.CurrentTerm.token == TokenMeta::NT_AUTOFORMATTER) {
-		if (device == "-1") {
+		if (device == "-1" || device == "") {
 			//device = "5"; // stdin
-			sprintf(codegen_buf, "forread(stdin, %s) ;", pn->fs.CurrentTerm.what.c_str());
+			sprintf(codegen_buf, "forreadfree(stdin, %s) ;", pn->fs.CurrentTerm.what.c_str());
 		}
 		else {
-			sprintf(codegen_buf, "forread(get_file(%s), %s) ;", device.c_str(), pn->fs.CurrentTerm.what.c_str());
+			sprintf(codegen_buf, "forreadfree(get_file(%s), %s) ;", device.c_str(), pn->fs.CurrentTerm.what.c_str());
 		}
 	}
 	else {
 		string fmt = io_info.child[1]->fs.CurrentTerm.what.substr(1, io_info.child[1]->fs.CurrentTerm.what.size() - 1); // strip " 
-		if (device == "-1") {
+		if (device == "-1" || device == "") {
 			//device = "5"; // stdin
 			sprintf(codegen_buf, "forread(stdin, \"%s\", %s) ;", parse_ioformatter(fmt).c_str(), pn->fs.CurrentTerm.what.c_str());
 		}

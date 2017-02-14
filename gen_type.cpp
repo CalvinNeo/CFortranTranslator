@@ -25,7 +25,7 @@ ParseNode gen_type(Term typeterm) {
 }
 
 ParseNode implicit_type_from_name(std::string name) {
-	if (name.size() > 0 && name[0] < 'n' && name[1] > 'i')
+	if (name.size() > 0 && name[0] <= 'n' && name[0] >= 'i')
 	{
 		return gen_type(Term{ TokenMeta::Int_Def, "int" });
 	}
@@ -73,18 +73,18 @@ std::string gen_qualified_typestr(std::string type_name, const VariableDesc & va
 	string var_pattern;
 	if (vardesc.reference) {
 		if (vardesc.constant) {
-			var_pattern = "const %s & ";
+			var_pattern = "const %s &";
 		}
 		else {
-			var_pattern = "%s & ";
+			var_pattern = "%s &";
 		}
 	}
 	else {
 		if (vardesc.constant) {
-			var_pattern = "const %s ";
+			var_pattern = "const %s";
 		}
 		else {
-			var_pattern = "%s ";
+			var_pattern = "%s";
 		}
 	}
 	sprintf(codegen_buf, var_pattern.c_str(), type_name.c_str());

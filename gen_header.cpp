@@ -31,7 +31,7 @@ std::string gen_rights(std::string filename, std::string author) {
 ParseNode gen_header() {
 	std::string x = gen_rights("   ", "   ");
 	x += "#include \"../for90std/for90std.h\" \n";
-	if (parse_config.usefor) {
+	if (get_context().parse_config.usefor) {
 		x += "#define USE_FORARRAY \n";
 	}
 	else {

@@ -29,6 +29,8 @@ struct FlexState {
 	int line_pos = 0;
 	bool isnull = false;
 };
+
+FlexState & get_flex_state();
 extern const std::vector<KeywordMeta> keywords;
 extern const std::map<std::string, std::vector<std::string> > forward1;
 

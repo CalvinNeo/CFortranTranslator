@@ -111,8 +111,15 @@ refer to [/grammar/for90.y](/grammar/for90.y) for all accepted grammar
 
 |fortran|c++|
 |:-:|:-:|
-|INTEGER(all length)|`int`|
-|REAL(all length)|`double`|
+|INTEGER(unspecified kind)|`int`|
+|INTEGER(kind = 1)|`int8_t`|
+|INTEGER(kind = 2)|`int16_t`|
+|INTEGER(kind = 8)|`int32_t`|
+|INTEGER(kind = 1)|`int64_t`|
+|REAL(unspecified kind)|`double`|
+|REAL(kind <= 4)|`float`|
+|REAL(kind = 4)|`double`|
+|REAL(kind = 8)|`long double`|
 |LOGICAL|`bool`|
 |COMPLEX|`struct forcomplex`|
 |CHARACTER|`std::string`|

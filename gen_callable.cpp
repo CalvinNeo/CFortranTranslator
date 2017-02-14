@@ -89,7 +89,7 @@ ParseNode gen_function_array(const ParseNode & callable_head, const ParseNode & 
 		|| argtable.fs.CurrentTerm.token == TokenMeta::NT_PARAMTABLE){
 		// function call or function call with kwargs
 		func_header += name;
-		auto map_func = func_kwargs.find(name); // function_name -> args
+		auto map_func = get_context().func_kwargs.find(name); // function_name -> args
 		func_header += "(";
 		bool kwargs = false;
 		int normal_count = 0; // non kwarg count
@@ -99,7 +99,7 @@ ParseNode gen_function_array(const ParseNode & callable_head, const ParseNode & 
 			if (argtable.child[i]->fs.CurrentTerm.token == TokenMeta::NT_KEYVALUE) {
 				// keyword/named argument
 				//kwargs = true;
-				if (map_func == func_kwargs.end()) {
+				if (map_func == get_context().func_kwargs.end()) {
 					print_error("invalid kwarg of function " + name, argtable);
 				}
 				else {
@@ -129,7 +129,7 @@ ParseNode gen_function_array(const ParseNode & callable_head, const ParseNode & 
 					for (auto j = 0; j < args.size(); j++)
 					{
 						if (i != 0 || j != 0) {
-							func_header += " ,";
+							func_header += ", ";
 						}
 						if (args[j]->fs.CurrentTerm.token == TokenMeta::NT_ARRAYBUILDER_LAMBDA) {
 							func_header += "{" + args[j]->child[0]->fs.CurrentTerm.what + "}";
@@ -143,7 +143,7 @@ ParseNode gen_function_array(const ParseNode & callable_head, const ParseNode & 
 			}
 		}
 		// generated code of kwargs
-		if (map_func != func_kwargs.end()) {
+		if (map_func != get_context().func_kwargs.end()) {
 			std::vector<keyword_param_info> & params = map_func->second;
 			for (int i = normal_count; i < params.size(); i++)
 			{
@@ -152,7 +152,7 @@ ParseNode gen_function_array(const ParseNode & callable_head, const ParseNode & 
 				string this_param_intial_default = std::get<2>(params[i]);
 				auto this_arg = kws.find(this_param_name);
 				if (normal_count != 0) {
-					func_header += ", ";
+					func_header += " ,";
 				}
 				if (this_arg == kws.end()) {
 					// if this argument is not given

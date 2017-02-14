@@ -319,3 +319,9 @@ const std::map<std::string, std::vector<std::string> > forward1 = {
 	, {"do", { "while" }}
 	, { "go", { "to" } }
 };
+
+
+FlexState & get_flex_state() {
+	static FlexState flex_state;
+	return flex_state;
+}

@@ -21,6 +21,7 @@ struct FunctionInfo {
 
 	}
 };
+typedef std::tuple<std::string, std::string, std::string> keyword_param_info;
 
 FunctionInfo * get_function(std::string module_name, std::string function_name);
 FunctionInfo * add_function(std::string module_name, std::string function_name, const FunctionInfo & function);

@@ -1,7 +1,7 @@
 #include "gen_common.h"
 #include <map>
 
-std::map<std::string, ParseNode *> labels;
+//std::map<std::string, ParseNode *> labels;
 
 //3.2.5 Statement labels
 //A statement label provides a means of referring to an individual statement.

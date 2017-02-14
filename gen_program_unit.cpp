@@ -35,8 +35,8 @@ ParseNode gen_program_end(ParseNode & suite) {
 void gen_fortran_program(const ParseNode & wrappers) {
 	std::string codes;
 	std::string main_code;
-	program_tree = wrappers;
-	for (std::map<std::string, CommonBlockInfo>::iterator iter = commonblocks.begin(); iter != commonblocks.end(); iter++)
+	get_context().program_tree = wrappers;
+	for (std::map<std::string, CommonBlockInfo>::iterator iter = get_context().commonblocks.begin(); iter != get_context().commonblocks.end(); iter++)
 	{
 		string xx = gen_common_definition(iter->first).fs.CurrentTerm.what;
 		codes += xx;
@@ -63,5 +63,5 @@ void gen_fortran_program(const ParseNode & wrappers) {
 	}
 	sprintf(codegen_buf, "int main()\n{\n%s\treturn 0;\n}", main_code.c_str());
 	codes += string(codegen_buf);
-	program_tree.fs.CurrentTerm.what = codes;
+	get_context().program_tree.fs.CurrentTerm.what = codes;
 }

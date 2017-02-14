@@ -43,7 +43,7 @@
     <ClCompile Include="..\..\gen_config.cpp" />
     <ClCompile Include="..\..\gen_do.cpp" />
     <ClCompile Include="..\..\gen_exp.cpp" />
-    <ClCompile Include="..\..\gen_forward.cpp" />
+    <ClCompile Include="..\..\gen_forwarddecl.cpp" />
     <ClCompile Include="..\..\gen_function.cpp" />
     <ClCompile Include="..\..\gen_header.cpp" />
     <ClCompile Include="..\..\gen_if.cpp" />
@@ -72,6 +72,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\attribute.h" />
+    <ClInclude Include="..\..\context.h" />
     <ClInclude Include="..\..\for90std\farray.h" />
     <ClInclude Include="..\..\for90std\for1array.h" />
     <ClInclude Include="..\..\for90std\for90std.h" />

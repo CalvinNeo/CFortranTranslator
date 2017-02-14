@@ -2,6 +2,8 @@
 
 #include "parser.h"
 #include "attribute.h"
+#include "gen_config.h"
+#include "context.h"
 #include <boost/lexical_cast.hpp>
 
 std::string for2cpp(std::string for_code);
@@ -39,10 +41,9 @@ ParseNode gen_exp(const ParseNode & exp1, const ParseNode & op, std::string tran
 
 std::string get_variable_name(ParseNode * entity_variable);
 ParseNode gen_vardef(const ParseNode & type_nospec, const ParseNode & variable_desc, const ParseNode & paramtable);
-void regen_vardef(ParseNode & newnode, const ParseNode & type_nospec, const ParseNode & vardescattr_node, ParseNode * entity_variable);
-std::string gen_vardef_array_str(std::string alias_name, ParseNode * entity_variable, const ParseNode & type_spec, const std::tuple<std::vector<int>, std::vector<int>> & shape, VariableDescAttr * vardescattr);
-std::string gen_vardef_array_str(ParseNode * entity_variable, const ParseNode & type_spec, const std::tuple<std::vector<int>, std::vector<int>> & shape, VariableDescAttr * vardescattr);
-std::string gen_vardef_scalar_str(ParseNode * entity_variable, const ParseNode & type_spec, VariableDescAttr * vardescattr);
+void regen_vardef(VariableInfo * vinfo, ParseNode & newnode, const ParseNode & type_nospec, const ParseNode & vardescattr_node, ParseNode * entity_variable);
+std::string gen_vardef_array_str(VariableInfo * vinfo, std::string alias_name, ParseNode * entity_variable, const ParseNode & type_spec, const std::tuple<std::vector<int>, std::vector<int>> & shape, VariableDescAttr * vardescattr);
+std::string gen_vardef_scalar_str(VariableInfo * vinfo, ParseNode * entity_variable, const ParseNode & type_spec, VariableDescAttr * vardescattr);
 std::string gen_lbound_size_str(const std::tuple<std::vector<int>, std::vector<int>> & shape);
 std::tuple<std::vector<int>, std::vector<int>> gen_lbound_size(const ParseNode * slice);
 ParseNode gen_vardef_simple(const ParseNode & type, std::string name);
@@ -97,7 +98,8 @@ ParseNode gen_array_from_hiddendo(ParseNode & hiddendo);
 ParseNode gen_array_from_paramtable(const ParseNode & argtable);
 void gen_arraybuilder_str(ParseNode & arraybuilder);
 
-void set_variabledesc_attr(ParseNode * newnode, boost::optional<bool> reference, boost::optional<bool> constant, boost::optional<bool> optional, boost::optional<struct ParseNode *> slice, boost::optional<int> kind);
+void set_variabledesc_attr(ParseNode * vardescattr_node, boost::optional<bool> reference, boost::optional<bool> constant, boost::optional<bool> optional, boost::optional<struct ParseNode *> slice, boost::optional<int> kind);
+VariableDesc & get_variabledesc_attr(ParseNode * vardescattr_node);
 ParseNode gen_variabledesc_from_dimenslice(ParseNode & dimen_slice);
 
 ParseNode gen_interface(const ParseNode & wrappers);
@@ -111,10 +113,6 @@ ParseNode * require_format_index(std::string format_index);
 std::string gen_rights(std::string filename, std::string author);
 ParseNode gen_header();
 
-struct CommonBlockInfo {
-	std::string common_name;
-	std::vector<VariableInfo> variables;
-}; 
 ParseNode gen_common_definition(std::string common_name);
 ParseNode gen_common(const ParseNode & common_block, const ParseNode & paramtable);
 
@@ -126,5 +124,5 @@ void gen_fortran_program(const ParseNode & wrappers);
 void do_trans(const std::string & src);
 
 
-extern std::map<std::string, CommonBlockInfo> commonblocks;
-extern std::map<std::string, ParseNode *> labels;
+//extern std::map<std::string, CommonBlockInfo> commonblocks;
+//extern std::map<std::string, ParseNode *> labels;

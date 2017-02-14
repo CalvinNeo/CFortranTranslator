@@ -52,12 +52,22 @@ struct VariableInfo
 	std::string type;
 	VariableDesc desc;
 	ParseNode variable_initial; // TokenMeta::NT_VARIABLEINITIALDUMMY if no initial
-	VariableInfo(std::string typestr, const VariableDesc & vdesc, const ParseNode & variable_initial_node) : type(typestr) , desc(vdesc), variable_initial(variable_initial_node){
+	std::string commonblock_name; 
+	int commonblock_index = 0;
+	bool implicit_defined = false; // no use
+	VariableInfo(std::string typestr, const VariableDesc & vdesc, const ParseNode & variable_initial_node) 
+		: type(typestr) , desc(vdesc), variable_initial(variable_initial_node), implicit_defined(false), commonblock_index(0){
 
 	}
+};
+
+struct CommonBlockInfo {
+	std::string common_name;
+	std::vector<VariableInfo> variables;
 };
 
 VariableInfo * get_variable(std::string module_name, std::string function_name, std::string variable_name);
 VariableInfo * add_variable(std::string module_name, std::string function_name, std::string variable_name, const VariableInfo & variable);
 void forall_variable_in_function(std::string module_name, std::string function_name, std::function<void(const std::pair<std::string, VariableInfo *> &)> func);
 void clear_variables();
+void insert_temporary_variables(std::string module_name, std::string function_name);

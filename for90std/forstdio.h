@@ -323,7 +323,7 @@ namespace for90std {
 		_forreadfree_one(f, x);
 	};
 	template <typename T, typename... Args>
-	void forreadfree(FILE * f, T & x, Args... args) {
+	void forreadfree(FILE * f, T & x, Args &&... args) {
 		_forreadfree(f, x);
 		forreadfree(f, forward<Args>(args)...);
 	};

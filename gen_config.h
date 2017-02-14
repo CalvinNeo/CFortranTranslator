@@ -4,6 +4,7 @@
 #include <map>
 #include <string>
 #include <vector>
+#include "context.h"
 
 #define UBOUND_DELTA "1"
 
@@ -48,7 +49,6 @@ const std::map<std::string, std::string> funcname_map{
 	,{ "present", "forpresent" }
 };
 
-typedef std::tuple<std::string, std::string, std::string> keyword_param_info;
 const std::map<std::string, std::vector<keyword_param_info>> func_kwargs_preset{
 	{ "foropenfile",{ { "unit", "int", "" },{ "file", "string", "" },{ "access", "string", "" },{ "action", "string" , "" },{ "status", "string", "" },{ "iostat", "int", "" } } }
 	,{ "forclosefile",{ { "unit", "int", "" },{ "status", "string", "" },{ "iostat", "int", "" } } }
@@ -65,8 +65,6 @@ const std::map<std::string, std::vector<keyword_param_info>> func_kwargs_preset{
 	//,{ "forubound",{ { "dim", "int", "" } } }
 };
 
-// in gen_config.cpp
-extern std::map<std::string, std::vector<keyword_param_info>> func_kwargs;
 
 const std::string cpp_header = "#include\"for90std.h\" \n";
 

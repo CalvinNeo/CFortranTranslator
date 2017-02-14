@@ -1,12 +1,20 @@
 #include "gen_common.h"
 
 
-void set_variabledesc_attr(ParseNode * newnode, boost::optional<bool> reference, boost::optional<bool> constant, boost::optional<bool> optional, boost::optional<struct ParseNode *> slice, boost::optional<int> kind ) {
-	if (newnode->attr == nullptr) {
-		newnode->attr = new VariableDescAttr(newnode);
+void set_variabledesc_attr(ParseNode * vardescattr_node, boost::optional<bool> reference, boost::optional<bool> constant, boost::optional<bool> optional, boost::optional<struct ParseNode *> slice, boost::optional<int> kind ) {
+	if (vardescattr_node->attr == nullptr) {
+		vardescattr_node->attr = new VariableDescAttr(vardescattr_node);
 	}
-	VariableDescAttr * x = dynamic_cast<VariableDescAttr *>(newnode->attr);
+	VariableDescAttr * x = dynamic_cast<VariableDescAttr *>(vardescattr_node->attr);
 	x->desc = VariableDesc(reference, constant, optional, slice, kind);
+}
+
+VariableDesc & get_variabledesc_attr(ParseNode * vardescattr_node) {
+	if (vardescattr_node->attr == nullptr) {
+		vardescattr_node->attr = new VariableDescAttr(vardescattr_node);
+	}
+	VariableDescAttr * x = dynamic_cast<VariableDescAttr *>(vardescattr_node->attr);
+	return x->desc;
 }
 
 ParseNode gen_variabledesc_from_dimenslice(ParseNode & dimen_slice) {

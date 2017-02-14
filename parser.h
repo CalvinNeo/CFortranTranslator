@@ -4,7 +4,6 @@
 #include <iostream>
 #include "tokenizer.h"
 #include <boost/optional/optional.hpp>
-#include <boost/algorithm/string.hpp>
 
 // 在初始化之后是否值是否被修改
 template<class T>
@@ -76,9 +75,6 @@ struct ParseNode {
 
 
 int parse(std::string code);
-void reset_parser();
-extern ParseNode program_tree;
-extern std::string global_code;
 void preorder(ParseNode * ptree);
 /* generate codes instead of in .y files */
 std::string lazy_gen(ParseNode * ptree);
@@ -108,5 +104,3 @@ struct ParseConfig {
 	bool usefor = true;
 	bool usefarray = true;
 };
-
-extern ParseConfig parse_config;

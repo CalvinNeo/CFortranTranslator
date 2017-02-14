@@ -72,7 +72,7 @@ void gen_arraybuilder_str(ParseNode & arraybuilder) {
 			totalsize +=  to - from + 1;
 		}
 		else {
-			totalsize += array_builder->child[0]/*NT_ARGTABLE_PURE or other paramtable nodes*/->child.size();
+			totalsize += (int)array_builder->child[0]/*NT_ARGTABLE_PURE or other paramtable nodes*/->child.size();
 		}
 	}
 	if (can_list_init)

@@ -155,13 +155,14 @@ using namespace std;
 			}
 		| ',' variable_desc_elem variable_desc
 			{
-				ParseNode * variable_iden = & $3;
-				ParseNode & variable_iden_1 = $2;
+				ParseNode & variable_elem = $2;
+				ParseNode * variable_desc = & $3;
 				/* target code of slice depend on context */
 				ParseNode newnode = ParseNode(gen_flex(Term{ TokenMeta::NT_VARIABLEDESC, "NT_VARIABLEDESC" }), nullptr);
 				/* merge attrs */
-				newnode.attr = variable_iden_1.attr->clone();
-				dynamic_cast<VariableDescAttr *>(newnode.attr)->merge(*dynamic_cast<VariableDescAttr *>(variable_iden->attr));
+				newnode.attr = variable_elem.attr->clone();
+				//dynamic_cast<VariableDescAttr *>(newnode.attr)->merge(*dynamic_cast<VariableDescAttr *>(variable_desc->attr));
+				get_variabledesc_attr(&newnode).merge(get_variabledesc_attr(variable_desc));
 				// TODO do not add child
 				$$ = newnode;
 				update_pos($$, $1, $3);
@@ -283,7 +284,6 @@ using namespace std;
 				/* target code of slice depend on context */
 				ParseNode & slice = $1;
 				ParseNode & dimen_slice = $3;
-				// gen_dimenslice(slice, dimen_slice);
 				$$ = gen_flattern(slice, dimen_slice, "%s, %s", TokenMeta::NT_DIMENSLICE);
 				update_pos($$, $1, $3);
 			}
@@ -296,6 +296,7 @@ using namespace std;
 			}
          | exp ',' paramtable
 			{
+				/* IMPORTANT: not `exp ',' dimen_slice` but `exp ',' paramtable`, or will cause confliction */
 				ParseNode & exp = $1;
 				ParseNode & argtable = $3;
 				ParseNode newnode = ParseNode();

@@ -9,6 +9,7 @@
 #include <boost/algorithm/string.hpp>
 #include "../tokenizer.h"
 #include "../parser.h"
+#include "../context.h"
 #include "../gen_config.h"
 
 
@@ -21,7 +22,6 @@ int word_parse();
 #endif
 void update_flex(int len, bool newline = false); // do not update CurrentTerm
 void update_yylval(Term & current_term, bool empty = false);
-extern std::string global_code;
 int make_term_flex(const TokenMeta_T & token, const char * w);
 static bool abandon = false;
 
@@ -83,7 +83,6 @@ static bool abandon = false;
 #endif // USE_YACC
 
 
-FlexState flex_state;
 #ifdef USE_YACC
 
 #else
@@ -137,20 +136,18 @@ int yywrap()
 
 int make_term_flex(const TokenMeta_T & token, const char * w) {
 	// same as gen_flex in codegen.h
-	flex_state.CurrentTerm = Term{ token, std::string(w) };
+	get_flex_state().CurrentTerm = Term{ token, std::string(w) };
 	return token;
 }
 void update_flex(int len, bool newline) {
 	if (newline) {
-		flex_state.parse_line++; flex_state.line_pos = 0; flex_state.parse_pos += yyleng; flex_state.parse_len = 0; 
+		get_flex_state().parse_line++; get_flex_state().line_pos = 0; get_flex_state().parse_pos += yyleng; get_flex_state().parse_len = 0; 
 	}
 	else {
-		flex_state.parse_pos += len; flex_state.line_pos += flex_state.parse_len; flex_state.parse_len = len;
+		get_flex_state().parse_pos += len; get_flex_state().line_pos += get_flex_state().parse_len; get_flex_state().parse_len = len;
 	}
 }
-FlexState & get_flex_state() {
-	return flex_state;
-}
+
 #ifdef USE_YACC
 
 
@@ -160,33 +157,35 @@ void update_yylval(Term & current_term, bool empty) {
 		// 空格字符等
 	}
 	else {
-		yylval.fs = FlexState(flex_state);
+		yylval.fs = FlexState(get_flex_state());
 		yylval.fs.CurrentTerm = current_term;
 	}
 }
 int word_parse() {
 	using namespace std;
-	const FlexState & fs = flex_state;
+	const FlexState & fs = get_flex_state();
 	if (abandon) {
 		abandon = false;
 		return YY_REQ_MORE;
 	}
-	string yytextstr = string(yytext);
-	transform(yytextstr.begin(), yytextstr.end(), yytextstr.begin(), tolower); // tolower
-																			   //yytextstr.erase(remove_if(yytextstr.begin(), yytextstr.end(), isspace), yytextstr.end()); // remove all space
+	string lowercase_name = string(yytext);
+	transform(lowercase_name.begin(), lowercase_name.end(), lowercase_name.begin(), tolower); 
 FIND_AGAIN:
 	for (int i = 0; i < keywords.size(); i++)
 	{
-		if (keywords[i].what == yytextstr) {
+		if (keywords[i].what == lowercase_name) {
 			for (auto iter = forward1.begin(); iter != forward1.end(); iter++)
 			{
-				if (iter->first == yytextstr) {
+				if (iter->first == lowercase_name) {
 					// not a valid yylval
-					std::string next = CutString(global_code.begin() + fs.parse_pos + yyleng /* yyleng != fs.parse_len because RTNWORD do not update_flex before */, global_code.end(), false);
+					std::string next = CutString(get_context().global_code.begin() + fs.parse_pos + yyleng 
+						/* yyleng != fs.parse_len because RTNWORD do not update_flex before */
+						, get_context().global_code.end(), false);
 					for (int j = 0; j < iter->second.size(); j++)
 					{
 						if (iter->second[j] == next) {
-							yytextstr += next;
+							// concat two string
+							lowercase_name += next;
 							abandon = true;
 							goto FIND_AGAIN;
 						}
@@ -195,17 +194,18 @@ FIND_AGAIN:
 			}
 
 			/* this is a keyword with specialized yytoken */
-			if (pre_map.find(yytextstr) != pre_map.end()) {
-				yytextstr = pre_map.at(yytextstr);
+			if (pre_map.find(lowercase_name) != pre_map.end()) {
+				lowercase_name = pre_map.at(lowercase_name);
 			}
-			update_yylval(Term{ keywords[i].token , std::string(yytextstr) });
+			update_yylval(Term{ keywords[i].token , std::string(lowercase_name) });
 			return keywords[i].yytoken;
 		}
 	}
-	if (pre_map.find(yytextstr) != pre_map.end()) {
-		yytextstr = pre_map.at(yytextstr);
+	if (pre_map.find(lowercase_name) != pre_map.end()) {
+		// replace according to tokenizer.cpp
+		lowercase_name = pre_map.at(lowercase_name);
 	}
-	update_yylval(Term{ TokenMeta::META_WORD , std::string(yytextstr) });
+	update_yylval(Term{ TokenMeta::META_WORD , std::string(lowercase_name) });
 	return YY_WORD;
 }
 
@@ -214,10 +214,10 @@ YY_BUFFER_STATE yy_buffer = nullptr;
 void set_buff(const std::string & code) {
 	using namespace std;
 	int slen = code.size();
-	flex_state.parse_line = 0;
-	flex_state.parse_pos = 0;
-	flex_state.parse_len = 0;
-	flex_state.line_pos = 0; 
+	get_flex_state().parse_line = 0;
+	get_flex_state().parse_pos = 0;
+	get_flex_state().parse_len = 0;
+	get_flex_state().line_pos = 0; 
 	if (iter_buff != 0) {
 		free(iter_buff); iter_buff = nullptr;
 	}
@@ -235,13 +235,13 @@ void release_buff() {
 FlexState next_token(const std::string & in_str, int start){
 	using namespace std;
 	int slen = in_str.size() - start;
-	flex_state.parse_line = 0;
-	flex_state.parse_pos = start;
-	flex_state.parse_len = 0;
-	flex_state.line_pos = start;
+	get_flex_state().parse_line = 0;
+	get_flex_state().parse_pos = start;
+	get_flex_state().parse_len = 0;
+	get_flex_state().line_pos = start;
 	if (slen <= 0) {
-		flex_state.isnull = true;
-		return flex_state;
+		get_flex_state().isnull = true;
+		return get_flex_state();
 	}
 	char * buff = (char *)malloc(slen + 2);
 	// 要以两个'\0'结束
@@ -256,28 +256,28 @@ FlexState next_token(const std::string & in_str, int start){
 	YY_BUFFER_STATE buffer = yy_scan_buffer(buff, slen + 2);
     int token = yylex();
 	if (token == 0) {
-		flex_state.isnull = true;
+		get_flex_state().isnull = true;
 	}
 	else {
-		flex_state.isnull = false;
+		get_flex_state().isnull = false;
 	}
-	flex_state.parse_len = yyleng;
+	get_flex_state().parse_len = yyleng;
     yy_delete_buffer(buffer);
 	free(buff);
-	return flex_state;
+	return get_flex_state();
 }
 
 char * iter_buff = nullptr;
 FlexState iter_token(const std::string & in_str, int start) {
 	using namespace std;
 	int slen = in_str.size();
-	flex_state.parse_line = 0;
-	flex_state.parse_pos = start;
-	flex_state.parse_len = 0;
-	flex_state.line_pos = start;
+	get_flex_state().parse_line = 0;
+	get_flex_state().parse_pos = start;
+	get_flex_state().parse_len = 0;
+	get_flex_state().line_pos = start;
 	if (start >= slen) {
-		flex_state.isnull = true;
-		return flex_state;
+		get_flex_state().isnull = true;
+		return get_flex_state();
 	}
 	if (iter_buff == 0) {
 		iter_buff = (char *)malloc(slen + 2);
@@ -288,15 +288,15 @@ FlexState iter_token(const std::string & in_str, int start) {
 	YY_BUFFER_STATE buffer = yy_scan_buffer(iter_buff + start, slen + 2 - start);
 	int token = yylex();
 	if (token == 0) {
-		flex_state.isnull = true;
+		get_flex_state().isnull = true;
 		yy_delete_buffer(buffer);
 		free(iter_buff);
 		iter_buff = nullptr;
 	}
 	else {
-		flex_state.isnull = false;
+		get_flex_state().isnull = false;
 	}
-	flex_state.parse_len = yyleng;
-	return flex_state;
+	get_flex_state().parse_len = yyleng;
+	return get_flex_state();
 }
 #endif

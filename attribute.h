@@ -4,10 +4,6 @@
 #include "Variable.h"
 
 
-// 传入optionalparam<T>()表示不传参，原为for90std.h中foroptional的副本
-//template<typename T>
-//using optionalparam = boost::optional<T>;
-
 // 属性文法
 struct ParseAttr {
 	ParseNode * parsenode; // observer ptr

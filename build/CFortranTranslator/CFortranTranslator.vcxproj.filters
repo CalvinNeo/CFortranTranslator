@@ -107,9 +107,6 @@
     <ClCompile Include="..\..\gen_header.cpp">
       <Filter>target90</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\gen_forward.cpp">
-      <Filter>target90</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\gen_attr_describer.cpp">
       <Filter>target90</Filter>
     </ClCompile>
@@ -139,6 +136,9 @@
       <Filter>for90std</Filter>
     </ClCompile>
     <ClCompile Include="..\..\gen_program_unit.cpp">
+      <Filter>target90</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\gen_forwarddecl.cpp">
       <Filter>target90</Filter>
     </ClCompile>
   </ItemGroup>
@@ -208,6 +208,9 @@
     </ClInclude>
     <ClInclude Include="..\..\for90std\forarray_common.h">
       <Filter>for90std</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\context.h">
+      <Filter>parser</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
