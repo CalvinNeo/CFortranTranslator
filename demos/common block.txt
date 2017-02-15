@@ -1,0 +1,5 @@
+common /cb/ a, b, c(10)
+program
+	integer::x, y
+	common /cb/ x, y, z(10)
+end program

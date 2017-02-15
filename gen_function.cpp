@@ -1,23 +1,5 @@
 ﻿#include "gen_common.h"
 
-
-std::string gen_paramtable_variable_str(VariableDesc vardesc, const tuple<string, ParseNode, ParseNode *> & param_info) {
-	string paramtblstr;
-	string type_nospec;
-	if (vardesc.optional)
-	{
-		type_nospec += "foroptional<";
-		type_nospec += get<1>(param_info).fs.CurrentTerm.what;
-		type_nospec += ">";
-	}
-	else {
-		type_nospec += get<1>(param_info).fs.CurrentTerm.what;
-	}	
-	paramtblstr += gen_qualified_typestr(type_nospec, vardesc); // type
-	paramtblstr += get<0>(param_info); // variable name
-	return paramtblstr;
-}
-
 std::string regen_paramtable(const vector<tuple<string, ParseNode, ParseNode *>> & paramtable_info) {
 	/* generate new paramtable with type */
 	string paramtblstr;
@@ -36,7 +18,9 @@ std::string regen_paramtable(const vector<tuple<string, ParseNode, ParseNode *>>
 			vardef->fs.CurrentTerm.token == TokenMeta::NT_DECLAREDVARIABLE)
 		{
 			VariableDesc desc = get_variabledesc_attr(vardef);
-			paramtblstr += gen_paramtable_variable_str(desc, paramtable_info[i]);
+			std::string typestr = gen_qualified_typestr(get<1>(paramtable_info[i]), desc);
+			sprintf(codegen_buf, "%s %s", typestr.c_str(), get<0>(paramtable_info[i]).c_str());
+			paramtblstr += string(codegen_buf);
 		}
 		else if (vardef->fs.CurrentTerm.token == TokenMeta::NT_FUNCTIONDECLARE) {
 			paramtblstr += get<1>(paramtable_info[i]).fs.CurrentTerm.what;
@@ -44,7 +28,6 @@ std::string regen_paramtable(const vector<tuple<string, ParseNode, ParseNode *>>
 		}
 
 	}
-
 	return paramtblstr;
 }
 
@@ -136,8 +119,10 @@ vector<tuple<string, ParseNode, ParseNode *>> get_full_paramtable(const ParseNod
 							if (k != 0)
 								interface_paramtable_str += ", ";
 							ParseNode * param_node = get<2>(interface_paramtable[k]);
-							VariableDesc desc = get_variabledesc_attr(param_node);;
-							interface_paramtable_str += gen_paramtable_variable_str(desc, interface_paramtable[k]);
+							VariableDesc desc = get_variabledesc_attr(param_node);
+							std::string typestr = gen_qualified_typestr(get<1>(interface_paramtable[k]), desc);
+							sprintf(codegen_buf, "%s %s", typestr.c_str(), get<0>(interface_paramtable[k]).c_str());
+							interface_paramtable_str += string(codegen_buf);
 						}
 					}
 					get<1>(paramtable_info[i]) = gen_type(Term{TokenMeta::Function_Def, "std::function<"

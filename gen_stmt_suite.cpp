@@ -41,7 +41,7 @@ std::string regen_suite(ParseNode * oldsuite) {
 			for (int j = 0; j < vardef_set->child.size(); j++)
 			{
 				ParseNode * vardef = vardef_set->child[j];
-				ParseNode * typeinfo = vardef->child[0];
+				ParseNode * type_nospec = vardef->child[0];
 				ParseNode * vardescattr = vardef->child[1];
 				ParseNode * entity_variable = vardef->child[2];
 				std::string name = get_variable_name( entity_variable );
@@ -59,8 +59,8 @@ std::string regen_suite(ParseNode * oldsuite) {
 							CommonBlockInfo commoninfo = get_context().commonblocks[vinfo->commonblock_name];
 							std::string common_varname = "_" + to_string(vinfo->commonblock_index + 1);
 							// common语句并不能给出 vinfo->type 的值
-							vinfo->type = gen_qualified_typestr(typeinfo->fs.CurrentTerm.what, get_variabledesc_attr(vardescattr));
-							regen_vardef(vinfo, *vardef, *typeinfo, *vardescattr, entity_variable);
+							vinfo->type = gen_qualified_typestr(*type_nospec, get_variabledesc_attr(vardescattr));
+							regen_vardef(vinfo, *vardef, *type_nospec, *vardescattr, entity_variable);
 							sprintf(codegen_buf, "%s = %s.%s", vardef->fs.CurrentTerm.what.c_str(), vinfo->commonblock_name.c_str(), common_varname.c_str());
 							vinfo->implicit_defined = false; // `common` is explicit declaration
 							newsuitestr += string(codegen_buf);
@@ -69,7 +69,7 @@ std::string regen_suite(ParseNode * oldsuite) {
 							// variable haven't defined
 							VariableInfo newinfo("", VariableDesc(), ParseNode());
 							vinfo = add_variable("@", "@", name, newinfo);
-							regen_vardef(vinfo, *vardef, *typeinfo, *vardescattr, entity_variable);
+							regen_vardef(vinfo, *vardef, *type_nospec, *vardescattr, entity_variable);
 							newsuitestr += vardef->fs.CurrentTerm.what;
 						}
 						newsuitestr += ";\n";

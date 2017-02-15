@@ -41,9 +41,9 @@ ParseNode gen_exp(const ParseNode & exp1, const ParseNode & op, std::string tran
 
 std::string get_variable_name(ParseNode * entity_variable);
 ParseNode gen_vardef(const ParseNode & type_nospec, const ParseNode & variable_desc, const ParseNode & paramtable);
-void regen_vardef(VariableInfo * vinfo, ParseNode & newnode, const ParseNode & type_nospec, const ParseNode & vardescattr_node, ParseNode * entity_variable);
-std::string gen_vardef_array_str(VariableInfo * vinfo, std::string alias_name, ParseNode * entity_variable, const ParseNode & type_spec, const std::tuple<std::vector<int>, std::vector<int>> & shape, VariableDescAttr * vardescattr);
-std::string gen_vardef_scalar_str(VariableInfo * vinfo, ParseNode * entity_variable, const ParseNode & type_spec, VariableDescAttr * vardescattr);
+void regen_vardef(VariableInfo * vinfo, ParseNode & newnode, const ParseNode & type_nospec, ParseNode & vardescattr_node, ParseNode * entity_variable);
+std::string gen_vardef_array_str(VariableInfo * vinfo, std::string alias_name, ParseNode * entity_variable, const ParseNode & type_nospec, const std::tuple<std::vector<int>, std::vector<int>> & shape, VariableDescAttr & vardescattr);
+std::string gen_vardef_scalar_str(VariableInfo * vinfo, ParseNode * entity_variable, const ParseNode & type_nospec, VariableDescAttr & vardescattr);
 std::string gen_lbound_size_str(const std::tuple<std::vector<int>, std::vector<int>> & shape);
 std::tuple<std::vector<int>, std::vector<int>> gen_lbound_size(const ParseNode * slice);
 ParseNode gen_vardef_simple(const ParseNode & type, std::string name);
@@ -86,7 +86,7 @@ ParseNode gen_type(const ParseNode & type_nospec, const ParseNode & _type_kind);
 ParseNode gen_type(const ParseNode & type_nospec);
 ParseNode gen_type(Term typeterm);
 ParseNode promote_type(const ParseNode & type_spec, VariableDesc & vardesc);
-std::string gen_qualified_typestr(std::string type_name, const VariableDesc & vardesc);
+std::string gen_qualified_typestr(const ParseNode & type_name, VariableDesc & vardesc);
 
 ParseNode gen_argtable(ParseNode & dimen_slice);
 
@@ -122,7 +122,3 @@ ParseNode gen_program(ParseNode & suite);
 void gen_fortran_program(const ParseNode & wrappers);
 
 void do_trans(const std::string & src);
-
-
-//extern std::map<std::string, CommonBlockInfo> commonblocks;
-//extern std::map<std::string, ParseNode *> labels;

@@ -60,10 +60,10 @@ ParseNode gen_common_definition(std::string common_name) {
 	}, "\n");
 	if (common_name == "")
 	{
-		sprintf(codegen_buf, "typedef struct{\n%s\n}G;\n", tabber(struct_str).c_str());
+		sprintf(codegen_buf, "struct{\n%s\n}G;\n", tabber(struct_str).c_str());
 	}
 	else {
-		sprintf(codegen_buf, "typedef struct{\n%s\n}%s;\n", tabber(struct_str).c_str(), common_name.c_str());
+		sprintf(codegen_buf, "struct{\n%s\n}%s;\n", tabber(struct_str).c_str(), common_name.c_str());
 	}
 	return gen_token(Term{ TokenMeta::NT_COMMONBLOCKDEFINE, string(codegen_buf) });
 }

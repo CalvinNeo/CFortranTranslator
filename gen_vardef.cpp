@@ -25,31 +25,17 @@ std::tuple<std::vector<int>, std::vector<int>> gen_lbound_size(const ParseNode *
 	return make_tuple(lb, sz);
 }
 
-std::string gen_vardef_array_str(VariableInfo * vinfo, std::string alias_name, ParseNode * entity_variable, const ParseNode & type_spec, const std::tuple<std::vector<int>, std::vector<int>> & shape, VariableDescAttr * vardescattr) {
+std::string gen_vardef_array_str(VariableInfo * vinfo, std::string alias_name, ParseNode * entity_variable, const ParseNode & type_nospec, const std::tuple<std::vector<int>, std::vector<int>> & shape, VariableDescAttr & vardescattr) {
 	string arr_decl = "";
 	// entity_variable is 
 	// NT_VARIABLEINITIAL(entity_variable) -> NT_EXPRESSION(entity_variable_name) -> NT_FUCNTIONARRAY -> (UnknownVariant, NT_ARGTABLE_PURE)/NT_VARIABLEINITIAL
 	// or NT_VARIABLEINITIAL(entity_variable) -> (UnknownVariant, NT_VARIABLEINITIALDUMMY or else)
 	int dimension = (int)get<0>(shape).size();
-	string type_str;
 	if (alias_name == "")
 	{
 		alias_name = entity_variable->child[0]->fs.CurrentTerm.what;
 	}
-	string innermost_typestr = gen_qualified_typestr(type_spec.fs.CurrentTerm.what, vardescattr == nullptr? VariableDesc() : vardescattr->desc); // `T`
-	if (get_context().parse_config.usefarray) {
-		sprintf(codegen_buf, "farray<%s>", innermost_typestr.c_str());
-		type_str = string(codegen_buf);
-	}
-	else {
-		sprintf(codegen_buf, "for1array<%s>", innermost_typestr.c_str());
-		type_str = string(codegen_buf);
-		for (int sliceid = dimension - 2; sliceid >= 0; sliceid--)
-		{
-			sprintf(codegen_buf, "for1array<%s>", type_str.c_str());
-			type_str = string(codegen_buf);
-		}
-	}
+	string type_str = gen_qualified_typestr(type_nospec, vardescattr.desc); // `T`
 
 	// no desc if var_def is not in paramtable
 	sprintf(codegen_buf, "%s %s", type_str.c_str(), alias_name.c_str()  /* array name */);
@@ -76,7 +62,7 @@ std::string gen_vardef_array_str(VariableInfo * vinfo, std::string alias_name, P
 		arr_decl += string(codegen_buf);
 	}
 	//VariableInfo vinfo = VariableInfo(type_str, vardescattr->desc, *(entity_variable->child[1]));
-	entity_variable->attr = new VariableAttr(vardescattr->parsenode, vinfo);
+	entity_variable->attr = new VariableAttr(vardescattr.parsenode, vinfo);
 	return arr_decl;
 }
 
@@ -97,22 +83,18 @@ std::string get_variable_name(ParseNode * entity_variable) {
 	}
 }
 
-std::string gen_vardef_scalar_str(VariableInfo * vinfo, ParseNode * entity_variable, const ParseNode & type_spec, VariableDescAttr * vardescattr) {
+std::string gen_vardef_scalar_str(VariableInfo * vinfo, ParseNode * entity_variable, const ParseNode & type_nospec, VariableDescAttr & vardescattr) {
 	string var_decl;
-
-	string typestr = gen_qualified_typestr(type_spec.fs.CurrentTerm.what, vardescattr == nullptr ? VariableDesc() : vardescattr->desc);
+	string typestr = gen_qualified_typestr(type_nospec, vardescattr.desc);
 	ParseNode * entity_variable_name = entity_variable->child[0];
 	// from entity_variable
 	// NT_VARIABLEINITIAL(entity_variable) -> NT_EXPRESSION(entity_variable_name) -> NT_FUCNTIONARRAY -> (UnknownVariant, NT_ARGTABLE_PURE)
 	if (entity_variable_name->fs.CurrentTerm.token == TokenMeta::NT_EXPRESSION && entity_variable_name->child[0]->fs.CurrentTerm.token == TokenMeta::NT_FUCNTIONARRAY)
 	{
 		ParseNode * argtable = entity_variable_name->child[0]->child[1];
-		std::vector<int> lb(argtable->child.size()), sz(argtable->child.size());
-		std::fill(lb.begin(), lb.end(), 1);
-		std::transform(argtable->child.begin(), argtable->child.end(), sz.begin(), [](auto x) {
-			int y;  sscanf(x->fs.CurrentTerm.what.c_str(), "%d", &y); return y; 
-		});
-		var_decl = gen_vardef_array_str(vinfo, get_variable_name(entity_variable), entity_variable, type_spec, make_tuple(lb, sz), vardescattr);
+		std::tuple<std::vector<int>, std::vector<int>> ls = gen_lbound_size(argtable);
+		vardescattr.desc.slice = argtable;
+		var_decl = gen_vardef_array_str(vinfo, get_variable_name(entity_variable), entity_variable, type_nospec, ls, vardescattr);
 	}
 	else {
 		sprintf(codegen_buf, "%s %s", typestr.c_str(), get_variable_name(entity_variable).c_str());
@@ -123,8 +105,7 @@ std::string gen_vardef_scalar_str(VariableInfo * vinfo, ParseNode * entity_varia
 			var_decl += entity_variable->child[1]->fs.CurrentTerm.what; // initial value
 		}
 	}
-	//VariableInfo vinfo("", vardescattr->desc, *(entity_variable->child[1]));
-	entity_variable->attr = new VariableAttr(vardescattr->parsenode, vinfo);
+	entity_variable->attr = new VariableAttr(vardescattr.parsenode, vinfo);
 	return var_decl;
 }
 
@@ -155,24 +136,22 @@ ParseNode gen_vardef(const ParseNode & type_nospec, const ParseNode & variable_d
 	return newnode;
 }
 
-void regen_vardef(VariableInfo * vinfo, ParseNode & newnode, const ParseNode & type_nospec, const ParseNode & vardescattr_node, ParseNode * entity_variable) {
+void regen_vardef(VariableInfo * vinfo, ParseNode & newnode, const ParseNode & type_nospec, ParseNode & vardescattr_node, ParseNode * entity_variable) {
 	string var_decl = ""; 
-	VariableDescAttr * vardescattr = dynamic_cast<VariableDescAttr *>(vardescattr_node.attr);
-	ParseNode * slice = vardescattr->desc.slice;
-	VariableDesc desc = (vardescattr == nullptr ? VariableDesc() : vardescattr->desc);
-	ParseNode type_spec = promote_type(type_nospec, desc); // reset type according to kind
+	VariableDescAttr vardescattr = vardescattr_node.attr != nullptr ? *dynamic_cast<VariableDescAttr *>(vardescattr_node.attr) : VariableDescAttr(&vardescattr_node);
+	VariableDesc & desc = vardescattr.desc;
+	ParseNode * slice = desc.slice;
 
 	bool do_arr = (slice != nullptr);
 	if (do_arr)
 	{
 		// ARRAY
-		var_decl += gen_vardef_array_str(vinfo, "", entity_variable, type_spec, gen_lbound_size(slice), vardescattr);
+		var_decl += gen_vardef_array_str(vinfo, "", entity_variable, type_nospec, gen_lbound_size(slice), vardescattr);
 		newnode.fs.CurrentTerm = Term{ TokenMeta::NT_VARIABLEDEFINE, var_decl };
 	}
 	else {
 		// SCALAR
-		var_decl += gen_vardef_scalar_str(vinfo, entity_variable, type_spec, vardescattr);
+		var_decl += gen_vardef_scalar_str(vinfo, entity_variable, type_nospec, vardescattr);
 		newnode.fs.CurrentTerm = Term{ TokenMeta::NT_VARIABLEDEFINE, var_decl };
 	} // end if
-	  /* attr */
 }

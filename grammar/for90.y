@@ -183,7 +183,7 @@ using namespace std;
 
 				/* type size */
 				ParseNode * newnode = new ParseNode(gen_flex(Term{ TokenMeta::NT_VARIABLEDESC, "NT_VARIABLEDESC" }), nullptr); // kind
-				set_variabledesc_attr(newnode, boost::none, true, boost::none, boost::none, kind);
+				set_variabledesc_attr(newnode, boost::none, boost::none, boost::none, boost::none, kind);
 				$$ = *newnode;
 				update_pos($$, $1, $3);
 			}
@@ -914,7 +914,7 @@ using namespace std;
 		|
 			{
 				/* no params */
-				ParseNode newnode = ParseNode(gen_flex(Term{ TokenMeta::NT_PARAMTABLE, "" }), nullptr);
+				ParseNode newnode = gen_token(Term{ TokenMeta::NT_PARAMTABLE, "" });
 				$$ = newnode;
 				update_pos($$);
 			}
@@ -922,7 +922,7 @@ using namespace std;
 	_generate_stmt : exp ',' variable '=' exp ',' exp
 			{
 				/* something like `abs(i), i=1,4` */
-				ParseNode newnode = ParseNode(gen_flex(Term{ TokenMeta::NT_HIDDENDO, "" }), nullptr);
+				ParseNode newnode = gen_token(Term{ TokenMeta::NT_HIDDENDO, "" });
 				newnode.addchild(new ParseNode($1)); // exp
 				newnode.addchild(new ParseNode($3)); // index variable
 				newnode.addchild(new ParseNode($5)); // exp_from
@@ -933,7 +933,11 @@ using namespace std;
 		
 	hidden_do : '(' _generate_stmt ')'
 			{
-				/* something like `abs(i), i=1,4` */
+				/*
+				R433 ac - implied - do is(ac - value - list, ac - implied - do - control)
+				R434 ac - implied - do - control is ac - do - variable = scalar - int - expr, ¡ö
+				¡ö scalar - int - expr[, scalar - int - expr]
+				*/
 				ParseNode & _generate_stmt = $2;
 				$$ = gen_hiddendo(_generate_stmt);
 				update_pos($$, $1, $3);

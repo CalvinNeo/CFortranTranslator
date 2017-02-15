@@ -316,7 +316,7 @@ namespace for90std {
 			parr = new T[totalsize];
 		}
 		template <typename Iterator_FSize_T>
-		farray(int D, Iterator_FSize_T lower_bound, Iterator_FSize_T size,  bool isview = false) noexcept: is_view(isview)
+		farray(int D, Iterator_FSize_T lower_bound, Iterator_FSize_T size) noexcept: is_view(false)
 		{
 			// on some occations, dimension is not given by sizeof(lower_bound) / sizeof(size)
 			reset_array(D, lower_bound, size);
@@ -328,7 +328,7 @@ namespace for90std {
 			reset_value();
 		}
 		template <int D, typename Iterator>
-		farray(const size_type(&lower_bound)[D], const size_type(&size)[D], Iterator begin, Iterator end) noexcept : is_view(false)
+		farray(const size_type(&lower_bound)[D], const size_type(&size)[D], Iterator begin, Iterator end, bool isview = false) noexcept : is_view(isview)
 		{
 			reset_array(D, lower_bound, size);
 			reset_value(begin, end);
@@ -348,7 +348,7 @@ namespace for90std {
 			reset_value(values, values + X);
 		}
 		template <int D>
-		farray(const size_type(&lower_bound)[D], const size_type(&size)[D], const farray<T> & m) noexcept : is_view(false)
+		farray(const size_type(&lower_bound)[D], const size_type(&size)[D], const farray<T> & m, bool isview = false) noexcept : is_view(isview)
 		{
 			// used when construct from a farray<T>
 			// copy and reshape from a farray

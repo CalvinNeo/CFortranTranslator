@@ -1,8 +1,5 @@
-function sum(x) result (sum_result)
-	integer,intent(in)::x
-	integer::sum_result
-	integer::a
-	integer,dimension(1:2, 3:4)::dim
-	common /cb/ a, b
-	sum_result = x
-end function
+program
+	!common /cb/ a(10)
+	integer(kind = 2)::b(10:20)
+	!integer(kind = 2), dimension(4, 5)::c
+end program

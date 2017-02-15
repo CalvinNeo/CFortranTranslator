@@ -56,4 +56,6 @@
 - ~~fixed length character initialize with shorter characters~~
 - global attr and node attr
 - ~~add arraybuilder rule to exp rules~~
-- ~use `make_str_list` function replace some ugly code~
+- ~~use `make_str_list` function replace some ugly code~~
+- hidden do with a list of variables
+- pointer problem, including `VariableDesc::slice`
