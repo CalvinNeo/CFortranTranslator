@@ -50,7 +50,7 @@ ParseNode & ParseNode::operator= (const ParseNode & pn) {
 		{
 			delete child[i];
 		}
-		child.clear();
+		this->child.clear();
 
 		this->fs = pn.fs;
 		this->father = pn.father;

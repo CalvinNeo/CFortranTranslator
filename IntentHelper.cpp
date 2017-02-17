@@ -167,6 +167,7 @@ std::map<int, std::string> IntentName = {
 	,{ TokenMeta::Complex - 100, "Complex_Def" }
 	,{ TokenMeta::Short - 100, "Short_Def" }
 	, { TokenMeta::Function - 100, "Function_Def" }
+		, { -599, "Implicit_Def" }
 
 	,{ -600, "If" }
 	,{ -601, "Else or ElseIf" }

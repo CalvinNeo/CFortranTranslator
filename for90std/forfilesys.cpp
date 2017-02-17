@@ -19,7 +19,7 @@ namespace for90std {
 		filenos[6] = stdout;
 		forfilesys_inited = true;
 	}
-	void foropenfile(int unit, std::string file, foroptional<std::string> access, foroptional<std::string> action, foroptional<std::string> status, foroptional<int> iostat) {
+	void foropenfile(int unit, std::string file, foroptional<std::string> access, foroptional<std::string> action, foroptional<std::string> status, foroptional<int> iostat, foroptional<std::string> form) {
 		if (!forfilesys_inited) flush_fileno();
 		using namespace std;
 		bool docreate;

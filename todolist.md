@@ -58,4 +58,5 @@
 - ~~add arraybuilder rule to exp rules~~
 - ~~use `make_str_list` function replace some ugly code~~
 - hidden do with a list of variables
-- pointer problem, including `VariableDesc::slice`
+- pointer problem, including `VariableDesc::slice`, deal with nullptr
+- `ParseNode` inteface change to reference, remove pointer in other strctures

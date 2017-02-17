@@ -7,7 +7,6 @@
 #include <boost/lexical_cast.hpp>
 
 std::string for2cpp(std::string for_code);
-ParseNode * flattern_bin(ParseNode * pn);
 std::string tabber(std::string & src);
 
 ParseNode gen_token(Term term);
@@ -34,7 +33,8 @@ ParseNode gen_merge(const ParseNode & list1, const ParseNode & list2, std::strin
 std::string parse_ioformatter(const std::string &); 
 ParseNode gen_read(const ParseNode & io_info, const ParseNode & argtable);
 ParseNode gen_write(const ParseNode & io_info, const ParseNode & argtable);
-ParseNode gen_print(const ParseNode & io_info, const ParseNode & argtable);
+ParseNode gen_print(const ParseNode & io_info, const ParseNode & argtable); 
+ParseNode gen_format(const ParseNode & format);
 
 ParseNode gen_exp(const ParseNode & exp1, const ParseNode & op, const ParseNode & exp2, std::string trans_rule);
 ParseNode gen_exp(const ParseNode & exp1, const ParseNode & op, std::string trans_rule);
@@ -98,7 +98,7 @@ ParseNode gen_array_from_hiddendo(ParseNode & hiddendo);
 ParseNode gen_array_from_paramtable(const ParseNode & argtable);
 void gen_arraybuilder_str(ParseNode & arraybuilder);
 
-void set_variabledesc_attr(ParseNode * vardescattr_node, boost::optional<bool> reference, boost::optional<bool> constant, boost::optional<bool> optional, boost::optional<struct ParseNode *> slice, boost::optional<int> kind);
+void set_variabledesc_attr(ParseNode * vardescattr_node, boost::optional<bool> reference, boost::optional<bool> constant, boost::optional<bool> optional, boost::optional<ParseNode> slice, boost::optional<int> kind);
 VariableDesc & get_variabledesc_attr(ParseNode * vardescattr_node);
 ParseNode gen_variabledesc_from_dimenslice(ParseNode & dimen_slice);
 

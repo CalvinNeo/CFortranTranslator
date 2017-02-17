@@ -6,7 +6,7 @@ Fortran is an efficient tool in scientific calculation. However sometimes transl
 This translator is not intended to improve existing codes, but to make convenience for those who need features of C++ and remain fortran traits as much as possible.
 
 ## License
-Boththe translator itself and fortran standrad library implementation is distributed under GNU GENERAL PUBLIC LICENSE Version 2
+The whole project, including both the translator itself and fortran standrad library implementation is distributed under GNU GENERAL PUBLIC LICENSE Version 2
 
                         GNU GENERAL PUBLIC LICENSE
                            Version 2, June 1991
@@ -30,16 +30,31 @@ Boththe translator itself and fortran standrad library implementation is distrib
 
 # Usage
 ## Install
+### Build Translator
 My Configuration:
 
 - translator
     1. vs2015(Update 3) 
-    2. win_flex(win_flex_bison 2.4.5, flex 2.5.37)
-    3. win_bison(win_flex_bison 2.4.5, bison 2.7)
+    2. win\_flex(win\_flex\_bison 2.4.5, flex 2.5.37)
+    3. win\_bison(win\_flex\_bison 2.4.5, bison 2.7)
     4. boost(1.60)
 
-- fortran standard library
-    1. C++14 standard
+- build boost
+```
+bjam --toolset=msvc-14.0 address-model=64
+```
+
+- configure boost
+    1. add **boost\_dir** directory to additional include library
+    2. add **boost\_dir/libs** and **boost\_dir/stage/lib** to additional library directory
+
+- configure win\_flex and win\_bison
+    1. On the Project menu, choose Project Dependencies.
+    2. Select Custom Build Tools
+    3. Add [/build/custom_build_rules/win_flex_bison_custom_build.props](/build/custom_build_rules/win_flex_bison_custom_build.props)
+
+### Use fortran standard library
+fortran standard library requires compiler support at least C++14 standard
 
 ## Debug
 Only fatal errors hinderring parsing will be reported by translator. 
@@ -288,7 +303,7 @@ struct{
     T1 _1;
     T2 _2;
     /* common variables */
-}COMMON_NAME
+}COMMON_NAME;
 ```
 if this common block is an unamed block, `COMMON_NAME` is by default `G`
 
@@ -306,8 +321,9 @@ if this common block is an unamed block, `COMMON_NAME` is by default `G`
 |out|ignore|T &|
 |inout|ignore|T &|
 
-4. optional parameter: instead of c-style optional parameter, wrap optional parameters with `foroptional<T>`, function `forpresent` functions as `present` function in fortran90
-5. keyword/named parameter: C++ don't support keyword parameters, all keyword parameter will be reorganized in normal paramtable
+#### parameters
+1. optional parameter: instead of c-style optional parameter, wrap optional parameters with `foroptional<T>`, function `forpresent` functions as `present` function in fortran90
+2. keyword/named parameter: C++ don't support keyword parameters, all keyword parameter will be reorganized in normal paramtable
 
 # Develop
 refer to [/Develop.md](/Develop.md)

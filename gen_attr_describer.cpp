@@ -1,7 +1,7 @@
 #include "gen_common.h"
 
 
-void set_variabledesc_attr(ParseNode * vardescattr_node, boost::optional<bool> reference, boost::optional<bool> constant, boost::optional<bool> optional, boost::optional<struct ParseNode *> slice, boost::optional<int> kind ) {
+void set_variabledesc_attr(ParseNode * vardescattr_node, boost::optional<bool> reference, boost::optional<bool> constant, boost::optional<bool> optional, boost::optional<ParseNode> slice, boost::optional<int> kind ) {
 	if (vardescattr_node->attr == nullptr) {
 		vardescattr_node->attr = new VariableDescAttr(vardescattr_node);
 	}

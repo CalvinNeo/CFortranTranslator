@@ -82,6 +82,7 @@
     <ClInclude Include="..\..\for90std\forstdio.h" />
     <ClInclude Include="..\..\for90std\fortime.h" />
     <ClInclude Include="..\..\for90std\forutils.h" />
+    <ClInclude Include="..\..\format.h" />
     <ClInclude Include="..\..\general_config.h" />
     <ClInclude Include="..\..\gen_common.h" />
     <ClInclude Include="..\..\gen_config.h" />

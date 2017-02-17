@@ -152,10 +152,6 @@ const vector<KeywordMeta> keywords = {
 		, TokenMeta::META_ANY
 		, YY_PARAMETER
 	}
-	, KeywordMeta{"format"
-		, TokenMeta::META_ANY
-		, YY_FORMAT
-	}
 	, KeywordMeta{"and" 
 		, TokenMeta::AndAnd
 		, YY_ANDAND
@@ -299,10 +295,11 @@ const vector<KeywordMeta> keywords = {
 		, TokenMeta::META_ANY
 		, YY_GOTO
 	}
-	, KeywordMeta{ "format"
-		, TokenMeta::Format
-		, YY_FORMAT
-	}
+	// 在词法分析中特别处理，YY_FORMAT和NT_FORMAT为FORMAT语句的处理结果
+	//, KeywordMeta{ "format"
+	//	, TokenMeta::Format
+	//	, YY_FORMAT
+	//}
 	, KeywordMeta{ "common"
 		, TokenMeta::META_ANY
 		, YY_COMMON
@@ -310,6 +307,10 @@ const vector<KeywordMeta> keywords = {
 	, KeywordMeta{ "data"
 		, TokenMeta::META_ANY
 		, YY_DATA
+	}
+	, KeywordMeta{ "save"
+		, TokenMeta::META_ANY
+		, YY_SAVE
 	}
 };
 

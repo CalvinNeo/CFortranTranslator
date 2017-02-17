@@ -45,12 +45,20 @@ const std::map<std::string, std::string> funcname_map{
 	,{ "maxval", "formaxval" }
 	,{ "minval", "forminval" }
 
+	// file
+	,{ "open", "foropenfile" }
+	,{ "close", "forclosefile" }
+	// io
+	,{ "read", "forread" }
+	,{ "print", "forprint" }
+	,{ "write", "forwrite" }
+
 	// intrinsic
 	,{ "present", "forpresent" }
 };
 
 const std::map<std::string, std::vector<keyword_param_info>> func_kwargs_preset{
-	{ "foropenfile",{ { "unit", "int", "" },{ "file", "string", "" },{ "access", "string", "" },{ "action", "string" , "" },{ "status", "string", "" },{ "iostat", "int", "" } } }
+	{ "foropenfile",{ { "unit", "int", "" },{ "file", "string", "" },{ "access", "string", "" },{ "action", "string" , "" },{ "status", "string", "" },{ "iostat", "int", "" }, {"form", "string", ""} } }
 	,{ "forclosefile",{ { "unit", "int", "" },{ "status", "string", "" },{ "iostat", "int", "" } } }
 	,{ "forread",{ { "unit", "int" , "" },{ "fmt", "string", "" },{ "iostat", "int", "" } } }
 

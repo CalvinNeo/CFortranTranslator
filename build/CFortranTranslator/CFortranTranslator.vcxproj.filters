@@ -212,6 +212,9 @@
     <ClInclude Include="..\..\context.h">
       <Filter>parser</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\format.h">
+      <Filter>target90</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Bison Include="..\..\grammar\for90.y">

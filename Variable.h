@@ -7,7 +7,7 @@ struct VariableDesc {
 	dirty<bool> reference = false;
 	dirty<bool> constant = false;
 	dirty<bool> optional = false;
-	dirty<struct ParseNode *> slice = nullptr;
+	boost::optional<ParseNode> slice = boost::none;
 	dirty<int> kind = 0;
 	void merge(const VariableDesc & x2) {
 		if (!constant.isdirty() && x2.constant.isdirty()) {
@@ -19,7 +19,7 @@ struct VariableDesc {
 		if (!optional.isdirty() && x2.optional.isdirty()) {
 			optional = x2.optional;
 		}
-		if (!slice.isdirty() && x2.slice.isdirty()) {
+		if (!slice.is_initialized() && x2.slice.is_initialized()) {
 			slice = x2.slice;
 		}
 		if (!kind.isdirty() && x2.kind.isdirty()) {
@@ -30,7 +30,7 @@ struct VariableDesc {
 	VariableDesc() {
 
 	}
-	VariableDesc(boost::optional<bool> reference, boost::optional<bool> constant, boost::optional<bool> optional, boost::optional<struct ParseNode *> slice, boost::optional<int> kind) {
+	VariableDesc(boost::optional<bool> reference, boost::optional<bool> constant, boost::optional<bool> optional, boost::optional<ParseNode> slice, boost::optional<int> kind) {
 		if (reference.is_initialized())
 			this->reference = reference.value();
 		if (constant.is_initialized())
@@ -47,7 +47,7 @@ struct VariableDesc {
 struct VariableInfo
 {
 	bool is_array() {
-		return desc.slice != nullptr;
+		return desc.slice.is_initialized();
 	}
 	std::string type;
 	VariableDesc desc;

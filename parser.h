@@ -16,6 +16,9 @@ struct dirty {
 		value = newv;
 		return value;
 	}
+	dirty(const boost::none_t &) {
+		changed = false;
+	}
 	dirty(const T & newv) {
 		// constructor by T
 		changed = false;
@@ -91,7 +94,7 @@ typedef ParseNode yystype_t;
 void update_pos(YYSTYPE & current);
 void update_pos(YYSTYPE & current, YYSTYPE & start, YYSTYPE & end);
 std::string tabber(std::string &); // add tab(`\t`) into the front of each line
-ParseNode * flattern_bin(ParseNode *); // eliminate right recursion of an binary tree
+ParseNode flattern_bin(const ParseNode & pn); // eliminate right recursion of an binary tree
 
 /* lazygen */
 

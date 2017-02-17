@@ -27,14 +27,14 @@ using namespace std;
 
 %debug
 
-%token /*_YY_VOID*/ YY_REQ_MORE YY_CRLF
+%token /*_YY_VOID*/ YY_IGNORE_THIS YY_CRLF
 %token /*_YY_OP*/ YY_GT YY_GE YY_EQ YY_LE YY_LT YY_NEQ YY_NEQV YY_EQV YY_ANDAND YY_OROR YY_NOT YY_POWER YY_DOUBLECOLON YY_NEG YY_POS
-%token /*_YY_TYPE*/ YY_INTEGER YY_FLOAT YY_WORD YY_OPERATOR YY_STRING YY_ILLEGAL YY_COMPLEX YY_TRUE YY_FALSE
-%token /*_YY_CONTROL*/ YY_LABEL YY_END YY_IF YY_THEN YY_ELSE YY_ELSEIF YY_ENDIF YY_DO YY_ENDDO YY_CONTINUE YY_BREAK YY_WHILE YY_ENDWHILE YY_WHERE YY_ENDWHERE YY_CASE YY_ENDCASE YY_SELECT YY_ENDSELECT YY_GOTO YY_DOWHILE YY_DEFAULT
+%token /*_YY_TYPE*/ YY_INTEGER YY_FLOAT YY_WORD YY_OPERATOR YY_STRING YY_ILLEGAL YY_COMPLEX YY_TRUE YY_FALSE YY_FORMAT_STMT
+%token /*_YY_CONTROL*/ YY_LABEL YY_END YY_IF YY_THEN YY_ELSE YY_ELSEIF YY_ENDIF YY_DO YY_ENDDO YY_CONTINUE YY_BREAK YY_WHILE YY_ENDWHILE YY_WHERE YY_ENDWHERE YY_CASE YY_ENDCASE YY_SELECT YY_ENDSELECT YY_GOTO YY_DOWHILE YY_DEFAULT 
 %token /*_YY_DELIM*/ YY_PROGRAM YY_ENDPROGRAM YY_FUNCTION YY_ENDFUNCTION YY_RECURSIVE YY_RESULT YY_SUBROUTINE YY_ENDSUBROUTINE YY_MODULE YY_ENDMODULE YY_BLOCK YY_ENDBLOCK YY_INTERFACE YY_ENDINTERFACE YY_COMMON YY_DATA
-%token /*_YY_DESCRIBER*/ YY_IMPLICIT YY_NONE YY_USE YY_PARAMETER YY_ENTRY YY_DIMENSION YY_ARRAYINITIAL_START YY_ARRAYINITIAL_END YY_INTENT YY_IN YY_OUT YY_INOUT YY_OPTIONAL YY_LEN YY_KIND
+%token /*_YY_DESCRIBER*/ YY_IMPLICIT YY_NONE YY_USE YY_PARAMETER YY_ENTRY YY_DIMENSION YY_ARRAYINITIAL_START YY_ARRAYINITIAL_END YY_INTENT YY_IN YY_OUT YY_INOUT YY_OPTIONAL YY_LEN YY_KIND YY_SAVE
 %token /*_YY_TYPEDEF*/ YY_INTEGER_T YY_FLOAT_T YY_STRING_T YY_COMPLEX_T YY_BOOL_T YY_CHARACTER_T
-%token /*_YY_COMMAND*/ YY_WRITE YY_READ YY_PRINT YY_CALL YY_FORMAT
+%token /*_YY_COMMAND*/ YY_WRITE YY_READ YY_PRINT YY_CALL 
 
 
 %left '='
@@ -82,24 +82,24 @@ using namespace std;
 
 	variable_desc_elem : YY_INTENT '(' YY_IN ')'
 			{
-				ParseNode * newnode = new ParseNode(gen_flex(Term{ TokenMeta::NT_VARIABLEDESC, "NT_VARIABLEDESC" }), nullptr); // intent(in)
-				set_variabledesc_attr(newnode, true, true, boost::none, boost::none, boost::none);
-				$$ = *newnode;
+				ParseNode newnode = gen_token(Term{ TokenMeta::NT_VARIABLEDESC, "NT_VARIABLEDESC" }); // intent(in)
+				set_variabledesc_attr(&newnode, true, true, boost::none, boost::none, boost::none);
+				$$ = newnode;
 				update_pos($$, $1, $4);
 			}
 		| YY_INTENT '(' YY_OUT ')'
 			{
-				ParseNode * newnode = new ParseNode(gen_flex(Term{ TokenMeta::NT_VARIABLEDESC, "NT_VARIABLEDESC" }), nullptr); // intent(out)
-				set_variabledesc_attr(newnode, true, false, boost::none, boost::none, boost::none);
-				$$ = *newnode;
+				ParseNode newnode = gen_token(Term{ TokenMeta::NT_VARIABLEDESC, "NT_VARIABLEDESC" }); // intent(out)
+				set_variabledesc_attr(&newnode, true, false, boost::none, boost::none, boost::none);
+				$$ = newnode;
 				update_pos($$, $1, $4);
 			}
 
 		| YY_INTENT '(' YY_INOUT ')'
 			{
-				ParseNode * newnode = new ParseNode(gen_flex(Term{ TokenMeta::NT_VARIABLEDESC, "NT_VARIABLEDESC" }), nullptr); // intent(inout)
-				set_variabledesc_attr(newnode, true, false, boost::none, boost::none, boost::none);
-				$$ = *newnode;
+				ParseNode newnode = gen_token(Term{ TokenMeta::NT_VARIABLEDESC, "NT_VARIABLEDESC" }); // intent(inout)
+				set_variabledesc_attr(&newnode, true, false, boost::none, boost::none, boost::none);
+				$$ = newnode;
 				update_pos($$, $1, $4);
 			}
 		| YY_DIMENSION '(' dimen_slice ')'
@@ -107,17 +107,18 @@ using namespace std;
 				/* if write `',' YY_DIMENSION` in `var_def` will cause conflict at ',' */
 				/* if is array reduce immediately and goto `var_def` */
 				/* do not parse array slices here because it can be dificult */
-				ParseNode * newnode = new ParseNode(gen_flex(Term{ TokenMeta::NT_VARIABLEDESC, "NT_VARIABLEDESC" }), nullptr);
-				ParseNode * dimen = new ParseNode(gen_variabledesc_from_dimenslice($3));
-				newnode->addchild(dimen); // def slice
-				set_variabledesc_attr(newnode, boost::none, boost::none, boost::none, dimen, boost::none);
-				$$ = *newnode;
+				ParseNode newnode = gen_token(Term{ TokenMeta::NT_VARIABLEDESC, "NT_VARIABLEDESC" });
+				ParseNode & dimen_slice = $3;
+				ParseNode attr = gen_variabledesc_from_dimenslice(dimen_slice);
+				newnode.addchild(new ParseNode(attr)); // def slice
+				set_variabledesc_attr(&newnode, boost::none, boost::none, boost::none, attr, boost::none);
+				$$ = newnode;
 				update_pos($$, $1, $4);
 			}
 		| YY_DIMENSION '(' exp ')'
 			{
 				/* define array like a(1) */
-				ParseNode * newnode = new ParseNode();
+				ParseNode newnode = gen_token(Term{ TokenMeta::NT_VARIABLEDESC, "NT_VARIABLEDESC" });
 				ParseNode slice = ParseNode();
 				ParseNode & exp_to = $3;
 				ParseNode & exp_from = gen_promote(TokenMeta::NT_EXPRESSION, gen_token(Term{ TokenMeta::META_INTEGER, "1" }));
@@ -125,27 +126,32 @@ using namespace std;
 				slice.addchild(new ParseNode(exp_from)); // slice from 1
 				slice.addchild(new ParseNode(exp_to)); // slice to
 
-				ParseNode * dimen = new ParseNode(gen_promote("", TokenMeta::NT_DIMENSLICE, slice));
-				newnode->addchild(dimen); // def slice
+				ParseNode attr = gen_variabledesc_from_dimenslice(gen_promote("", TokenMeta::NT_DIMENSLICE, slice));
+				newnode.addchild(new ParseNode(attr)); // def slice
 
-				set_variabledesc_attr(newnode, boost::none, boost::none, boost::none, dimen, boost::none);
-				$$ = *newnode;
+				set_variabledesc_attr(&newnode, boost::none, boost::none, boost::none, attr, boost::none);
+				$$ = newnode;
 				update_pos($$, $1, $4);
 			}
 		| YY_OPTIONAL
 			{
-				ParseNode * newnode = new ParseNode(gen_flex(Term{ TokenMeta::NT_VARIABLEDESC, "NT_VARIABLEDESC" }), nullptr); // optional
-				set_variabledesc_attr(newnode, boost::none, boost::none, true, boost::none, boost::none);
-				$$ = *newnode;
+				ParseNode newnode = gen_token(Term{ TokenMeta::NT_VARIABLEDESC, "NT_VARIABLEDESC" }); // optional
+				set_variabledesc_attr(&newnode, boost::none, boost::none, true, boost::none, boost::none);
+				$$ = newnode;
 				update_pos($$, $1, $1);
 			}
 		| YY_PARAMETER
 			{
 				/* const value */
-				ParseNode * newnode = new ParseNode(gen_flex(Term{ TokenMeta::NT_VARIABLEDESC, "NT_VARIABLEDESC" }), nullptr); // const
-				set_variabledesc_attr(newnode, boost::none, true, boost::none, boost::none, boost::none);
-				$$ = *newnode;
+				ParseNode newnode = gen_token(Term{ TokenMeta::NT_VARIABLEDESC, "NT_VARIABLEDESC" }); // const
+				set_variabledesc_attr(&newnode, boost::none, true, boost::none, boost::none, boost::none);
+				$$ = newnode;
 				update_pos($$, $1, $1);
+			}
+		| YY_SAVE
+			{
+				/* static value */
+
 			}
 				
 	variable_desc : ',' variable_desc_elem
@@ -158,7 +164,7 @@ using namespace std;
 				ParseNode & variable_elem = $2;
 				ParseNode * variable_desc = & $3;
 				/* target code of slice depend on context */
-				ParseNode newnode = ParseNode(gen_flex(Term{ TokenMeta::NT_VARIABLEDESC, "NT_VARIABLEDESC" }), nullptr);
+				ParseNode newnode = gen_token(Term{ TokenMeta::NT_VARIABLEDESC, "NT_VARIABLEDESC" });
 				/* merge attrs */
 				newnode.attr = variable_elem.attr->clone();
 				//dynamic_cast<VariableDescAttr *>(newnode.attr)->merge(*dynamic_cast<VariableDescAttr *>(variable_desc->attr));
@@ -169,10 +175,9 @@ using namespace std;
 			}
 		|
 			{
-				ParseNode * newnode = new ParseNode();
-				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_VARIABLEDESC, "NT_VARIABLEDESC" }; 
-				newnode->attr = new VariableDescAttr(newnode);
-				$$ = *newnode;
+				ParseNode newnode = gen_token(Term{ TokenMeta::NT_VARIABLEDESC, "NT_VARIABLEDESC" });
+				newnode.attr = new VariableDescAttr(&newnode);
+				$$ = newnode;
 				update_pos($$);
 			}
 
@@ -182,9 +187,9 @@ using namespace std;
 				sscanf($3.fs.CurrentTerm.what.c_str(), "%d", &kind);
 
 				/* type size */
-				ParseNode * newnode = new ParseNode(gen_flex(Term{ TokenMeta::NT_VARIABLEDESC, "NT_VARIABLEDESC" }), nullptr); // kind
-				set_variabledesc_attr(newnode, boost::none, boost::none, boost::none, boost::none, kind);
-				$$ = *newnode;
+				ParseNode newnode = gen_token(Term{ TokenMeta::NT_VARIABLEDESC, "NT_VARIABLEDESC" });
+				set_variabledesc_attr(&newnode, boost::none, boost::none, boost::none, boost::none, kind);
+				$$ = newnode;
 				update_pos($$, $1, $3);
 			}
 		| YY_LEN '=' exp
@@ -195,9 +200,9 @@ using namespace std;
 				sscanf($3.fs.CurrentTerm.what.c_str(), "%d", &len);
 
 				/* string length */
-				ParseNode * newnode = new ParseNode(gen_flex(Term{ TokenMeta::NT_VARIABLEDESC, "NT_VARIABLEDESC" }), nullptr); // len
-				set_variabledesc_attr(newnode, boost::none, boost::none, boost::none, boost::none, len);
-				$$ = *newnode;
+				ParseNode newnode = gen_token(Term{ TokenMeta::NT_VARIABLEDESC, "NT_VARIABLEDESC" });
+				set_variabledesc_attr(&newnode, boost::none, boost::none, boost::none, boost::none, len);
+				$$ = newnode;
 				update_pos($$, $1, $3);
 			}
 
@@ -351,7 +356,6 @@ using namespace std;
 				$$ = gen_promote(TokenMeta::NT_EXPRESSION, function_array);
 				update_pos($$, $1, $1);
 			}
-				
 		| array_builder
 			{
 				// don't promote to exp, and gen_vardel_array will consider this node as array_builder
@@ -609,7 +613,14 @@ using namespace std;
 		| common_stmt
 			{
 				$$ = $1;
+				update_pos($$, $1, $1);
 			}
+		| YY_FORMAT_STMT _crlf_semicolon
+			{
+				$$ = gen_format($1);
+				update_pos($$, $1, $2);
+			}
+
 
 
     output_stmt : write _crlf_semicolon
@@ -863,6 +874,16 @@ using namespace std;
 
 				$$ = gen_vardef(type_spec, variable_desc, paramtable);
 				update_pos($$, $1, $3);
+			}
+		| YY_DIMENSION paramtable
+			{
+				/* array decl */
+				ParseNode & type_spec = gen_token(Term {TokenMeta::Implicit_Def, ""});
+				ParseNode variable_desc = gen_token(Term{ TokenMeta::NT_VARIABLEDESC, "NT_VARIABLEDESC" });
+				set_variabledesc_attr(&variable_desc, boost::none, boost::none, boost::none, boost::none, boost::none);
+				ParseNode & paramtable = $2;
+				$$ = gen_vardef(type_spec, variable_desc, paramtable);
+				update_pos($$, $1, $2);
 			}
 
     keyvalue : variable
@@ -1177,6 +1198,11 @@ using namespace std;
 				$$ = gen_program_explicit(suite);
 				update_pos($$, $1, $8);
 			}
+		| YY_PROGRAM _optional_name crlf YY_END YY_PROGRAM _optional_name crlf
+			{
+				$$ = gen_program_explicit(gen_token(Term{TokenMeta::NT_PROGRAM_EXPLICIT , ""}));
+				update_pos($$, $1, $7);
+			}
 		| suite
 			/* R1101 main-program is [ program-stmt ]
 				[ specification-part ]
@@ -1212,13 +1238,13 @@ using namespace std;
 			}
 		| wrapper wrappers
 			{
-				ParseNode * newnode = new ParseNode();
-				newnode->addchild(new ParseNode($1)); // wrapper
-				newnode->addchild(new ParseNode($2)); // wrappers
+				ParseNode newnode = ParseNode();
+				newnode.addchild(new ParseNode($1)); // wrapper
+				newnode.addchild(new ParseNode($2)); // wrappers
 				sprintf(codegen_buf, "%s\n%s", $1.fs.CurrentTerm.what.c_str(), $2.fs.CurrentTerm.what.c_str());
 				newnode = flattern_bin(newnode);
-				newnode->fs.CurrentTerm = Term{ TokenMeta::NT_WRAPPERS, string(codegen_buf) };
-				$$ = *newnode;
+				newnode.fs.CurrentTerm = Term{ TokenMeta::NT_WRAPPERS, string(codegen_buf) };
+				$$ = newnode;
 				update_pos($$, $1, $2);
 			}
 

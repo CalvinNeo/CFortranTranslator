@@ -2,7 +2,7 @@
 
 ParseNode gen_type(const ParseNode & type_nospec, const ParseNode & _type_kind) {
 	// attach _type_kind to type_nospec nonterminal
-	ParseNode newnode = ParseNode(type_nospec);
+	ParseNode newnode = type_nospec;
 	// now name translated in pre_map
 	newnode.attr = _type_kind.attr->clone();
 	return newnode;
@@ -10,11 +10,10 @@ ParseNode gen_type(const ParseNode & type_nospec, const ParseNode & _type_kind) 
 
 ParseNode gen_type(const ParseNode & type_nospec) {
 	// promote type_nospec to default type_spec nonterminal
-	ParseNode newnode = ParseNode(type_nospec);
+	ParseNode newnode = type_nospec;
 	// now name translated in pre_map
 	ParseNode _type_kind = ParseNode(gen_flex(Term{ TokenMeta::NT_VARIABLEDESC, "NT_VARIABLEDESC" }), nullptr);
 	_type_kind.attr = new VariableDescAttr(&_type_kind);
-
 	newnode.attr = _type_kind.attr->clone();
 	return newnode;
 }
@@ -95,8 +94,9 @@ std::string gen_qualified_typestr(const ParseNode & type_nospec, VariableDesc & 
 		}
 	}
 	string name = type_spec.fs.CurrentTerm.what;
-	if (vardesc.slice != nullptr)
+	if (vardesc.slice.is_initialized())
 	{
+		// if is array
 		if (get_context().parse_config.usefarray) {
 			sprintf(codegen_buf, "farray<%s>", name.c_str());
 			name = string(codegen_buf);
@@ -104,7 +104,7 @@ std::string gen_qualified_typestr(const ParseNode & type_nospec, VariableDesc & 
 		else {
 			sprintf(codegen_buf, "for1array<%s>", name.c_str());
 			name = string(codegen_buf);
-			for (int sliceid = vardesc.slice.const_get()->child.size() - 2; sliceid >= 0; sliceid--)
+			for (int sliceid = vardesc.slice.value().child.size() - 2; sliceid >= 0; sliceid--)
 			{
 				sprintf(codegen_buf, "for1array<%s>", name.c_str());
 				name = string(codegen_buf);

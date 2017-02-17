@@ -34,9 +34,9 @@ FlexState & get_flex_state();
 extern const std::vector<KeywordMeta> keywords;
 extern const std::map<std::string, std::vector<std::string> > forward1;
 
-// flex part code
-FlexState next_token(const std::string & in_str, int start = 0); 
-FlexState iter_token(const std::string & in_str, int start);
+// because use yacc, so this is not necessary
+//FlexState next_token(const std::string & in_str, int start = 0); 
+//FlexState iter_token(const std::string & in_str, int start);
 std::string CutString(std::string::iterator & b, std::string::iterator e, bool save, char jmp = ' ');
 
 

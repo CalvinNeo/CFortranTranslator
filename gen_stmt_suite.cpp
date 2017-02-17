@@ -15,13 +15,12 @@ ParseNode gen_stmt(const ParseNode & content, const std::string & rules) {
 }
 
 ParseNode gen_empty_suite() {
-	
-	ParseNode * newnode = new ParseNode();
-	ParseNode & stmt = ParseNode(gen_flex(Term{ TokenMeta::NT_SUITE, "\n" }), newnode);
-	newnode->fs.CurrentTerm = Term{ TokenMeta::NT_SUITE, "\n" };
-	newnode->addchild(new ParseNode(stmt)); // stmt
+	ParseNode newnode = ParseNode();
+	ParseNode & stmt = ParseNode(gen_flex(Term{ TokenMeta::NT_SUITE, "\n" }), &newnode);
+	newnode.fs.CurrentTerm = Term{ TokenMeta::NT_SUITE, "\n" };
+	newnode.addchild(new ParseNode(stmt)); // stmt
 	newnode = flattern_bin(newnode);
-	return *newnode;
+	return newnode;
 }
 
 std::string regen_suite(ParseNode * oldsuite) {

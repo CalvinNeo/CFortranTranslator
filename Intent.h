@@ -185,6 +185,7 @@ namespace IntentMeta {
 		Complex_Def = Complex - 100,
 		Short_Def = Short - 100,
 		Function_Def = Function - 100,
+		Implicit_Def = -599,
 
 		// Flow-Control
 		If = -600,

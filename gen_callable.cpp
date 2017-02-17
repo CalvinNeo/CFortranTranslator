@@ -152,7 +152,7 @@ ParseNode gen_function_array(const ParseNode & callable_head, const ParseNode & 
 				string this_param_intial_default = std::get<2>(params[i]);
 				auto this_arg = kws.find(this_param_name);
 				if (normal_count != 0) {
-					func_header += " ,";
+					func_header += ", ";
 				}
 				if (this_arg == kws.end()) {
 					// if this argument is not given

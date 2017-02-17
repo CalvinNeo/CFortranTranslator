@@ -1,5 +1,4 @@
-program
-	!common /cb/ a(10)
-	integer(kind = 2)::b(10:20)
-	!integer(kind = 2), dimension(4, 5)::c
+program array_builder
+	!ARAR
+	format(F)
 end program

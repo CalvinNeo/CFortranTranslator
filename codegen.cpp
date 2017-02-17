@@ -75,28 +75,27 @@ std::string tabber(std::string & src) {
 	return ans;
 }
 
-ParseNode * flattern_bin(ParseNode * pn) {
+ParseNode flattern_bin(const ParseNode & pn) {
 	/* it cant work well because it create a whole noew tree copy too much */
 	/* THIS ALGORITHM FLATTERNS A RIGHT-RECURSIVE BINARY TREE */
-	if (pn->child.size() == 2) {
-		ParseNode * newp = new ParseNode();
+	if (pn.child.size() == 2) {
+		ParseNode newp = ParseNode();
 		/* child[0] is the only data node */
-		newp->addchild(new ParseNode(*pn->child[0]));
+		newp.addchild(new ParseNode(*pn.child[0]));
 
-		/* pn->child[1] is a **list** of ALREADY flatterned elements */
+		/* pn.child[1] is a **list** of ALREADY flatterned elements */
 		//	e.g
 		//	child[0] is 1 
 		//	child[1] is [2, 3, 4, 5]
-		for (int i = 0; i < pn->child[1]->child.size(); i++)
+		for (int i = 0; i < pn.child[1]->child.size(); i++)
 		{
-			newp->addchild(new ParseNode(*pn->child[1]->child[i]));
+			newp.addchild(new ParseNode(*pn.child[1]->child[i]));
 		}
-		newp->fs = pn->fs;
-		newp->father = pn->father;
-		if (pn->attr != nullptr) {
-			newp->attr = pn->attr->clone();
+		newp.fs = pn.fs;
+		newp.father = pn.father;
+		if (pn.attr != nullptr) {
+			newp.attr = pn.attr->clone();
 		}
-		delete pn;
 		return newp;
 	}
 	else {
@@ -105,18 +104,16 @@ ParseNode * flattern_bin(ParseNode * pn) {
 }
 
 ParseNode gen_flattern(const ParseNode & item, const ParseNode & list, std::string merge_rule, int merged_token_meta) {
-	ParseNode * nn = new ParseNode();
+	ParseNode nn = ParseNode();
 	sprintf(codegen_buf, merge_rule.c_str(), item.fs.CurrentTerm.what.c_str(), list.fs.CurrentTerm.what.c_str());
 	if (merged_token_meta == -1) {
 		merged_token_meta = list.fs.CurrentTerm.token;
 	}
-	nn->fs.CurrentTerm = Term{ merged_token_meta, string(codegen_buf) };
-	nn->addchild(new ParseNode(item)); // item
-	nn->addchild(new ParseNode(list)); // list
+	nn.fs.CurrentTerm = Term{ merged_token_meta, string(codegen_buf) };
+	nn.addchild(new ParseNode(item)); // item
+	nn.addchild(new ParseNode(list)); // list
 	nn = flattern_bin(nn);
-	ParseNode newnode = ParseNode(*nn);
-	delete nn;
-	return newnode;
+	return nn;
 }
 
 
