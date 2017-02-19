@@ -9,8 +9,7 @@ struct ParseAttr {
 	ParseNode * parsenode; // observer ptr
 
 	ParseAttr() = default;
-	ParseAttr(ParseNode * parsenode) : parsenode(parsenode) {}
-	ParseAttr(const ParseAttr & pa) = default;
+	ParseAttr(const ParseAttr & pa) = default; // do not call `clone()` in copy constructor else will cause stackoverflow
 	virtual ParseAttr * clone() = 0; /* use clone because copy-constructor can not be virtual */
 	virtual ~ParseAttr() = default;
 	// virtual ParseAttr * merge() = 0;
@@ -20,9 +19,9 @@ struct ParseAttr {
 struct TypeAttr : public ParseAttr {
 	std::string name;
 
-	TypeAttr(ParseNode * parsenode) : ParseAttr(parsenode) {}
+	TypeAttr() : ParseAttr() {}
 	TypeAttr(const TypeAttr & ta) {
-		// do not call `clone()` else will cause stackoverflow
+		this->name = ta.name;
 	}
 	ParseAttr * clone() { return new TypeAttr(*this); }
 	// void merge(const VariableDescAttr & pa) {  }
@@ -31,10 +30,11 @@ struct TypeAttr : public ParseAttr {
 struct VariableAttr : public ParseAttr {
 	VariableInfo * vinfoptr = nullptr;
 
-	VariableAttr(ParseNode * parsenode, VariableInfo * vptr) : ParseAttr(parsenode), vinfoptr(vptr) {}
+	VariableAttr(VariableInfo * vptr) : ParseAttr(), vinfoptr(vptr) {}
 	VariableAttr(const VariableAttr & va) {
 		// do not call `clone()` else will cause stackoverflow
-		this->vinfoptr = new VariableInfo(*va.vinfoptr);
+		// do NOT copy vinfoptr because vinfoptr pointer to VariableInfo in get_context()
+		this->vinfoptr = va.vinfoptr;
 	}
 	ParseAttr * clone() { return new VariableAttr(*this); }
 
@@ -46,7 +46,7 @@ struct VariableDescAttr : public ParseAttr {
 	//	specify the nature of the entities being declared or specify restrictions on their use in the program.
 	VariableDesc desc;
 
-	VariableDescAttr(ParseNode * parsenode) : ParseAttr(parsenode) {}
+	VariableDescAttr() : ParseAttr() {}
 	VariableDescAttr(const VariableDescAttr & va) {
 		// do not call `clone()` else will cause stackoverflow
 		this->desc = va.desc;
@@ -60,7 +60,7 @@ struct VariableDescAttr : public ParseAttr {
 
 struct FunctionAttr : public ParseAttr {
 	FunctionInfo * finfoptr;
-	FunctionAttr(ParseNode * parsenode, FunctionInfo * fptr) : ParseAttr(parsenode), finfoptr(fptr) {}
+	FunctionAttr(FunctionInfo * fptr) : ParseAttr(), finfoptr(fptr) {}
 	FunctionAttr(const FunctionAttr & fa) {
 		// do not call `clone()` else will cause stackoverflow
 		this->finfoptr = fa.finfoptr;

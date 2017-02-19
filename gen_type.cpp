@@ -4,7 +4,7 @@ ParseNode gen_type(const ParseNode & type_nospec, const ParseNode & _type_kind) 
 	// attach _type_kind to type_nospec nonterminal
 	ParseNode newnode = type_nospec;
 	// now name translated in pre_map
-	newnode.attr = _type_kind.attr->clone();
+	newnode.setattr(_type_kind.attr->clone());
 	return newnode;
 }
 
@@ -12,9 +12,7 @@ ParseNode gen_type(const ParseNode & type_nospec) {
 	// promote type_nospec to default type_spec nonterminal
 	ParseNode newnode = type_nospec;
 	// now name translated in pre_map
-	ParseNode _type_kind = ParseNode(gen_flex(Term{ TokenMeta::NT_VARIABLEDESC, "NT_VARIABLEDESC" }), nullptr);
-	_type_kind.attr = new VariableDescAttr(&_type_kind);
-	newnode.attr = _type_kind.attr->clone();
+	newnode.setattr(new VariableDescAttr());
 	return newnode;
 }
 
@@ -75,7 +73,15 @@ std::string gen_qualified_typestr(const ParseNode & type_nospec, VariableDesc & 
 	{
 		var_pattern = "foroptional<%s>";
 	}
-	else {
+	else if (vardesc.save) {
+		if (vardesc.constant)
+		{
+			var_pattern = "static const %s";
+		}
+		else {
+			var_pattern = "static %s";
+		}
+	}else {
 		if (vardesc.reference) {
 			if (vardesc.constant) {
 				var_pattern = "const %s &";

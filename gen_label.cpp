@@ -15,14 +15,15 @@
 
 ParseNode gen_label(const ParseNode & tag) {
 	ParseNode newnode = gen_token(Term{ TokenMeta::NT_LABEL, "LABEL_" + tag.fs.CurrentTerm.what + ":\n" });
+	newnode.addchild(tag);
 	return newnode;
 }
 
-void log_format_index(std::string format_index, ParseNode * stmt) {
+void log_format_index(std::string format_index, const ParseNode & stmt) {
 	
 }
 
-ParseNode * require_format_index(std::string format_index) {
+ParseNode require_format_index(std::string format_index) {
 	// read/write 语句可以直接使用format语句的行号作为参数
-	return nullptr;
+	return ParseNode();
 }

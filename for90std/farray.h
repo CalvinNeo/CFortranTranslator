@@ -76,7 +76,7 @@ namespace for90std {
 			auto it = cbegin();
 			for (size_type i = 0; i < X; i++)
 			{
-				it += (index[i] - lb[i]) * sz[i];
+				it += (index[i] - lb[i]) * delta[i];
 			}
 			return *it;
 		}
@@ -104,6 +104,16 @@ namespace for90std {
 			}
 			return *it;
 		}
+
+		template<int X>
+		const T & get(const size_type(&index)[X]) const {
+			return const_get(index);
+		}
+		template<typename Iterator>
+		const T & get(Iterator index_from, Iterator index_to) const {
+			return const_get(index_from, index_to);
+		}
+
 		template<typename... Args>
 		T & operator()(Args&&... args) {
 			size_type index[sizeof...(args)] = { args... };

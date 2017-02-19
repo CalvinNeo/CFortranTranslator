@@ -55,18 +55,24 @@ struct ParseNode {
 	*/
 	struct ParseAttr * attr = nullptr;
 
-	void addchild(ParseNode * ptrn, bool add_back = true);
+	void addchildptr(ParseNode * ptrn, bool add_back = true);
+
 	void addchild(const ParseNode & n, bool add_back = true);
+
 	template <typename ... Args>
 	void addlist(const ParseNode & x, Args ... args) {
-		addchild(new ParseNode(x));
+		addchild(x);
 		addlist(std::forward<Args...>(args...));
 	}
 	template <typename ... Args>
 	void addlist(const ParseNode & x) {
-		addchild(new ParseNode(x));
+		addchild(x);
 	}
 	void replace(int childid, const ParseNode & pn);
+	ParseNode & get(int child_index);
+	const ParseNode & get(int child_index) const;
+	const ParseNode & const_get(int child_index) const;
+	void setattr(ParseAttr * pa);
 
 	ParseNode(const ParseNode &);
 	ParseNode & operator= (const ParseNode &) ;

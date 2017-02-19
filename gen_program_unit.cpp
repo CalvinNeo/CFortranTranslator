@@ -12,7 +12,7 @@ ParseNode gen_program_explicit(ParseNode & suite) {
 	ParseNode newnode = ParseNode(gen_flex(Term{ TokenMeta::NT_PROGRAM_EXPLICIT, tabber(suite.fs.CurrentTerm.what) }), nullptr);
 	// get all variables declared in this function
 	vector<ParseNode *> param_definition = get_all_declared(suite);
-	newnode.addchild(new ParseNode(suite)); //suite
+	newnode.addchild(suite); //suite
 	return newnode;
 }
 
@@ -20,7 +20,7 @@ ParseNode gen_program(ParseNode & suite) {
 	ParseNode newnode = ParseNode(gen_flex(Term{ TokenMeta::NT_PROGRAM, tabber(suite.fs.CurrentTerm.what) }), nullptr);
 	// get all variables declared in this function
 	vector<ParseNode *> param_definition = get_all_declared(suite);
-	newnode.addchild(new ParseNode(suite)); //suite
+	newnode.addchild(suite); //suite
 	return newnode;
 }
 
@@ -28,7 +28,7 @@ ParseNode gen_program_end(ParseNode & suite) {
 	ParseNode newnode = ParseNode(gen_flex(Term{ TokenMeta::NT_PROGRAM, tabber(suite.fs.CurrentTerm.what) }), nullptr);
 	// get all variables declared in this function
 	vector<ParseNode *> param_definition = get_all_declared(suite);
-	newnode.addchild(new ParseNode(suite)); //suite
+	newnode.addchild(suite); //suite
 	return newnode;
 }
 
@@ -46,11 +46,11 @@ void gen_fortran_program(const ParseNode & wrappers) {
 		ParseNode & wrapper = *wrappers.child[i];
 		if (wrapper.fs.CurrentTerm.token == TokenMeta::NT_PROGRAM_EXPLICIT)
 		{
-			string newsuitestr = regen_suite(wrapper.child[0]);
+			string newsuitestr = regen_suite(*wrapper.child[0]);
 			main_code = tabber(newsuitestr);
 		}
 		else if(wrapper.fs.CurrentTerm.token == TokenMeta::NT_PROGRAM){
-			string newsuitestr = regen_suite(wrapper.child[0]);
+			string newsuitestr = regen_suite(*wrapper.child[0]);
 			main_code += tabber(newsuitestr);
 		}
 		else if (wrapper.fs.CurrentTerm.token == TokenMeta::NT_FUNCTIONDECLARE) {

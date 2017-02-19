@@ -534,7 +534,7 @@ char *yytext;
 #include "../parser.h"
 #include "../context.h"
 #include "../gen_config.h"
-#include "../format.h"
+//#include "../format.h"
 
 
 // 前置声明
@@ -589,6 +589,8 @@ void update_yylval(Term & current_term, bool empty = false) {
 		yylval.fs.CurrentTerm = current_term;
 	}
 }
+
+std::string parse_ioformatter(const std::string & src); // gen_io.cpp
 #define YYRTN(TOK, YYTOK)  update_yylval(Term{TOK, std::string(yytext)});  update_flex((int)yyleng);  return YYTOK; 
 #define YYRTCRLF()  update_yylval( Term{TokenMeta::CRLF, std::string(yytext)}); update_flex((int)yyleng, true); return YY_CRLF;
 // 空格, 制表符等
@@ -651,7 +653,7 @@ int make_term_flex(const TokenMeta_T & token, const char * w) {
 #endif // USE_YACC
 
 
-#line 655 "for90.flex.cpp"
+#line 657 "for90.flex.cpp"
 
 #define INITIAL 0
 #define external_scanner 1
@@ -834,10 +836,10 @@ YY_DECL
 	register char *yy_cp, *yy_bp;
 	register int yy_act;
     
-#line 142 "for90.l"
+#line 144 "for90.l"
 
 
-#line 841 "for90.flex.cpp"
+#line 843 "for90.flex.cpp"
 
 	if ( !(yy_init) )
 		{
@@ -929,7 +931,7 @@ do_action:	/* This label is used only to access EOF actions. */
 
 case 1:
 YY_RULE_SETUP
-#line 144 "for90.l"
+#line 146 "for90.l"
 { if (get_flex_external_context().do_external_scanner(yytext)) { 
 	return get_flex_external_context().YYTOK; 
 }else {
@@ -941,144 +943,144 @@ case 2:
 (yy_c_buf_p) = yy_cp -= 1;
 YY_DO_BEFORE_ACTION; /* set up yytext again */
 YY_RULE_SETUP
-#line 148 "for90.l"
+#line 150 "for90.l"
 { /* 空行 */ }
 	YY_BREAK
 case 3:
 /* rule 3 can match eol */
 YY_RULE_SETUP
-#line 149 "for90.l"
+#line 151 "for90.l"
 {RTCRLF() }
 	YY_BREAK
 case 4:
 YY_RULE_SETUP
-#line 150 "for90.l"
+#line 152 "for90.l"
 { RTNOP() }
 	YY_BREAK
 case 5:
 /* rule 5 can match eol */
 YY_RULE_SETUP
-#line 151 "for90.l"
+#line 153 "for90.l"
 { RTNOP() /*注释*/}
 	YY_BREAK
 case 6:
 YY_RULE_SETUP
-#line 152 "for90.l"
+#line 154 "for90.l"
 {RTN(TokenMeta::Label, YY_LABEL); }
 	YY_BREAK
 case 7:
 YY_RULE_SETUP
-#line 153 "for90.l"
+#line 155 "for90.l"
 { RTINT(TokenMeta::META_INTEGER) }
 	YY_BREAK
 case 8:
 YY_RULE_SETUP
-#line 154 "for90.l"
+#line 156 "for90.l"
 { RTFLOAT(TokenMeta::META_FLOAT) }
 	YY_BREAK
 case 9:
 YY_RULE_SETUP
-#line 155 "for90.l"
+#line 157 "for90.l"
 { RTCOMPLEX(TokenMeta::META_COMPLEX) }
 	YY_BREAK
 case 10:
 YY_RULE_SETUP
-#line 156 "for90.l"
+#line 158 "for90.l"
 {RTOP(TokenMeta::META_ANY, YY_ARRAYINITIAL_START) }
 	YY_BREAK
 case 11:
 YY_RULE_SETUP
-#line 157 "for90.l"
+#line 159 "for90.l"
 {RTOP(TokenMeta::META_ANY, YY_ARRAYINITIAL_END) }
 	YY_BREAK
 case 12:
 YY_RULE_SETUP
-#line 158 "for90.l"
+#line 160 "for90.l"
 { RTOP(TokenMeta::DoubleColon, YY_DOUBLECOLON) }
 	YY_BREAK
 case 13:
 YY_RULE_SETUP
-#line 159 "for90.l"
+#line 161 "for90.l"
 { RTOP(TokenMeta::Power, YY_POWER) }
 	YY_BREAK
 case 14:
 YY_RULE_SETUP
-#line 160 "for90.l"
+#line 162 "for90.l"
 { RTOP(TokenMeta::GT, YY_GT) }
 	YY_BREAK
 case 15:
 YY_RULE_SETUP
-#line 161 "for90.l"
+#line 163 "for90.l"
 { RTOP(TokenMeta::GE, YY_GE) }
 	YY_BREAK
 case 16:
 YY_RULE_SETUP
-#line 162 "for90.l"
+#line 164 "for90.l"
 { RTOP(TokenMeta::LT, YY_LT) }
 	YY_BREAK
 case 17:
 YY_RULE_SETUP
-#line 163 "for90.l"
+#line 165 "for90.l"
 { RTOP(TokenMeta::LE, YY_LE) }
 	YY_BREAK
 case 18:
 YY_RULE_SETUP
-#line 164 "for90.l"
+#line 166 "for90.l"
 { RTOP(TokenMeta::EQ, YY_EQ) }
 	YY_BREAK
 case 19:
 YY_RULE_SETUP
-#line 165 "for90.l"
+#line 167 "for90.l"
 { RTOP(TokenMeta::NEQ, YY_NEQ) }
 	YY_BREAK
 case 20:
 YY_RULE_SETUP
-#line 166 "for90.l"
+#line 168 "for90.l"
 { RTOP(TokenMeta::Add, '+') /* string concat */}
 	YY_BREAK
 case 21:
 YY_RULE_SETUP
-#line 168 "for90.l"
+#line 170 "for90.l"
 { 
 	RTWORD() 
 }
 	YY_BREAK
 case 22:
 YY_RULE_SETUP
-#line 171 "for90.l"
+#line 173 "for90.l"
 { RTWORD() }
 	YY_BREAK
 case 23:
 /* rule 23 can match eol */
 YY_RULE_SETUP
-#line 172 "for90.l"
+#line 174 "for90.l"
 { RTNOP() /*注释*/}
 	YY_BREAK
 case 24:
 /* rule 24 can match eol */
 YY_RULE_SETUP
-#line 173 "for90.l"
+#line 175 "for90.l"
 {RTSTRING(TokenMeta::META_STRING) 
 /* The delimiting quotes are escaped because they are Flex meta-characters. */}
 	YY_BREAK
 case 25:
 /* rule 25 can match eol */
 YY_RULE_SETUP
-#line 175 "for90.l"
+#line 177 "for90.l"
 {RTSTRING(TokenMeta::META_STRING) 
 /* string with `'` */}
 	YY_BREAK
 case 26:
 YY_RULE_SETUP
-#line 177 "for90.l"
+#line 179 "for90.l"
 {/* all other things, including some operators not listed */ RTILLEGAL(TokenMeta::META_ILLEGAL) }
 	YY_BREAK
 case 27:
 YY_RULE_SETUP
-#line 179 "for90.l"
+#line 181 "for90.l"
 ECHO;
 	YY_BREAK
-#line 1082 "for90.flex.cpp"
+#line 1084 "for90.flex.cpp"
 case YY_STATE_EOF(INITIAL):
 case YY_STATE_EOF(external_scanner):
 	yyterminate();
@@ -2076,7 +2078,7 @@ void yyfree (void * ptr )
 
 #define YYTABLES_NAME "yytables"
 
-#line 178 "for90.l"
+#line 180 "for90.l"
 
 
 

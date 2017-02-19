@@ -22,7 +22,7 @@ ParseNode gen_common(const ParseNode & common_block, const ParseNode & paramtabl
 	auto range = boost::irange(0, (int)kvparamtable.child.size());
 	std::string decl = make_str_list(range.begin(), range.end(), [&](auto x) {
 		int i = (int)x;
-		std::string local_varname = get_variable_name(kvparamtable.child[i]/* NT_VARIABLEINITIAL */);
+		std::string local_varname = get_variable_name(kvparamtable.get(i)/* NT_VARIABLEINITIAL */);
 		VariableInfo * local_vinfo = get_variable("@", "@", local_varname);
 		if (local_vinfo == nullptr)
 		{

@@ -1,19 +1,20 @@
 #include "gen_common.h"
 
 
-void set_variabledesc_attr(ParseNode * vardescattr_node, boost::optional<bool> reference, boost::optional<bool> constant, boost::optional<bool> optional, boost::optional<ParseNode> slice, boost::optional<int> kind ) {
-	if (vardescattr_node->attr == nullptr) {
-		vardescattr_node->attr = new VariableDescAttr(vardescattr_node);
+void set_variabledesc_attr(ParseNode & vardescattr_node, boost::optional<bool> reference, boost::optional<bool> constant
+	, boost::optional<bool> optional, boost::optional<ParseNode> slice, boost::optional<int> kind, boost::optional<bool> save) {
+	if (vardescattr_node.attr == nullptr) {
+		vardescattr_node.setattr(new VariableDescAttr());
 	}
-	VariableDescAttr * x = dynamic_cast<VariableDescAttr *>(vardescattr_node->attr);
-	x->desc = VariableDesc(reference, constant, optional, slice, kind);
+	VariableDescAttr * x = dynamic_cast<VariableDescAttr *>(vardescattr_node.attr);
+	x->desc = VariableDesc(reference, constant, optional, slice, kind, save);
 }
 
-VariableDesc & get_variabledesc_attr(ParseNode * vardescattr_node) {
-	if (vardescattr_node->attr == nullptr) {
-		vardescattr_node->attr = new VariableDescAttr(vardescattr_node);
+VariableDesc & get_variabledesc_attr(ParseNode & vardescattr_node) {
+	if (vardescattr_node.attr == nullptr) {
+		vardescattr_node.setattr(new VariableDescAttr());
 	}
-	VariableDescAttr * x = dynamic_cast<VariableDescAttr *>(vardescattr_node->attr);
+	VariableDescAttr * x = dynamic_cast<VariableDescAttr *>(vardescattr_node.attr);
 	return x->desc;
 }
 
@@ -22,7 +23,7 @@ ParseNode gen_variabledesc_from_dimenslice(ParseNode & dimen_slice) {
 	ParseNode dimen = ParseNode(dimen_slice);
 	for (sliceid = 0; sliceid < dimen.child.size(); sliceid++)
 	{
-		if (dimen.child[sliceid]->fs.CurrentTerm.token == TokenMeta::NT_SLICE) {
+		if (dimen.get(sliceid).fs.CurrentTerm.token == TokenMeta::NT_SLICE) {
 
 		}
 		else {
@@ -32,9 +33,9 @@ ParseNode gen_variabledesc_from_dimenslice(ParseNode & dimen_slice) {
 		}
 		sprintf(codegen_buf, "(%s, %s)"
 			/* from, to */
-			, dimen.child[sliceid]->child[0]->fs.CurrentTerm.what.c_str()
-			, dimen.child[sliceid]->child[1]->fs.CurrentTerm.what.c_str());
-		dimen.child[sliceid]->fs.CurrentTerm = Term{ TokenMeta::NT_VARIABLEDESC, string(codegen_buf) };
+			, dimen.get(sliceid).get(0).fs.CurrentTerm.what.c_str()
+			, dimen.get(sliceid).get(1).fs.CurrentTerm.what.c_str());
+		dimen.get(sliceid).fs.CurrentTerm = Term{ TokenMeta::NT_VARIABLEDESC, string(codegen_buf) };
 	}
 	return dimen;
 }

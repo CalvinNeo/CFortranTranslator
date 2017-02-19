@@ -83,14 +83,14 @@ using namespace std;
 	variable_desc_elem : YY_INTENT '(' YY_IN ')'
 			{
 				ParseNode newnode = gen_token(Term{ TokenMeta::NT_VARIABLEDESC, "NT_VARIABLEDESC" }); // intent(in)
-				set_variabledesc_attr(&newnode, true, true, boost::none, boost::none, boost::none);
+				set_variabledesc_attr(newnode, true, true, boost::none, boost::none, boost::none, boost::none);
 				$$ = newnode;
 				update_pos($$, $1, $4);
 			}
 		| YY_INTENT '(' YY_OUT ')'
 			{
 				ParseNode newnode = gen_token(Term{ TokenMeta::NT_VARIABLEDESC, "NT_VARIABLEDESC" }); // intent(out)
-				set_variabledesc_attr(&newnode, true, false, boost::none, boost::none, boost::none);
+				set_variabledesc_attr(newnode, true, false, boost::none, boost::none, boost::none, boost::none);
 				$$ = newnode;
 				update_pos($$, $1, $4);
 			}
@@ -98,7 +98,7 @@ using namespace std;
 		| YY_INTENT '(' YY_INOUT ')'
 			{
 				ParseNode newnode = gen_token(Term{ TokenMeta::NT_VARIABLEDESC, "NT_VARIABLEDESC" }); // intent(inout)
-				set_variabledesc_attr(&newnode, true, false, boost::none, boost::none, boost::none);
+				set_variabledesc_attr(newnode, true, false, boost::none, boost::none, boost::none, boost::none);
 				$$ = newnode;
 				update_pos($$, $1, $4);
 			}
@@ -110,8 +110,8 @@ using namespace std;
 				ParseNode newnode = gen_token(Term{ TokenMeta::NT_VARIABLEDESC, "NT_VARIABLEDESC" });
 				ParseNode & dimen_slice = $3;
 				ParseNode attr = gen_variabledesc_from_dimenslice(dimen_slice);
-				newnode.addchild(new ParseNode(attr)); // def slice
-				set_variabledesc_attr(&newnode, boost::none, boost::none, boost::none, attr, boost::none);
+				newnode.addchild(attr); // def slice
+				set_variabledesc_attr(newnode, boost::none, boost::none, boost::none, attr, boost::none, boost::none);
 				$$ = newnode;
 				update_pos($$, $1, $4);
 			}
@@ -123,20 +123,20 @@ using namespace std;
 				ParseNode & exp_to = $3;
 				ParseNode & exp_from = gen_promote(TokenMeta::NT_EXPRESSION, gen_token(Term{ TokenMeta::META_INTEGER, "1" }));
 
-				slice.addchild(new ParseNode(exp_from)); // slice from 1
-				slice.addchild(new ParseNode(exp_to)); // slice to
+				slice.addchild(exp_from); // slice from 1
+				slice.addchild(exp_to); // slice to
 
 				ParseNode attr = gen_variabledesc_from_dimenslice(gen_promote("", TokenMeta::NT_DIMENSLICE, slice));
-				newnode.addchild(new ParseNode(attr)); // def slice
+				newnode.addchild(attr); // def slice
 
-				set_variabledesc_attr(&newnode, boost::none, boost::none, boost::none, attr, boost::none);
+				set_variabledesc_attr(newnode, boost::none, boost::none, boost::none, attr, boost::none, boost::none);
 				$$ = newnode;
 				update_pos($$, $1, $4);
 			}
 		| YY_OPTIONAL
 			{
 				ParseNode newnode = gen_token(Term{ TokenMeta::NT_VARIABLEDESC, "NT_VARIABLEDESC" }); // optional
-				set_variabledesc_attr(&newnode, boost::none, boost::none, true, boost::none, boost::none);
+				set_variabledesc_attr(newnode, boost::none, boost::none, true, boost::none, boost::none, boost::none);
 				$$ = newnode;
 				update_pos($$, $1, $1);
 			}
@@ -144,7 +144,7 @@ using namespace std;
 			{
 				/* const value */
 				ParseNode newnode = gen_token(Term{ TokenMeta::NT_VARIABLEDESC, "NT_VARIABLEDESC" }); // const
-				set_variabledesc_attr(&newnode, boost::none, true, boost::none, boost::none, boost::none);
+				set_variabledesc_attr(newnode, boost::none, true, boost::none, boost::none, boost::none, boost::none);
 				$$ = newnode;
 				update_pos($$, $1, $1);
 			}
@@ -162,13 +162,12 @@ using namespace std;
 		| ',' variable_desc_elem variable_desc
 			{
 				ParseNode & variable_elem = $2;
-				ParseNode * variable_desc = & $3;
+				ParseNode & variable_desc = $3;
 				/* target code of slice depend on context */
 				ParseNode newnode = gen_token(Term{ TokenMeta::NT_VARIABLEDESC, "NT_VARIABLEDESC" });
 				/* merge attrs */
-				newnode.attr = variable_elem.attr->clone();
-				//dynamic_cast<VariableDescAttr *>(newnode.attr)->merge(*dynamic_cast<VariableDescAttr *>(variable_desc->attr));
-				get_variabledesc_attr(&newnode).merge(get_variabledesc_attr(variable_desc));
+				newnode.setattr(variable_elem.attr->clone());
+				get_variabledesc_attr(newnode).merge(get_variabledesc_attr(variable_desc));
 				// TODO do not add child
 				$$ = newnode;
 				update_pos($$, $1, $3);
@@ -176,7 +175,7 @@ using namespace std;
 		|
 			{
 				ParseNode newnode = gen_token(Term{ TokenMeta::NT_VARIABLEDESC, "NT_VARIABLEDESC" });
-				newnode.attr = new VariableDescAttr(&newnode);
+				newnode.setattr(new VariableDescAttr());
 				$$ = newnode;
 				update_pos($$);
 			}
@@ -188,7 +187,7 @@ using namespace std;
 
 				/* type size */
 				ParseNode newnode = gen_token(Term{ TokenMeta::NT_VARIABLEDESC, "NT_VARIABLEDESC" });
-				set_variabledesc_attr(&newnode, boost::none, boost::none, boost::none, boost::none, kind);
+				set_variabledesc_attr(newnode, boost::none, boost::none, boost::none, boost::none, kind, boost::none);
 				$$ = newnode;
 				update_pos($$, $1, $3);
 			}
@@ -201,7 +200,7 @@ using namespace std;
 
 				/* string length */
 				ParseNode newnode = gen_token(Term{ TokenMeta::NT_VARIABLEDESC, "NT_VARIABLEDESC" });
-				set_variabledesc_attr(&newnode, boost::none, boost::none, boost::none, boost::none, len);
+				set_variabledesc_attr(newnode, boost::none, boost::none, boost::none, boost::none, len, boost::none);
 				$$ = newnode;
 				update_pos($$, $1, $3);
 			}
@@ -606,10 +605,6 @@ using namespace std;
 				ParseNode & xx = $1;
 				update_pos($$, $1, $2);
 			}
-		| label
-			{
-				update_pos($$, $1, $1);
-			}
 		| common_stmt
 			{
 				$$ = $1;
@@ -619,6 +614,11 @@ using namespace std;
 			{
 				$$ = gen_format($1);
 				update_pos($$, $1, $2);
+			}
+		| label
+			{
+				$$ = $1;
+				update_pos($$, $1, $1);
 			}
 
 
@@ -663,7 +663,23 @@ using namespace std;
 			}
 		| stmt suite
 			{
-				$$ = gen_flattern($1, $2, "%s\n%s", TokenMeta::NT_SUITE);;
+
+				ParseNode & stmt = $1; // TokenMeta::NT_LABEL
+				ParseNode & suite = $2;
+				if (stmt.fs.CurrentTerm.token == TokenMeta::NT_LABEL)
+				{
+					ParseNode & label = stmt.get(0); // TokenMeta::Label
+					if (suite.child.size() > 0 && suite.get(0).child.size() > 0 && suite.get(0).get(0).fs.CurrentTerm.token == TokenMeta::NT_FORMAT)
+					{
+						log_format_index(label.fs.CurrentTerm.what, suite.get(0));
+						$$ = suite;
+					}
+					else {
+						$$ = gen_flattern(stmt, suite, "%s\n%s", TokenMeta::NT_SUITE);
+					}
+				}else {
+					$$ = gen_flattern(stmt, suite, "%s\n%s", TokenMeta::NT_SUITE);
+				}
 				update_pos($$, $1, $2);
 			}
 		| interface_decl
@@ -676,6 +692,7 @@ using namespace std;
 				$$ = gen_flattern($1, $2, "%s%s", TokenMeta::NT_SUITE);
 				update_pos($$, $1, $2);
 			}
+
 
 
 	_optional_lbrace : 
@@ -714,8 +731,8 @@ using namespace std;
 				ParseNode & _optional_device = $2;
 				ParseNode & _optional_formatter = $4;
 				/* target code of io_info depend on context, can be either iostream/cstdio */
-				newnode.addchild(new ParseNode(_optional_device)); // _optional_device
-				newnode.addchild(new ParseNode(_optional_formatter)); // _optional_formatter
+				newnode.addchild(_optional_device); // _optional_device
+				newnode.addchild(_optional_formatter); // _optional_formatter
 				$$ = newnode;
 				update_pos($$, $1, $5);
 			}
@@ -726,8 +743,8 @@ using namespace std;
 				_optional_device.fs.CurrentTerm = Term{ TokenMeta::META_NONTERMINAL, "" };
 				ParseNode & _optional_formatter = $1;
 				/* target code of io_info depend on context */
-				newnode.addchild(new ParseNode(_optional_device)); // _optional_device
-				newnode.addchild(new ParseNode(_optional_formatter)); // _optional_formatter
+				newnode.addchild(_optional_device); // _optional_device
+				newnode.addchild(_optional_formatter); // _optional_formatter
 				$$ = newnode;
 				update_pos($$, $1, $2);
 			}
@@ -820,7 +837,7 @@ using namespace std;
 				ParseNode newnode = gen_type($1);
 				int len;
 				sscanf($3.fs.CurrentTerm.what.c_str(), "%d", &len);
-				set_variabledesc_attr(&newnode, boost::none, boost::none, boost::none, boost::none, len);
+				set_variabledesc_attr(newnode, boost::none, boost::none, boost::none, boost::none, len, boost::none);
 				update_pos($$, $1, $4);
 			}
 		| type_nospec '*' YY_INTEGER
@@ -880,7 +897,7 @@ using namespace std;
 				/* array decl */
 				ParseNode & type_spec = gen_token(Term {TokenMeta::Implicit_Def, ""});
 				ParseNode variable_desc = gen_token(Term{ TokenMeta::NT_VARIABLEDESC, "NT_VARIABLEDESC" });
-				set_variabledesc_attr(&variable_desc, boost::none, boost::none, boost::none, boost::none, boost::none);
+				set_variabledesc_attr(variable_desc, boost::none, boost::none, boost::none, boost::none, boost::none, boost::none);
 				ParseNode & paramtable = $2;
 				$$ = gen_vardef(type_spec, variable_desc, paramtable);
 				update_pos($$, $1, $2);
@@ -944,10 +961,10 @@ using namespace std;
 			{
 				/* something like `abs(i), i=1,4` */
 				ParseNode newnode = gen_token(Term{ TokenMeta::NT_HIDDENDO, "" });
-				newnode.addchild(new ParseNode($1)); // exp
-				newnode.addchild(new ParseNode($3)); // index variable
-				newnode.addchild(new ParseNode($5)); // exp_from
-				newnode.addchild(new ParseNode($7)); // exp_to
+				newnode.addchild($1); // exp
+				newnode.addchild($3); // index variable
+				newnode.addchild($5); // exp_from
+				newnode.addchild($7); // exp_to
 				$$ = newnode;
 				update_pos($$, $1, $7);
 			}
@@ -1146,7 +1163,7 @@ using namespace std;
 			{
 				ParseNode & case_stmt_elem = $1;
 				ParseNode newnode = ParseNode(gen_flex(Term{ TokenMeta::NT_CASES, "" }), nullptr);
-				newnode.addchild(new ParseNode(case_stmt_elem)); // case_stmt_elem
+				newnode.addchild(case_stmt_elem); // case_stmt_elem
 				$$ = newnode;
 				update_pos($$, $1, $1);
 			}
@@ -1156,7 +1173,7 @@ using namespace std;
 				ParseNode & case_stmt = $2;
 				ParseNode newnode = ParseNode(case_stmt);
 				newnode.fs.CurrentTerm = Term{ TokenMeta::NT_CASES, "" };
-				newnode.addchild(new ParseNode(case_stmt_elem), false /* add to the front of the vector */); // case_stmt_elem
+				newnode.addchild(case_stmt_elem, false /* add to the front of the vector */); // case_stmt_elem
 				$$ = newnode;
 				update_pos($$, $1, $2);
 			}
@@ -1230,7 +1247,7 @@ using namespace std;
 	wrappers : wrapper
 			{
 				ParseNode newnode = ParseNode();
-				newnode.addchild(new ParseNode($1)); // wrapper
+				newnode.addchild($1); // wrapper
 				sprintf(codegen_buf, "%s", $1.fs.CurrentTerm.what.c_str());
 				newnode.fs.CurrentTerm = Term{ TokenMeta::NT_WRAPPERS, string(codegen_buf) };
 				$$ = newnode;
@@ -1239,8 +1256,8 @@ using namespace std;
 		| wrapper wrappers
 			{
 				ParseNode newnode = ParseNode();
-				newnode.addchild(new ParseNode($1)); // wrapper
-				newnode.addchild(new ParseNode($2)); // wrappers
+				newnode.addchild($1); // wrapper
+				newnode.addchild($2); // wrappers
 				sprintf(codegen_buf, "%s\n%s", $1.fs.CurrentTerm.what.c_str(), $2.fs.CurrentTerm.what.c_str());
 				newnode = flattern_bin(newnode);
 				newnode.fs.CurrentTerm = Term{ TokenMeta::NT_WRAPPERS, string(codegen_buf) };
@@ -1279,21 +1296,21 @@ void update_pos(YYSTYPE & current) {
 		current.fs.line_pos = 0;
 	}
 	else if (current.child.size() == 1) {
-		current.fs.parse_pos = current.child[0]->fs.parse_pos;
-		current.fs.parse_line = current.child[0]->fs.parse_line;
-		current.fs.parse_len = current.child[0]->fs.parse_len;
-		current.fs.line_pos = current.child[0]->fs.line_pos;
+		current.fs.parse_pos = current.get(0).fs.parse_pos;
+		current.fs.parse_line = current.get(0).fs.parse_line;
+		current.fs.parse_len = current.get(0).fs.parse_len;
+		current.fs.line_pos = current.get(0).fs.line_pos;
 	}
 	else {
 		int tot_len = 0;
 		for (int i = 0; i < current.child.size(); i++)
 		{
-			tot_len += current.child[i]->fs.parse_len;
+			tot_len += current.get(i).fs.parse_len;
 		}
-		current.fs.parse_pos = current.child[0]->fs.parse_pos;
-		current.fs.parse_line = current.child[0]->fs.parse_line;
+		current.fs.parse_pos = current.get(0).fs.parse_pos;
+		current.fs.parse_line = current.get(0).fs.parse_line;
 		current.fs.parse_len = tot_len;
-		current.fs.line_pos = current.child[0]->fs.line_pos;
+		current.fs.line_pos = current.get(0).fs.line_pos;
 	}
 }
 void update_pos(YYSTYPE & current, YYSTYPE & start, YYSTYPE & end) {

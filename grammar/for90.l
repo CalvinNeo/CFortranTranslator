@@ -10,7 +10,7 @@
 #include "../parser.h"
 #include "../context.h"
 #include "../gen_config.h"
-#include "../format.h"
+//#include "../format.h"
 
 
 // 前置声明
@@ -65,6 +65,8 @@ void update_yylval(Term & current_term, bool empty = false) {
 		yylval.fs.CurrentTerm = current_term;
 	}
 }
+
+std::string parse_ioformatter(const std::string & src); // gen_io.cpp
 #define YYRTN(TOK, YYTOK)  update_yylval(Term{TOK, std::string(yytext)});  update_flex((int)yyleng);  return YYTOK; 
 #define YYRTCRLF()  update_yylval( Term{TokenMeta::CRLF, std::string(yytext)}); update_flex((int)yyleng, true); return YY_CRLF;
 // 空格, 制表符等

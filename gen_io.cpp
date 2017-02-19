@@ -2,31 +2,30 @@
 
 ParseNode gen_read(const ParseNode & io_info, const ParseNode & argtable) {
 	ParseNode newnode = ParseNode();
-	const ParseNode * pn = &argtable;
 	ParseNode * formatter = io_info.child[1];
-	string device = io_info.child[0]->fs.CurrentTerm.what;
-	if (io_info.child[1]->fs.CurrentTerm.token == TokenMeta::NT_AUTOFORMATTER) {
+	string device = io_info.get(0).fs.CurrentTerm.what;
+	if (io_info.get(1).fs.CurrentTerm.token == TokenMeta::NT_AUTOFORMATTER) {
 		if (device == "-1" || device == "") {
 			//device = "5"; // stdin
-			sprintf(codegen_buf, "forreadfree(stdin, %s) ;", pn->fs.CurrentTerm.what.c_str());
+			sprintf(codegen_buf, "forreadfree(stdin, %s) ;", argtable.fs.CurrentTerm.what.c_str());
 		}
 		else {
-			sprintf(codegen_buf, "forreadfree(get_file(%s), %s) ;", device.c_str(), pn->fs.CurrentTerm.what.c_str());
+			sprintf(codegen_buf, "forreadfree(get_file(%s), %s) ;", device.c_str(), argtable.fs.CurrentTerm.what.c_str());
 		}
 	}
 	else {
-		string fmt = io_info.child[1]->fs.CurrentTerm.what.substr(1, io_info.child[1]->fs.CurrentTerm.what.size() - 1); // strip " 
+		string fmt = io_info.get(1).fs.CurrentTerm.what.substr(1, io_info.get(1).fs.CurrentTerm.what.size() - 1); // strip " 
 		if (device == "-1" || device == "") {
 			//device = "5"; // stdin
-			sprintf(codegen_buf, "forread(stdin, \"%s\", %s) ;", parse_ioformatter(fmt).c_str(), pn->fs.CurrentTerm.what.c_str());
+			sprintf(codegen_buf, "forread(stdin, \"%s\", %s) ;", parse_ioformatter(fmt).c_str(), argtable.fs.CurrentTerm.what.c_str());
 		}
 		else {
-			sprintf(codegen_buf, "forread(get_file(%s), \"%s\", %s) ;", device.c_str(), parse_ioformatter(fmt).c_str(), pn->fs.CurrentTerm.what.c_str());
+			sprintf(codegen_buf, "forread(get_file(%s), \"%s\", %s) ;", device.c_str(), parse_ioformatter(fmt).c_str(), argtable.fs.CurrentTerm.what.c_str());
 		}
 	}
 	newnode.fs.CurrentTerm = Term{ TokenMeta::META_NONTERMINAL, string(codegen_buf) };
-	newnode.addchild(new ParseNode(io_info)); // ioinfo
-	newnode.addchild(new ParseNode(argtable)); // argtable
+	newnode.addchild(io_info); // ioinfo
+	newnode.addchild(argtable); // argtable
 	return newnode;
 }
 
@@ -34,51 +33,50 @@ ParseNode gen_read(const ParseNode & io_info, const ParseNode & argtable) {
 ParseNode gen_write(const ParseNode & io_info, const ParseNode & argtable) {
 	// brace is forced
 	ParseNode newnode = ParseNode();
-	const ParseNode * pn = &argtable;
 	ParseNode * formatter = io_info.child[1];
-	string device = io_info.child[0]->fs.CurrentTerm.what;
-	if (io_info.child[1]->fs.CurrentTerm.token == TokenMeta::NT_AUTOFORMATTER) {
+	string device = io_info.get(0).fs.CurrentTerm.what;
+	if (io_info.get(1).fs.CurrentTerm.token == TokenMeta::NT_AUTOFORMATTER) {
 		if (device == "-1") {
 			// device = "6"; // stdout
-			sprintf(codegen_buf, "forwritefree(stdout, %s) ;", pn->fs.CurrentTerm.what.c_str());
+			sprintf(codegen_buf, "forwritefree(stdout, %s) ;", argtable.fs.CurrentTerm.what.c_str());
 		}
 		else {
-			sprintf(codegen_buf, "forwritefree(get_file(%s), %s) ;", device.c_str(), pn->fs.CurrentTerm.what.c_str());
+			sprintf(codegen_buf, "forwritefree(get_file(%s), %s) ;", device.c_str(), argtable.fs.CurrentTerm.what.c_str());
 		}
 	}
 	else {
-		string fmt = io_info.child[1]->fs.CurrentTerm.what.substr(1, io_info.child[1]->fs.CurrentTerm.what.size() - 1); // strip " 
+		string fmt = io_info.get(1).fs.CurrentTerm.what.substr(1, io_info.get(1).fs.CurrentTerm.what.size() - 1); // strip " 
 		if (device == "-1") {
 			// device = "6"; // stdout
-			sprintf(codegen_buf, "forwritefree(stdout, \"%s\\n\", %s) ;", parse_ioformatter(fmt).c_str(), pn->fs.CurrentTerm.what.c_str());
+			sprintf(codegen_buf, "forwritefree(stdout, \"%s\\n\", %s) ;", parse_ioformatter(fmt).c_str(), argtable.fs.CurrentTerm.what.c_str());
 		}
 		else {
-			sprintf(codegen_buf, "forwrite(get_file(%s), \"%s\\n\", %s) ;", device.c_str(), parse_ioformatter(fmt).c_str(), pn->fs.CurrentTerm.what.c_str());
+			sprintf(codegen_buf, "forwrite(get_file(%s), \"%s\\n\", %s) ;", device.c_str(), parse_ioformatter(fmt).c_str(), argtable.fs.CurrentTerm.what.c_str());
 		}
 	}
 	newnode.fs.CurrentTerm = Term{ TokenMeta::META_NONTERMINAL, string(codegen_buf) };
-	newnode.addchild(new ParseNode(io_info)); // ioinfo
-	newnode.addchild(new ParseNode(argtable)); // argtable
+	newnode.addchild(io_info); // ioinfo
+	newnode.addchild(argtable); // argtable
 	return newnode;
 }
 ParseNode gen_print(const ParseNode & io_info, const ParseNode & argtable) {
 
 	ParseNode newnode = ParseNode();
-	const ParseNode * pn = &argtable;
-	if (io_info.child[1]->fs.CurrentTerm.token == TokenMeta::NT_AUTOFORMATTER) {
-		sprintf(codegen_buf, "forprintfree(%s, \"\\n\") ;", pn->fs.CurrentTerm.what.c_str());
+	if (io_info.get(1).fs.CurrentTerm.token == TokenMeta::NT_AUTOFORMATTER) {
+		sprintf(codegen_buf, "forprintfree(%s, \"\\n\") ;", argtable.fs.CurrentTerm.what.c_str());
 	}
 	else {
-		string fmt = io_info.child[1]->fs.CurrentTerm.what.substr(1, io_info.child[1]->fs.CurrentTerm.what.size() - 1); // strip " 
-		sprintf(codegen_buf, "forprint(\"%s\\n\", %s) ;", parse_ioformatter(fmt).c_str(), pn->fs.CurrentTerm.what.c_str());
+		string fmt = io_info.get(1).fs.CurrentTerm.what.substr(1, io_info.get(1).fs.CurrentTerm.what.size() - 1); // strip " 
+		sprintf(codegen_buf, "forprint(\"%s\\n\", %s) ;", parse_ioformatter(fmt).c_str(), argtable.fs.CurrentTerm.what.c_str());
 	}
 	newnode.fs.CurrentTerm = Term{ TokenMeta::META_NONTERMINAL, string(codegen_buf) };
-	newnode.addchild(new ParseNode(io_info)); // ioinfo
-	newnode.addchild(new ParseNode(argtable)); // argtable
+	newnode.addchild(io_info); // ioinfo
+	newnode.addchild(argtable); // argtable
 	return newnode;
 }
 ParseNode gen_format(const ParseNode & format) {
-	ParseNode newnode = gen_token(Term{ TokenMeta::NT_FORMAT, "\"" + format.fs.CurrentTerm.what + "\"" });
+	ParseNode newnode = gen_token(Term{ TokenMeta::NT_STATEMENT, "" });
+	newnode.addchild(gen_token(Term{ TokenMeta::NT_FORMAT, "\"" + format.fs.CurrentTerm.what + "\"" }) );
 	return newnode;
 }
 

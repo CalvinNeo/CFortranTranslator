@@ -39,11 +39,11 @@ ParseNode gen_format(const ParseNode & format);
 ParseNode gen_exp(const ParseNode & exp1, const ParseNode & op, const ParseNode & exp2, std::string trans_rule);
 ParseNode gen_exp(const ParseNode & exp1, const ParseNode & op, std::string trans_rule);
 
-std::string get_variable_name(ParseNode * entity_variable);
+std::string get_variable_name(ParseNode & entity_variable);
 ParseNode gen_vardef(const ParseNode & type_nospec, const ParseNode & variable_desc, const ParseNode & paramtable);
-void regen_vardef(VariableInfo * vinfo, ParseNode & newnode, const ParseNode & type_nospec, ParseNode & vardescattr_node, ParseNode * entity_variable);
-std::string gen_vardef_array_str(VariableInfo * vinfo, std::string alias_name, ParseNode * entity_variable, const ParseNode & type_nospec, const std::tuple<std::vector<int>, std::vector<int>> & shape, VariableDescAttr & vardescattr);
-std::string gen_vardef_scalar_str(VariableInfo * vinfo, ParseNode * entity_variable, const ParseNode & type_nospec, VariableDescAttr & vardescattr);
+void regen_vardef(VariableInfo * vinfo, ParseNode & newnode, const ParseNode & type_nospec, ParseNode & vardescattr_node, ParseNode & entity_variable);
+std::string gen_vardef_array_str(VariableInfo * vinfo, std::string alias_name, ParseNode & entity_variable, const ParseNode & type_nospec, const std::tuple<std::vector<int>, std::vector<int>> & shape, VariableDescAttr & vardescattr);
+std::string gen_vardef_scalar_str(VariableInfo * vinfo, ParseNode & entity_variable, const ParseNode & type_nospec, VariableDescAttr & vardescattr);
 std::string gen_lbound_size_str(const std::tuple<std::vector<int>, std::vector<int>> & shape);
 std::tuple<std::vector<int>, std::vector<int>> gen_lbound_size(const ParseNode * slice);
 ParseNode gen_vardef_simple(const ParseNode & type, std::string name);
@@ -92,14 +92,14 @@ ParseNode gen_argtable(ParseNode & dimen_slice);
 
 ParseNode gen_stmt(const ParseNode & content);
 ParseNode gen_stmt(const ParseNode & content, const std::string & rules); 
-std::string regen_suite(ParseNode * oldsuite);
+std::string regen_suite(ParseNode & oldsuite);
 
 ParseNode gen_array_from_hiddendo(ParseNode & hiddendo);
 ParseNode gen_array_from_paramtable(const ParseNode & argtable);
 void gen_arraybuilder_str(ParseNode & arraybuilder);
 
-void set_variabledesc_attr(ParseNode * vardescattr_node, boost::optional<bool> reference, boost::optional<bool> constant, boost::optional<bool> optional, boost::optional<ParseNode> slice, boost::optional<int> kind);
-VariableDesc & get_variabledesc_attr(ParseNode * vardescattr_node);
+void set_variabledesc_attr(ParseNode & vardescattr_node, boost::optional<bool> reference, boost::optional<bool> constant, boost::optional<bool> optional, boost::optional<ParseNode> slice, boost::optional<int> kind, boost::optional<bool> save);
+VariableDesc & get_variabledesc_attr(ParseNode & vardescattr_node);
 ParseNode gen_variabledesc_from_dimenslice(ParseNode & dimen_slice);
 
 ParseNode gen_interface(const ParseNode & wrappers);
@@ -107,8 +107,8 @@ ParseNode gen_interface(const ParseNode & wrappers);
 void add_function_forward(const ParseNode & function_decl);
 
 ParseNode gen_label(const ParseNode & tag); 
-void log_format_index(std::string format_index, ParseNode * stmt);
-ParseNode * require_format_index(std::string format_index);
+void log_format_index(std::string format_index, const ParseNode & stmt);
+ParseNode require_format_index(std::string format_index);
 
 std::string gen_rights(std::string filename, std::string author);
 ParseNode gen_header();

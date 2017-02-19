@@ -1,8 +1,0 @@
-function sum(x) result (sum_result)
-	integer,intent(in)::x
-	integer::sum_result
-	integer::a
-	common /cb/ a, b, c(10)
-	!dimension d(100, 100)
-	sum_result = x
-end function

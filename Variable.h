@@ -9,6 +9,7 @@ struct VariableDesc {
 	dirty<bool> optional = false;
 	boost::optional<ParseNode> slice = boost::none;
 	dirty<int> kind = 0;
+	dirty<bool> save = false;
 	void merge(const VariableDesc & x2) {
 		if (!constant.isdirty() && x2.constant.isdirty()) {
 			constant = x2.constant;
@@ -25,12 +26,15 @@ struct VariableDesc {
 		if (!kind.isdirty() && x2.kind.isdirty()) {
 			kind = x2.kind;
 		}
+		if (!save.isdirty() && x2.save.isdirty()) {
+			save = x2.save;
+		}
 	}
 
 	VariableDesc() {
 
 	}
-	VariableDesc(boost::optional<bool> reference, boost::optional<bool> constant, boost::optional<bool> optional, boost::optional<ParseNode> slice, boost::optional<int> kind) {
+	VariableDesc(boost::optional<bool> reference, boost::optional<bool> constant, boost::optional<bool> optional, boost::optional<ParseNode> slice, boost::optional<int> kind, boost::optional<bool> save) {
 		if (reference.is_initialized())
 			this->reference = reference.value();
 		if (constant.is_initialized())
@@ -41,6 +45,8 @@ struct VariableDesc {
 			this->slice = slice.value();
 		if (kind.is_initialized())
 			this->kind = kind.value();
+		if (save.is_initialized())
+			this->save = save.value();
 	}
 };
 

@@ -17,7 +17,7 @@ std::string regen_paramtable(const vector<tuple<string, ParseNode, ParseNode *>>
 		if (vardef->fs.CurrentTerm.token == TokenMeta::NT_VARIABLEDEFINE ||
 			vardef->fs.CurrentTerm.token == TokenMeta::NT_DECLAREDVARIABLE)
 		{
-			VariableDesc desc = get_variabledesc_attr(vardef);
+			VariableDesc desc = get_variabledesc_attr(*vardef);
 			std::string typestr = gen_qualified_typestr(get<1>(paramtable_info[i]), desc);
 			sprintf(codegen_buf, "%s %s", typestr.c_str(), get<0>(paramtable_info[i]).c_str());
 			paramtblstr += string(codegen_buf);
@@ -38,7 +38,7 @@ vector<ParseNode *> get_all_declared(ParseNode & suite) {
 	for (int i = 0; i < (int)suite.child.size(); i++)
 	{
 		ParseNode * stmti = suite.child[i];
-		if (stmti->child.size() == 1 && stmti->child[0]->fs.CurrentTerm.token == TokenMeta::NT_VARIABLEDEFINESET) {
+		if (stmti->child.size() == 1 && stmti->get(0).fs.CurrentTerm.token == TokenMeta::NT_VARIABLEDEFINESET) {
 			ParseNode * vardef_set = stmti->child[0];
 			for (int j = 0; (int)j < vardef_set->child.size(); j++)
 			{
@@ -73,14 +73,14 @@ vector<tuple<string, ParseNode, ParseNode *>> get_full_paramtable(const ParseNod
 	do {
 		for (int i = 0; i < pn->child.size(); i++)
 		{
-			paramtable_info.push_back(make_tuple(pn->child[i]->fs.CurrentTerm.what
+			paramtable_info.push_back(make_tuple(pn->get(i).fs.CurrentTerm.what
 				, gen_type(Term{ TokenMeta::Void_Def, "void" }), nullptr)); // refer to function suite and determine type of params
 		}
 		if (pn->child.size() >= 2)
 		{
 			pn = pn->child[1];
 		}
-	} while (pn->child.size() == 2 && pn->child[1]->fs.CurrentTerm.token == TokenMeta::NT_PARAMTABLE);
+	} while (pn->child.size() == 2 && pn->get(1).fs.CurrentTerm.token == TokenMeta::NT_PARAMTABLE);
 
 
 	/* result variable must be the last one */
@@ -97,7 +97,7 @@ vector<tuple<string, ParseNode, ParseNode *>> get_full_paramtable(const ParseNod
 			ParseNode * entity_variable = vardef->child[2];
 			ParseNode * initial = entity_variable->child[1];
 			if (vardef->fs.CurrentTerm.token == TokenMeta::NT_VARIABLEDEFINE || vardef->fs.CurrentTerm.token == TokenMeta::NT_DECLAREDVARIABLE){
-				if (entity_variable->child[0]->fs.CurrentTerm.what == varname) {
+				if (entity_variable->get(0).fs.CurrentTerm.what == varname) {
 					get<1>(paramtable_info[i]) = *vardef->child[0]; // type_nospec
 					get<2>(paramtable_info[i]) = vardef; // variable ParseNode
 					if (i != paramtable_info.size() - 1) {
@@ -108,7 +108,7 @@ vector<tuple<string, ParseNode, ParseNode *>> get_full_paramtable(const ParseNod
 			}
 			else if (vardef->fs.CurrentTerm.token == TokenMeta::NT_FUNCTIONDECLARE) {
 				// interface function
-				if (vardef->child[1]->fs.CurrentTerm.what == varname) {
+				if (vardef->get(1).fs.CurrentTerm.what == varname) {
 					string interface_paramtable_str = "";
 					if (vardef->attr != nullptr) {
 						// variables declared in the interface block
@@ -119,14 +119,14 @@ vector<tuple<string, ParseNode, ParseNode *>> get_full_paramtable(const ParseNod
 							if (k != 0)
 								interface_paramtable_str += ", ";
 							ParseNode * param_node = get<2>(interface_paramtable[k]);
-							VariableDesc desc = get_variabledesc_attr(param_node);
+							VariableDesc desc = get_variabledesc_attr(*param_node);
 							std::string typestr = gen_qualified_typestr(get<1>(interface_paramtable[k]), desc);
 							sprintf(codegen_buf, "%s %s", typestr.c_str(), get<0>(interface_paramtable[k]).c_str());
 							interface_paramtable_str += string(codegen_buf);
 						}
 					}
 					get<1>(paramtable_info[i]) = gen_type(Term{TokenMeta::Function_Def, "std::function<"
-						+ vardef->child[3]/*vardef return value*/->child[0]->fs.CurrentTerm.what
+						+ vardef->get(3)/*vardef return value*/.get(0).fs.CurrentTerm.what
 						+ "(" + interface_paramtable_str + ")>" });
 					get<2>(paramtable_info[i]) = vardef;
 				}
@@ -141,7 +141,7 @@ ParseNode gen_function(const ParseNode & variable_function, const ParseNode & pa
 	// paramtable is raw for90 paramtable and every variable in the table has no type infomation
 	ParseNode newnode = ParseNode();
 	
-	ParseNode * oldsuite = &suite;
+	ParseNode & oldsuite = suite;
 	bool is_subroutine = variable_result.fs.CurrentTerm.what == "";
 
 	// log function in function table
@@ -153,33 +153,33 @@ ParseNode gen_function(const ParseNode & variable_function, const ParseNode & pa
 
 	// log function and set attr 
 	FunctionDesc funcdesc = FunctionDesc(declared_variables, paramtable_info);
-	FunctionAttr functionattr = FunctionAttr(&newnode, add_function("", variable_function.fs.CurrentTerm.what, FunctionInfo(funcdesc)));
-	newnode.attr = functionattr.clone();
+	FunctionAttr functionattr = FunctionAttr(add_function("", variable_function.fs.CurrentTerm.what, FunctionInfo(funcdesc)));
+	newnode.setattr(functionattr.clone());
 
 	// make newnode
 	string newsuitestr = regen_suite(oldsuite); 
 	string paramtblstr = regen_paramtable(paramtable_info);
 	/* generate function ParseTree */
-	newnode.addchild(new ParseNode()); // reserved functionhead 0
-	newnode.addchild(new ParseNode(variable_function)); // function name 1
-	newnode.addchild(new ParseNode(paramtable)); // paramtable 2
+	newnode.addchild(ParseNode()); // reserved functionhead 0
+	newnode.addchild(variable_function); // function name 1
+	newnode.addchild(paramtable); // paramtable 2
 	if (get<2>(paramtable_info[paramtable_info.size() - 1]) == nullptr) {
 		// void function
 		ParseNode vardef = gen_vardef_simple(gen_type(Term{ TokenMeta::Void_Def, "void" }), "");
-		newnode.addchild(new ParseNode(vardef)); // return_value 3
+		newnode.addchild(vardef); // return_value 3
 	}
 	else {
 		ParseNode vardef = gen_vardef_simple(get<1>(paramtable_info[paramtable_info.size() - 1]), ""); 
-		newnode.addchild(new ParseNode(vardef)); // return_value 3
+		newnode.addchild(vardef); // return_value 3
 	}
-	newnode.addchild(new ParseNode(suite)); // suite 4
+	newnode.addchild(suite); // suite 4
 
 	/* generate function code */
 	sprintf(codegen_buf, "%s %s(%s)\n{\n%s\treturn %s;\n}\n"
 		, get<1>(paramtable_info[paramtable_info.size() - 1]).fs.CurrentTerm.what.c_str() // return value type, "void" if subroutine
 		, variable_function.fs.CurrentTerm.what.c_str() // function name
 		, paramtblstr.c_str() // paramtable
-		, oldsuite->fs.CurrentTerm.what.c_str() // code
+		, oldsuite.fs.CurrentTerm.what.c_str() // code
 		, (is_subroutine ? "" : variable_result/* variable_result is raw for90 return without type*/.fs.CurrentTerm.what.c_str()) // add return stmt if not function
 	);
 	newnode.fs.CurrentTerm = Term{ TokenMeta::NT_FUNCTIONDECLARE, string(codegen_buf) };

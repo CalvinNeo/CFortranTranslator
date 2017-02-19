@@ -13,19 +13,19 @@ ParseNode gen_array_from_paramtable(const ParseNode & argtable) {
 	ParseNode newnode = ParseNode();
 	for (int i = 0; i < argtable.child.size(); i++)
 	{
-		if (argtable.child[i]->fs.CurrentTerm.token == TokenMeta::NT_EXPRESSION) {
-			ParseNode * array_builder = argtable.child[i]/* NT_EXPRESSION */->child[0];
-			if (array_builder->fs.CurrentTerm.token == TokenMeta::NT_FUCNTIONARRAY) {
+		if (argtable.get(i).fs.CurrentTerm.token == TokenMeta::NT_EXPRESSION) {
+			const ParseNode & array_builder = argtable.get(i)/* NT_EXPRESSION */.get(0);
+			if (array_builder.fs.CurrentTerm.token == TokenMeta::NT_FUCNTIONARRAY) {
 				// slice
-				newnode = gen_promote(TokenMeta::NT_ARRAYBUILDER_LIST, *array_builder);
+				newnode = gen_promote(TokenMeta::NT_ARRAYBUILDER_LIST, array_builder);
 			}
-			else if (array_builder->fs.CurrentTerm.token == TokenMeta::NT_HIDDENDO) {
+			else if (array_builder.fs.CurrentTerm.token == TokenMeta::NT_HIDDENDO) {
 				// hidden_do, handled in gen_array_from_hiddendo
-				newnode = gen_promote(TokenMeta::NT_ARRAYBUILDER_LAMBDA, *array_builder);
+				newnode = gen_promote(TokenMeta::NT_ARRAYBUILDER_LAMBDA, array_builder);
 			}
 			else {
 				// just A(1)(2)(3) or A(1, 2, 3)
-				newnode = gen_promote(TokenMeta::NT_ARRAYBUILDER_LIST, *array_builder);
+				newnode = gen_promote(TokenMeta::NT_ARRAYBUILDER_LIST, array_builder);
 			}
 		}
 		else {
@@ -38,23 +38,23 @@ ParseNode gen_array_from_paramtable(const ParseNode & argtable) {
 	return newnode;
 CAN_ONLY_GEN_ONE:
 	newnode.fs.CurrentTerm = Term{ TokenMeta::NT_ARRAYBUILDER_LIST, string(codegen_buf) };
-	newnode.addchild(new ParseNode(argtable)); // argtable
+	newnode.addchild(argtable); // argtable
 	return newnode;
 }
 
 void gen_arraybuilder_str(ParseNode & arraybuilder) {
 	// wrap arraybuilder.fs.CurrentTerm.what with make_farray function
 	string arr_decl;
-	ParseNode * compound_arraybuilder = &arraybuilder; // NT_ARRAYBUILDER
+	const ParseNode & compound_arraybuilder = arraybuilder; // NT_ARRAYBUILDER
 	bool can_list_init = true;
-	for (auto builderid = 0; builderid < compound_arraybuilder->child.size(); builderid++)
+	for (auto builderid = 0; builderid < compound_arraybuilder.child.size(); builderid++)
 	{
-		ParseNode * array_builder = compound_arraybuilder->child[builderid];
-		if (array_builder->fs.CurrentTerm.token == TokenMeta::NT_ARRAYBUILDER_LAMBDA) {
+		const ParseNode & array_builder = compound_arraybuilder.get(builderid);
+		if (array_builder.fs.CurrentTerm.token == TokenMeta::NT_ARRAYBUILDER_LAMBDA) {
 			can_list_init = false;
 			break;
 		}
-		else if (array_builder->fs.CurrentTerm.token == TokenMeta::NT_ARRAYBUILDER_LIST) {
+		else if (array_builder.fs.CurrentTerm.token == TokenMeta::NT_ARRAYBUILDER_LIST) {
 
 		}
 		else {
@@ -62,27 +62,27 @@ void gen_arraybuilder_str(ParseNode & arraybuilder) {
 		}
 	}
 	int totalsize = 0;
-	for (auto builderid = 0; builderid < compound_arraybuilder->child.size(); builderid++)
+	for (auto builderid = 0; builderid < compound_arraybuilder.child.size(); builderid++)
 	{
-		ParseNode * array_builder = compound_arraybuilder->child[builderid];
-		if (array_builder->fs.CurrentTerm.token == TokenMeta::NT_ARRAYBUILDER_LAMBDA /*hidden_do*/) {
+		const ParseNode & array_builder = compound_arraybuilder.get(builderid);
+		if (array_builder.fs.CurrentTerm.token == TokenMeta::NT_ARRAYBUILDER_LAMBDA /*hidden_do*/) {
 			int from, to;
-			sscanf(array_builder->child[0]/* NT_HIDDENDO */->child[2]->fs.CurrentTerm.what.c_str(), "%d", &from );
-			sscanf(array_builder->child[0]/* NT_HIDDENDO */->child[3]->fs.CurrentTerm.what.c_str(), "%d", &to);
+			sscanf(array_builder.get(0)/* NT_HIDDENDO */.get(2).fs.CurrentTerm.what.c_str(), "%d", &from );
+			sscanf(array_builder.get(0)/* NT_HIDDENDO */.get(3).fs.CurrentTerm.what.c_str(), "%d", &to);
 			totalsize +=  to - from + 1;
 		}
 		else {
-			totalsize += (int)array_builder->child[0]/*NT_ARGTABLE_PURE or other paramtable nodes*/->child.size();
+			totalsize += (int)array_builder.get(0)/*NT_ARGTABLE_PURE or other paramtable nodes*/.child.size();
 		}
 	}
 	if (can_list_init)
 	{
 		// can init array from initializer_list of initial value
-		for (auto builderid = 0; builderid < compound_arraybuilder->child.size(); builderid++)
+		for (auto builderid = 0; builderid < compound_arraybuilder.child.size(); builderid++)
 		{
-			ParseNode * array_builder = compound_arraybuilder->child[builderid];
+			const ParseNode & array_builder = compound_arraybuilder.get(builderid);
 			// init from list
-			sprintf(codegen_buf, "make_init_list(%s)", array_builder->fs.CurrentTerm.what.c_str());
+			sprintf(codegen_buf, "make_init_list(%s)", array_builder.fs.CurrentTerm.what.c_str());
 			if (builderid > 0) {
 				arr_decl += ", ";
 			}
@@ -91,34 +91,34 @@ void gen_arraybuilder_str(ParseNode & arraybuilder) {
 	}
 	else {
 		// must init array from another farray/for1array
-		if (compound_arraybuilder->child.size() > 1) {
+		if (compound_arraybuilder.child.size() > 1) {
 			arr_decl += "forconcat({";
 		}
-		for (auto builderid = 0; builderid < compound_arraybuilder->child.size(); builderid++)
+		for (auto builderid = 0; builderid < compound_arraybuilder.child.size(); builderid++)
 		{
-			ParseNode * array_builder = compound_arraybuilder->child[builderid];
-			if (array_builder->child[0]->fs.CurrentTerm.token == TokenMeta::NT_HIDDENDO) {
-				vector<const ParseNode *> hiddendo_layer = gen_nested_hiddendo_layers(*array_builder->child[0]);
-				std::string vec_from = make_str_list(hiddendo_layer.begin(), hiddendo_layer.end(), [](auto x)->string {return (x)->child[2]->fs.CurrentTerm.what; });
+			const ParseNode & array_builder = compound_arraybuilder.get(builderid);
+			if (array_builder.get(0).fs.CurrentTerm.token == TokenMeta::NT_HIDDENDO) {
+				vector<const ParseNode *> hiddendo_layer = gen_nested_hiddendo_layers(array_builder.get(0));
+				std::string vec_from = make_str_list(hiddendo_layer.begin(), hiddendo_layer.end(), [](auto x)->string {return (x)->get(2).fs.CurrentTerm.what; });
 				std::string vec_to = make_str_list(hiddendo_layer.begin(), hiddendo_layer.end(), [](auto x)->string {
 					int from, to;
-					sscanf((x)->child[2]->fs.CurrentTerm.what.c_str(), "%d", &from);
-					sscanf((x)->child[3]->fs.CurrentTerm.what.c_str(), "%d", &to);
+					sscanf((x)->get(2).fs.CurrentTerm.what.c_str(), "%d", &from);
+					sscanf((x)->get(3).fs.CurrentTerm.what.c_str(), "%d", &to);
 					sprintf(codegen_buf, "%d", to - from + 1);
 					return string(codegen_buf); 
 				});
 				// init from hidden do
-				sprintf(codegen_buf, "make_init_list({%s}, {%s}, %s)", vec_from.c_str(), vec_to.c_str(), array_builder->fs.CurrentTerm.what.c_str());
+				sprintf(codegen_buf, "make_init_list({%s}, {%s}, %s)", vec_from.c_str(), vec_to.c_str(), array_builder.fs.CurrentTerm.what.c_str());
 			}
 			else {
-				sprintf(codegen_buf, "make_init_list(%s)", array_builder->fs.CurrentTerm.what.c_str());
+				sprintf(codegen_buf, "make_init_list(%s)", array_builder.fs.CurrentTerm.what.c_str());
 			}
 			if (builderid > 0) {
 				arr_decl += " , ";
 			}
 			arr_decl += codegen_buf;
 		}
-		if (compound_arraybuilder->child.size() > 1) {
+		if (compound_arraybuilder.child.size() > 1) {
 			arr_decl += " })";
 		}
 	}

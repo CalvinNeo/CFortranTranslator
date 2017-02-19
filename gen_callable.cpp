@@ -9,8 +9,8 @@ ParseNode gen_function_array(const ParseNode & callable_head, const ParseNode & 
 	ParseNode newnode = ParseNode();
 	string name;
 	string func_header;
-	newnode.addchild(new ParseNode(callable_head)); // function/array name
-	newnode.addchild(new ParseNode(argtable)); // argtable
+	newnode.addchild(callable_head); // function/array name
+	newnode.addchild(argtable); // argtable
 	if (funcname_map.find(callable_head.fs.CurrentTerm.what) != funcname_map.end()) {
 		// some fortran intrinsic function NAME must be replaced with its c++ implementation function NAME in for90std.h
 		name = funcname_map.at(callable_head.fs.CurrentTerm.what);
@@ -24,7 +24,7 @@ ParseNode gen_function_array(const ParseNode & callable_head, const ParseNode & 
 		bool is_slice = false;
 		for (auto i = 0; i < argtable.child.size(); i++)
 		{
-			if (argtable.child[i]->fs.CurrentTerm.token == TokenMeta::NT_SLICE) {
+			if (argtable.get(i).fs.CurrentTerm.token == TokenMeta::NT_SLICE) {
 				is_slice = true;
 				break;
 			}
@@ -37,19 +37,19 @@ ParseNode gen_function_array(const ParseNode & callable_head, const ParseNode & 
 					slice_info_str += ",";
 				}
 				slice_info_str += "{";
-				if (argtable.child[i]->fs.CurrentTerm.token == TokenMeta::NT_SLICE) {
+				if (argtable.get(i).fs.CurrentTerm.token == TokenMeta::NT_SLICE) {
 					ParseNode * slice = argtable.child[i];
 					bool empty_slice = false;
 					int slice_info_arr[] = {1, 1, 1};
 					for (auto j = 0; j < slice->child.size(); j++)
 					{
-						if (slice->child[j]->fs.CurrentTerm.token == TokenMeta::NT_VARIABLEINITIALDUMMY) {
+						if (slice->get(j).fs.CurrentTerm.token == TokenMeta::NT_VARIABLEINITIALDUMMY) {
 							// a(:)
 							empty_slice = true;
 							sprintf(codegen_buf, "");
 						}
 						else {
-							sscanf(slice->child[j]->fs.CurrentTerm.what.c_str(), "%d", slice_info_arr + j);
+							sscanf(slice->get(j).fs.CurrentTerm.what.c_str(), "%d", slice_info_arr + j);
 						}
 					}
 					if (empty_slice || slice->child.size() == 0) {
@@ -71,7 +71,7 @@ ParseNode gen_function_array(const ParseNode & callable_head, const ParseNode & 
 				}
 				else {
 					// slice like a(1:2, 3, 4)
-					slice_info_str += argtable.child[i]->fs.CurrentTerm.what;
+					slice_info_str += argtable.get(i).fs.CurrentTerm.what;
 				}
 				slice_info_str += "}";
 			}
@@ -96,25 +96,25 @@ ParseNode gen_function_array(const ParseNode & callable_head, const ParseNode & 
 		map<string, string> kws;
 		for (int i = 0; i < argtable.child.size(); i++)
 		{
-			if (argtable.child[i]->fs.CurrentTerm.token == TokenMeta::NT_KEYVALUE) {
+			if (argtable.get(i).fs.CurrentTerm.token == TokenMeta::NT_KEYVALUE) {
 				// keyword/named argument
 				//kwargs = true;
 				if (map_func == get_context().func_kwargs.end()) {
 					print_error("invalid kwarg of function " + name, argtable);
 				}
 				else {
-					string argname = argtable.child[i]->child[0]->fs.CurrentTerm.what;
-					string argvalue = argtable.child[i]->child[1]->fs.CurrentTerm.what;
+					string argname = argtable.get(i).get(0).fs.CurrentTerm.what;
+					string argvalue = argtable.get(i).get(1).fs.CurrentTerm.what;
 					kws[argname] = argvalue;
 				}
 			}
 			else {
 				// normal argument
 				vector<ParseNode *> args;
-				if (argtable.child[i]->fs.CurrentTerm.token == TokenMeta::NT_ARRAYBUILDER) {
-					for (auto j = 0; j < argtable.child[i]->child.size(); j++)
+				if (argtable.get(i).fs.CurrentTerm.token == TokenMeta::NT_ARRAYBUILDER) {
+					for (auto j = 0; j < argtable.get(i).child.size(); j++)
 					{
-						args.push_back(argtable.child[i]->child[j]);
+						args.push_back(argtable.get(i).child[j]);
 					}
 				}
 				else {
@@ -132,7 +132,7 @@ ParseNode gen_function_array(const ParseNode & callable_head, const ParseNode & 
 							func_header += ", ";
 						}
 						if (args[j]->fs.CurrentTerm.token == TokenMeta::NT_ARRAYBUILDER_LAMBDA) {
-							func_header += "{" + args[j]->child[0]->fs.CurrentTerm.what + "}";
+							func_header += "{" + args[j]->get(0).fs.CurrentTerm.what + "}";
 						}
 						else {
 							func_header += args[j]->fs.CurrentTerm.what;
@@ -144,7 +144,7 @@ ParseNode gen_function_array(const ParseNode & callable_head, const ParseNode & 
 		}
 		// generated code of kwargs
 		if (map_func != get_context().func_kwargs.end()) {
-			std::vector<keyword_param_info> & params = map_func->second;
+			std::vector<KeywordParamInfo> & params = map_func->second;
 			for (int i = normal_count; i < params.size(); i++)
 			{
 				string this_param_name = std::get<0> (params[i]);

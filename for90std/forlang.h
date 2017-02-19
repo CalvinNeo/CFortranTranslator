@@ -9,8 +9,6 @@
 namespace for90std {
 	struct foroptional_dummy {};
 	extern foroptional_dummy None;
-	#define _D foroptional_dummy()
-
 	template <typename T>
 	struct foroptional
 	{
@@ -71,6 +69,9 @@ namespace for90std {
 			return value_ptr != nullptr;
 		}
 		T & get() {
+			return *value_ptr;
+		}
+		const T & get() const {
 			return *value_ptr;
 		}
 		const T & const_get() const {

@@ -35,14 +35,14 @@ ParseNode gen_if(const ParseNode & exp, ParseNode & suite_true, const ParseNode 
 
 	newnode.fs.CurrentTerm = Term{ TokenMeta::NT_IF, string(codegen_buf) };
 
-	newnode.addchild(new ParseNode()); // if
-	newnode.addchild(new ParseNode(exp)); // exp
-	newnode.addchild(new ParseNode(suite_true)); // suite
+	newnode.addchild(ParseNode()); // if
+	newnode.addchild(exp); // exp
+	newnode.addchild(suite_true); // suite
 	if (elseif.fs.CurrentTerm.token != TokenMeta::NT_DUMMY) {
-		newnode.addchild(new ParseNode(elseif)); // recursive elseif-stmt
+		newnode.addchild(elseif); // recursive elseif-stmt
 	}
 	if (elseif.fs.CurrentTerm.token != TokenMeta::NT_DUMMY) {
-		newnode.addchild(new ParseNode(suite_else)); // else-stmt
+		newnode.addchild(suite_else); // else-stmt
 	}
 	return newnode;
 }
@@ -51,9 +51,9 @@ ParseNode gen_if_oneline(const ParseNode & exp, const ParseNode & stmt_true) {
 	ParseNode newnode = ParseNode();
 	sprintf(codegen_buf, "if (%s) %s", exp.fs.CurrentTerm.what.c_str(), stmt_true.fs.CurrentTerm.what.c_str());
 	newnode.fs.CurrentTerm = Term{ TokenMeta::NT_IF, string(codegen_buf) };
-	newnode.addchild(new ParseNode()); // if
-	newnode.addchild(new ParseNode(exp)); // exp
-	newnode.addchild(new ParseNode(stmt_true)); // stmt
+	newnode.addchild(ParseNode()); // if
+	newnode.addchild(exp); // exp
+	newnode.addchild(stmt_true); // stmt
 	return newnode;
 }
 
@@ -68,11 +68,11 @@ ParseNode gen_elseif(const ParseNode & exp, ParseNode & suite_true, const ParseN
 	}
 	newnode.fs.CurrentTerm = Term{ TokenMeta::NT_ELSEIF, string(codegen_buf) };
 
-	newnode.addchild(new ParseNode()); // elseif
-	newnode.addchild(new ParseNode(exp)); // exp
-	newnode.addchild(new ParseNode(suite_true)); // suite
+	newnode.addchild(ParseNode()); // elseif
+	newnode.addchild(exp); // exp
+	newnode.addchild(suite_true); // suite
 	if (elseif.fs.CurrentTerm.token != TokenMeta::NT_DUMMY) {
-		newnode.addchild(new ParseNode(elseif)); // another elseif-stmt
+		newnode.addchild(elseif); // another elseif-stmt
 	}
 	return newnode;
 }

@@ -19,7 +19,7 @@ TranslateContext & get_context() {
 void do_trans(const std::string & src) {
 	get_context().global_code = src;
 	parse(get_context().global_code);
-	//program_tree.addchild(new ParseNode(gen_header()), false);
+	//program_tree.addchild(gen_header(), false);
 	get_context().program_tree.fs.CurrentTerm.what = gen_header().fs.CurrentTerm.what + get_context().program_tree.fs.CurrentTerm.what;
 }
 
@@ -32,9 +32,8 @@ std::string for2cpp(std::string for_code) {
 }
 
 ParseNode gen_token(Term term) {
-	ParseNode newnode = ParseNode();
-	newnode.fs.CurrentTerm = term;
-	return newnode;
+	// four `_pos` is set by update_pos in for90.y
+	return ParseNode(gen_flex(term), nullptr);
 }
 
 ParseNode gen_dummy() {
@@ -45,14 +44,13 @@ ParseNode gen_promote(std::string rule, int merged_token_meta, const ParseNode &
 	ParseNode newnode = ParseNode();
 	sprintf(codegen_buf, rule.c_str(), lower.fs.CurrentTerm.what.c_str());
 	newnode.fs.CurrentTerm = Term{ merged_token_meta, string(codegen_buf) };
-	newnode.addchild(new ParseNode(lower)); 
+	newnode.addchild(lower); 
 	return newnode;
 }
 
 ParseNode gen_promote(int merged_token_meta, const ParseNode & lower) {
-	ParseNode newnode = ParseNode();
-	newnode.fs.CurrentTerm = Term{ merged_token_meta, lower.fs.CurrentTerm.what };
-	newnode.addchild(new ParseNode(lower));
+	ParseNode newnode = ParseNode(gen_flex(Term{ merged_token_meta, lower.fs.CurrentTerm.what }), nullptr);
+	newnode.addchild(lower);
 	return newnode;
 }
 
@@ -81,20 +79,20 @@ ParseNode flattern_bin(const ParseNode & pn) {
 	if (pn.child.size() == 2) {
 		ParseNode newp = ParseNode();
 		/* child[0] is the only data node */
-		newp.addchild(new ParseNode(*pn.child[0]));
+		newp.addchild(*pn.child[0]);
 
 		/* pn.child[1] is a **list** of ALREADY flatterned elements */
 		//	e.g
 		//	child[0] is 1 
 		//	child[1] is [2, 3, 4, 5]
-		for (int i = 0; i < pn.child[1]->child.size(); i++)
+		for (int i = 0; i < pn.get(1).child.size(); i++)
 		{
-			newp.addchild(new ParseNode(*pn.child[1]->child[i]));
+			newp.addchild(*pn.get(1).child[i]);
 		}
 		newp.fs = pn.fs;
 		newp.father = pn.father;
 		if (pn.attr != nullptr) {
-			newp.attr = pn.attr->clone();
+			newp.setattr(pn.attr->clone());
 		}
 		return newp;
 	}
@@ -110,8 +108,8 @@ ParseNode gen_flattern(const ParseNode & item, const ParseNode & list, std::stri
 		merged_token_meta = list.fs.CurrentTerm.token;
 	}
 	nn.fs.CurrentTerm = Term{ merged_token_meta, string(codegen_buf) };
-	nn.addchild(new ParseNode(item)); // item
-	nn.addchild(new ParseNode(list)); // list
+	nn.addchild(item); // item
+	nn.addchild(list); // list
 	nn = flattern_bin(nn);
 	return nn;
 }
@@ -123,11 +121,11 @@ ParseNode gen_merge(const ParseNode & list1, const ParseNode & list2, std::strin
 	nn.fs.CurrentTerm = Term{ merged_token_meta, string(codegen_buf) };
 	for (auto i = 0; i < list1.child.size(); i++)
 	{
-		nn.addchild(new ParseNode(*list1.child[i]));
+		nn.addchild(list1.get(i));
 	}
 	for (auto i = 0; i < list2.child.size(); i++)
 	{
-		nn.addchild(new ParseNode(*list2.child[i]));
+		nn.addchild(*list2.get(i));
 	}
 	return nn;
 }

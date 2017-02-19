@@ -28,11 +28,11 @@
 - ~~hidden do~~
 - ~~more precise code/error location, start/end~~
 - optimize ParseNode with rvalue
-- support fortran77 standard
+- ~support fortran77 standard~
 - ~~farray~~
 - ~~goto stmt~~
 - ~~use fortran array [from, to] rather than [from, to)~~
-- promote return type in formerge so it can accept 2 different type farray
+- ~promote return type in formerge so it can accept 2 different type farray~
 - ~~`fslice` return by reference~~
 - C.13.2.1 Unconditional array computations and C.13.2.2 Conditional array computations
 - underscore kind param, like `.93E7_QUAD` ref standard 4.3.1.2
@@ -59,4 +59,4 @@
 - ~~use `make_str_list` function replace some ugly code~~
 - hidden do with a list of variables
 - pointer problem, including `VariableDesc::slice`, deal with nullptr
-- `ParseNode` inteface change to reference, remove pointer in other strctures
+- ~`ParseNode` inteface change to reference, remove pointer in other structures~

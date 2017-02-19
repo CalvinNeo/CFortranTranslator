@@ -1,54 +1,53 @@
 #include "gen_common.h"
 
 ParseNode gen_stmt(const ParseNode & content) {
-	sprintf(codegen_buf, "%s ;", content.fs.CurrentTerm.what.c_str());
-	ParseNode newnode = ParseNode(gen_flex(Term{ TokenMeta::NT_STATEMENT, string(codegen_buf) }), nullptr);
-	newnode.addchild(new ParseNode(content)); 
+	sprintf(codegen_buf, "%s;", content.fs.CurrentTerm.what.c_str());
+	ParseNode newnode = gen_token(Term{ TokenMeta::NT_STATEMENT, string(codegen_buf) });
+	newnode.addchild(content); 
 	return newnode;
 }
 
 ParseNode gen_stmt(const ParseNode & content, const std::string & rules) {
 	sprintf(codegen_buf, rules.c_str() , content.fs.CurrentTerm.what.c_str());
-	ParseNode newnode = ParseNode(gen_flex(Term{ TokenMeta::NT_STATEMENT, string(codegen_buf) }), nullptr);
-	newnode.addchild(new ParseNode(content)); 
+	ParseNode newnode = gen_token(Term{ TokenMeta::NT_STATEMENT, string(codegen_buf) });
+	newnode.addchild(content); 
 	return newnode;
 }
 
 ParseNode gen_empty_suite() {
 	ParseNode newnode = ParseNode();
-	ParseNode & stmt = ParseNode(gen_flex(Term{ TokenMeta::NT_SUITE, "\n" }), &newnode);
-	newnode.fs.CurrentTerm = Term{ TokenMeta::NT_SUITE, "\n" };
-	newnode.addchild(new ParseNode(stmt)); // stmt
+	ParseNode & stmt = gen_token(Term{ TokenMeta::NT_SUITE, "\n" });
+	newnode.addchild(stmt); // stmt
 	newnode = flattern_bin(newnode);
 	return newnode;
 }
 
-std::string regen_suite(ParseNode * oldsuite) {
+std::string regen_suite(ParseNode & oldsuite) {
 	// regen suite(especially variable declaration)
 	/* this function regen code of `suite` node and 
 	 * 1. remove all NT_DECLAREDVARIABLE in suite
 	 * 2. regen_vardef */
 	std::string newsuitestr;
-	for (int i = 0; i < oldsuite->child.size(); i++)
+	for (int i = 0; i < oldsuite.child.size(); i++)
 	{
-		// oldsuite->child[i]: stmt/ interface_decl
-		ParseNode * stmt = oldsuite->child[i];
-		if (stmt->child.size() > 0 && stmt->child[0]->fs.CurrentTerm.token == TokenMeta::NT_VARIABLEDEFINESET)
+		// oldsuite.child[i]: stmt/ interface_decl
+		ParseNode & stmt = oldsuite.get(i);
+		if (stmt.child.size() > 0 && stmt.get(0).fs.CurrentTerm.token == TokenMeta::NT_VARIABLEDEFINESET)
 		{
-			ParseNode * vardef_set = stmt->child[0];
+			ParseNode & vardef_set = stmt.get(0);
 			// examine all variable define stmt
-			for (int j = 0; j < vardef_set->child.size(); j++)
+			for (int j = 0; j < vardef_set.child.size(); j++)
 			{
-				ParseNode * vardef = vardef_set->child[j];
-				ParseNode * type_nospec = vardef->child[0];
-				ParseNode * vardescattr = vardef->child[1];
-				ParseNode * entity_variable = vardef->child[2];
+				ParseNode & vardef = vardef_set.get(j);
+				ParseNode & type_nospec = vardef.get(0);
+				ParseNode & vardescattr = vardef.get(1);
+				ParseNode & entity_variable = vardef.get(2);
 				std::string name = get_variable_name( entity_variable );
 				if (get_function("", name) != nullptr) {
 					// declared function
 				}
 				else {
-					if (vardef->fs.CurrentTerm.token == TokenMeta::NT_VARIABLEDEFINE) {
+					if (vardef.fs.CurrentTerm.token == TokenMeta::NT_VARIABLEDEFINE) {
 						// for every variable, generate independent definition
 						VariableInfo * vinfo = get_variable("@", "@", name);
 						if (vinfo != nullptr)
@@ -58,9 +57,9 @@ std::string regen_suite(ParseNode * oldsuite) {
 							CommonBlockInfo commoninfo = get_context().commonblocks[vinfo->commonblock_name];
 							std::string common_varname = "_" + to_string(vinfo->commonblock_index + 1);
 							// common语句并不能给出 vinfo->type 的值
-							vinfo->type = gen_qualified_typestr(*type_nospec, get_variabledesc_attr(vardescattr));
-							regen_vardef(vinfo, *vardef, *type_nospec, *vardescattr, entity_variable);
-							sprintf(codegen_buf, "%s = %s.%s", vardef->fs.CurrentTerm.what.c_str(), vinfo->commonblock_name.c_str(), common_varname.c_str());
+							vinfo->type = gen_qualified_typestr(type_nospec, get_variabledesc_attr(vardescattr));
+							regen_vardef(vinfo, vardef, type_nospec, vardescattr, entity_variable);
+							sprintf(codegen_buf, "%s = %s.%s", vardef.fs.CurrentTerm.what.c_str(), vinfo->commonblock_name.c_str(), common_varname.c_str());
 							vinfo->implicit_defined = false; // `common` is explicit declaration
 							newsuitestr += string(codegen_buf);
 						}
@@ -68,23 +67,23 @@ std::string regen_suite(ParseNode * oldsuite) {
 							// variable haven't defined
 							VariableInfo newinfo("", VariableDesc(), ParseNode());
 							vinfo = add_variable("@", "@", name, newinfo);
-							regen_vardef(vinfo, *vardef, *type_nospec, *vardescattr, entity_variable);
-							newsuitestr += vardef->fs.CurrentTerm.what;
+							regen_vardef(vinfo, vardef, type_nospec, vardescattr, entity_variable);
+							newsuitestr += vardef.fs.CurrentTerm.what;
 						}
 						newsuitestr += ";\n";
 					}
-					else if (vardef->fs.CurrentTerm.token == TokenMeta::NT_DECLAREDVARIABLE) {
+					else if (vardef.fs.CurrentTerm.token == TokenMeta::NT_DECLAREDVARIABLE) {
 						// declared variable
 					}
 				}
 			}
 		}
-		else if (stmt->fs.CurrentTerm.token == TokenMeta::NT_INTERFACE) {
+		else if (stmt.fs.CurrentTerm.token == TokenMeta::NT_INTERFACE) {
 			// do not generate declared string
 		}
 		else {
 			// normal stmt
-			newsuitestr += stmt->fs.CurrentTerm.what;
+			newsuitestr += stmt.fs.CurrentTerm.what;
 			newsuitestr += '\n';
 		}
 	}
@@ -104,7 +103,7 @@ std::string regen_suite(ParseNode * oldsuite) {
 			newsuitestr = string(codegen_buf) + newsuitestr;
 		};
 	});
-	oldsuite->fs.CurrentTerm.what = tabber(newsuitestr);
+	oldsuite.fs.CurrentTerm.what = tabber(newsuitestr);
 	//// CAN NOT call `clear_temporary_variables();` HERE
 	return newsuitestr;
 }

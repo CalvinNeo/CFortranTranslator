@@ -16,6 +16,20 @@ void reset_parser() {
 	clear_variables();
 }
 
+void ParseNode::setattr(ParseAttr * pa) {
+	delete this->attr;
+	this->attr = pa;
+	pa->parsenode = this;
+}
+ParseNode & ParseNode::get(int child_index) {
+	return *(this->child[child_index]);
+}
+const ParseNode & ParseNode::get(int child_index) const {
+	return *(const_cast<const ParseNode *>(this)->child[child_index]);
+}
+const ParseNode & ParseNode::const_get(int child_index) const {
+	return *(const_cast<const ParseNode *>(this)->child[child_index]);
+}
 ParseNode::~ParseNode()
 {
 	delete attr;
@@ -32,10 +46,10 @@ ParseNode::ParseNode(const ParseNode & pn)
 	for (int i = 0; i < pn.child.size(); i++)
 	{
 		if (pn.child[i] != nullptr) {
-			this->addchild(new ParseNode(*pn.child[i]));
+			this->addchildptr(new ParseNode(*pn.child[i]));
 		}
 		else {
-			this->addchild(nullptr);
+			this->addchildptr(nullptr);
 		}
 	}
 }
@@ -57,14 +71,14 @@ ParseNode & ParseNode::operator= (const ParseNode & pn) {
 		this->attr = (pn.attr == nullptr ? nullptr : pn.attr->clone());
 		for (int i = 0; i < pn.child.size(); i++)
 		{
-			this->addchild( new ParseNode(*pn.child[i]) );
+			this->addchildptr( new ParseNode(*pn.child[i]) );
 		}
 
 		return *this;
 	}
 }
 
-void ParseNode::addchild(ParseNode * ptrn, bool add_back) {
+void ParseNode::addchildptr(ParseNode * ptrn, bool add_back) {
 	if (ptrn != nullptr) {
 		ptrn->father = this;
 	}
@@ -77,7 +91,7 @@ void ParseNode::addchild(ParseNode * ptrn, bool add_back) {
 }
 
 void ParseNode::addchild(const ParseNode & n, bool add_back ) {
-	this->addchild(new ParseNode(n), add_back);
+	this->addchildptr(new ParseNode(n), add_back);
 }
 
 void ParseNode::replace(int childid, const ParseNode & pn) {
@@ -140,6 +154,7 @@ std::string & repalce_all_my(std::string & str, const std::string & old_value, c
 }
 
 std::string compose_marker(std::string cont, int place, int end) {
+	// used to mark error token
 	using namespace std;
 	string ret = "\n";
 	auto len = cont.size();
