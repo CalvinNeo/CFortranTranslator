@@ -594,7 +594,7 @@ std::string parse_ioformatter(const std::string & src); // gen_io.cpp
 #define YYRTN(TOK, YYTOK)  update_yylval(Term{TOK, std::string(yytext)});  update_flex((int)yyleng);  return YYTOK; 
 #define YYRTCRLF()  update_yylval( Term{TokenMeta::CRLF, std::string(yytext)}); update_flex((int)yyleng, true); return YY_CRLF;
 // 空格, 制表符等
-#define YYRTNOP() update_yylval( Term{TokenMeta::Nop, std::string(yytext)},  true);  update_flex((int)yyleng);
+#define YYRTNOP() update_yylval( Term{TokenMeta::Nop, std::string(yytext)},  true);  update_flex((int)yyleng); 
 // include literal const such as pi, true, false, etc.
 /*do not call update_yylval because some tokens need to be looked ahead, such as `else if` */
 #define YYRTWORD() {  int p = word_parse(); \

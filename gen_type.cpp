@@ -17,7 +17,7 @@ ParseNode gen_type(const ParseNode & type_nospec) {
 }
 
 ParseNode gen_type(Term typeterm) {
-	ParseNode newnode = ParseNode(gen_flex(typeterm), nullptr);
+	ParseNode newnode = gen_token(typeterm);
 	return gen_type(newnode);
 }
 

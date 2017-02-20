@@ -9,25 +9,25 @@ R202 program-unit is main-program
 // external-subprogram is in gen_function
 
 ParseNode gen_program_explicit(ParseNode & suite) {
-	ParseNode newnode = ParseNode(gen_flex(Term{ TokenMeta::NT_PROGRAM_EXPLICIT, tabber(suite.fs.CurrentTerm.what) }), nullptr);
+	ParseNode newnode = gen_token(Term{ TokenMeta::NT_PROGRAM_EXPLICIT, tabber(suite.fs.CurrentTerm.what) });
 	// get all variables declared in this function
-	vector<ParseNode *> param_definition = get_all_declared(suite);
+	vector<ParseNode *> param_definition = get_all_explicit_declared(suite);
 	newnode.addchild(suite); //suite
 	return newnode;
 }
 
 ParseNode gen_program(ParseNode & suite) {
-	ParseNode newnode = ParseNode(gen_flex(Term{ TokenMeta::NT_PROGRAM, tabber(suite.fs.CurrentTerm.what) }), nullptr);
+	ParseNode newnode = gen_token(Term{ TokenMeta::NT_PROGRAM, tabber(suite.fs.CurrentTerm.what) });
 	// get all variables declared in this function
-	vector<ParseNode *> param_definition = get_all_declared(suite);
+	vector<ParseNode *> param_definition = get_all_explicit_declared(suite);
 	newnode.addchild(suite); //suite
 	return newnode;
 }
 
 ParseNode gen_program_end(ParseNode & suite) {
-	ParseNode newnode = ParseNode(gen_flex(Term{ TokenMeta::NT_PROGRAM, tabber(suite.fs.CurrentTerm.what) }), nullptr);
+	ParseNode newnode = gen_token(Term{ TokenMeta::NT_PROGRAM, tabber(suite.fs.CurrentTerm.what) });
 	// get all variables declared in this function
-	vector<ParseNode *> param_definition = get_all_declared(suite);
+	vector<ParseNode *> param_definition = get_all_explicit_declared(suite);
 	newnode.addchild(suite); //suite
 	return newnode;
 }
@@ -43,7 +43,7 @@ void gen_fortran_program(const ParseNode & wrappers) {
 	}
 	for (size_t i = 0; i < wrappers.child.size(); i++)
 	{
-		ParseNode & wrapper = *wrappers.child[i];
+		const ParseNode & wrapper = wrappers.get(i);
 		if (wrapper.fs.CurrentTerm.token == TokenMeta::NT_PROGRAM_EXPLICIT)
 		{
 			string newsuitestr = regen_suite(*wrapper.child[0]);

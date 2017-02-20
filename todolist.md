@@ -37,6 +37,10 @@
 - C.13.2.1 Unconditional array computations and C.13.2.2 Conditional array computations
 - underscore kind param, like `.93E7_QUAD` ref standard 4.3.1.2
 - keyword conflict between fortran and c++, such as `class`, `struct`, `int`
+- defined blocks
+- arithmatic if
+- labeled do, if
+- `exit`, `cycle` outer do-loop
 
 ## todolist(bugfix)
 - ~~if slice can be a scalar x and equal to (1: x + 1), there will be conflict in argtable~~
@@ -58,5 +62,11 @@
 - ~~add arraybuilder rule to exp rules~~
 - ~~use `make_str_list` function replace some ugly code~~
 - hidden do with a list of variables
-- pointer problem, including `VariableDesc::slice`, deal with nullptr
-- ~`ParseNode` inteface change to reference, remove pointer in other structures~
+- ~~pointer problem, including `VariableDesc::slice`, deal with nullptr~~
+- ~~`ParseNode` inteface change to reference, remove pointer in other structures~~
+- implicit paramtable
+    ```
+    subroutine sub(A)
+	    A = 2
+    end subroutine
+    ```

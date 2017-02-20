@@ -5,7 +5,7 @@ ParseNode gen_keyvalue(const ParseNode & variable) {
 	/* this paramtable has only one value */
 
 	sprintf(codegen_buf, "%s", variable.fs.CurrentTerm.what.c_str());
-	ParseNode newnode = ParseNode(gen_flex(Term{ TokenMeta::NT_VARIABLEINITIAL, string(codegen_buf) }), nullptr);
+	ParseNode newnode = gen_token(Term{ TokenMeta::NT_VARIABLEINITIAL, string(codegen_buf) });
 	newnode.addchild(variable); // type
 	newnode.addchild(gen_token(Term{ TokenMeta::NT_VARIABLEINITIALDUMMY, string("void") })); // void is dummy initial
 
@@ -18,7 +18,7 @@ ParseNode gen_keyvalue_from_exp(const ParseNode & variable, const ParseNode & in
 	/* this paramtable has only one value */
 
 	sprintf(codegen_buf, "%s", variable.fs.CurrentTerm.what.c_str());
-	ParseNode newnode = ParseNode(gen_flex(Term{ TokenMeta::NT_VARIABLEINITIAL, string(codegen_buf) }), nullptr);
+	ParseNode newnode = gen_token(Term{ TokenMeta::NT_VARIABLEINITIAL, string(codegen_buf) });
 	newnode.addchild(variable); // type
 	newnode.addchild(initial); // void is dummy initial
 
@@ -29,10 +29,8 @@ ParseNode gen_keyvalue_from_exp(const ParseNode & variable, const ParseNode & in
 ParseNode gen_keyvalue_from_arraybuilder(const ParseNode & variable, const ParseNode & initial) {
 	/* paramtable is used in function decl */
 	/* this paramtable has only one value */
-	/* 因为使用forarray作为数组, 故需要知道类型信息, 不在此处赋值, 在上层的var_def赋初值 */
-
-	sprintf(codegen_buf, "%s.init(%s)", variable.fs.CurrentTerm.what.c_str(), initial.fs.CurrentTerm.what.c_str());
-	ParseNode newnode = ParseNode(gen_flex(Term{ TokenMeta::NT_VARIABLEINITIAL, string(codegen_buf) }), nullptr);
+	sprintf(codegen_buf, "gen_keyvalue_from_arraybuilder", variable.fs.CurrentTerm.what.c_str(), initial.fs.CurrentTerm.what.c_str());
+	ParseNode newnode = gen_token(Term{ TokenMeta::NT_VARIABLEINITIAL, string(codegen_buf) });
 	newnode.addchild(variable); // type
 	newnode.addchild(initial); // void is dummy initial
 
@@ -68,7 +66,7 @@ ParseNode gen_paramtable(ParseNode & paramtable_elem) {
 
 
 ParseNode gen_paramtable(ParseNode & paramtable_elem, ParseNode & paramtable) {
-	ParseNode newnode = ParseNode(gen_flex(Term{ TokenMeta::NT_PARAMTABLE, "" }), nullptr);
+	ParseNode newnode = gen_token(Term{ TokenMeta::NT_PARAMTABLE, "" });
 	bool dimen1 = false, dimen2 = false, arg1 = false, arg2 = false, va1 = false, va2 = false;;
 	if (paramtable_elem.fs.CurrentTerm.token == TokenMeta::NT_DIMENSLICE) {
 		dimen1 = true;
@@ -120,7 +118,7 @@ ParseNode gen_paramtable(ParseNode & paramtable_elem, ParseNode & paramtable) {
 	}
 	else if ((dimen1 || arg1 || va1) && (dimen2 || arg2 || va2)) {
 		// all dimen_slice or argument_pure or variable
-		newnode = ParseNode(gen_flex(Term{ (dimen1 || dimen2) ? TokenMeta::NT_PARAMTABLE_DIMENSLICE : TokenMeta::NT_ARGTABLE_PURE, "" }), nullptr);
+		newnode = gen_token(Term{ (dimen1 || dimen2) ? TokenMeta::NT_PARAMTABLE_DIMENSLICE : TokenMeta::NT_ARGTABLE_PURE, "" });
 		if (dimen1 || arg1) {
 			for (int i = 0; i < paramtable_elem.child.size(); i++)
 			{
@@ -159,9 +157,9 @@ ParseNode gen_promote_exp_to_keyvalue(const ParseNode & paramtable_elem) {
 	}
 }
 
-ParseNode gen_promote_paramtable(const ParseNode paramtable) {
+ParseNode gen_promote_paramtable(const ParseNode & paramtable) {
 	const ParseNode * pn = &paramtable;
-	ParseNode newnode = ParseNode(gen_flex(Term{ TokenMeta::NT_PARAMTABLE, "" }), nullptr);
+	ParseNode newnode = gen_token(Term{ TokenMeta::NT_PARAMTABLE, "" });
 	do {
 		// for all non-flatterned paramtable
 		for (int i = 0; i < pn->child.size(); i++)
@@ -223,7 +221,6 @@ ParseNode gen_argtable(ParseNode & dimen_slice) {
 		dimen_slice.fs.CurrentTerm.what += codegen_buf;
 	}
 	if (isdimen) {
-		// %%s.slice(%s)
 		// should not set codegen_buf here
 		sprintf(codegen_buf, "/* deprecated */ slice(%%s, %s)", dimen_slice.fs.CurrentTerm.what.c_str());
 		newnode.fs.CurrentTerm = Term{ TokenMeta::NT_PARAMTABLE_DIMENSLICE, string(codegen_buf) };

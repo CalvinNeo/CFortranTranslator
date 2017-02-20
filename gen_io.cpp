@@ -48,10 +48,10 @@ ParseNode gen_write(const ParseNode & io_info, const ParseNode & argtable) {
 		string fmt = io_info.get(1).fs.CurrentTerm.what.substr(1, io_info.get(1).fs.CurrentTerm.what.size() - 1); // strip " 
 		if (device == "-1") {
 			// device = "6"; // stdout
-			sprintf(codegen_buf, "forwritefree(stdout, \"%s\\n\", %s) ;", parse_ioformatter(fmt).c_str(), argtable.fs.CurrentTerm.what.c_str());
+			sprintf(codegen_buf, "forwrite(stdout, \"%s\", %s) ;", parse_ioformatter(fmt).c_str(), argtable.fs.CurrentTerm.what.c_str());
 		}
 		else {
-			sprintf(codegen_buf, "forwrite(get_file(%s), \"%s\\n\", %s) ;", device.c_str(), parse_ioformatter(fmt).c_str(), argtable.fs.CurrentTerm.what.c_str());
+			sprintf(codegen_buf, "forwrite(get_file(%s), \"%s\", %s) ;", device.c_str(), parse_ioformatter(fmt).c_str(), argtable.fs.CurrentTerm.what.c_str());
 		}
 	}
 	newnode.fs.CurrentTerm = Term{ TokenMeta::META_NONTERMINAL, string(codegen_buf) };
@@ -63,11 +63,11 @@ ParseNode gen_print(const ParseNode & io_info, const ParseNode & argtable) {
 
 	ParseNode newnode = ParseNode();
 	if (io_info.get(1).fs.CurrentTerm.token == TokenMeta::NT_AUTOFORMATTER) {
-		sprintf(codegen_buf, "forprintfree(%s, \"\\n\") ;", argtable.fs.CurrentTerm.what.c_str());
+		sprintf(codegen_buf, "forprintfree(%s) ;", argtable.fs.CurrentTerm.what.c_str());
 	}
 	else {
 		string fmt = io_info.get(1).fs.CurrentTerm.what.substr(1, io_info.get(1).fs.CurrentTerm.what.size() - 1); // strip " 
-		sprintf(codegen_buf, "forprint(\"%s\\n\", %s) ;", parse_ioformatter(fmt).c_str(), argtable.fs.CurrentTerm.what.c_str());
+		sprintf(codegen_buf, "forprint(\"%s\", %s) ;", parse_ioformatter(fmt).c_str(), argtable.fs.CurrentTerm.what.c_str());
 	}
 	newnode.fs.CurrentTerm = Term{ TokenMeta::META_NONTERMINAL, string(codegen_buf) };
 	newnode.addchild(io_info); // ioinfo
@@ -104,7 +104,7 @@ ParseNode gen_format(const ParseNode & format) {
 std::string parse_ioformatter(const std::string & src) {
 
 	std::string rt = "";
-	std::string s;
+	std::string descriptor;
 	std::string prec;
 	char buf[256];
 	char ch;
@@ -120,30 +120,30 @@ std::string parse_ioformatter(const std::string & src) {
 		{
 		case 'l':
 			// bool
-			s = "%%c";
+			descriptor = "%%c";
 			stat = 1;
 			break;
 		case 'i':
 			/* integer */
-			s = "%%%sd";
+			descriptor = "%%%sd";
 			stat = 1;
 			break;
 		case 'f':
-			s = "%%%sf";
+			descriptor = "%%%sf";
 			stat = 1;
 			break;
 		case 'e':
-			s = "%%%sf";
+			descriptor = "%%%sf";
 			stat = 1;
 			break;
 		case 'a':
 			/* char */
-			s = "%%%ss";
+			descriptor = "%%%ss";
 			stat = 1;
 			break;
 		case 'x':
 			/* space */
-			s += " ";
+			descriptor += " ";
 			stat = 1;
 			break;
 		case '0':
@@ -188,12 +188,12 @@ std::string parse_ioformatter(const std::string & src) {
 			break;
 		case ',':
 			memset(buf, 0, sizeof(buf));
-			sprintf(buf, s.c_str(), prec.c_str());
+			sprintf(buf, descriptor.c_str(), prec.c_str()); // set precision(prec) specifier to descriptor
 			for (int j = 0; j < repeat[repeat.size() - 1]; j++)
 			{
 				rt += buf;
 			}
-			s = "";
+			descriptor = "";
 			stat = 0;
 			break;
 		case '(':
@@ -204,21 +204,24 @@ std::string parse_ioformatter(const std::string & src) {
 			break;
 		case ')':
 			memset(buf, 0, sizeof(buf));
-			sprintf(buf, s.c_str(), prec.c_str()); // prec is precision specifier
+			sprintf(buf, descriptor.c_str(), prec.c_str()); // set precision(prec) specifier to descriptor
 			// 重复最后一个字符
 			for (int j = 0; j < repeat[repeat.size() - 1]; j++)
 			{
 				rt += buf;
 			}
-			// pop stack repeat before repeat s
+			// pop stack repeat before repeat braced
 			repeat.pop_back();
-			// 重复括号内部的项
-			s = rt.substr(repeat_from.back(), i - repeat_from.back() + 1);
-			for (int j = 1; j < repeat[repeat.size() - 1]; j++)
 			{
-				rt += s;
+
+				// 重复括号内部的项
+				string braced = rt.substr(repeat_from.back(), i - repeat_from.back() + 1);
+				for (int j = 1; j < repeat[repeat.size() - 1]; j++)
+				{
+					rt += braced;
+				}
+				braced = "";
 			}
-			s = "";
 
 			repeat_from.pop_back();
 			stat = 0;
@@ -257,7 +260,7 @@ std::string parse_ioformatter(const std::string & src) {
 		}
 	}
 	memset(buf, 0, sizeof(buf));
-	sprintf(buf, s.c_str(), prec.c_str());
+	sprintf(buf, descriptor.c_str(), prec.c_str());
 	for (int j = 0; j < repeat[repeat.size() - 1]; j++)
 	{
 		rt += buf;

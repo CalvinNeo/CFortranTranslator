@@ -1,7 +1,5 @@
 #pragma once
-#include <string>
-#include <vector>
-#include <map>
+#include "parser.h"
 
 
 struct FunctionDesc {
@@ -17,12 +15,14 @@ struct FunctionDesc {
 };
 struct FunctionInfo {
 	FunctionDesc funcdesc;
-	FunctionInfo(const FunctionDesc & desc) : funcdesc(desc) {
+	FunctionInfo(const FunctionDesc & desc) : funcdesc(desc){
 
 	}
 };
 typedef std::tuple<std::string, std::string, std::string> KeywordParamInfo;
 
 FunctionInfo * get_function(std::string module_name, std::string function_name);
-FunctionInfo * add_function(std::string module_name, std::string function_name, const FunctionInfo & function);
+FunctionInfo * add_function(std::string module_name, std::string function_name, const FunctionInfo & func);
+void forall_function_in_module(std::string module_name, std::function<void(const std::pair<std::string, FunctionInfo *> &)> func);
+void insert_temporary_functions(std::string module_name);
 void clear_functions();

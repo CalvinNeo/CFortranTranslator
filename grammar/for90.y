@@ -34,7 +34,7 @@ using namespace std;
 %token /*_YY_DELIM*/ YY_PROGRAM YY_ENDPROGRAM YY_FUNCTION YY_ENDFUNCTION YY_RECURSIVE YY_RESULT YY_SUBROUTINE YY_ENDSUBROUTINE YY_MODULE YY_ENDMODULE YY_BLOCK YY_ENDBLOCK YY_INTERFACE YY_ENDINTERFACE YY_COMMON YY_DATA
 %token /*_YY_DESCRIBER*/ YY_IMPLICIT YY_NONE YY_USE YY_PARAMETER YY_ENTRY YY_DIMENSION YY_ARRAYINITIAL_START YY_ARRAYINITIAL_END YY_INTENT YY_IN YY_OUT YY_INOUT YY_OPTIONAL YY_LEN YY_KIND YY_SAVE
 %token /*_YY_TYPEDEF*/ YY_INTEGER_T YY_FLOAT_T YY_STRING_T YY_COMPLEX_T YY_BOOL_T YY_CHARACTER_T
-%token /*_YY_COMMAND*/ YY_WRITE YY_READ YY_PRINT YY_CALL 
+%token /*_YY_COMMAND*/ YY_WRITE YY_READ YY_PRINT YY_CALL  YY_STOP YY_PAUSE
 
 
 %left '='
@@ -151,7 +151,10 @@ using namespace std;
 		| YY_SAVE
 			{
 				/* static value */
-
+				ParseNode newnode = gen_token(Term{ TokenMeta::NT_VARIABLEDESC, "NT_VARIABLEDESC" }); // const
+				set_variabledesc_attr(newnode, boost::none, boost::none, boost::none, boost::none, boost::none, true);
+				$$ = newnode;
+				update_pos($$, $1, $1);
 			}
 				
 	variable_desc : ',' variable_desc_elem
@@ -179,8 +182,14 @@ using namespace std;
 				$$ = newnode;
 				update_pos($$);
 			}
-
-	typecast_spec : YY_KIND '=' YY_INTEGER
+	/*
+	*	(3) The suffix “ - spec” is used consistently for specifiers, such as keyword actual arguments and
+	*		input / output statement specifiers.It also is used for type declaration attribute specifications(for
+	*			example, “array - spec” in R512), and in a few other cases.
+	*			(4) When reference is made to a type parameter, including the surrounding parentheses, the term
+	*		“selector” is used.See, for example, “length - selector”(R507) and “kind - selector”(R505).
+	*/
+	type_selector : YY_KIND '=' YY_INTEGER
 			{
 				int kind;
 				sscanf($3.fs.CurrentTerm.what.c_str(), "%d", &kind);
@@ -238,7 +247,7 @@ using namespace std;
 
 	variable : YY_WORD
 			{
-				ParseNode newnode = ParseNode(gen_flex(Term{ TokenMeta::UnknownVariant, $1.fs.CurrentTerm.what }), nullptr);// variant
+				ParseNode newnode = gen_token(Term{ TokenMeta::UnknownVariant, $1.fs.CurrentTerm.what });// variant
 				$$ = newnode;
 				update_pos($$, $1, $1);
 			}
@@ -328,7 +337,7 @@ using namespace std;
 				$$ = newnode;
 				update_pos($$, $1, $4);
 			}
-		| type_nospec '(' paramtable ')'
+		| type_name '(' paramtable ')'
 			{
 				/* function call OR array index */
 				/* NOTE that array index can be A(1:2, 3:4) */
@@ -727,7 +736,7 @@ using namespace std;
 
 	io_info : '(' _optional_device ',' _optional_formatter ')'
 			{
-				ParseNode newnode = ParseNode(gen_flex(Term{ TokenMeta::META_NONTERMINAL, "" }), nullptr);
+				ParseNode newnode = gen_token(Term{ TokenMeta::META_NONTERMINAL, "" });
 				ParseNode & _optional_device = $2;
 				ParseNode & _optional_formatter = $4;
 				/* target code of io_info depend on context, can be either iostream/cstdio */
@@ -738,7 +747,7 @@ using namespace std;
 			}
 		| _optional_formatter _optional_comma
 			{
-				ParseNode newnode = ParseNode(gen_flex(Term{ TokenMeta::META_NONTERMINAL, "" }), nullptr);
+				ParseNode newnode = gen_token(Term{ TokenMeta::META_NONTERMINAL, "" });
 				ParseNode _optional_device = ParseNode();
 				_optional_device.fs.CurrentTerm = Term{ TokenMeta::META_NONTERMINAL, "" };
 				ParseNode & _optional_formatter = $1;
@@ -775,7 +784,7 @@ using namespace std;
 				update_pos($$, $1, $3);
 			}
 
-	type_nospec : YY_INTEGER_T 
+	type_name : YY_INTEGER_T 
 			{
 				$$ = gen_type($1);
 				update_pos($$, $1, $1);
@@ -806,33 +815,33 @@ using namespace std;
 				update_pos($$, $1, $1);
 			}
 
-    type_spec : YY_INTEGER_T '(' typecast_spec ')'
+    type_spec : YY_INTEGER_T '(' type_selector ')'
 			{
 				// now translated in pre_map
 				$$ = gen_type($1, $3);
 				update_pos($$, $1, $4);
 			}
-        | YY_FLOAT_T '(' typecast_spec ')'
+        | YY_FLOAT_T '(' type_selector ')'
 			{
 				$$ = gen_type($1, $3);
 				update_pos($$, $1, $4);
 			}
-        | YY_STRING_T '(' typecast_spec ')'
+        | YY_STRING_T '(' type_selector ')'
 			{
 				$$ = gen_type($1, $3);
 				update_pos($$, $1, $4);
 			}
-        | YY_COMPLEX_T '(' typecast_spec ')'
+        | YY_COMPLEX_T '(' type_selector ')'
 			{
 				$$ = gen_type($1, $3);
 				update_pos($$, $1, $4);
 			}
-        | YY_BOOL_T '(' typecast_spec ')'
+        | YY_BOOL_T '(' type_selector ')'
 			{
 				$$ = gen_type($1, $3);
 				update_pos($$, $1, $4);
 			}
-        | YY_CHARACTER_T '(' typecast_spec ')'
+        | YY_CHARACTER_T '(' type_selector ')'
 			{
 				ParseNode newnode = gen_type($1);
 				int len;
@@ -840,12 +849,16 @@ using namespace std;
 				set_variabledesc_attr(newnode, boost::none, boost::none, boost::none, boost::none, len, boost::none);
 				update_pos($$, $1, $4);
 			}
-		| type_nospec '*' YY_INTEGER
+		| type_name '*' YY_INTEGER
 			{
 				// $$ = gen_type($1, $3);
 				update_pos($$, $1, $3);
 			}
-		| type_nospec
+		| type_name
+			{
+				$$ = $1;
+				update_pos($$, $1, $1);
+			}
 
 	_blockname_or_none : '/' variable '/'
 			{
@@ -854,14 +867,15 @@ using namespace std;
 			}
 		| '/' '/'
 			{
-				ParseNode newnode = ParseNode(gen_flex(Term{ TokenMeta::UnknownVariant, "" }), nullptr);// variant
+				ParseNode newnode = gen_token(Term{ TokenMeta::UnknownVariant, "" }); // variant
 				$$ = newnode;
 				update_pos($$, $1, $2);
 			}
 		|
 			{
-				ParseNode newnode = ParseNode(gen_flex(Term{ TokenMeta::UnknownVariant, "" }), nullptr);// variant
+				ParseNode newnode = gen_token(Term{ TokenMeta::UnknownVariant, "" }); // variant
 				$$ = newnode;
+				update_pos($$);
 			}
 
 	common_stmt : YY_COMMON _blockname_or_none paramtable
@@ -920,7 +934,7 @@ using namespace std;
 		| exp '=' array_builder
 			{
 				// array initial values 
-				// 因为使用forarray作为数组, 故需要知道类型信息, 不在此处赋值, 在上层的var_def赋初值 
+				// USELESS
 				$$ = gen_keyvalue_from_arraybuilder($1, $3);
 				update_pos($$, $1, $3);
 			} 
@@ -957,28 +971,21 @@ using namespace std;
 				update_pos($$);
 			}
 
-	_generate_stmt : exp ',' variable '=' exp ',' exp
+	
+	hidden_do : '(' exp ',' variable '=' exp ',' exp ')'
 			{
 				/* something like `abs(i), i=1,4` */
-				ParseNode newnode = gen_token(Term{ TokenMeta::NT_HIDDENDO, "" });
-				newnode.addchild($1); // exp
-				newnode.addchild($3); // index variable
-				newnode.addchild($5); // exp_from
-				newnode.addchild($7); // exp_to
-				$$ = newnode;
-				update_pos($$, $1, $7);
-			}
-		
-	hidden_do : '(' _generate_stmt ')'
-			{
 				/*
 				R433 ac - implied - do is(ac - value - list, ac - implied - do - control)
 				R434 ac - implied - do - control is ac - do - variable = scalar - int - expr, ■
 				■ scalar - int - expr[, scalar - int - expr]
 				*/
-				ParseNode & _generate_stmt = $2;
-				$$ = gen_hiddendo(_generate_stmt);
-				update_pos($$, $1, $3);
+				const ParseNode & exp = $2;
+				const ParseNode & index = $4;
+				const ParseNode & from = $6;
+				const ParseNode & to = $8;
+				$$ = gen_hiddendo(exp, index, from, to);
+				update_pos($$, $1, $9);
 			}
 
 	array_builder_elem : YY_ARRAYINITIAL_START paramtable YY_ARRAYINITIAL_END
@@ -1012,78 +1019,61 @@ using namespace std;
 				gen_arraybuilder_str($$);
 				update_pos($$, $1, $1);
 			}
-		/* | array_builder_elem ',' array_builder
-			{
-				ParseNode & array_builder_elem = $1;
-				ParseNode & array_builder = $3;
-				print_error("nested arraybuilder is not supported");
-				//ParseNode & array_builder_elem = $1;
-				//ParseNode & array_builder = $3;
-				//if (array_builder_elem.fs.CurrentTerm.token == TokenMeta::NT_ARRAYBUILDER)
-				//{
-				//	$$ = gen_merge(array_builder_elem, array_builder, "", TokenMeta::NT_ARRAYBUILDER);
-				//}
-				//else {
-				//	$$ = gen_flattern(array_builder_elem, array_builder, "", TokenMeta::NT_ARRAYBUILDER);
-				//}
-				//update_pos($$, $1, $3);
 
-			}
-		*/
+	
+	_optional_construct_name : YY_WORD ':'
+		|
+	
 
 	_yy_endif : YY_END YY_IF
 		| YY_ENDIF
 
-	/* _optional_then : YY_THEN
-		|
-		removed because of conflict with YY_THEN(i don't know why)
-	*/
 
-	if_stmt : YY_IF exp YY_THEN crlf suite _yy_endif crlf
+	if_stmt : _optional_construct_name YY_IF exp YY_THEN crlf suite _yy_endif crlf
 			{
-				ParseNode & exp = $2;
-				ParseNode & suite_true = $5; 
+				ParseNode & exp = $3;
+				ParseNode & suite_true = $6; 
 				$$ = gen_if(exp, suite_true, gen_dummy(), gen_dummy());
-				update_pos($$, $1, $7);
-			}
-		| YY_IF exp YY_THEN crlf suite YY_ELSE crlf suite _yy_endif crlf
-			{
-				ParseNode & exp = $2;
-				ParseNode & suite_true = $5; 
-				ParseNode & suite_else = $8; 
-				$$ = gen_if(exp, suite_true, gen_dummy(), suite_else);
-				update_pos($$, $1, $10);
-			}
-		| YY_IF exp YY_THEN crlf suite elseif_stmt _yy_endif crlf
-			{
-				ParseNode & exp = $2;
-				ParseNode & suite_true = $5;
-				ParseNode & elseif = $6;
-				$$ = gen_if(exp, suite_true, elseif, gen_dummy());
 				update_pos($$, $1, $8);
 			}
-		| YY_IF exp YY_THEN crlf suite elseif_stmt YY_ELSE crlf suite _yy_endif crlf
+		| _optional_construct_name YY_IF exp YY_THEN crlf suite YY_ELSE crlf suite _yy_endif crlf
 			{
-				ParseNode & exp = $2;
-				ParseNode & suite_true = $5;
-				ParseNode & elseif = $6;
-				ParseNode & suite_else = $9;
-				$$ = gen_if(exp, suite_true, elseif, suite_else);
+				ParseNode & exp = $3;
+				ParseNode & suite_true = $6; 
+				ParseNode & suite_else = $9; 
+				$$ = gen_if(exp, suite_true, gen_dummy(), suite_else);
 				update_pos($$, $1, $11);
 			}
-		|  YY_IF exp YY_THEN stmt
+		| _optional_construct_name YY_IF exp YY_THEN crlf suite elseif_stmt _yy_endif crlf
 			{
-				ParseNode & exp = $2;
-				ParseNode & stmt_true = $4; 
+				ParseNode & exp = $3;
+				ParseNode & suite_true = $6;
+				ParseNode & elseif = $7;
+				$$ = gen_if(exp, suite_true, elseif, gen_dummy());
+				update_pos($$, $1, $9);
+			}
+		| _optional_construct_name YY_IF exp YY_THEN crlf suite elseif_stmt YY_ELSE crlf suite _yy_endif crlf
+			{
+				ParseNode & exp = $3;
+				ParseNode & suite_true = $6;
+				ParseNode & elseif = $7;
+				ParseNode & suite_else = $10;
+				$$ = gen_if(exp, suite_true, elseif, suite_else);
+				update_pos($$, $1, $12);
+			}
+		| _optional_construct_name YY_IF exp YY_THEN stmt
+			{
+				ParseNode & exp = $3;
+				ParseNode & stmt_true = $5; 
+				$$ = gen_if_oneline(exp, stmt_true);
+				update_pos($$, $1, $5);
+			}
+		| _optional_construct_name YY_IF exp stmt
+			{
+				ParseNode & exp = $3;
+				ParseNode & stmt_true = $4;
 				$$ = gen_if_oneline(exp, stmt_true);
 				update_pos($$, $1, $4);
-			}
-		| YY_IF exp stmt
-			{
-				ParseNode & exp = $2;
-				ParseNode & stmt_true = $3;
-				$$ = gen_if_oneline(exp, stmt_true);
-				update_pos($$, $1, $3);
 			}
 
 	elseif_stmt : YY_ELSEIF exp YY_THEN crlf suite
@@ -1106,50 +1096,50 @@ using namespace std;
 	_yy_enddo : YY_END YY_DO
 		| YY_ENDDO
 
-	do_stmt : YY_DO crlf suite _yy_enddo crlf
+	do_stmt : _optional_construct_name YY_DO crlf suite _yy_enddo crlf
 			{
-				ParseNode & suite = $3; 
+				ParseNode & suite = $4; 
 				$$ = gen_do(suite);
-				update_pos($$, $1, $5);
+				update_pos($$, $1, $6);
 			}
-		| YY_DO variable '=' exp ',' exp crlf suite _yy_enddo crlf
+		| _optional_construct_name YY_DO variable '=' exp ',' exp crlf suite _yy_enddo crlf
 			{
-				ParseNode & loop_variable = $2;
-				ParseNode & exp_from = $4;
-				ParseNode & exp_to = $6;
+				ParseNode & loop_variable = $3;
+				ParseNode & exp_from = $5;
+				ParseNode & exp_to = $7;
 				ParseNode & step = gen_promote(TokenMeta::NT_EXPRESSION, gen_token(Term{ TokenMeta::META_INTEGER , "1" }));
-				ParseNode & suite = $8; 
+				ParseNode & suite = $9; 
 				$$ = gen_do_range(loop_variable, exp_from, exp_to, step, suite);
-				update_pos($$, $1, $10);
+				update_pos($$, $1, $11);
 			}
-		| YY_DO variable '=' exp ',' exp ',' exp crlf suite _yy_enddo crlf
+		| _optional_construct_name YY_DO variable '=' exp ',' exp ',' exp crlf suite _yy_enddo crlf
 			{
-				ParseNode & loop_variable = $2;
-				ParseNode & exp1 = $4;
-				ParseNode & exp2 = $6;
-				ParseNode & exp3 = $8;
-				ParseNode & suite = $10;
+				ParseNode & loop_variable = $3;
+				ParseNode & exp1 = $5;
+				ParseNode & exp2 = $7;
+				ParseNode & exp3 = $9;
+				ParseNode & suite = $11;
 				$$ = gen_do_range(loop_variable, exp1, exp2, exp3, suite);
 				update_pos($$, $1, $12);
 			}
-		| YY_DOWHILE exp crlf suite _yy_enddo crlf
+		| _optional_construct_name YY_DOWHILE exp crlf suite _yy_enddo crlf
 			{
-				ParseNode & exp = $2;
-				ParseNode & suite = $4; 
+				ParseNode & exp = $3;
+				ParseNode & suite = $5; 
 				$$ = gen_do_while(exp, suite);
-				update_pos($$, $1, $6);
+				update_pos($$, $1, $7);
 			}
 	
 	_yy_endselect : YY_END YY_SELECT
 		| YY_ENDSELECT
 
-	select_stmt : YY_SELECT YY_CASE _optional_lbrace exp _optional_rbrace crlf case_stmt _yy_endselect crlf
+	select_stmt : _optional_construct_name YY_SELECT YY_CASE _optional_lbrace exp _optional_rbrace crlf case_stmt _yy_endselect crlf
 			{
-				ParseNode & select = $1;
-				ParseNode & exp = $4;
-				ParseNode & case_stmt = $7;
+				ParseNode & select = $2;
+				ParseNode & exp = $5;
+				ParseNode & case_stmt = $8;
 				$$ = gen_select(exp, case_stmt);
-				update_pos($$, $1, $9);
+				update_pos($$, $1, $10);
 			}
 	case_stmt_elem : YY_CASE _optional_lbrace dimen_slice _optional_rbrace crlf suite
 			{
@@ -1162,7 +1152,7 @@ using namespace std;
 	case_stmt : case_stmt_elem
 			{
 				ParseNode & case_stmt_elem = $1;
-				ParseNode newnode = ParseNode(gen_flex(Term{ TokenMeta::NT_CASES, "" }), nullptr);
+				ParseNode newnode = gen_token(Term{ TokenMeta::NT_CASES, "" });
 				newnode.addchild(case_stmt_elem); // case_stmt_elem
 				$$ = newnode;
 				update_pos($$, $1, $1);
@@ -1171,8 +1161,7 @@ using namespace std;
 			{
 				ParseNode & case_stmt_elem = $1;
 				ParseNode & case_stmt = $2;
-				ParseNode newnode = ParseNode(case_stmt);
-				newnode.fs.CurrentTerm = Term{ TokenMeta::NT_CASES, "" };
+				ParseNode newnode = gen_token(Term{ TokenMeta::NT_CASES, "" });
 				newnode.addchild(case_stmt_elem, false /* add to the front of the vector */); // case_stmt_elem
 				$$ = newnode;
 				update_pos($$, $1, $2);
@@ -1185,7 +1174,7 @@ using namespace std;
 			}
 		|
 			{
-				ParseNode newnode = ParseNode(gen_flex(Term{ TokenMeta::UnknownVariant, "" }), nullptr); // return nothing
+				ParseNode newnode = gen_token(Term{ TokenMeta::UnknownVariant, "" }); // return nothing
 				$$ = newnode;
 				update_pos($$);
 			}

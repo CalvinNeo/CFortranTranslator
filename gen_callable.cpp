@@ -167,9 +167,6 @@ ParseNode gen_function_array(const ParseNode & callable_head, const ParseNode & 
 				else {
 					// if this argument is given
 					if (this_param_type == "mask_wrapper_t") {
-						// not use lambda
-						//sprintf(codegen_buf, "[&](){return %s; }", name.c_str(), this_arg->second.c_str());
-						//func_header += string(codegen_buf);
 						func_header += this_arg->second;
 					}
 					else {

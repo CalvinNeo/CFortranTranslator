@@ -15,13 +15,14 @@ ParseNode gen_common(const ParseNode & common_block, const ParseNode & paramtabl
 	ParseNode kvparamtable = gen_promote_paramtable(paramtable);
 	string common_name = common_block.fs.CurrentTerm.what;
 	auto common_info = get_context().commonblocks.find(common_name);
+	bool new_common = false;
 	if (common_info == get_context().commonblocks.end()) {
 		get_context().commonblocks[common_name] = CommonBlockInfo{ common_name, std::vector<VariableInfo>() };
 		common_info = get_context().commonblocks.find(common_name);
+		new_common = true;
 	}
 	auto range = boost::irange(0, (int)kvparamtable.child.size());
-	std::string decl = make_str_list(range.begin(), range.end(), [&](auto x) {
-		int i = (int)x;
+	std::string decl = make_str_list(range.begin(), range.end(), [&](int i) {
 		std::string local_varname = get_variable_name(kvparamtable.get(i)/* NT_VARIABLEINITIAL */);
 		VariableInfo * local_vinfo = get_variable("@", "@", local_varname);
 		if (local_vinfo == nullptr)
@@ -38,8 +39,11 @@ ParseNode gen_common(const ParseNode & common_block, const ParseNode & paramtabl
 		else {
 			// 出现错误，因为regen_vardef在regen_suite里面调用，此时gen_common已经结束了
 		}
-		VariableInfo global_vinfo(*local_vinfo);
-		common_info->second.variables.push_back(global_vinfo);
+		if (new_common)
+		{
+			VariableInfo global_vinfo(*local_vinfo);
+			common_info->second.variables.push_back(global_vinfo);
+		}
 		local_vinfo->desc.constant = false;
 		local_vinfo->desc.reference = true;
 		return "";

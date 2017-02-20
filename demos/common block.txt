@@ -3,3 +3,6 @@ program
 	integer::x, y
 	common /cb/ x, y, z(10)
 end program
+!int & x = cb._1
+!int & y = cd._2;
+!farray<double> & z = cb._3

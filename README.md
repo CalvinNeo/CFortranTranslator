@@ -313,13 +313,18 @@ if this common block is an unamed block, `COMMON_NAME` is by default `G`
 2. replace all interface with forward declaration when necessary
 3. parameter passing strategy:
 
-|intent|parameter|result|
-|:-:|:-:|:-:|
-|/|/|T|
-|/|parameter|const T|
-|in|ignore|const T &|
-|out|ignore|T &|
-|inout|ignore|T &|
+|intent|parameter|save|result|
+|:-:|:-:|:-:|:-:|
+|/|/|/|`T`|
+|ignore|/|save|`static`|
+|ignore|parameter|save|`static const`|
+|ignore|parameter|/|`const T`|
+|in|ignore|/|`const T &`|
+|out|ignore|/|`T &`|
+|inout|ignore|/|`T &`|
+
+### operators
+1. defined operators is not supported
 
 #### parameters
 1. optional parameter: instead of c-style optional parameter, wrap optional parameters with `foroptional<T>`, function `forpresent` functions as `present` function in fortran90

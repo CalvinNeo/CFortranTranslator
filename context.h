@@ -11,6 +11,7 @@ struct TranslateContext {
 	std::map < std::string, VariableInfo * > variables;
 	std::map < std::string, VariableInfo * > temporary_variables;
 	std::map < std::string, FunctionInfo * > functions;
+	std::map < std::string, FunctionInfo * > temporary_functions;
 	std::map<std::string, std::vector<KeywordParamInfo>> func_kwargs;
 	ParseNode program_tree;
 	std::string global_code;

@@ -1,11 +1,10 @@
-program
-	real::x, y
-	read *, x
-	select case (x >= 0)
-		case (.true.)
-			y = x + 5.0
-		case (.false.)
-			y = -x
-	end select
-	print *, x, y
-end program
+subroutine proc(a, b, fun)
+	interface
+		function fun(x,y) result (fun_result)
+			integer,intent(in)::x, y
+			integer::fun_result
+		end function
+	end interface
+	integer,intent(in)::a, b
+	print *, fun(a, b) 
+end subroutine

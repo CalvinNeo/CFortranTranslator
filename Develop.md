@@ -74,7 +74,7 @@ all parse tree nodes are defined in [/Intent.h](/Intent.h) with an `NT_` prefix
 #### argtable, paramtable
 - argtable is now alias of paramtable
 - `callable_head` and `paramtable`(NT_ARGTABLE_PURE/NT_PARAMTABLE_DIMENSLICE) are two parts of a function call/array slice
-- both type and function name are callable name, so both `type_nospec` and `variable` are `callable_head`
+- both type and function name are callable name, so both `type_name` and `variable` are `callable_head`
 - `keyvalue` rules generates `NT_VARIABLEINITIAL` = `NT_KEYVALUE` node. `what` of this node is `name` not `name = value`, the later is regenerated in `gen_function_array` in [/gen_callable.cpp](/gen_callable.cpp)
 
 #### dimen_slice, paramtable
@@ -96,8 +96,17 @@ all parse tree nodes are defined in [/Intent.h](/Intent.h) with an `NT_` prefix
 	- `NT_ARGTABLE_PURE` + `paramtable`
 
 	
-#### type_spec, type_nospec
-you can use `REAL(x)` to get the float copy of x, however, you can also use `REAL(kind = 8)` to specify a floating number which is same to `long double` rather than `double`, so it may cause conflict. To specify, `type_nospec` is like `INTEGER` and a `type_spec` is like `INTEGER(kind = 4)`, `type_nospec` is `callable_head`, `type_spec` is not.
+#### type_spec, type_name, type_selector
+
+>	(3) The suffix "- spec" is used consistently for specifiers, such as keyword actual arguments and
+>		input / output statement specifiers.It also is used for type declaration attribute specifications(for
+>			example, "array - spec" in R512), and in a few other cases.
+
+>	(4) When reference is made to a type parameter, including the surrounding parentheses, the term
+>		"selector" is used.See, for example, "length - selector"(R507) and "kind - selector"(R505).
+
+you can use `REAL(x)` to get the float copy of x, however, you can also use `REAL(kind = 8)` to specify a floating number which is same to `long double` rather than `double`, so it may cause conflict. 
+To specify, `type_name` is like `INTEGER` and a `type_spec` is like `INTEGER(kind = 4)`, `type_nospec` can be head of `callable`, `type_spec` is not.
 
 #### array builder
 - `_generate_stmt` wrapped by `"( )"` is `hidder_do`
@@ -138,7 +147,7 @@ you can use `REAL(x)` to get the float copy of x, however, you can also use `REA
 | | NT_ARRAYBUILDER | (NT_ARRAYBUILDER_LAMBDA / NT_ARRAYBUILDER_LIST) + |
 | | NT_ARRAYBUILDER_LAMBDA |  |
 | | NT_ARRAYBUILDER_LIST |  |
-| type_spec |  | type_nospec / (type_nospec, typecast_spec) |
+| type_spec |  | type_name / (type_name, type_selector) |
 
 ### Symbols
 all variables(including `commom` block) and functions is now logged in [/Variable.h](/Variable.h) and [/Function.h](/Function.h) by

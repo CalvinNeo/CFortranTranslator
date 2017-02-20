@@ -6,4 +6,7 @@ program test
 	!integer(kind = 2), dimension(4, 5)::d
 	!OPEN  (7,STATUS='SCRATCH',FORM='UNFORMATTED')
 end program
+!hahah
 
+
+!hahah

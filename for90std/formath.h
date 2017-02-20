@@ -11,19 +11,19 @@
 namespace for90std {
 
 	template <class T, class ... Args>
-	T min_n(T x, Args... args) {
+	auto min_n(T x, Args... args) {
 		return min(x, args);
 	}
-	template <class T, class ... Args>
-	T min_n(T x, T y) {
+	template <class T1, class T2>
+	decltype(std::declval<T1>() + std::declval<T2>()) min_n(T1 x, T2 y) {
 		return min(x, y);
 	}
 	template <class T, class ... Args>
-	T max_n(T x, Args... args) {
+	auto max_n(T x, Args... args) {
 		return max(x, args);
 	}
-	template <class T, class ... Args>
-	T max_n(T x, T y) {
+	template <class T1, class T2>
+	decltype(std::declval<T1>() + std::declval<T2>()) max_n(T1 x, T2 y) {
 		return max(x, y);
 	}
 	

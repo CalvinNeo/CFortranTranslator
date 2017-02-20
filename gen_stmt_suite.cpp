@@ -26,7 +26,8 @@ std::string regen_suite(ParseNode & oldsuite) {
 	// regen suite(especially variable declaration)
 	/* this function regen code of `suite` node and 
 	 * 1. remove all NT_DECLAREDVARIABLE in suite
-	 * 2. regen_vardef */
+	 * 2. regen_vardef 
+	 */
 	std::string newsuitestr;
 	for (int i = 0; i < oldsuite.child.size(); i++)
 	{
@@ -56,17 +57,30 @@ std::string regen_suite(ParseNode & oldsuite) {
 							get_variabledesc_attr(vardescattr).merge(vinfo->desc);
 							CommonBlockInfo commoninfo = get_context().commonblocks[vinfo->commonblock_name];
 							std::string common_varname = "_" + to_string(vinfo->commonblock_index + 1);
-							// common语句并不能给出 vinfo->type 的值
-							vinfo->type = gen_qualified_typestr(type_nospec, get_variabledesc_attr(vardescattr));
+
+							vinfo->commonblock_index; // set in regen_suite and gen_common
+							vinfo->commonblock_name; // set in regen_suite and gen_common
+							vinfo->desc; // set in regen_vardef
+							vinfo->implicit_defined = false; // set in regen_suite
+							vinfo->type; // set in regen_vardef
+							vinfo->entity_variable; // set in regen_vardef
+
 							regen_vardef(vinfo, vardef, type_nospec, vardescattr, entity_variable);
 							sprintf(codegen_buf, "%s = %s.%s", vardef.fs.CurrentTerm.what.c_str(), vinfo->commonblock_name.c_str(), common_varname.c_str());
-							vinfo->implicit_defined = false; // `common` is explicit declaration
 							newsuitestr += string(codegen_buf);
 						}
 						else {
 							// variable haven't defined
 							VariableInfo newinfo("", VariableDesc(), ParseNode());
 							vinfo = add_variable("@", "@", name, newinfo);
+
+							vinfo->commonblock_index; // set in regen_suite and gen_common
+							vinfo->commonblock_name; // set in regen_suite and gen_common
+							vinfo->desc; // set in regen_vardef
+							vinfo->implicit_defined; // set in regen_suite
+							vinfo->type; // set in regen_vardef
+							vinfo->entity_variable; // set in regen_vardef
+
 							regen_vardef(vinfo, vardef, type_nospec, vardescattr, entity_variable);
 							newsuitestr += vardef.fs.CurrentTerm.what;
 						}

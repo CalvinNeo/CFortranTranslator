@@ -49,7 +49,7 @@ ParseNode gen_promote(std::string rule, int merged_token_meta, const ParseNode &
 }
 
 ParseNode gen_promote(int merged_token_meta, const ParseNode & lower) {
-	ParseNode newnode = ParseNode(gen_flex(Term{ merged_token_meta, lower.fs.CurrentTerm.what }), nullptr);
+	ParseNode newnode = gen_token(Term{ merged_token_meta, lower.fs.CurrentTerm.what });
 	newnode.addchild(lower);
 	return newnode;
 }
@@ -74,7 +74,7 @@ std::string tabber(std::string & src) {
 }
 
 ParseNode flattern_bin(const ParseNode & pn) {
-	/* it cant work well because it create a whole noew tree copy too much */
+	/* it cant work well because it create a whole new tree copy too much */
 	/* THIS ALGORITHM FLATTERNS A RIGHT-RECURSIVE BINARY TREE */
 	if (pn.child.size() == 2) {
 		ParseNode newp = ParseNode();
@@ -125,7 +125,7 @@ ParseNode gen_merge(const ParseNode & list1, const ParseNode & list2, std::strin
 	}
 	for (auto i = 0; i < list2.child.size(); i++)
 	{
-		nn.addchild(*list2.get(i));
+		nn.addchild(list2.get(i));
 	}
 	return nn;
 }

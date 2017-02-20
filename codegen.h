@@ -41,14 +41,14 @@ ParseNode gen_exp(const ParseNode & exp1, const ParseNode & op, std::string tran
 
 std::string get_variable_name(ParseNode & entity_variable);
 ParseNode gen_vardef(const ParseNode & type_nospec, const ParseNode & variable_desc, const ParseNode & paramtable);
-void regen_vardef(VariableInfo * vinfo, ParseNode & newnode, const ParseNode & type_nospec, ParseNode & vardescattr_node, ParseNode & entity_variable);
-std::string gen_vardef_array_str(VariableInfo * vinfo, std::string alias_name, ParseNode & entity_variable, const ParseNode & type_nospec, const std::tuple<std::vector<int>, std::vector<int>> & shape, VariableDescAttr & vardescattr);
-std::string gen_vardef_scalar_str(VariableInfo * vinfo, ParseNode & entity_variable, const ParseNode & type_nospec, VariableDescAttr & vardescattr);
+void regen_vardef(VariableInfo * vinfo, ParseNode & newnode, ParseNode & type_nospec, ParseNode & vardescattr_node, ParseNode & entity_variable);
+std::string gen_vardef_array_str(VariableInfo * vinfo, ParseNode & entity_variable, std::string type_str, const std::tuple<std::vector<int>, std::vector<int>> & shape);
+std::string gen_vardef_scalar_str(VariableInfo * vinfo, ParseNode & entity_variable, std::string type_str);
 std::string gen_lbound_size_str(const std::tuple<std::vector<int>, std::vector<int>> & shape);
 std::tuple<std::vector<int>, std::vector<int>> gen_lbound_size(const ParseNode * slice);
 ParseNode gen_vardef_simple(const ParseNode & type, std::string name);
 
-std::vector<ParseNode *> get_all_declared(ParseNode & suite);
+std::vector<ParseNode *> get_all_explicit_declared(ParseNode & suite);
 ParseNode gen_function(const ParseNode & variable_function, const ParseNode & paramtable, const ParseNode & variable_result, ParseNode & suite); // function define
 
 ParseNode gen_select(const ParseNode & exp, const ParseNode & case_stmt);
@@ -62,7 +62,7 @@ ParseNode gen_elseif(const ParseNode & exp, ParseNode & suite_true, const ParseN
 ParseNode gen_do(ParseNode & suite);
 ParseNode gen_do_range(const ParseNode & loop_variable, const ParseNode & exp1, const ParseNode & exp2, const ParseNode & exp3, ParseNode & suite);
 ParseNode gen_do_while(const ParseNode & exp, ParseNode & suite);
-ParseNode gen_hiddendo(const ParseNode & _generate_stmt, TokenMeta_T return_token = TokenMeta::NT_HIDDENDO);
+ParseNode gen_hiddendo(const ParseNode & exp, const ParseNode & index, const ParseNode & from, const ParseNode & to, TokenMeta_T return_token = TokenMeta::NT_HIDDENDO);
 std::vector<const ParseNode *> gen_nested_hiddendo_layers(const ParseNode & hiddendo);
 std::string gen_nested_hiddendo(const std::vector<const ParseNode *> & hiddendo_layer);
 
@@ -79,7 +79,7 @@ ParseNode gen_keyvalue_from_arraybuilder(const ParseNode & variable, const Parse
 ParseNode gen_paramtable(ParseNode & paramtable_elem);
 ParseNode gen_paramtable(ParseNode & paramtable_elem, ParseNode & paramtable);
 ParseNode gen_promote_exp_to_keyvalue(const ParseNode & paramtable_elem);
-ParseNode gen_promote_paramtable(const ParseNode paramtable); 
+ParseNode gen_promote_paramtable(const ParseNode & paramtable); 
 
 ParseNode implicit_type_from_name(std::string name);
 ParseNode gen_type(const ParseNode & type_nospec, const ParseNode & _type_kind);

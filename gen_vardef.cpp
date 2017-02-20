@@ -2,7 +2,7 @@
 
 std::string gen_lbound_size_str(const std::tuple<std::vector<int>, std::vector<int>> & shape) {
 	std::string size_str = "{", lbound_str = "{";
-	lbound_str += make_str_list(get<0>(shape).begin(), get<0>(shape).end(), [&](auto x) {  return to_string(x); });
+	lbound_str += make_str_list(get<0>(shape).begin(), get<0>(shape).end(), [&](auto x) { return to_string(x); });
 	size_str += make_str_list(get<1>(shape).begin(), get<1>(shape).end(), [&](auto x) { return to_string(x); });
 	size_str += "}"; lbound_str += "}";
 	return lbound_str + ", " + size_str;
@@ -37,26 +37,13 @@ std::tuple<std::vector<int>, std::vector<int>> gen_lbound_size(const ParseNode *
 	return make_tuple(lb, sz);
 }
 
-std::string gen_vardef_array_str(VariableInfo * vinfo, std::string alias_name, ParseNode & entity_variable, const ParseNode & type_nospec, const std::tuple<std::vector<int>, std::vector<int>> & shape, VariableDescAttr & vardescattr) {
+std::string gen_vardef_array_str(VariableInfo * vinfo, ParseNode & entity_variable, std::string type_str, const std::tuple<std::vector<int>, std::vector<int>> & shape) {
 	string arr_decl = "";
 	// entity_variable is 
 	// NT_VARIABLEINITIAL(entity_variable) -> NT_EXPRESSION(entity_variable_name) -> NT_FUCNTIONARRAY -> (UnknownVariant, NT_ARGTABLE_PURE)/NT_VARIABLEINITIAL
 	// or NT_VARIABLEINITIAL(entity_variable) -> (UnknownVariant, NT_VARIABLEINITIALDUMMY or else)
 	int dimension = (int)get<0>(shape).size();
-	if (alias_name == "")
-	{
-		alias_name = entity_variable.get(0).fs.CurrentTerm.what;
-	}
-	string type_str;
-	if (type_nospec.fs.CurrentTerm.what == "")
-	{
-		// implicit type
-		sprintf(codegen_buf, "farray<%s>", implicit_type_from_name(alias_name).fs.CurrentTerm.what.c_str());
-		type_str = string(codegen_buf);
-	}
-	else {
-		type_str = gen_qualified_typestr(type_nospec, vardescattr.desc); // `T`
-	}
+	string alias_name = get_variable_name(entity_variable);
 
 	// no desc if var_def is not in paramtable
 	sprintf(codegen_buf, "%s %s", type_str.c_str(), alias_name.c_str()  /* array name */);
@@ -81,62 +68,50 @@ std::string gen_vardef_array_str(VariableInfo * vinfo, std::string alias_name, P
 		sprintf(codegen_buf, "%s = %s", alias_name.c_str(), compound_arraybuilder.fs.CurrentTerm.what.c_str());
 		arr_decl += string(codegen_buf);
 	}
-	//VariableInfo vinfo = VariableInfo(type_str, vardescattr->desc, *(entity_variable->child[1]));
 	entity_variable.setattr(new VariableAttr(vinfo));
 	return arr_decl;
 }
 
-std::string get_variable_name(ParseNode & entity_variable) {
+bool is_array_variable_node(ParseNode & entity_variable) {
 	ParseNode & entity_variable_name = entity_variable.get(0);
 	if (entity_variable_name.fs.CurrentTerm.token == TokenMeta::NT_EXPRESSION && entity_variable_name.get(0).fs.CurrentTerm.token == TokenMeta::NT_FUCNTIONARRAY)
+	{
+		return true;
+	}
+	return false;
+}
+
+std::string get_variable_name(ParseNode & entity_variable) {
+	ParseNode & entity_variable_name = entity_variable.get(0);
+	if (is_array_variable_node(entity_variable))
 	{
 		// entity_variable_name->child[0] has subobject designator like `A(0,1,2)`
 		return entity_variable_name.get(0).get(0).fs.CurrentTerm.what;
 	}
-	//else if (entity_variable_name->fs.CurrentTerm.token == TokenMeta::NT_FUCNTIONARRAY) {
-	//	// 在common部分不能满足上面的规则
-	//	return entity_variable_name->get(0).fs.CurrentTerm.what;
-	//}
 	else {
 		// entity_variable_name->child[0] is like `A`
 		return entity_variable_name.fs.CurrentTerm.what;
 	}
 }
 
-std::string gen_vardef_scalar_str(VariableInfo * vinfo, ParseNode & entity_variable, const ParseNode & type_nospec, VariableDescAttr & vardescattr) {
-	string var_decl; string typestr;
+std::string gen_vardef_scalar_str(VariableInfo * vinfo, ParseNode & entity_variable, std::string type_str) {
+	string var_decl; 
 	ParseNode & entity_variable_name = entity_variable.get(0);
-	if (type_nospec.fs.CurrentTerm.what == "")
-	{
-		// implicit type
-		goto LABEL_DIMENSION_IMPLICIT;
-	}
-	typestr = gen_qualified_typestr(type_nospec, vardescattr.desc);
 	// from entity_variable
 	// NT_VARIABLEINITIAL(entity_variable) -> NT_EXPRESSION(entity_variable_name) -> NT_FUCNTIONARRAY -> (UnknownVariant, NT_ARGTABLE_PURE)
-	if (entity_variable_name.fs.CurrentTerm.token == TokenMeta::NT_EXPRESSION && entity_variable_name.get(0).fs.CurrentTerm.token == TokenMeta::NT_FUCNTIONARRAY)
-	{
-		LABEL_DIMENSION_IMPLICIT:
-		ParseNode & argtable = entity_variable_name.get(0).get(1);
-		std::tuple<std::vector<int>, std::vector<int>> ls = gen_lbound_size(&argtable);
-		vardescattr.desc.slice = argtable;
-		var_decl = gen_vardef_array_str(vinfo, get_variable_name(entity_variable), entity_variable, type_nospec, ls, vardescattr);
-	}
-	else {
-		sprintf(codegen_buf, "%s %s", typestr.c_str(), get_variable_name(entity_variable).c_str());
-		var_decl = string(codegen_buf);
-		if (entity_variable.get(1).fs.CurrentTerm.token != TokenMeta::NT_VARIABLEINITIALDUMMY) {
-			/* if initial value is not dummy but `exp` */
-			var_decl += " = ";
-			var_decl += entity_variable.get(1).fs.CurrentTerm.what; // initial value
-		}
+	sprintf(codegen_buf, "%s %s", type_str.c_str(), get_variable_name(entity_variable).c_str());
+	var_decl = string(codegen_buf);
+	if (entity_variable.get(1).fs.CurrentTerm.token != TokenMeta::NT_VARIABLEINITIALDUMMY) {
+		/* if initial value is not dummy but `exp` */
+		var_decl += " = ";
+		var_decl += entity_variable.get(1).fs.CurrentTerm.what; // initial value
 	}
 	entity_variable.setattr(new VariableAttr(vinfo));
 	return var_decl;
 }
 
 ParseNode gen_vardef_simple(const ParseNode & type, std::string name) {
-	ParseNode newnode = ParseNode(gen_flex(Term{ TokenMeta::NT_VARIABLEDEFINE, name }), nullptr);
+	ParseNode newnode = gen_token(Term{ TokenMeta::NT_VARIABLEDEFINE, name });
 	newnode.addchild(type); // type
 	newnode.addchild(gen_token(Term{ TokenMeta::NT_VOID, "" })); // variable_desc
 	ParseNode kv = gen_keyvalue(gen_token(Term{ TokenMeta::UnknownVariant, name }));
@@ -150,32 +125,57 @@ ParseNode gen_vardef(const ParseNode & type_nospec, const ParseNode & variable_d
 	ParseNode newnode = gen_token(Term{ TokenMeta::NT_VARIABLEDEFINESET, "LAZY GENERATED" });
 	for (int i = 0; i < (int)kvparamtable.child.size(); i++)
 	{
-		ParseNode newvardef = ParseNode();
+		ParseNode newvardef = gen_token(Term{ TokenMeta::NT_VARIABLEDEFINE, "LAZY GENERATED" });
 		newvardef.addchild(type_nospec); // type
 		newvardef.addchild(variable_desc); // variable_desc
-		newvardef.addchild(*kvparamtable.child[i]);
+		newvardef.addchild(kvparamtable.get(i));
 		newvardef.setattr(variable_desc.attr->clone()); // new VariableDescAttr( *dynamic_cast<VariableDescAttr *>(variable_desc.attr)); // attr
-		newvardef.fs.CurrentTerm = Term{ TokenMeta::NT_VARIABLEDEFINE, "LAZY GENERATED" };
 		newnode.addchild(newvardef);
 	}
-	 //regen_vardef(newnode, nullptr);
+	//regen_vardef(newnode, nullptr);
 	return newnode;
 }
 
-void regen_vardef(VariableInfo * vinfo, ParseNode & newnode, const ParseNode & type_nospec, ParseNode & vardescattr_node, ParseNode & entity_variable) {
+void regen_vardef(VariableInfo * vinfo, ParseNode & newnode, ParseNode & type_nospec, ParseNode & vardescattr_node, ParseNode & entity_variable) {
 	string var_decl = ""; 
-	VariableDescAttr vardescattr = vardescattr_node.attr != nullptr ? *dynamic_cast<VariableDescAttr *>(vardescattr_node.attr) : VariableDescAttr();
-	VariableDesc & desc = vardescattr.desc;
-
+	VariableDesc desc = get_variabledesc_attr(vardescattr_node);
 	bool do_arr = desc.slice.is_initialized();
+	string type_str;
+	if (type_nospec.fs.CurrentTerm.what == "")
+	{
+		type_nospec.fs.CurrentTerm.what = implicit_type_from_name(get_variable_name(entity_variable)).fs.CurrentTerm.what;
+		type_nospec.setattr(new VariableDescAttr());
+	}
+	else {
+		type_nospec.fs.CurrentTerm.what = gen_qualified_typestr(type_nospec, desc);
+	}
 	if(do_arr){
 		// ARRAY
-		var_decl += gen_vardef_array_str(vinfo, "", entity_variable, type_nospec, gen_lbound_size(desc.slice.get_ptr()), vardescattr);
+		type_str = gen_qualified_typestr(type_nospec, desc);
+		var_decl += gen_vardef_array_str(vinfo, entity_variable, type_str, gen_lbound_size(desc.slice.get_ptr()));
 		newnode.fs.CurrentTerm = Term{ TokenMeta::NT_VARIABLEDEFINE, var_decl };
 	}
 	else {
 		// SCALAR
-		var_decl += gen_vardef_scalar_str(vinfo, entity_variable, type_nospec, vardescattr);
+		if (is_array_variable_node(entity_variable))
+		{
+			ParseNode & entity_variable_name = entity_variable.get(0);
+			ParseNode & argtable = entity_variable_name.get(0).get(1);
+			std::tuple<std::vector<int>, std::vector<int>> ls = gen_lbound_size(&argtable);
+			desc.slice = argtable; // add slice attribute to vardescattr.desc
+			type_str = gen_qualified_typestr(type_nospec, desc);
+			var_decl = gen_vardef_array_str(vinfo, entity_variable, type_str, ls);
+		}
+		else {
+			type_str = gen_qualified_typestr(type_nospec, desc);
+			var_decl = gen_vardef_scalar_str(vinfo, entity_variable, type_str);
+		}
 		newnode.fs.CurrentTerm = Term{ TokenMeta::NT_VARIABLEDEFINE, var_decl };
 	} // end if
+	vinfo->commonblock_index; // set in regen_suite and gen_common
+	vinfo->commonblock_name; // set in regen_suite and gen_common
+	vinfo->desc = desc; // set in regen_vardef
+	vinfo->implicit_defined; // set in regen_suite
+	vinfo->type = type_str; // set in regen_vardef
+	vinfo->entity_variable = entity_variable; // set in regen_vardef
 }

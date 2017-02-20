@@ -312,6 +312,14 @@ const vector<KeywordMeta> keywords = {
 		, TokenMeta::META_ANY
 		, YY_SAVE
 	}
+	, KeywordMeta{ "stop"
+		, TokenMeta::META_ANY
+		, YY_STOP
+	}
+	, KeywordMeta{ "pause"
+		, TokenMeta::META_ANY
+		, YY_PAUSE
+	}
 };
 
 

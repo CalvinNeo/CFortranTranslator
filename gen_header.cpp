@@ -37,6 +37,6 @@ ParseNode gen_header() {
 	else {
 		x += "#define USE_CARRAY \n";
 	}
-	ParseNode newnode = ParseNode(gen_flex(Term{TokenMeta::META_NONTERMINAL, x.c_str()}), nullptr);	
+	ParseNode newnode = gen_token(Term{TokenMeta::META_NONTERMINAL, x.c_str()});
 	return newnode;
 }

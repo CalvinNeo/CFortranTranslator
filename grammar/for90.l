@@ -70,8 +70,9 @@ std::string parse_ioformatter(const std::string & src); // gen_io.cpp
 #define YYRTN(TOK, YYTOK)  update_yylval(Term{TOK, std::string(yytext)});  update_flex((int)yyleng);  return YYTOK; 
 #define YYRTCRLF()  update_yylval( Term{TokenMeta::CRLF, std::string(yytext)}); update_flex((int)yyleng, true); return YY_CRLF;
 // ¿Õ¸ñ, ÖÆ±í·ûµÈ
-#define YYRTNOP() update_yylval( Term{TokenMeta::Nop, std::string(yytext)},  true);  update_flex((int)yyleng);
+#define YYRTNOP() update_yylval( Term{TokenMeta::Nop, std::string(yytext)},  true);  update_flex((int)yyleng); /*return YY_NULL;*/
 // include literal const such as pi, true, false, etc.
+#define YYRTNCOMMENT() update_yylval( Term{TokenMeta::Nop, std::string(yytext)},  true);  update_flex((int)yyleng); return YY_NULL;
 /*do not call update_yylval because some tokens need to be looked ahead, such as `else if` */
 #define YYRTWORD() {  int p = word_parse(); \
 	update_flex((int)yyleng); \
@@ -99,6 +100,7 @@ std::string parse_ioformatter(const std::string & src); // gen_io.cpp
 #define RTILLEGAL(TOK) YYRTILLEGAL(TOK)
 #define RTCRLF() YYRTCRLF()
 #define RTNOP() YYRTNOP()
+#define RTNCOMMENT() YYRTNCOMMENT()
 #else
 // more spectific
 // DO **NOT** USE WHEN USE YACC EITHER
@@ -150,13 +152,13 @@ wordoperator \.[a-zA-Z_][a-zA-Z0-9]*\.
 ^{newline}$ { /* ¿ÕÐÐ */ }
 {newline} {RTCRLF() }
 {ws} { RTNOP() }
-^[Cc]{ws}+.*{newline} { RTNOP() /*×¢ÊÍ*/}
+^[Cc]{ws}+.*{newline} { RTNCOMMENT() /*×¢ÊÍ*/}
 ^[0-9]+ {RTN(TokenMeta::Label, YY_LABEL); }
 {integral} { RTINT(TokenMeta::META_INTEGER) }
 {floating} { RTFLOAT(TokenMeta::META_FLOAT) }
 {floating}_[-+]?{floating} { RTCOMPLEX(TokenMeta::META_COMPLEX) }
-\(\/ {RTOP(TokenMeta::META_ANY, YY_ARRAYINITIAL_START) }
-\/\) {RTOP(TokenMeta::META_ANY, YY_ARRAYINITIAL_END) }
+"(/" {RTOP(TokenMeta::META_ANY, YY_ARRAYINITIAL_START) }
+"/)" {RTOP(TokenMeta::META_ANY, YY_ARRAYINITIAL_END) }
 "::" { RTOP(TokenMeta::DoubleColon, YY_DOUBLECOLON) }
 "**" { RTOP(TokenMeta::Power, YY_POWER) }
 ">" { RTOP(TokenMeta::GT, YY_GT) }
@@ -171,7 +173,7 @@ wordoperator \.[a-zA-Z_][a-zA-Z0-9]*\.
 	RTWORD() 
 }
 {wordoperator} { RTWORD() }
-\!.*{newline} { RTNOP() /*×¢ÊÍ*/}
+\!.*{newline} { RTNCOMMENT() /*×¢ÊÍ*/}
 \"(\\.|[^"])*\" {RTSTRING(TokenMeta::META_STRING) 
 /* The delimiting quotes are escaped because they are Flex meta-characters. */}
 \'(\\.|[^'])*\' {RTSTRING(TokenMeta::META_STRING) 

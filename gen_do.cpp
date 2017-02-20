@@ -62,33 +62,28 @@ std::string gen_nested_hiddendo(const std::vector<const ParseNode *> & hiddendo_
 	string indexer_str = make_str_list(hiddendo_layer.begin(), hiddendo_layer.end(), [](auto x)->string {return "fsize_t " + (x)->get(1).fs.CurrentTerm.what; });
 	sprintf(codegen_buf, "[](%s){return %s;}", indexer_str.c_str(), hiddendo_layer[hiddendo_layer.size() - 1]->get(0).fs.CurrentTerm.what.c_str());
 	string lambda = string(codegen_buf);
-	string args;
-	for (auto j = 0; j < hiddendo_layer.size(); j++)
-	{
-		if (j != 0) {
-			args += ", ";
-		}
-		sprintf(codegen_buf, "current[%d]", (int)j);
-		args += string(codegen_buf);
-	}
+	int j = 0;
+	string args = make_str_list(hiddendo_layer.begin(), hiddendo_layer.end(), [&](auto x) {
+		sprintf(codegen_buf, "current[%d]", j++);
+		return string(codegen_buf);
+	}, ", ");
+
 	// map array to parameter
-	//sprintf(codegen_buf, "[](const fsize_t(&current)[%d]){return %s(%s);}", (int)hiddendo_layer.size(), lambda.c_str(), args.c_str());
 	sprintf(codegen_buf, "[](const fsize_t * current){return %s(%s);}", lambda.c_str(), args.c_str());
 	return string(codegen_buf);
 }
 
-ParseNode gen_hiddendo(const ParseNode & _generate_stmt, TokenMeta_T return_token ) {
+ParseNode gen_hiddendo(const ParseNode & exp, const ParseNode & index, const ParseNode & from, const ParseNode & to, TokenMeta_T return_token ) {
 	/* give generate stmt */
-	ParseNode newnode = ParseNode();
-	const ParseNode & exp = _generate_stmt.get(0);
-	const ParseNode & index = _generate_stmt.get(1);
-	const ParseNode & from = _generate_stmt.get(2);
-	const ParseNode & to = _generate_stmt.get(3);
-
+	ParseNode newnode = gen_token(Term{ TokenMeta::NT_HIDDENDO, ""});
+	newnode.addchild(exp); // 0 exp
+	newnode.addchild(index); // 1 index variable
+	newnode.addchild(from); // 2 exp_from
+	newnode.addchild(to); // 3 exp_to
 	if (get_context().parse_config.usefarray)
 	{
 		std::vector<const ParseNode *> hiddendo_layer;
-		const ParseNode * pn = &_generate_stmt;
+		const ParseNode * pn = &newnode;
 		while (pn->fs.CurrentTerm.token == TokenMeta::NT_HIDDENDO) {
 			hiddendo_layer.push_back(pn);
 			if (pn->child.size() > 0 && pn->get(0).child.size() > 0) {
@@ -112,9 +107,5 @@ ParseNode gen_hiddendo(const ParseNode & _generate_stmt, TokenMeta_T return_toke
 		rt += str_init;
 	}
 
-	newnode.addchild(exp); // 0 exp
-	newnode.addchild(index); // 1 index variable
-	newnode.addchild(from); // 2 exp_from
-	newnode.addchild(to); // 3 exp_to
 	return newnode;
 }
