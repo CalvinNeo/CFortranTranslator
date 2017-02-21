@@ -1,3 +1,22 @@
+/*
+*   Calvin Neo
+*   Copyright (C) 2016  Calvin Neo <calvinneo@calvinneo.com>
+*
+*   This program is free software; you can redistribute it and/or modify
+*   it under the terms of the GNU General Public License as published by
+*   the Free Software Foundation; either version 2 of the License, or
+*   (at your option) any later version.
+*
+*   This program is distributed in the hope that it will be useful,
+*   but WITHOUT ANY WARRANTY; without even the implied warranty of
+*   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+*   GNU General Public License for more details.
+*
+*   You should have received a copy of the GNU General Public License along
+*   with this program; if not, write to the Free Software Foundation, Inc.,
+*   51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+*/
+
 #include "gen_common.h"
 
 std::string gen_lbound_size_str(const std::tuple<std::vector<int>, std::vector<int>> & shape) {
@@ -110,7 +129,7 @@ std::string gen_vardef_scalar_str(VariableInfo * vinfo, ParseNode & entity_varia
 	return var_decl;
 }
 
-ParseNode gen_vardef_simple(const ParseNode & type, std::string name) {
+ParseNode gen_vardef_from_implicit(const ParseNode & type, std::string name) {
 	ParseNode newnode = gen_token(Term{ TokenMeta::NT_VARIABLEDEFINE, name });
 	newnode.addchild(type); // type
 	newnode.addchild(gen_token(Term{ TokenMeta::NT_VOID, "" })); // variable_desc
@@ -121,7 +140,7 @@ ParseNode gen_vardef_simple(const ParseNode & type, std::string name) {
 }
 
 ParseNode gen_vardef(const ParseNode & type_nospec, const ParseNode & variable_desc, const ParseNode & paramtable) {
-	ParseNode kvparamtable = gen_promote_paramtable(paramtable); // a flatterned paramtable with all keyvalue elements
+	ParseNode kvparamtable = promote_argtable_to_paramtable(paramtable); // a flatterned paramtable with all keyvalue elements
 	ParseNode newnode = gen_token(Term{ TokenMeta::NT_VARIABLEDEFINESET, "LAZY GENERATED" });
 	for (int i = 0; i < (int)kvparamtable.child.size(); i++)
 	{
@@ -132,13 +151,11 @@ ParseNode gen_vardef(const ParseNode & type_nospec, const ParseNode & variable_d
 		newvardef.setattr(variable_desc.attr->clone()); // new VariableDescAttr( *dynamic_cast<VariableDescAttr *>(variable_desc.attr)); // attr
 		newnode.addchild(newvardef);
 	}
-	//regen_vardef(newnode, nullptr);
 	return newnode;
 }
 
-void regen_vardef(VariableInfo * vinfo, ParseNode & newnode, ParseNode & type_nospec, ParseNode & vardescattr_node, ParseNode & entity_variable) {
+void regen_vardef(VariableInfo * vinfo, ParseNode & vardef_node, ParseNode & type_nospec, VariableDesc & desc, ParseNode & entity_variable) {
 	string var_decl = ""; 
-	VariableDesc desc = get_variabledesc_attr(vardescattr_node);
 	bool do_arr = desc.slice.is_initialized();
 	string type_str;
 	if (type_nospec.fs.CurrentTerm.what == "")
@@ -153,7 +170,7 @@ void regen_vardef(VariableInfo * vinfo, ParseNode & newnode, ParseNode & type_no
 		// ARRAY
 		type_str = gen_qualified_typestr(type_nospec, desc);
 		var_decl += gen_vardef_array_str(vinfo, entity_variable, type_str, gen_lbound_size(desc.slice.get_ptr()));
-		newnode.fs.CurrentTerm = Term{ TokenMeta::NT_VARIABLEDEFINE, var_decl };
+		vardef_node.fs.CurrentTerm = Term{ TokenMeta::NT_VARIABLEDEFINE, var_decl };
 	}
 	else {
 		// SCALAR
@@ -170,7 +187,7 @@ void regen_vardef(VariableInfo * vinfo, ParseNode & newnode, ParseNode & type_no
 			type_str = gen_qualified_typestr(type_nospec, desc);
 			var_decl = gen_vardef_scalar_str(vinfo, entity_variable, type_str);
 		}
-		newnode.fs.CurrentTerm = Term{ TokenMeta::NT_VARIABLEDEFINE, var_decl };
+		vardef_node.fs.CurrentTerm = Term{ TokenMeta::NT_VARIABLEDEFINE, var_decl };
 	} // end if
 	vinfo->commonblock_index; // set in regen_suite and gen_common
 	vinfo->commonblock_name; // set in regen_suite and gen_common

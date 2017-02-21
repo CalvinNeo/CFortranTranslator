@@ -41,6 +41,7 @@
 - arithmatic if
 - labeled do, if
 - `exit`, `cycle` outer do-loop
+- detailed type attr(add TokenMeta::Int64, etc.)
 
 ## todolist(bugfix)
 - ~~if slice can be a scalar x and equal to (1: x + 1), there will be conflict in argtable~~

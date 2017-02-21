@@ -1,3 +1,22 @@
+/*
+*   Calvin Neo
+*   Copyright (C) 2016  Calvin Neo <calvinneo@calvinneo.com>
+*
+*   This program is free software; you can redistribute it and/or modify
+*   it under the terms of the GNU General Public License as published by
+*   the Free Software Foundation; either version 2 of the License, or
+*   (at your option) any later version.
+*
+*   This program is distributed in the hope that it will be useful,
+*   but WITHOUT ANY WARRANTY; without even the implied warranty of
+*   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+*   GNU General Public License for more details.
+*
+*   You should have received a copy of the GNU General Public License along
+*   with this program; if not, write to the Free Software Foundation, Inc.,
+*   51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+*/
+
 #include "gen_common.h"
 
 // both function and array is callable
@@ -18,7 +37,7 @@ ParseNode gen_function_array(const ParseNode & callable_head, const ParseNode & 
 	else {
 		name = callable_head.fs.CurrentTerm.what;
 	}
-	if (argtable.fs.CurrentTerm.token == TokenMeta::NT_PARAMTABLE_DIMENSLICE) {
+	if (argtable.fs.CurrentTerm.token == TokenMeta::NT_DIMENSLICE) {
 		// array
 		string arr;
 		bool is_slice = false;
@@ -38,33 +57,33 @@ ParseNode gen_function_array(const ParseNode & callable_head, const ParseNode & 
 				}
 				slice_info_str += "{";
 				if (argtable.get(i).fs.CurrentTerm.token == TokenMeta::NT_SLICE) {
-					ParseNode * slice = argtable.child[i];
+					const ParseNode & slice = argtable.get(i);
 					bool empty_slice = false;
 					int slice_info_arr[] = {1, 1, 1};
-					for (auto j = 0; j < slice->child.size(); j++)
+					for (auto j = 0; j < slice.child.size(); j++)
 					{
-						if (slice->get(j).fs.CurrentTerm.token == TokenMeta::NT_VARIABLEINITIALDUMMY) {
+						if (slice.get(j).fs.CurrentTerm.token == TokenMeta::NT_VARIABLEINITIALDUMMY) {
 							// a(:)
 							empty_slice = true;
 							sprintf(codegen_buf, "");
 						}
 						else {
-							sscanf(slice->get(j).fs.CurrentTerm.what.c_str(), "%d", slice_info_arr + j);
+							sscanf(slice.get(j).fs.CurrentTerm.what.c_str(), "%d", slice_info_arr + j);
 						}
 					}
-					if (empty_slice || slice->child.size() == 0) {
+					if (empty_slice || slice.child.size() == 0) {
 
 					}
-					else if (slice->child.size() == 1) {
+					else if (slice.child.size() == 1) {
 						// a single element, not size
 						sprintf(codegen_buf, "%d", slice_info_arr[0]);
 					}
-					else if (slice->child.size() == 2) {
+					else if (slice.child.size() == 2) {
 						// forslice accepts lowerbound, size
 						sprintf(codegen_buf, "%d, %d", slice_info_arr[0], slice_info_arr[1]  ); 
 					}
 					else {
-						sprintf(codegen_buf, "%d, %d, %d", slice_info_arr[0], slice_info_arr[1]  , slice_info_arr[2]);
+						sprintf(codegen_buf, "%d, %d, %d", slice_info_arr[0], slice_info_arr[1], slice_info_arr[2]);
 					}
 
 					slice_info_str += string(codegen_buf);
@@ -81,12 +100,12 @@ ParseNode gen_function_array(const ParseNode & callable_head, const ParseNode & 
 		else {
 			// dead code
 			// a dimen_slice with no slice, now all promote to slice
-			print_error("Bad Slice", argtable);
+			print_error("bad slice", argtable);
 		}
 		newnode.fs.CurrentTerm = Term{ TokenMeta::NT_FUCNTIONARRAY,  arr };
 	}
 	else if(argtable.fs.CurrentTerm.token == TokenMeta::NT_ARGTABLE_PURE 
-		|| argtable.fs.CurrentTerm.token == TokenMeta::NT_PARAMTABLE){
+		|| argtable.fs.CurrentTerm.token == TokenMeta::NT_PARAMTABLE_PURE){
 		// function call or function call with kwargs
 		func_header += name;
 		auto map_func = get_context().func_kwargs.find(name); // function_name -> args
@@ -197,7 +216,7 @@ ParseNode gen_function_array(const ParseNode & callable_head, const ParseNode & 
 	else {
 		name = callable_head.fs.CurrentTerm.what;
 	}
-	if (argtable.fs.CurrentTerm.token == TokenMeta::NT_PARAMTABLE_DIMENSLICE) {
+	if (argtable.fs.CurrentTerm.token == TokenMeta::NT_DIMENSLICE) {
 		// error
 	}
 	else {

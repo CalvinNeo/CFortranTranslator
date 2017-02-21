@@ -1,3 +1,22 @@
+/*
+*   Calvin Neo
+*   Copyright (C) 2016  Calvin Neo <calvinneo@calvinneo.com>
+*
+*   This program is free software; you can redistribute it and/or modify
+*   it under the terms of the GNU General Public License as published by
+*   the Free Software Foundation; either version 2 of the License, or
+*   (at your option) any later version.
+*
+*   This program is distributed in the hope that it will be useful,
+*   but WITHOUT ANY WARRANTY; without even the implied warranty of
+*   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+*   GNU General Public License for more details.
+*
+*   You should have received a copy of the GNU General Public License along
+*   with this program; if not, write to the Free Software Foundation, Inc.,
+*   51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+*/
+
 #include "gen_common.h"
 
 ParseNode gen_stmt(const ParseNode & content) {
@@ -65,7 +84,7 @@ std::string regen_suite(ParseNode & oldsuite) {
 							vinfo->type; // set in regen_vardef
 							vinfo->entity_variable; // set in regen_vardef
 
-							regen_vardef(vinfo, vardef, type_nospec, vardescattr, entity_variable);
+							regen_vardef(vinfo, vardef, type_nospec, get_variabledesc_attr(vardescattr), entity_variable);
 							sprintf(codegen_buf, "%s = %s.%s", vardef.fs.CurrentTerm.what.c_str(), vinfo->commonblock_name.c_str(), common_varname.c_str());
 							newsuitestr += string(codegen_buf);
 						}
@@ -81,7 +100,7 @@ std::string regen_suite(ParseNode & oldsuite) {
 							vinfo->type; // set in regen_vardef
 							vinfo->entity_variable; // set in regen_vardef
 
-							regen_vardef(vinfo, vardef, type_nospec, vardescattr, entity_variable);
+							regen_vardef(vinfo, vardef, type_nospec, get_variabledesc_attr(vardescattr), entity_variable);
 							newsuitestr += vardef.fs.CurrentTerm.what;
 						}
 						newsuitestr += ";\n";
@@ -105,13 +124,13 @@ std::string regen_suite(ParseNode & oldsuite) {
 	forall_variable_in_function("@", "@", [&](const std::pair<std::string, VariableInfo *> & p) {
 		if (p.second->implicit_defined)
 		{
-			string local_name = implicit_type_from_name(p.first).fs.CurrentTerm.what;
+			string local_type = p.second->type;
 			if (p.second->commonblock_name == "") {
-				sprintf(codegen_buf, "%s %s;\n", local_name.c_str(), p.first.c_str());
+				sprintf(codegen_buf, "%s %s;\n", local_type.c_str(), p.first.c_str());
 			}
 			else {
 				std::string common_varname = "_" + to_string(p.second->commonblock_index + 1);
-				sprintf(codegen_buf, "%s & %s = %s.%s;\n", local_name.c_str()
+				sprintf(codegen_buf, "%s & %s = %s.%s;\n", local_type.c_str()
 					, p.first.c_str(), p.second->commonblock_name.c_str(), common_varname.c_str());
 			}
 			newsuitestr = string(codegen_buf) + newsuitestr;

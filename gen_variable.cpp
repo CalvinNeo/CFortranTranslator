@@ -1,3 +1,22 @@
+/*
+*   Calvin Neo
+*   Copyright (C) 2016  Calvin Neo <calvinneo@calvinneo.com>
+*
+*   This program is free software; you can redistribute it and/or modify
+*   it under the terms of the GNU General Public License as published by
+*   the Free Software Foundation; either version 2 of the License, or
+*   (at your option) any later version.
+*
+*   This program is distributed in the hope that it will be useful,
+*   but WITHOUT ANY WARRANTY; without even the implied warranty of
+*   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+*   GNU General Public License for more details.
+*
+*   You should have received a copy of the GNU General Public License along
+*   with this program; if not, write to the Free Software Foundation, Inc.,
+*   51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+*/
+
 #include "gen_common.h"
 #include <map>
 #include <boost/range/adaptors.hpp>
@@ -12,7 +31,7 @@
 
 ParseNode gen_common(const ParseNode & common_block, const ParseNode & paramtable) {
 	// the unique blank COMMON block must be declared in the main program.
-	ParseNode kvparamtable = gen_promote_paramtable(paramtable);
+	ParseNode kvparamtable = promote_argtable_to_paramtable(paramtable);
 	string common_name = common_block.fs.CurrentTerm.what;
 	auto common_info = get_context().commonblocks.find(common_name);
 	bool new_common = false;
@@ -28,10 +47,12 @@ ParseNode gen_common(const ParseNode & common_block, const ParseNode & paramtabl
 		if (local_vinfo == nullptr)
 		{
 			// if this common variable has no prev explicit declaration
-			VariableDesc desc; 
-			local_vinfo = add_variable("@", "@", local_varname
-				, VariableInfo(implicit_type_from_name(local_varname).fs.CurrentTerm.what, desc
-					, gen_token(Term{TokenMeta::NT_VARIABLEINITIALDUMMY, ""})));
+			local_vinfo = add_variable("@", "@", local_varname, VariableInfo());
+			ParseNode implicit_type = gen_type(Term{ TokenMeta::Implicit_Def, "" });
+			ParseNode vardef_node = gen_vardef_from_implicit(implicit_type, local_varname);
+			ParseNode & variable_entity = kvparamtable.get(i);
+			VariableDesc desc;
+			regen_vardef(local_vinfo, vardef_node, implicit_type, desc, variable_entity);
 			local_vinfo->commonblock_name = common_name;
 			local_vinfo->commonblock_index = i;
 			local_vinfo->implicit_defined = true;

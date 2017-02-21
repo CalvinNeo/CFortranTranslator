@@ -1,4 +1,23 @@
-﻿#include "gen_common.h"
+﻿/*
+*   Calvin Neo
+*   Copyright (C) 2016  Calvin Neo <calvinneo@calvinneo.com>
+*
+*   This program is free software; you can redistribute it and/or modify
+*   it under the terms of the GNU General Public License as published by
+*   the Free Software Foundation; either version 2 of the License, or
+*   (at your option) any later version.
+*
+*   This program is distributed in the hope that it will be useful,
+*   but WITHOUT ANY WARRANTY; without even the implied warranty of
+*   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+*   GNU General Public License for more details.
+*
+*   You should have received a copy of the GNU General Public License along
+*   with this program; if not, write to the Free Software Foundation, Inc.,
+*   51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+*/
+
+#include "gen_common.h"
 
 std::string regen_paramtable(const vector<tuple<string, ParseNode, ParseNode *>> & paramtable_info) {
 	/* generate new paramtable with type */
@@ -160,7 +179,7 @@ ParseNode gen_function(const ParseNode & variable_function, const ParseNode & pa
 	/* fortran90 does not declare type of arguments in function declaration statement*/
 	// paramtable is raw for90 paramtable and every variable in the table has no type infomation
 	ParseNode newnode = ParseNode();
-	ParseNode kvparamtable = gen_promote_paramtable(paramtable); // a flatterned paramtable with all keyvalue elements
+	ParseNode kvparamtable = promote_argtable_to_paramtable(paramtable); // a flatterned paramtable with all keyvalue elements
 	ParseNode & oldsuite = suite;
 	bool is_subroutine = variable_result.fs.CurrentTerm.what == "";
 	
@@ -179,11 +198,11 @@ ParseNode gen_function(const ParseNode & variable_function, const ParseNode & pa
 	newnode.addchild(kvparamtable); // paramtable 2
 	if (get<2>(paramtable_info[paramtable_info.size() - 1]) == nullptr) {
 		// void function
-		ParseNode vardef = gen_vardef_simple(gen_type(Term{ TokenMeta::Void_Def, "void" }), "");
+		ParseNode vardef = gen_vardef_from_implicit(gen_type(Term{ TokenMeta::Void_Def, "void" }), "");
 		newnode.addchild(vardef); // return_value 3
 	}
 	else {
-		ParseNode vardef = gen_vardef_simple(get<1>(paramtable_info.back()), ""); 
+		ParseNode vardef = gen_vardef_from_implicit(get<1>(paramtable_info.back()), "");
 		newnode.addchild(vardef); // return_value 3
 	}
 	newnode.addchild(suite); // suite 4

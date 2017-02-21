@@ -326,6 +326,21 @@ if this common block is an unamed block, `COMMON_NAME` is by default `G`
 ### operators
 1. defined operators is not supported
 
+#### intrinsic operators
+
+| fortran intrinsic operators | C++ |
+|:-:|:-:|
+| `.and.` | `&&` |
+| `.or.` | `&&` |
+| `.eqv.` | `!(A^B)` |
+| `.neqv.` | `^` |
+| `.eq.` | `==` |
+| `.neq.` | `!=` |
+| `.gt.` | `>` |
+| `.ge.` | `>=` |
+| `.lt.` | `<` |
+| `.le.` | `<=` |
+
 #### parameters
 1. optional parameter: instead of c-style optional parameter, wrap optional parameters with `foroptional<T>`, function `forpresent` functions as `present` function in fortran90
 2. keyword/named parameter: C++ don't support keyword parameters, all keyword parameter will be reorganized in normal paramtable

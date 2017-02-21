@@ -1,10 +1,6 @@
-subroutine proc(a, b, fun)
-	interface
-		function fun(x,y) result (fun_result)
-			integer,intent(in)::x, y
-			integer::fun_result
-		end function
-	end interface
-	integer,intent(in)::a, b
-	print *, fun(a, b) 
-end subroutine
+program
+	common /cb/ z(10)
+end program
+!int & x = cb._1
+!int & y = cd._2;
+!farray<double> & z = cb._3

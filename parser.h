@@ -73,6 +73,7 @@ struct ParseNode {
 	const ParseNode & get(int child_index) const;
 	const ParseNode & const_get(int child_index) const;
 	void setattr(ParseAttr * pa);
+	std::string to_string() const { return fs.CurrentTerm.what; }
 
 	ParseNode(const ParseNode &);
 	ParseNode & operator= (const ParseNode &) ;
@@ -101,6 +102,7 @@ void update_pos(YYSTYPE & current);
 void update_pos(YYSTYPE & current, YYSTYPE & start, YYSTYPE & end);
 std::string tabber(std::string &); // add tab(`\t`) into the front of each line
 ParseNode flattern_bin(const ParseNode & pn); // eliminate right recursion of an binary tree
+ParseNode flattern_bin_left(const ParseNode & pn); // eliminate left recursion of an binary tree
 
 /* lazygen */
 

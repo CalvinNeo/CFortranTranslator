@@ -10,3 +10,8 @@ end program
 
 
 !hahah
+FFF
+AAA
+
+C-- KTE - indicator of thin element-
+C 测试中文

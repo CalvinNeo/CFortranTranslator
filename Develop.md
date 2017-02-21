@@ -71,30 +71,16 @@ all parse tree nodes are defined in [/Intent.h](/Intent.h) with an `NT_` prefix
 4. father: parent node
 
 ### rules explanation
-#### argtable, paramtable
-- argtable is now alias of paramtable
-- `callable_head` and `paramtable`(NT_ARGTABLE_PURE/NT_PARAMTABLE_DIMENSLICE) are two parts of a function call/array slice
-- both type and function name are callable name, so both `type_name` and `variable` are `callable_head`
-- `keyvalue` rules generates `NT_VARIABLEINITIAL` = `NT_KEYVALUE` node. `what` of this node is `name` not `name = value`, the later is regenerated in `gen_function_array` in [/gen_callable.cpp](/gen_callable.cpp)
-
-#### dimen_slice, paramtable
-- `dimen_slice` rule: 
-    - `dimen_slice` rule can reduce to: `NT_DIMENSLICE`, `NT_ARGTABLE_PURE` node.
-    - `dimen_slice` is needed in `paramtable`, `case_stmt_elem`, `variable_desc_elem`
-    - `NT_ARGTABLE_PURE` + `NT_SLICE` -> `NT_DIMENSLICE`
-    - `exp` + **`paramtable`** -> gen_paramtable() -> `NT_PARAMTABLE` / `NT_PARAMTABLE_DIMENSLICE` / `NT_ARGTABLE_PURE`
-    - as a result, `dimen_slice` is a set of `slice`(`NT_DIMENSLICE`), or a set of both `exp` and `slice`(`NT_DIMENSLICE`), or a set of `exp`(`NT_ARGTABLE_PURE`) 
-
-- `paramtable` rule(refer [/gen_paramtable.cpp](/gen_paramtable.cpp)):
-	`paramtable` rule can reduce to: `NT_PARAMTABLE`, `NT_ARGTABLE_PURE`, `NT_PARAMTABLE_DIMENSLICE` node.
-	- `keyvalue` / `dimen_slice`(`NT_DIMENSLICE`/`NT_ARGTABLE_PURE`) -> `NT_PARAMTABLE`
-	- when `keyvalue`: promote this to `paramtable`. 
-	- when `NT_DIMENSLICE`: promote this to `NT_PARAMTABLE_DIMENSLICE`(do not keep `NT_DIMENSLICE`). refer function `gen_argtable`
-	- when `NT_ARGTABLE_PURE`: promote this to `NT_ARGTABLE_PURE`. refer function `gen_argtable`
-	- `keyvalue` + `paramtable`
-	- `NT_DIMENSLICE` + `paramtable`
-	- `NT_ARGTABLE_PURE` + `paramtable`
-
+#### argtable, dimen_slice, pure_paramtable
+##### constitution
+- `argtable` is a list of `exp`(`NT_EXPRESSION`)
+- `dimen_slice` is a list of `slice`(`NT_SLICE`)
+- `pure_paramtable` is a list of `keyvalue`(`NT_KEYVALUE`/`NT_VARIABLEINITIAL`)
+    - `NT_KEYVALUE.fs.CurrentTerm.what` will be regenerated in `gen_function_array` in [/gen_callable.cpp](/gen_callable.cpp)
+- `paramtable` is `argtable` or `dimen_slice` or `pure_paramtable`
+##### promotion
+- `argtable` + `slice` = `dimen_slice`, all elements in `argtable` will be promote to `slice`(with one child)
+- `argtable` + `keyvalue` = `pure_paramtable`, all elements in `argtable` will be promote to `keyvalue`
 	
 #### type_spec, type_name, type_selector
 
@@ -109,8 +95,7 @@ you can use `REAL(x)` to get the float copy of x, however, you can also use `REA
 To specify, `type_name` is like `INTEGER` and a `type_spec` is like `INTEGER(kind = 4)`, `type_nospec` can be head of `callable`, `type_spec` is not.
 
 #### array builder
-- `_generate_stmt` wrapped by `"( )"` is `hidder_do`
-- `hidden_do` wrapped by `"(/ /)"` is `NT_ARRAYBUILDER_LAMBDA`
+- `hidden_do` wrapped by `(/ /)` is `NT_ARRAYBUILDER_LAMBDA`
 - `array_builder` can be composed of several kind of `array_builder_elem`:
     - `NT_ARRAYBUILDER_LAMBDA`
     - `NT_ARRAYBUILDER_LIST`
@@ -129,19 +114,15 @@ To specify, `type_name` is like `INTEGER` and a `type_spec` is like `INTEGER(kin
 |rules|left NT|right(included)|
 |:-:|:-:|:-:|
 | fortran_program | root | wrappers |
-| wrappers | NT_WRAPPERS | wrapper + |
+| wrappers |  | wrapper + |
 | wrapper | / | function_decl / program |
 | function_decl | NT_FUNCTIONDECLARE |  |
-| var_def | NT_VARIABLEDEFINE | typeinfo, NT_DIMENSLICE / dummy, NT_PARAMTABLE |
+| var_def | NT_VARIABLEDEFINE | typeinfo, NT_DIMENSLICE / dummy, NT_PARAMTABLE_PURE |
 | paramtable_elem | / | dimen_slice / keyvalue / exp |
-| paramtable | NT_PARAMTABLE | paramtable_elem + |
+| paramtable | NT_PARAMTABLE_PURE | paramtable_elem + |
 | | NT_DECLAREDVARIABLE | no rules, renamed from keyvalue |
 | keyvalue | NT_VARIABLEINITIAL(namely NT_KEYVALUE) | variable, NT_EXPRESSION / NT_VARIABLEINITIALDUMMY |
-| | NT_VARIABLEINITIAL | variable, exp / array_builder |
-| function_array_body | NT_FUCNTIONARRAY | NT_PARAMTABLE_DIMENSLICE / NT_PARAMTABLE |
-| dimen_slice | NT_DIMENSLICE | NT_SLICE |
-| dimen_slice | NT_ARGTABLE_PURE | NT_EXPRESSION |
-| variable_desc_elem | NT_VARIABLEDESC | dimen_slice |
+| | NT_VARIABLEINITIAL | variable, exp |
 | suite | NT_SUITE | NT_STATEMENT \* |
 | stmt | NT_STATEMENT | exp / var_def / compound_stmt / output_stmt / input_stmt / dummy_stmt / let_stmt / jump_stmt / interface_decl |
 | | NT_ARRAYBUILDER | (NT_ARRAYBUILDER_LAMBDA / NT_ARRAYBUILDER_LIST) + |
@@ -168,7 +149,7 @@ all variables(including `commom` block) and functions is now logged in [/Variabl
 
 | ParseAttr | Usage |
 |:-:|:-:|
-| `VariableDescAttr` | NT_DECLAREDVARIABLE or NT_VARIABLEDEFINE or NT_VARIABLEINTIAL nodes of NT_VARIABLEDEFINE.NT_PARAMTABLE |
+| `VariableDescAttr` | NT_DECLAREDVARIABLE or NT_VARIABLEDEFINE or NT_VARIABLEINTIAL nodes of NT_VARIABLEDEFINE.NT_PARAMTABLE_PURE |
 | `FunctionAttr` | NT_FUNCTIONDECLARE |
 | `VarialbeAttr` | NT_FUNCTIONDECLARE |
 

@@ -1,3 +1,22 @@
+/*
+*   Calvin Neo
+*   Copyright (C) 2016  Calvin Neo <calvinneo@calvinneo.com>
+*
+*   This program is free software; you can redistribute it and/or modify
+*   it under the terms of the GNU General Public License as published by
+*   the Free Software Foundation; either version 2 of the License, or
+*   (at your option) any later version.
+*
+*   This program is distributed in the hope that it will be useful,
+*   but WITHOUT ANY WARRANTY; without even the implied warranty of
+*   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+*   GNU General Public License for more details.
+*
+*   You should have received a copy of the GNU General Public License along
+*   with this program; if not, write to the Free Software Foundation, Inc.,
+*   51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+*/
+
 %{
 #include <stdio.h>
 #include <string>
@@ -36,8 +55,6 @@ using namespace std;
 %token /*_YY_TYPEDEF*/ YY_INTEGER_T YY_FLOAT_T YY_STRING_T YY_COMPLEX_T YY_BOOL_T YY_CHARACTER_T
 %token /*_YY_COMMAND*/ YY_WRITE YY_READ YY_PRINT YY_CALL  YY_STOP YY_PAUSE
 
-
-%left '='
 %left YY_OROR
 %left YY_ANDAND
 %left YY_EQ YY_NEQ
@@ -192,7 +209,7 @@ using namespace std;
 	type_selector : YY_KIND '=' YY_INTEGER
 			{
 				int kind;
-				sscanf($3.fs.CurrentTerm.what.c_str(), "%d", &kind);
+				sscanf($3.to_string().c_str(), "%d", &kind);
 
 				/* type size */
 				ParseNode newnode = gen_token(Term{ TokenMeta::NT_VARIABLEDESC, "NT_VARIABLEDESC" });
@@ -205,7 +222,7 @@ using namespace std;
 				// though use std::string
 				// still need to initialize the string to YY_LEN
 				int len;
-				sscanf($3.fs.CurrentTerm.what.c_str(), "%d", &len);
+				sscanf($3.to_string().c_str(), "%d", &len);
 
 				/* string length */
 				ParseNode newnode = gen_token(Term{ TokenMeta::NT_VARIABLEDESC, "NT_VARIABLEDESC" });
@@ -217,16 +234,16 @@ using namespace std;
 	literal : YY_FLOAT
 			{
 				/* 该条目下的右部全部为单个终结符号(语法树的叶子节点), 因此$1全部来自lex程序 */
-				$$ = gen_token(Term{ TokenMeta::Float, $1.fs.CurrentTerm.what });// float number
+				$$ = gen_token(Term{ TokenMeta::Float, $1.to_string() });// float number
 			}
 		| YY_INTEGER
 			{
-				$$ = gen_token(Term{ TokenMeta::Int, $1.fs.CurrentTerm.what });// int number
+				$$ = gen_token(Term{ TokenMeta::Int, $1.to_string() });// int number
 			}
 		| YY_STRING
 			{
 				// replace `'` with `"`
-				$$ = gen_token(Term{ TokenMeta::String, "\"" + $1.fs.CurrentTerm.what.substr(1, $1.fs.CurrentTerm.what.size() - 2) + "\"" }); // string
+				$$ = gen_token(Term{ TokenMeta::String, "\"" + $1.to_string().substr(1, $1.to_string().size() - 2) + "\"" }); // string
 			}
 		| YY_TRUE
 			{
@@ -238,7 +255,7 @@ using namespace std;
 			}
         | YY_COMPLEX
             {
-				string strcplx = $1.fs.CurrentTerm.what;
+				string strcplx = $1.to_string();
 				auto splitter = strcplx.find_first_of('_', 0);
 				$$ = gen_token(Term{ TokenMeta::Complex, "forcomplex(" + strcplx.substr(0, splitter) + ", " + strcplx.substr(splitter + 1) + ") " }); //complex
 			}
@@ -247,11 +264,18 @@ using namespace std;
 
 	variable : YY_WORD
 			{
-				ParseNode newnode = gen_token(Term{ TokenMeta::UnknownVariant, $1.fs.CurrentTerm.what });// variant
+				ParseNode newnode = gen_token(Term{ TokenMeta::UnknownVariant, $1.to_string() });// variant
 				$$ = newnode;
 				update_pos($$, $1, $1);
 			}
-	
+	/*
+		R618 section - subscript is subscript
+			or subscript - triplet
+			or vector - subscript
+		R619 subscript - triplet is[subscript] : [subscript] [: stride]
+		R620 stride is scalar - int - expr
+		R621 vector - subscript is int - expr
+	*/
 	slice : exp ':' exp
 			{
 				/* arr[from : to] */
@@ -280,6 +304,32 @@ using namespace std;
 				update_pos($$, $1, $1);
 			}
 
+	keyvalue : exp '=' exp
+			{
+				/* initial value is required in parse tree because it can be an non-terminal `exp` */
+				/* non-array initial values */
+				/* array_builder is exp */
+				ParseNode & exp2 = $3;
+				$$ = gen_keyvalue_from_exp($1, $3);
+				update_pos($$, $1, $3);
+			}
+
+	argtable : exp
+			{
+				/* argtable is used in function call */
+				ParseNode & exp = $1;
+				ParseNode newnode = gen_promote(TokenMeta::NT_ARGTABLE_PURE, exp);
+				$$ = newnode;
+				update_pos($$, $1, $1);
+			}
+		| argtable ',' exp
+			{
+				ParseNode & exp = $3;
+				ParseNode & argtable = $1;
+				$$ = gen_flattern(exp, argtable, "%s, %s", TokenMeta::NT_ARGTABLE_PURE, true);
+				update_pos($$, $1, $3);
+			}
+
 	dimen_slice : slice 
 			{
 				/* 1d array */
@@ -290,35 +340,37 @@ using namespace std;
 				$$ = gen_promote("", TokenMeta::NT_DIMENSLICE, slice);
 				update_pos($$, $1, $1);
 			}
-		| slice ',' dimen_slice
+		| dimen_slice ',' slice
 			{
 				/* multi dimension array */
 				/* arr[from:to, from:to, ...] */
 				/* target code of slice depend on context */
-				ParseNode & slice = $1;
-				ParseNode & dimen_slice = $3;
-				$$ = gen_flattern(slice, dimen_slice, "%s, %s", TokenMeta::NT_DIMENSLICE);
+				ParseNode & slice = $3;
+				ParseNode & dimen_slice = $1;
+				$$ = gen_flattern(slice, dimen_slice, "%s, %s", TokenMeta::NT_DIMENSLICE, true);
 				update_pos($$, $1, $3);
 			}
-		| exp
+		| dimen_slice ',' exp
 			{
-				/* argtable is used in function call */
-				ParseNode & exp = $1;
-				$$ = gen_promote(TokenMeta::NT_ARGTABLE_PURE, exp);
-				update_pos($$, $1, $1);
+				/* multi dimension array */
+				/* arr[from:to, from:to, ...] */
+				/* target code of slice depend on context */
+				ParseNode & exp = $3;
+				ParseNode & dimen_slice = $1;
+				$$ = gen_flattern(exp, dimen_slice, "%s, %s", TokenMeta::NT_DIMENSLICE, true);
+				update_pos($$, $1, $3);
 			}
-         | exp ',' paramtable
+		| argtable ',' slice
 			{
-				/* IMPORTANT: not `exp ',' dimen_slice` but `exp ',' paramtable`, or will cause confliction */
-				ParseNode & exp = $1;
-				ParseNode & argtable = $3;
+				ParseNode & slice = $3;
+				ParseNode & argtable = $1;
 				ParseNode newnode = ParseNode();
 				switch (argtable.fs.CurrentTerm.token) {
 					case TokenMeta::NT_ARGTABLE_PURE:
-					case TokenMeta::NT_DIMENSLICE:
-					case TokenMeta::NT_PARAMTABLE:
-					case TokenMeta::NT_PARAMTABLE_DIMENSLICE:
-						newnode = gen_paramtable(exp, argtable);
+					//case TokenMeta::NT_DIMENSLICE:
+					//case TokenMeta::NT_PARAMTABLE_PURE:
+					//case TokenMeta::NT_PARAMTABLE_DIMENSLICE:
+						newnode = gen_flattern(slice, promote_argtable_to_dimenslice(argtable), "%s, %s", TokenMeta::NT_DIMENSLICE, true);
 						break;
 					default:
 						print_error("Illegal dimen_slice", argtable);
@@ -473,7 +525,7 @@ using namespace std;
 				ParseNode & exp1 = $1;
 				ParseNode & op = $2;
 				ParseNode & exp2 = $3;
-				$$ = gen_exp(exp1, op, exp2, "!(%s == %s)");
+				$$ = gen_exp(exp1, op, exp2, "!(%s ^ %s)");
 				update_pos($$, $1, $3);
 			}
 		| exp YY_ANDAND exp 
@@ -645,7 +697,7 @@ using namespace std;
 		| YY_BREAK _crlf_semicolon
 		| YY_GOTO YY_INTEGER _crlf_semicolon
 			{
-				$$ = gen_token(Term{TokenMeta::Goto, "goto " + $1.fs.CurrentTerm.what + ";\n"});
+				$$ = gen_token(Term{TokenMeta::Goto, "goto " + $1.to_string() + ";\n"});
 				update_pos($$, $1, $3);
 			}
 
@@ -680,7 +732,7 @@ using namespace std;
 					ParseNode & label = stmt.get(0); // TokenMeta::Label
 					if (suite.child.size() > 0 && suite.get(0).child.size() > 0 && suite.get(0).get(0).fs.CurrentTerm.token == TokenMeta::NT_FORMAT)
 					{
-						log_format_index(label.fs.CurrentTerm.what, suite.get(0));
+						log_format_index(label.to_string(), suite.get(0));
 						$$ = suite;
 					}
 					else {
@@ -716,7 +768,7 @@ using namespace std;
 			}
 		| YY_INTEGER
 			{
-				$$.fs.CurrentTerm = Term{ TokenMeta::META_NONTERMINAL, $1.fs.CurrentTerm.what };
+				$$.fs.CurrentTerm = Term{ TokenMeta::META_NONTERMINAL, $1.to_string() };
 			}
 	_optional_formatter : '*'
 			{
@@ -725,12 +777,12 @@ using namespace std;
 		| YY_INTEGER
 			{
 				// use format stmt at line $1 to format
-				require_format_index($1.fs.CurrentTerm.what);
+				require_format_index($1.to_string());
 			}
 		| YY_STRING
 			{
 				// replace `'` with `"`
-				string modified = "\"" + $1.fs.CurrentTerm.what.substr(1, $1.fs.CurrentTerm.what.size() - 2) + "\"";
+				string modified = "\"" + $1.to_string().substr(1, $1.to_string().size() - 2) + "\"";
 				$$.fs.CurrentTerm = Term{ TokenMeta::NT_FORMATTER, modified };
 			}
 
@@ -845,7 +897,7 @@ using namespace std;
 			{
 				ParseNode newnode = gen_type($1);
 				int len;
-				sscanf($3.fs.CurrentTerm.what.c_str(), "%d", &len);
+				sscanf($3.to_string().c_str(), "%d", &len);
 				set_variabledesc_attr(newnode, boost::none, boost::none, boost::none, boost::none, len, boost::none);
 				update_pos($$, $1, $4);
 			}
@@ -917,48 +969,34 @@ using namespace std;
 				update_pos($$, $1, $2);
 			}
 
-    keyvalue : variable
-			{ 
-				// useless reduction
-				/* paramtable is used in function decl */
-			}
-        | exp '=' exp
-			{
-				/* initial value is required in parse tree because it can be an non-terminal `exp` */
-				/* non-array initial values */
-				ParseNode & exp2 = $3;
-				$$ = gen_keyvalue_from_exp($1, $3);
-				update_pos($$, $1, $3);
-			}
-
-		| exp '=' array_builder
-			{
-				// array initial values 
-				// USELESS
-				$$ = gen_keyvalue_from_arraybuilder($1, $3);
-				update_pos($$, $1, $3);
-			} 
-
-
-	paramtable_elem : dimen_slice
-			{
-				// from rule ` dimen_slice : exp ',' paramtable `
-			}
-		| keyvalue
-			{
-			}
-
-	paramtable : paramtable_elem
+    
+	pure_paramtable : keyvalue
 			{
 				ParseNode & paramtable_elem = $1;
 				ParseNode & newnode = gen_paramtable(paramtable_elem);
 				$$ = newnode;
 				update_pos($$, $1, $1);
 			}
-		| paramtable_elem ',' paramtable
+		| pure_paramtable ',' keyvalue
 			{
-				ParseNode & paramtable_elem = $1;
-				ParseNode & paramtable = $3;
+				ParseNode & paramtable_elem = $3;
+				ParseNode & paramtable = $1;
+				ParseNode & newnode = gen_paramtable(paramtable_elem, paramtable);
+				$$ = newnode;
+				update_pos($$, $1, $3);
+			}				
+		| pure_paramtable ',' exp
+			{
+				ParseNode & paramtable_elem = $3;
+				ParseNode & paramtable = $1;
+				ParseNode & newnode = gen_paramtable(promote_exp_to_keyvalue(paramtable_elem), paramtable);
+				$$ = newnode;
+				update_pos($$, $1, $3);
+			}
+		| argtable ',' keyvalue
+			{
+				ParseNode & paramtable_elem = $3;
+				ParseNode & paramtable = $1;
 				ParseNode & newnode = gen_paramtable(paramtable_elem, paramtable);
 				$$ = newnode;
 				update_pos($$, $1, $3);
@@ -966,13 +1004,16 @@ using namespace std;
 		|
 			{
 				/* no params */
-				ParseNode newnode = gen_token(Term{ TokenMeta::NT_PARAMTABLE, "" });
+				ParseNode newnode = gen_token(Term{ TokenMeta::NT_PARAMTABLE_PURE, "" });
 				$$ = newnode;
 				update_pos($$);
 			}
 
+	paramtable : pure_paramtable
+		| argtable
+		| dimen_slice
 	
-	hidden_do : '(' exp ',' variable '=' exp ',' exp ')'
+	hidden_do : '(' argtable ',' variable '=' exp ',' exp ')'
 			{
 				/* something like `abs(i), i=1,4` */
 				/*
@@ -1224,12 +1265,12 @@ using namespace std;
 
 	wrapper :  function_decl
 			{
-				sprintf(codegen_buf, "%s", $1.fs.CurrentTerm.what.c_str());
+				sprintf(codegen_buf, "%s", $1.to_string().c_str());
 				$$ = $1;
 			}
 		| program
 			{
-				sprintf(codegen_buf, "%s", $1.fs.CurrentTerm.what.c_str());
+				sprintf(codegen_buf, "%s", $1.to_string().c_str());
 				$$ = $1;
 			}	
 
@@ -1237,7 +1278,7 @@ using namespace std;
 			{
 				ParseNode newnode = ParseNode();
 				newnode.addchild($1); // wrapper
-				sprintf(codegen_buf, "%s", $1.fs.CurrentTerm.what.c_str());
+				sprintf(codegen_buf, "%s", $1.to_string().c_str());
 				newnode.fs.CurrentTerm = Term{ TokenMeta::NT_WRAPPERS, string(codegen_buf) };
 				$$ = newnode;
 				update_pos($$, $1, $1);
@@ -1247,7 +1288,7 @@ using namespace std;
 				ParseNode newnode = ParseNode();
 				newnode.addchild($1); // wrapper
 				newnode.addchild($2); // wrappers
-				sprintf(codegen_buf, "%s\n%s", $1.fs.CurrentTerm.what.c_str(), $2.fs.CurrentTerm.what.c_str());
+				sprintf(codegen_buf, "%s\n%s", $1.to_string().c_str(), $2.to_string().c_str());
 				newnode = flattern_bin(newnode);
 				newnode.fs.CurrentTerm = Term{ TokenMeta::NT_WRAPPERS, string(codegen_buf) };
 				$$ = newnode;

@@ -1,3 +1,21 @@
+/*
+*   Calvin Neo
+*   Copyright (C) 2016  Calvin Neo <calvinneo@calvinneo.com>
+*
+*   This program is free software; you can redistribute it and/or modify
+*   it under the terms of the GNU General Public License as published by
+*   the Free Software Foundation; either version 2 of the License, or
+*   (at your option) any later version.
+*
+*   This program is distributed in the hope that it will be useful,
+*   but WITHOUT ANY WARRANTY; without even the implied warranty of
+*   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+*   GNU General Public License for more details.
+*
+*   You should have received a copy of the GNU General Public License along
+*   with this program; if not, write to the Free Software Foundation, Inc.,
+*   51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+*/
 %{
 #include <cstdio>
 #include <string>
@@ -70,7 +88,7 @@ std::string parse_ioformatter(const std::string & src); // gen_io.cpp
 #define YYRTN(TOK, YYTOK)  update_yylval(Term{TOK, std::string(yytext)});  update_flex((int)yyleng);  return YYTOK; 
 #define YYRTCRLF()  update_yylval( Term{TokenMeta::CRLF, std::string(yytext)}); update_flex((int)yyleng, true); return YY_CRLF;
 // ¿Õ¸ñ, ÖÆ±í·ûµÈ
-#define YYRTNOP() update_yylval( Term{TokenMeta::Nop, std::string(yytext)},  true);  update_flex((int)yyleng); /*return YY_NULL;*/
+#define YYRTNOP() update_yylval( Term{TokenMeta::Nop, std::string(yytext)},  true);  update_flex((int)yyleng); 
 // include literal const such as pi, true, false, etc.
 #define YYRTNCOMMENT() update_yylval( Term{TokenMeta::Nop, std::string(yytext)},  true);  update_flex((int)yyleng); return YY_NULL;
 /*do not call update_yylval because some tokens need to be looked ahead, such as `else if` */
@@ -145,14 +163,15 @@ wordoperator \.[a-zA-Z_][a-zA-Z0-9]*\.
 
 %%
 
-<external_scanner>. { if (get_flex_external_context().do_external_scanner(yytext)) { 
-	return get_flex_external_context().YYTOK; 
-}else {
-} }
+<external_scanner>. { if (get_flex_external_context().do_external_scanner(yytext)) { return get_flex_external_context().YYTOK;  } else { } }
+^[Cc]{ws}+.*{newline}$ {	RTCRLF() /*×¢ÊÍ*/}
+!.*{newline}$ { RTCRLF() /*×¢ÊÍ*/}
+^[Cc]{ws}+.*$ {	RTNCOMMENT() /*×¢ÊÍ*/}
+!.*$ { RTNCOMMENT() /*×¢ÊÍ*/}
+
 ^{newline}$ { /* ¿ÕÐÐ */ }
 {newline} {RTCRLF() }
 {ws} { RTNOP() }
-^[Cc]{ws}+.*{newline} { RTNCOMMENT() /*×¢ÊÍ*/}
 ^[0-9]+ {RTN(TokenMeta::Label, YY_LABEL); }
 {integral} { RTINT(TokenMeta::META_INTEGER) }
 {floating} { RTFLOAT(TokenMeta::META_FLOAT) }
@@ -173,7 +192,6 @@ wordoperator \.[a-zA-Z_][a-zA-Z0-9]*\.
 	RTWORD() 
 }
 {wordoperator} { RTWORD() }
-\!.*{newline} { RTNCOMMENT() /*×¢ÊÍ*/}
 \"(\\.|[^"])*\" {RTSTRING(TokenMeta::META_STRING) 
 /* The delimiting quotes are escaped because they are Flex meta-characters. */}
 \'(\\.|[^'])*\' {RTSTRING(TokenMeta::META_STRING) 
