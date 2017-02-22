@@ -91,7 +91,7 @@ std::string tabber(std::string & src) {
 	return ans;
 }
 
-ParseNode flattern_bin(const ParseNode & pn) {
+ParseNode flattern_bin_right(const ParseNode & pn) {
 	/* it cant work well because it create a whole new tree copy too much */
 	/* THIS ALGORITHM FLATTERNS A RIGHT-RECURSIVE BINARY TREE */
 	if (pn.child.size() == 2) {
@@ -124,12 +124,6 @@ ParseNode flattern_bin_left(const ParseNode & pn) {
 	/* THIS ALGORITHM FLATTERNS A RIGHT-RECURSIVE BINARY TREE */
 	if (pn.child.size() == 2) {
 		ParseNode newp = ParseNode();
-		/* child[0] is the only data node */
-
-		/* pn.child[1] is a **list** of ALREADY flatterned elements */
-		//	e.g
-		//	child[0] is 1 
-		//	child[1] is [2, 3, 4, 5]
 		for (int i = 0; i < pn.get(0).child.size(); i++)
 		{
 			newp.addchild(pn.get(0).get(i));
@@ -146,6 +140,10 @@ ParseNode flattern_bin_left(const ParseNode & pn) {
 	else {
 		return pn;
 	}
+}
+
+void flattern_bin_inplace(ParseNode & pn, bool recursion_direction_right) {
+
 }
 
 ParseNode gen_flattern(const ParseNode & item, const ParseNode & list, std::string merge_rule, int merged_token_meta, bool left_recursion) {
@@ -170,7 +168,7 @@ ParseNode gen_flattern(const ParseNode & item, const ParseNode & list, std::stri
 	else {
 		nn.addchild(item); // item
 		nn.addchild(list); // list
-		nn = flattern_bin(nn);
+		nn = flattern_bin_right(nn);
 	}
 	return nn;
 }

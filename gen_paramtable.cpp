@@ -19,15 +19,14 @@
 
 #include "gen_common.h"
 
-ParseNode gen_keyvalue(const ParseNode & variable) {
+ParseNode gen_keyvalue_from_name(std::string name) {
 	/* paramtable is used in function decl */
 	/* this paramtable has only one value */
 
-	sprintf(codegen_buf, "%s", variable.fs.CurrentTerm.what.c_str());
+	sprintf(codegen_buf, "%s", name.c_str());
 	ParseNode newnode = gen_token(Term{ TokenMeta::NT_VARIABLEINITIAL, string(codegen_buf) });
-	newnode.addchild(variable); // type
+	newnode.addchild(gen_token(Term{ TokenMeta::UnknownVariant, name })); // variable name
 	newnode.addchild(gen_token(Term{ TokenMeta::NT_VARIABLEINITIALDUMMY, string("void") })); // void is dummy initial
-
 	return newnode;
 }
 
@@ -37,7 +36,7 @@ ParseNode gen_keyvalue_from_exp(const ParseNode & variable, const ParseNode & in
 
 	sprintf(codegen_buf, "%s", variable.fs.CurrentTerm.what.c_str());
 	ParseNode newnode = gen_token(Term{ TokenMeta::NT_VARIABLEINITIAL, string(codegen_buf) });
-	newnode.addchild(variable); // type
+	newnode.addchild(variable); // variable name
 	newnode.addchild(initial); // void is dummy initial
 
 	return newnode;
@@ -128,7 +127,7 @@ ParseNode promote_exp_to_keyvalue(const ParseNode & paramtable_elem) {
 		return paramtable_elem;
 	}
 	else {
-		return gen_keyvalue(paramtable_elem);
+		return gen_keyvalue_from_exp(paramtable_elem, gen_token(Term{ TokenMeta::NT_VARIABLEINITIALDUMMY, string("void") }));
 	}
 }
 

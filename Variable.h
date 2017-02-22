@@ -72,17 +72,18 @@ struct VariableInfo
 	bool is_array() {
 		return desc.slice.is_initialized();
 	}
+	std::string local_name;
 	std::string type;
 	VariableDesc desc;
 	ParseNode entity_variable; // TokenMeta::NT_VARIABLEINITIALDUMMY if no initial
 	std::string commonblock_name; 
 	int commonblock_index = 0;
 	bool implicit_defined = false; // no use
-	VariableInfo(std::string typestr, const VariableDesc & vdesc, const ParseNode & variable_initial_node) 
-		: type(typestr) , desc(vdesc), entity_variable(variable_initial_node), implicit_defined(false), commonblock_name(""), commonblock_index(0){
+	VariableInfo(std::string typestr, std::string localname, const VariableDesc & vdesc, const ParseNode & variable_initial_node) 
+		: type(typestr), local_name(localname), desc(vdesc), entity_variable(variable_initial_node), implicit_defined(false), commonblock_name(""), commonblock_index(0){
 	}
-	VariableInfo()
-		: type(""), implicit_defined(false), commonblock_index(0), commonblock_name("") {
+	VariableInfo(std::string localname)
+		: type(""), local_name(localname), implicit_defined(false), commonblock_index(0), commonblock_name("") {
 
 	}
 };

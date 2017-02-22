@@ -37,7 +37,6 @@ ParseNode gen_empty_suite() {
 	ParseNode newnode = ParseNode();
 	ParseNode & stmt = gen_token(Term{ TokenMeta::NT_SUITE, "\n" });
 	newnode.addchild(stmt); // stmt
-	newnode = flattern_bin(newnode);
 	return newnode;
 }
 
@@ -69,7 +68,7 @@ std::string regen_suite(ParseNode & oldsuite) {
 				else {
 					if (vardef.fs.CurrentTerm.token == TokenMeta::NT_VARIABLEDEFINE) {
 						// for every variable, generate independent definition
-						VariableInfo * vinfo = get_variable("@", "@", name);
+						VariableInfo * vinfo = get_variable(get_context().current_module, get_context().current_function, name);
 						if (vinfo != nullptr)
 						{
 							// variable is defined by common block
@@ -90,8 +89,8 @@ std::string regen_suite(ParseNode & oldsuite) {
 						}
 						else {
 							// variable haven't defined
-							VariableInfo newinfo("", VariableDesc(), ParseNode());
-							vinfo = add_variable("@", "@", name, newinfo);
+							VariableInfo newinfo(name);
+							vinfo = add_variable(get_context().current_module, get_context().current_function, name, newinfo);
 
 							vinfo->commonblock_index; // set in regen_suite and gen_common
 							vinfo->commonblock_name; // set in regen_suite and gen_common
@@ -111,6 +110,10 @@ std::string regen_suite(ParseNode & oldsuite) {
 				}
 			}
 		}
+		else if (stmt.fs.CurrentTerm.token == TokenMeta::NT_COMMONBLOCK) {
+			regen_common(stmt);
+			newsuitestr += stmt.fs.CurrentTerm.what;
+		}
 		else if (stmt.fs.CurrentTerm.token == TokenMeta::NT_INTERFACE) {
 			// do not generate declared string
 		}
@@ -121,7 +124,7 @@ std::string regen_suite(ParseNode & oldsuite) {
 		}
 	}
 	// 这部分一定要放在commonblock检查之后
-	forall_variable_in_function("@", "@", [&](const std::pair<std::string, VariableInfo *> & p) {
+	forall_variable_in_function(get_context().current_module, get_context().current_function, [&](const std::pair<std::string, VariableInfo *> & p) {
 		if (p.second->implicit_defined)
 		{
 			string local_type = p.second->type;
@@ -131,7 +134,7 @@ std::string regen_suite(ParseNode & oldsuite) {
 			else {
 				std::string common_varname = "_" + to_string(p.second->commonblock_index + 1);
 				sprintf(codegen_buf, "%s & %s = %s.%s;\n", local_type.c_str()
-					, p.first.c_str(), p.second->commonblock_name.c_str(), common_varname.c_str());
+					, p.second->local_name.c_str(), p.second->commonblock_name.c_str(), common_varname.c_str());
 			}
 			newsuitestr = string(codegen_buf) + newsuitestr;
 		};

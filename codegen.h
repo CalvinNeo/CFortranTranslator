@@ -69,13 +69,13 @@ ParseNode gen_vardef_from_implicit(const ParseNode & type, std::string name);
 
 std::vector<ParseNode *> get_all_explicit_declared(ParseNode & suite);
 ParseNode gen_function(const ParseNode & variable_function, const ParseNode & paramtable, const ParseNode & variable_result, ParseNode & suite); // function define
+void regen_function(ParseNode & functiondecl_node); // function define
 
 ParseNode gen_select(const ParseNode & exp, const ParseNode & case_stmt);
 ParseNode gen_case(const ParseNode & dimen_slice, ParseNode & suite);
 
 ParseNode gen_if(const ParseNode & exp, ParseNode & suite_true, const ParseNode & elseif, ParseNode & suite_else);
 ParseNode gen_if_oneline(const ParseNode & exp, const ParseNode & stmt_true);
-
 ParseNode gen_elseif(const ParseNode & exp, ParseNode & suite_true, const ParseNode & elseif);
 
 ParseNode gen_do(ParseNode & suite);
@@ -93,7 +93,7 @@ ParseNode gen_slice(const ParseNode & lb, const ParseNode & ub);
 ParseNode promote_exp_to_slice(const ParseNode & exp);
 ParseNode promote_argtable_to_dimenslice(const ParseNode & argtable);
 
-ParseNode gen_keyvalue(const ParseNode & variable);
+ParseNode gen_keyvalue_from_name(std::string name);
 ParseNode gen_keyvalue_from_exp(const ParseNode & variable, const ParseNode & initial);
 ParseNode gen_paramtable(ParseNode & paramtable_elem);
 ParseNode gen_paramtable(ParseNode & paramtable_elem, ParseNode & paramtable);
@@ -134,11 +134,12 @@ std::string gen_rights(std::string filename, std::string author);
 ParseNode gen_header();
 
 ParseNode gen_common_definition(std::string common_name);
-ParseNode gen_common(const ParseNode & common_block, const ParseNode & paramtable);
+ParseNode gen_common(const ParseNode & commonname_node, const ParseNode & paramtable);
+void regen_common(ParseNode & common_block);
 
 ParseNode gen_program_explicit(ParseNode & suite);
 ParseNode gen_program(ParseNode & suite);
 
-void gen_fortran_program(const ParseNode & wrappers);
+void gen_fortran_program(ParseNode & wrappers);
 
 void do_trans(const std::string & src);

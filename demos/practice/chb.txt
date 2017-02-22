@@ -1,0 +1,917 @@
+C               PRM.FOR   (1999.6)
+C   Parameters of Duncan's model and two yield surface model
+c		 2005年张辉修改；
+c          2008年2月2日增加挑选数据功能，每若干个数据挑选一个计算duncan参数
+c          20080214    增加了模型计算曲线输出；
+c          主要目的是在此程序基础上编制比较正式的模型参数确定程序
+
+
+        DIMENSION X(958),Y(958),S3(8),ER(958),EI(8),ALS(8),ALE(8),VI(8),SD(8,958),EA(8,958),EV(8,958),SDF(8),VV(8),EAA(8,958),EVV(8,958),BI(8),DI(8),GG(8),PI(8,958),N(8),pkt(8),sd70(8),ev70(8),EaQ(958),ErEa(958),ALK(8),ct(9)
+	  DIMENSION Q2(8,958),EA2(8,958),EV2(8,958),EAF(8),ds(8),eaf95(8),sl(8,958),Qi(958),EAi(958),EVi(958)
+        CHARACTER AAA*20,BBB*20
+
+        WRITE(*,*) '                -------------------------------'
+        WRITE(*,*) '                1 由E-v模型参数确定应力应变关系'
+        WRITE(*,*) '                2 由E-B模型参数确定应力应变关系'
+        WRITE(*,*) '                3 由试验数据确定模型参数 '
+        WRITE(*,*) '                -------------------------------'
+        WRITE(*,*) '    '
+        WRITE(*,*) '    '
+        WRITE(*,*) '                        请选择1/2或3 '
+
+        READ (*,*) imodel
+
+
+	IF (IMODEL<3) GOTO 400
+
+
+        WRITE(*,*) ' -------------------------'
+        WRITE(*,*) ' 请输入三轴试验数据文件名 '
+        READ (*,*) AAA
+111     FORMAT(1A12)
+        OPEN(1,FILE=AAA)
+c        OPEN(1,FILE='chb-2.184.TXT')
+
+
+        WRITE(*,*) '    '
+	write(*,*)'     如果试验点数太多，可每n个数据挑选一个'
+	write(*,*)'     请输入每几个数据挑选一个，输入n（>=1）'
+	read(*,*)nnp
+        WRITE(*,*) '    '
+
+        WRITE(*,*) '       是否考虑强度非线性0/1？'
+	  WRITE(*,*) '       请选择 1＝是, OR 0＝不是'
+        READ(*,*)KCON
+
+      do ii=1,8  ! 8种不同方法确定    指3种不同的取用试验数据的方法，如 可以删除峰值之后的点等
+	rewind 1
+
+        WRITE(*,*) '          -------------------------------'
+      IF (II==1) WRITE(*,*) '     第1种方法确定模型参数 '
+      IF (II==2) WRITE(*,*) '     第2种方法确定模型参数 '
+      IF (II==3) WRITE(*,*) '     第3种方法确定模型参数 '
+      IF (II==4) WRITE(*,*) '     第4种方法确定模型参数 '
+      IF (II==5) WRITE(*,*) '     第5种方法确定模型参数 '
+      IF (II==6) WRITE(*,*) '     第6种方法确定模型参数 '
+      IF (II==7) WRITE(*,*) '     第7种方法确定模型参数 '
+      IF (II==8) WRITE(*,*) '     第8种方法确定模型参数 '
+
+
+
+        READ (1,*) AAA
+c        READ(1,*) M,KL,PA  !M实验组数
+        READ(1,*) M,PA  !M实验组数
+	kl=1
+c	  READ(1,*) (N(I),I=1,M)
+c        READ(1,*) (S3(I),SDF(I),I=1,M)
+        READ(1,*) (S3(I),I=1,M)  !S3(I)每组围压
+c        READ(1,*) ((EAA(I,J),SD(I,J),EVV(I,J),J=1,N(I)),I=1,M)
+
+c-------计算各组试验点数-------------------
+	am=99998.  !?????
+	do i=1,m
+	n1=0
+	do j=1,1000
+
+	if (j.gt.958) then
+	pause ' !!!!!数组越界!!!!!  '
+	stop
+	endif
+
+	   READ(1,*)EAA(I,J),SD(I,J),EVV(I,J)
+
+	   if (eaa(i,j).gt.am) goto 2
+      n1=n1+1  !n1应该为为实验测读点数
+	enddo
+2	continue
+	n(i)=n1  
+	enddo
+c---------------------------------------------------------------------
+	do i=1,m
+	am=SD(i,1)
+	do j=2,n(i)
+         if (SD(I,J).gt.am) then
+	   am=SD(I,J)          !am应该为最大大小主应力差
+	   Eaf(i)=EAA(i,j)     !Eaf(i)应该为每组试验的最大主应力对应的轴向应变
+	   endif
+	enddo
+	sdf(i)=am
+	enddo
+
+
+	goto 3333
+	do i=1,m                        ! 如果试验点少于60，则每2点之间内插1点
+	  if (n(i).lt.60) then
+	    do j=1,n(i)-1
+	    eai(j)=(eaa(i,j)+eaa(i,j+1))/2.
+	    evi(j)=(evv(i,j)+evv(i,j+1))/2.
+	    qi(j)=(sd(i,j)+sd(i,j+1))/2.
+	    enddo
+	   do j=1,n(i)
+	   k=2*j-1
+	   L=2*j
+	   ea2(i,k)=eaa(i,j); ev2(i,k)=evv(i,j); q2(i,k)=sd(i,j)
+	   ea2(i,L)=eai(j);   ev2(i,L)=evi(j);   q2(i,L)=qi(j)
+	   enddo
+	    n(i)=2*n(i)-1
+	    do j=1,n(i)
+	    eaa(i,j)=ea2(i,j); evv(i,j)=ev2(i,j); sd(i,j)=q2(i,j)
+	    enddo
+	  endif
+	enddo
+3333	continue
+
+
+c--------------------至此，数据已经读入------------------------
+c      这里可以画2个图   x-EAA; y-SD  坐标轴：Ea～q曲线  ;  x-EAA; y-EVA 	坐标轴：Ea～Ev曲线
+
+
+c      这里需要增加曲线是否平移功能   平移后，仍放在数组EAA()中
+c      平移后，EAA()中小于0的数需要剔除，对应EVV()、SD()也剔除
+
+
+c-----------  下段剔除峰值以后点  --------  第1种方法：
+	if (ii.ne.1) goto 1
+	do i=1,m			   !  不考虑峰值以后的点	增加选择是否进行下面这一块
+	n1=0
+	do j=1,n(i)
+	 if (eaa(i,j).le.eaf(i)) then
+	 n1=n1+1
+	eaa(i,n1)=eaa(i,j)
+	sd(i,n1)=sd(i,j)
+	evv(i,n1)=evv(i,j)
+	 endif
+	enddo
+	n(i)=n1   !去除最大点后的实验测读数的点数
+	enddo
+1	continue
+
+c---  -第2种方法-------- 下段将峰值q的5％范围内的应变范围加以限制，如峰值后水平段太长，则删除部分 第2种方法：
+	if (ii.ne.2) goto 4				!这一块是第2种方法
+	do i=1,m			   !  
+	do j=1,n(i)
+	 if (sd(i,j).ge.sdf(i)*0.95) then
+	eaf95(i)=eaa(i,j)
+	goto 3
+	 endif
+	enddo
+3	continue
+
+	n1=0
+	do j=1,n(i)
+c	 if (eaa(i,j).le.(2.0*eaf(i)-eaf95(i))) then  !取峰值之后eaf(i)-eaf95(i)范围点
+	 if ((eaa(i,j)-eaf(i)).gt.2.0.or.eaa(i,j)>2.*eaf(i)) goto 301  !取峰值之后eaf(i)-eaf95(i)范围点
+	 n1=n1+1
+	eaa(i,n1)=eaa(i,j)
+	sd(i,n1)=sd(i,j)
+	evv(i,n1)=evv(i,j)
+301	continue
+c	endif
+	enddo
+	n(i)=n1   !去除部分实验测读的点
+	enddo
+4	continue
+
+
+
+
+
+
+
+c----------- 下段将试验点之间的距离均匀化 ---------------------
+	goto 1011
+	do i=1,m
+	do j=1,n(i)
+	eaa(i,j)=eaa(i,j)/15.*sdf(m)  !sdf(m)为第四组最大 大小主应力差	
+	     ! 将横坐标的尺寸转换为与纵坐标相近曲线关系
+	enddo								   ! 15表示15％应变
+	enddo
+
+	nline=30
+	do i=1,m			   !  每根曲线的总长度分nline份
+	sl(i,1)=0.
+	do j=1,n(i)                     !sd是主应力差
+	 if (j.eq.1) then
+	 sl(i,j)=sqrt((eaa(i,j))**2+(sd(i,j))**2)
+	 else
+	 sl(i,j)=sl(i,j-1)+ sqrt((eaa(i,j)-eaa(i,j-1))**2+(sd(i,j)-sd(i,j-1))**2)
+	 endif
+	 alength=sl(i,j)	  ! 总长度
+	enddo
+	ds(i)=alength/nline
+	enddo
+
+	do i=1,m
+	n1=0
+	kkk=1
+	do j=1,nline
+	dlmin=99999.
+	dsi=ds(i)*j
+	do k=kkk,n(i)
+c	  if (j.eq.1) then
+c	  dl=sqrt((eaa(i,k))**2+(sd(i,k))**2)-ds(i)
+c	  else
+c	  dl=sqrt((ea2(i,j-1)-eaa(i,k))**2+(q2(i,j-1)-sd(i,k))**2)-ds(i)
+c	  endif
+	dl=dsi-sl(i,k)
+	  if (dlmin.gt.abs(dl))  then
+	  dlmin=abs(dl)
+	  kmin=k
+	dlmin1=dl
+	if (dl.lt.0) then; L1=kmin-1; L2=kmin; endif 
+	if (dl.gt.0) then; L1=kmin; L2=kmin+1; endif 
+	  endif
+	enddo	! enddo k
+	n1=n1+1
+
+	if (kmin.eq.kkk.and.j.ne.1)  then        ! 当所要找的2点位于实测点2侧时 ，插值
+	if (dlmin1.lt.0.) then; slp=sl(i,l2)-dsi;else
+	slp=dsi-sl(i,l1); endif
+	ea2(i,n1)=eaa(i,l1)+slp/(sl(i,l2)-sl(i,l1))*(eaa(i,l2)-eaa(i,l1))
+	ev2(i,n1)=evv(i,l1)+slp/(sl(i,l2)-sl(i,l1))*(evv(i,l2)-evv(i,l1))
+	q2(i,n1)=sd(i,l1)+slp/(sl(i,l2)-sl(i,l1))*(sd(i,l2)-sd(i,l1))
+c	write(*,2003)i,j,l1,l2,slp,(sl(i,l2)-sl(i,l1))
+	goto 900
+	endif
+c2003	format(4i5,2f12.3)
+	kkk=kmin
+
+	ea2(i,n1)=eaa(i,kkk)
+	ev2(i,n1)=evv(i,kkk)
+	q2(i,n1)=sd(i,kkk)
+
+
+	if (dlmin.gt.ds(i)) then  ! 如果所需点距离已有点的距离大于ds(i),则插值求所需点
+c	write(*,*)i,j,dlmin,ds(i)
+	if (L1.eq.0) then
+	ea2(i,n1)=dsi/sl(i,1)*eaa(i,1)
+	ev2(i,n1)=dsi/sl(i,1)*evv(i,1)
+	q2(i,n1)=dsi/sl(i,1)*sd(i,1)
+	else
+	if (dlmin1.lt.0.) then; slp=sl(i,l2)-dsi;else
+	slp=dsi-sl(i,l1); endif
+	ea2(i,n1)=eaa(i,l1)+slp/(sl(i,l2)-sl(i,l1))*(eaa(i,l2)-eaa(i,l1))
+	ev2(i,n1)=evv(i,l1)+slp/(sl(i,l2)-sl(i,l1))*(evv(i,l2)-evv(i,l1))
+	q2(i,n1)=sd(i,l1)+slp/(sl(i,l2)-sl(i,l1))*(sd(i,l2)-sd(i,l1))
+	endif
+	endif
+900	continue
+
+	enddo			! j=1,
+	enddo           ! i=1,m
+
+	do i=1,m
+	n(i)=nline
+	do j=1,n(i)
+	   eaa(i,j)=ea2(i,j)*15./sdf(m)
+	   sd(i,j)=q2(i,j)
+	   evv(i,j)=ev2(i,j)
+c	write(*,*)j,eaa(i,j),sd(i,j),evv(i,j)
+	enddo
+	enddo
+1011	continue
+
+
+c---------   第3种方法  --------
+	if (ii.eq.3) then
+	do i=1,m			   !  
+	n1=0
+	 do j=1,n(i)
+	   if (eaa(i,j)<(eaf(i)+2.)) then     !取峰值之后eaf(i)-eaf95(i)范围点
+	     n1=n1+1
+	     eaa(i,n1)=eaa(i,j)
+	     sd(i,n1)=sd(i,j)
+	     evv(i,n1)=evv(i,j)
+	   endif
+	 enddo
+	 n(i)=n1   !去除部分实验测读的点
+	enddo
+	endif
+
+c---------   第4种方法  --------
+	if (ii.eq.4) then
+	do i=1,m			   !  
+	n1=0
+	 do j=1,n(i)
+	   if (eaa(i,j)<(eaf(i)+4.)) then     !取峰值之后eaf(i)-eaf95(i)范围点
+	     n1=n1+1
+	     eaa(i,n1)=eaa(i,j)
+	     sd(i,n1)=sd(i,j)
+	     evv(i,n1)=evv(i,j)
+	   endif
+	 enddo
+	 n(i)=n1   !去除部分实验测读的点
+	enddo
+	endif
+c---------   第5种方法  --------
+	if (ii.eq.5) then
+	do i=1,m			   !  
+	n1=0
+	 do j=1,n(i)
+	   if (eaa(i,j)<(eaf(i)+6.)) then     !取峰值之后eaf(i)-eaf95(i)范围点
+	     n1=n1+1
+	     eaa(i,n1)=eaa(i,j)
+	     sd(i,n1)=sd(i,j)
+	     evv(i,n1)=evv(i,j)
+	   endif
+	 enddo
+	 n(i)=n1   !去除部分实验测读的点
+	enddo
+	endif
+c---------   第6种方法  --------
+	if (ii.eq.6) then
+	do i=1,m			   !  
+	n1=0
+	 do j=1,n(i)
+	   if (eaa(i,j)<(eaf(i)+8.)) then     !取峰值之后eaf(i)-eaf95(i)范围点
+	     n1=n1+1
+	     eaa(i,n1)=eaa(i,j)
+	     sd(i,n1)=sd(i,j)
+	     evv(i,n1)=evv(i,j)
+	   endif
+	 enddo
+	 n(i)=n1   !去除部分实验测读的点
+	enddo
+	endif
+
+c---------   第7种方法  --------
+	if (ii.eq.7) then
+	do i=1,m			   !  
+	n1=0
+	 do j=1,n(i)
+	   if (eaa(i,j)<(eaf(i)+10.)) then      !取峰值之后eaf(i)-eaf95(i)范围点
+	     n1=n1+1
+	     eaa(i,n1)=eaa(i,j)
+	     sd(i,n1)=sd(i,j)
+	     evv(i,n1)=evv(i,j)
+	   endif
+	 enddo
+	 n(i)=n1   !去除部分实验测读的点
+	enddo
+	endif
+c---------   第8种方法  --------
+	if (ii.eq.8) then
+	do i=1,m			   !  
+	n1=0
+	 do j=1,n(i)
+	   if (eaa(i,j)<(eaf(i)+12.)) then      !取峰值之后eaf(i)-eaf95(i)范围点
+	     n1=n1+1
+	     eaa(i,n1)=eaa(i,j)
+	     sd(i,n1)=sd(i,j)
+	     evv(i,n1)=evv(i,j)
+	   endif
+	 enddo
+	 n(i)=n1   !去除部分实验测读的点
+	enddo
+	endif
+
+
+c-----------每若干个数据挑选一个--------------------------------
+	do i=1,m
+	n1=0
+	do j=1,n(i)
+c	if (j.lt.n(i)/3) nnp=2
+c	if (j.lt.n(i)*2/3.and.j.ge.n(i)/3) nnp=3
+c	if (j.ge.n(i)*2/3) nnp=5
+	 if (j.eq.j/nnp*nnp) then
+	   n1=n1+1
+	   eaa(i,n1)=eaa(i,j)
+	   sd(i,n1)=sd(i,j)
+	   evv(i,n1)=evv(i,j)
+	 endif
+	enddo
+	n(i)=n1
+	enddo
+
+C===========================================================
+
+	  DO I=1,M   ! 删除第一个q＝0 的点
+	  if (SD(i,1).lt.0.001) then
+          DO J=1,N(I)-1
+c            EA(I,J)=EAA(I,J+1)
+c            SD(I,J)=SD(I,J+1)
+c            EV(I,J)=EVV(I,J+1)
+	    enddo
+c	    N(i)=N(i)-1
+	  endif
+	  enddo
+
+
+	  DO I=1,M   ! 删除第一个Ea较小0.2%的点
+          ni0=0
+          DO J=1,N(I)
+	      if (SD(i,J).Gt.0.001.AND.EAA(I,J)>0.2) then
+	      NI0=NI0+1
+		  EA(I,NI0)=EAA(I,J)
+            SD(I,NI0)=SD(I,J)
+            EV(I,NI0)=EVV(I,J)
+	      endif
+	    enddo
+	    N(i)=Ni0
+	  enddo
+
+	  DO 121 I=1,M
+        DO 121 J=1,N(I)
+C        EA(I,J)=EAA(I,J)/100.0
+C        EV(I,J)=EVV(I,J)/100.0
+        EA(I,J)=EA(I,J)/100.0
+        EV(I,J)=EV(I,J)/100.0
+  121   CONTINUE
+
+c	write(15,*)'----------------------------------------------------'
+c	do i=1,m
+c		write(*,*)'   '
+c	  write(*,*) n(i)
+c        WRITE(*,153) (EA(I,J),SD(I,J),EV(I,J),J=1,N(I))
+c	enddo
+c153   format(3f12.3,'    ',3f12.3,'    ',3f12.3,'    ',3f12.3)
+c	OPEN(10,FILE='(S1-S3)-Ea.DAT')
+c	OPEN(11,FILE='Ea-Ea.DAT')
+c	OPEN(12,FILE='Ea-Er.DAT')
+c	OPEN(13,FILE='Er-Er.DAT')
+
+c	DO I=1,M
+c	DO J=1,N(I)
+c	WRITE(10,1) SD(I,J),EA(I,J)
+c	END DO
+c	END DO
+
+	DO I=1,M
+	DO J=1,N(I)
+c	X(J)=EA(I,J)
+	EaQ(J)=EA(I,J)/SD(I,J)	   ! Ea/q
+c	WRITE(11,1) Y(I),X(I)
+	END DO
+	END DO
+c  -------------- 此曲线可作为可选显示的图形  x-Ea(i); y-EaQ(i) 	坐标轴：Ea～Ea/q曲线
+
+       !下面这一小段好像没有用到
+	DO I=1,M
+	DO J=1,N(I)
+	Er(J)=(EA(I,J)-EV(I,J))/2              ! Er 负的径向应变
+	ErEa(J)=X(J)/EA(I,J)                   ! Er/Ea  X(J)以上好像没有出现  ??????????
+				
+c	X(J)=(EA(I,J)-EV(I,J))/2              ! Er
+c	Y(J)=X(J)/EA(I,J)					  ! Er/Ea
+c	WRITE(12,1) Y(J),EA(I,J)
+c	WRITE(12,1) X(J),EA(I,J)
+	END DO
+	END DO
+C==============此曲线可作为可选显示的图形  x-Er(i); y-ErEa(i) 坐标轴：Er～Er/Ea曲线 ===========
+
+
+c--------------- 求强度指标 -------------------------------------
+	DO 5 I=1,M
+	Y(I)=SDF(I)/2.   !SDF每组最大大小主应力差，求出半径
+ 5	X(I)=S3(I)+Y(I)   !找出圆心坐标
+	CALL MINTWO(M,X,Y,AA,BB)
+	CS=SQRT(1.-BB*BB)
+	FI=ATAN(BB/CS)*57.2958
+      CC=AA/CS
+        DF=0.0
+        FI0=FI
+c        WRITE(*,*) ' 考虑强度非线性0/1？ 1＝是, OR 0＝不是'
+c        READ(*,*)KCON
+        IF (KCON.EQ.1) THEN
+        DO 6 I=1,M
+        S1=SDF(I)+S3(I)
+        A=(S1-S3(I))/(S1+S3(I))
+        Y(I)=ASIN(A)*57.2958
+6        X(I)=ALOG10(S3(I)/PA)
+        CALL MINTWO(M,X,Y,AA,BB)
+        FI0=AA
+        DF=-BB
+        CC=0.0
+        END IF
+c----------------------------------------------------------------
+
+
+      D=0.0
+	RF=0.0
+	DO 21 I=1,M
+	DO J=1,N(I)
+	Y(J)=EA(I,J)/SD(I,J)
+ 	X(J)=EA(I,J)
+C	WRITE(*,*)X(J),Y(J)
+	ENDDO    !J
+C	PAUSE
+      NN=N(I)
+	CALL MINTWO(NN,X,Y,A,B)
+	RFI=B*SDF(I)
+	IF(RFI.GT.0.96) THEN
+	RFI=0.96
+	B1=0.96/SDF(I)
+	SX=0
+	DO 12 J=1,N(I)
+	SX=SX+X(J)/N(I)
+12	CONTINUE
+	 A=A+(B-B1)*SX
+	END IF
+        RF=RF+RFI/M
+	  EI(I)=1./A/PA
+        A3=S3(I)/PA
+      DO 15 J=1,N(I)
+	ER(J)=(EA(I,J)-EV(I,J))/2.
+	Y(J)=ER(J)/EA(I,J)
+      X(J)=ER(J)
+ 15   CONTINUE
+      NN=N(I)
+	CALL MINTWO(NN,X,Y,FF,DD)
+        VI(I)=FF
+        VV(I)=1.0-FF
+	  D=D+DD/M
+
+	  ALE(I)=ALOG10(EI(I))
+        ALS(I)=ALOG10(A3)
+
+c	write(*,*)ALE(I),ALS(I)
+
+ 21   CONTINUE
+	CALL MINTWO(M,ALS,ALE,AK,AN)
+		AK=EXP(AK*ALOG(10.0))
+
+        CALL MINTWO(M,ALS,VV,G,F)
+
+        OPEN(8,FILE='E-S-V.DAT')
+        WRITE(8,112) (ALS(I),VI(I),ALE(I),I=1,M)
+c        OPEN(8,FILE='V-S.DAT')
+c        WRITE(8,1) (ALS(I),VI(I),I=1,M)
+c      此曲线可作为可选显示的图形  x-ALS(I); y-ALE(I)  坐标轴：log(Ei)-log(S3)
+c      此曲线可作为可选显示的图形  x-ALS(I); y-VI(I)	 坐标轴：log(Vi)-log(S3)
+112	format(3f12.4)
+
+        G=1.0-G
+
+C------Block for E-B model by ZHU------------------------------
+      DO 70 I=1,M
+      DO 70 J=1,N(I)-1
+       IF (SD(I,J)/SDF(I).LE.0.7.AND.SD(I,J+1)/SDF(I).GT.0.7) THEN
+         SD70(I)=0.7*SDF(I)
+         SS1=SD(I,J)/SDF(I)
+         SS2=SD(I,J+1)/SDF(I)
+         EV70(I)=(EV(I,J+1)-EV(I,J))*(0.7-SS1)/(SS2-SS1)+EV(I,J)
+         PKT(I)=SD70(I)/3.0/EV70(I)
+c	   write(*,*)pkt(i)
+       ENDIF
+70    CONTINUE
+
+        DO 75 I=1,M
+        A3=S3(I)/PA
+	  IF ((PKT(I)).LT.10.) PKT(I)=10.  ! Dilatient soil, this line is true
+        ALK(I)=ALOG10(PKT(I)/Pa)
+        ALS(I)=ALOG10(A3)
+75      CONTINUE
+C=========================================================
+c	OPEN(14,FILE='Kt-S.DAT')
+c	WRITE(14,1) (ALS(I),ALE(I),i=1,m)
+C=========================================================
+        CALL MINTWO(M,ALS,ALK,PKB,PM)
+        AKB=EXP(PKB*ALOG(10.0))
+	  am=pm
+c      此曲线可作为可选显示的图形  x-ALS(I); y-ALK(I)	 坐标轴：log(Kt)-log(S3)
+C------------------------------------
+
+c        WRITE(*,*) '  模型参数输出文件名  ---  '
+c        READ (*,*) AAA
+      if (ii==1)  OPEN(2,FILE='para.dat')
+	write(2,*)' Fi DF c Rf K n G F D  Kb  m'
+	write(*,*)' Fi DF c Rf K n G F D  Kb  m'
+        WRITE(2,40) FI0,DF,CC,RF,AK,AN,G,F,D,AKB,AM
+        WRITE(2,*) '  '
+        WRITE(*,42) FI0,DF,CC,RF,AK,AN,G,F,D,akb,am
+40	format(3f8.1,f6.3,f7.0,f8.3,f7.3,f7.3,f7.1,f8.0,f9.3)
+42	format(3f8.1,f6.2,f7.0,f8.2,f7.2,f7.3,f7.1,f10.1,f9.3)
+
+      enddo   ! do ii
+
+
+
+
+
+c 1     FORMAT(1X,F12.6,3X,F12.6)
+
+
+400   CONTINUE
+
+
+      
+	IF (IMODEL<3) THEN
+        WRITE(*,*) ' 请输入模型参数数据文件名 '
+c        READ (*,*) AAA
+c        OPEN(1,FILE=AAA)
+        OPEN(1,FILE='覆盖层参数.txt')
+c      IF (IMODEL==1) read(1,*)FI0,DF,CC,RF,AK,AN,G,F,D
+c      IF (IMODEL==2) read(1,*)FI0,DF,CC,RF,AK,AN,AKB,AM
+      IF (IMODEL==1) read(1,*)i,RF,AK,AN,G,F,D,Ckur,FI0,DF,CC
+      IF (IMODEL==2) read(1,*)i,RF,AK,AN,AKB,AM,Ckur,FI0,DF,CC
+
+      M=4
+	do i=1,m;n(i)=20;enddo
+c      read(1,*)pa,(s3(i),i=1,4)
+	S3(1)=1.00;S3(2)=3.00;S3(3)=6.00;S3(4)=10.00;PA=1.
+c	S3(1)=100.0;S3(2)=300.0;S3(3)=600.0;S3(4)=1000.0;PA=100.
+      ENDIF
+
+
+	IF (IMODEL==3) THEN
+	write(*,*)'  '
+	write(*,*)'         E－v和E－B模型参数已同时输出 到para.dat '
+	write(*,*)'     '
+	write(*,*)'     由哪个模型反算应力应变曲线？请选择  1或2'
+	write(*,*)'          1、E－v模型'
+	write(*,*)'          2、E－B模型'
+	write(*,*)'      ---prmfig.DAT文件中输出对应的计算曲线'
+	write(*,*)'     '
+	read(*,*)imodel
+	endif
+
+
+	CT(7)=FI0
+	CT(8)=DF
+	CT(9)=CC
+
+	CT(1)=RF
+	CT(2)=AK
+	CT(3)=AN
+
+	if (imodel.eq.1) then
+	CT(4)=G
+	CT(5)=F
+	CT(6)=D
+	else
+	CT(4)=AKB
+	CT(5)=AM
+	endif
+
+	call EAV(CT,M,S3,PA,N,imodel,Q2,EA2,EV2)
+
+c         这里可以画2个图x-EA2; y-Q2       x-EA2; y-EV2 
+
+	do i=1,m
+	write(*,*)' '
+	do j=1,N(I)
+c       write(*,*)EA2(I,J),Q2(I,J),EV2(I,J)
+	enddo
+	enddo
+
+      OPEN(1,FILE='prmfig.DAT')
+
+	IF (IMODEL<3) THEN
+	WRITE(1,*)' AAAAA'
+	WRITE(1,*)4,100.
+      WRITE(1,1001)(s3(i),i=1,m)
+	ENDIF
+
+	do i=1,m
+	IF (IMODEL==3) THEN
+      WRITE(1,1001) (EAA(I,J),SD(I,J),EVV(I,J),EA2(I,J),Q2(I,J),EV2(I,J),J=1,N(I))
+	ELSE
+      WRITE(1,1002) (EA2(I,J),Q2(I,J),EV2(I,J),J=1,N(I))
+c	write(1,*)' 99999,99999,99999'
+	ENDIF
+	write(1,*)'     '
+	enddo
+1001	format(6f10.3)
+1002	format(3f10.3)
+
+c	pause '  邓肯模型结束    '
+c	stop 
+
+
+	goto 2009
+
+C
+C       Parameters of two yield surface model
+C
+        FJ=FI0*3.14159/180.
+        PR=CC*COS(FJ)/SIN(FJ)
+        XM=6.0*SIN(FJ)/(3.0-SIN(FJ))
+        BM=1.1*XM
+        SM=1.12*XM
+        BA=0
+        DA=0
+        DO 110 I=1,M
+        QH=.5*SDF(I)
+        PH=S3(I)+QH/3.0
+        P0=PH+QH*QH/BM/BM/(PH+PR)
+        DP0=P0-S3(I)
+        DO 50 J=1,N(I)
+        QJ=SD(I,J)
+        IF(QJ.GT.QH) GOTO 55
+  50    CONTINUE
+55        Z1=(QH-SD(I,J-1))/(QJ-SD(I,J-1))
+        EH=EV(I,J-1)+(EV(I,J)-EV(I,J-1))*Z1
+        Q95=.95*SDF(I)
+        Q75=.75*SDF(I)
+        DO 60 J=1,N(I)
+        QJ=SD(I,J)
+        IF(QJ.GT.Q75) GOTO 65
+  60    CONTINUE
+  65    Z1=(Q75-SD(I,J-1))/(QJ-SD(I,J-1))
+        Z2=(Q95-SD(I,N(I)-1))/(SDF(I)-SD(I,N(I)-1))
+       EA75=EA(I,J-1)+(EA(I,J)-EA(I,J-1))*Z1
+       EV75=EV(I,J-1)+(EV(I,J)-EV(I,J-1))*Z1
+       EA95=EA(I,N(I)-1)+(EA(I,N(I))-EA(I,N(I)-1))*Z2
+       EV95=EV(I,N(I)-1)+(EV(I,N(I))-EV(I,N(I)-1))*Z2
+        BI(I)=EV75/EA75
+        DI(I)=(EV95-EV75)/(EA95-EA75)
+        EC=.65*(1-DI(I))*EH
+        BA=BA+BI(I)/M
+        DA=DA+DI(I)/M
+        BP=DP0/EC
+        P0A=(P0+S3(I))/2.
+        Y(I)=SQRT(BP/PA)
+ 110    X(I)=P0A/PA
+        CALL MINTWO(M,X,Y,H2,T2)
+        CALL MINTWO(M,ALS,DI,D0,DN)
+        BM=XM*(1.+BA*ba/4.)
+        HH=H2*H2
+        TT=T2*H2
+        DO 300 I=1,M
+        GG(I)=2*AK*PA*(S3(I)/PA)**AN/2.6
+        DO 300 J=3,N(I)
+        PI(I,J)=S3(I)+SD(I,J)/3
+        ES2=EA(I,J)*(.3-.1*DA)
+C       WRITE(5,210) I,J,DA,EA(I,J),ES2,PI(I,J),SD(I,J),GG(I)
+210     FORMAT(2I6,6F10.5)
+        IJ=(I-1)*(N(I)-2)+J-2
+        Y(IJ)=(PI(I,J)+PR)/SD(I,J)
+        X(IJ)=(SD(I,J)/ES2/GG(I))**2
+300     CONTINUE
+        MN=M*(N(I)-2)
+        CALL MINTWO(MN,X,Y,A,B)
+        SM=1/A
+        AA=SQRT(B*SM)
+
+C         WRITE(5,220)(X(I),I=1,MN)
+C         WRITE(5,220)(Y(I),I=1,MN)
+C         WRITE(5,220)SM,AA,A,B
+220     FORMAT(8F9.3)
+
+        WRITE(2,120) FI,CC,RF,AK,AN,BM,SM,PR,HH,TT,AA
+ 120    FORMAT(2X,'FI=',F5.1,'   C=',F5.2,'   RF=',F5.2,'   KE=',F6.1,
+     2  '   N=',F4.2,'   M1=',F4.2,'   M2=',F4.2,/'  PR=',F5.2,
+     3  '   H=',F6.1,'   T=',F5.1,'   A=',F5.2/
+     4   '***************************************************')
+
+
+2009	continue     !  上面这一块暂时不考虑
+
+
+
+
+	
+	pause '   正常结束    '
+        END
+
+	 SUBROUTINE MINTW(M,X,Y,A0,A1)  ! 有大于0限制
+         DIMENSION X(958),Y(958)
+	 SX=0.
+	 SY=0.
+	 SXX=0.
+	 SXY=0.
+	 DO 10 I=1,M
+	 SX=SX+X(I)
+	 SY=SY+Y(I)
+	 SXX=SXX+X(I)**2
+	 SXY=SXY+X(I)*Y(I)
+ 10   CONTINUE
+      A1=(SXY-SX*SY/M)/(SXX-SX*SX/M)
+      A0=(SY-SX*A1)/M
+
+	 IF(A0.LT.0) THEN
+	 A0=0
+	 A1=SY/SX
+	 END IF
+         IF(A1.LT.0) THEN
+         A1=0.
+         A0=0.
+         DO 20 I=1,M
+  20     A0=A0+Y(I)/M
+         END IF
+	 RETURN
+	 END
+
+
+	 SUBROUTINE MINTWO(M,X,Y,A0,A1)  ! 无大于0限制
+         DIMENSION X(958),Y(958)
+	 SX=0.
+	 SY=0.
+	 SXX=0.
+	 SXY=0.
+	 DO 10 I=1,M
+	 SX=SX+X(I) !每组试验数据的圆心
+	 SY=SY+Y(I) !每组试验数据的半径
+	 SXX=SXX+X(I)**2
+	 SXY=SXY+X(I)*Y(I)
+ 10   CONTINUE
+      A1=(SXY-SX*SY/M)/(SXX-SX*SX/M)
+      A0=(SY-SX*A1)/M
+
+	 RETURN
+	 END
+
+      SUBROUTINE EAV(CT,MM,S3,PA,NN,KKK,Q2,EA2,EV2)
+c        DIMENSION Q1(8,958)
+        DIMENSION Q2(8,958),EA2(8,958),EV2(8,958),S3(8)
+        DIMENSION CT(20),qf(8),nn(8)
+
+	goto 2222
+	CT(1)=0.83
+  	CT(2)=72.0
+	CT(3)=0.65
+	CT(4)=0.21
+	CT(5)=0.11
+	CT(6)=2.37
+	CT(7)=24.3
+	CT(8)=0
+	CT(9)=18.
+C2222	continue
+c	goto 2222
+	CT(1)=0.81
+  	CT(2)=83.0
+	CT(3)=0.94
+	CT(4)=0.35
+	CT(5)=0.15
+	CT(6)=1.62
+	CT(7)=24.4
+	CT(8)=0
+	CT(9)=34.3
+2222	continue
+
+	fi0=ct(7)*3.14159/180.
+	df=ct(8)*3.14159/180.
+	cc=ct(9)
+!	CT-Rf K n G F D (Kb m  /) Fi df CC
+
+c	write(*,*)pa
+c	pause
+
+        DO 110 I=1,MM
+c	write(*,*)ct(7),ct(8),ct(9),s3(i)
+       write(*,*) ' '
+        SC=S3(I)
+        DQ=0.0
+        DAA=0.0
+        DVV=0.0
+
+	  FI=FI0-DF*ALOG10(SC/PA)
+        qf(i)=2.0*(cc*cos(fi)+s3(i)*sin(fi))/(1.0-sin(fi))
+        dq=qf(i)/nn(i)
+        DO 100 J=1,NN(I)
+      IF (J.EQ.1) THEN
+      q2(i,j)=dq
+	else
+      q2(i,j)=q2(i,j-1)+dq
+	endif
+
+        IF (J.EQ.1) THEN
+        DQ=Q2(I,J)
+        S1=SC+Q2(I,J)*0.5
+        ENDIF
+        IF (J.NE.1) THEN
+        DQ=Q2(I,J)-Q2(I,J-1)
+        S1=SC+Q2(I,J-1)+DQ*0.5
+        ENDIF
+
+        IF (KKK.EQ.1.OR.KKK.EQ.2) THEN
+      W=(SC/PA)**CT(3)
+      Q=CT(2)*PA*W
+      SS=(S1-SC)*(1.0-SIN(FI))/(CC*COS(FI)+SC*SIN(FI))/2.0
+      G=1-SS*CT(1)
+      E=G*G*Q
+      ENDIF
+
+        IF (KKK.EQ.1) THEN		  ! EV model 
+        A=(S1-SC)*CT(6)/(G*Q)
+        S=(1.0-A)**2
+        V=(CT(4)-CT(5)*ALOG10(SC/PA))/S
+        ENDIF
+          IF (KKK.EQ.2) THEN		  ! EB model
+          B=CT(4)*PA*(SC/PA)**CT(5)
+          V=0.5-E/6.0/B
+          ENDIF
+             IF (KKK.EQ.3) THEN	  ! KG model
+             PP=(S1+SC+SC)/3.0
+             QQ=S1-SC
+             BT=CT(1)+CT(2)*PP
+             GT=CT(3)+CT(4)*PP+CT(5)*QQ
+             E=PA*9.0*BT*GT/(3.0*BT+GT)
+             V=(3.0*BT-2.0*GT)/(2.0*GT+6.0*BT)
+             ENDIF
+
+c       write(*,*)v
+      IF(V.GT.0.49) V=0.49
+      IF(V.LT.0.01) V=0.01
+        DA1=DQ/E
+        DEV=DA1-2.0*V*DA1
+        DAA=DAA+DA1
+        DVV=DVV+DEV
+        EA2(I,J)=DAA*100.0
+        EV2(I,J)=DVV*100.0
+c       write(*,*)EA2(I,J),Q2(I,J),EV2(I,J)
+100     CONTINUE
+110     CONTINUE
+
+      RETURN
+      END

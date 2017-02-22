@@ -107,6 +107,10 @@ std::string get_variable_name(ParseNode & entity_variable) {
 		// entity_variable_name->child[0] has subobject designator like `A(0,1,2)`
 		return entity_variable_name.get(0).get(0).fs.CurrentTerm.what;
 	}
+	else if (entity_variable_name.child.size() == 3 && entity_variable_name.get(1).to_string() == "*") {
+		// character a*1
+		return entity_variable_name.get(0).fs.CurrentTerm.what;
+	}
 	else {
 		// entity_variable_name->child[0] is like `A`
 		return entity_variable_name.fs.CurrentTerm.what;
@@ -132,10 +136,8 @@ std::string gen_vardef_scalar_str(VariableInfo * vinfo, ParseNode & entity_varia
 ParseNode gen_vardef_from_implicit(const ParseNode & type, std::string name) {
 	ParseNode newnode = gen_token(Term{ TokenMeta::NT_VARIABLEDEFINE, name });
 	newnode.addchild(type); // type
-	newnode.addchild(gen_token(Term{ TokenMeta::NT_VOID, "" })); // variable_desc
-	ParseNode kv = gen_keyvalue(gen_token(Term{ TokenMeta::UnknownVariant, name }));
-	ParseNode pt = gen_paramtable(kv);
-	newnode.addchild(pt); // type
+	newnode.addchild(gen_token(Term{ TokenMeta::NT_VARIABLEDESC, "NT_VARIABLEDESC" })); // variable_desc
+	newnode.addchild(gen_keyvalue_from_name(name)); // variable_entity
 	return newnode;
 }
 
@@ -147,8 +149,9 @@ ParseNode gen_vardef(const ParseNode & type_nospec, const ParseNode & variable_d
 		ParseNode newvardef = gen_token(Term{ TokenMeta::NT_VARIABLEDEFINE, "LAZY GENERATED" });
 		newvardef.addchild(type_nospec); // type
 		newvardef.addchild(variable_desc); // variable_desc
-		newvardef.addchild(kvparamtable.get(i));
-		newvardef.setattr(variable_desc.attr->clone()); // new VariableDescAttr( *dynamic_cast<VariableDescAttr *>(variable_desc.attr)); // attr
+		newvardef.addchild(kvparamtable.get(i));  // variable_entity
+		newvardef.setattr(variable_desc.attr->clone()); 
+
 		newnode.addchild(newvardef);
 	}
 	return newnode;

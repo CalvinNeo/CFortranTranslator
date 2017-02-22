@@ -61,7 +61,7 @@ VariableInfo * add_variable(std::string module_name, std::string function_name, 
 
 void insert_temporary_variables(std::string module_name, std::string function_name) {
 
-	for (std::map < std::string, VariableInfo* >::iterator iter = get_context().temporary_variables.begin(); iter != get_context().temporary_variables.end(); iter++) {
+ 	for (std::map < std::string, VariableInfo* >::iterator iter = get_context().temporary_variables.begin(); iter != get_context().temporary_variables.end(); iter++) {
 		std::string fullname = module_name + "::" + function_name + "::" + iter->first;
 		get_context().variables[fullname] = iter->second; // do not copy
 	}

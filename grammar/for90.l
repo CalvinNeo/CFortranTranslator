@@ -66,7 +66,8 @@ int word_parse();
 void update_flex(int len, bool newline = false) {
 	// do not update CurrentTerm
 	if (newline) {
-		get_flex_state().parse_line++; get_flex_state().line_pos = 0; get_flex_state().parse_pos += yyleng; get_flex_state().parse_len = 0;
+		get_flex_state().parse_line++; 
+		get_flex_state().parse_pos += len; get_flex_state().line_pos = 0; get_flex_state().parse_len = len;
 	}
 	else {
 		get_flex_state().parse_pos += len; get_flex_state().line_pos += get_flex_state().parse_len; get_flex_state().parse_len = len;
@@ -88,9 +89,9 @@ std::string parse_ioformatter(const std::string & src); // gen_io.cpp
 #define YYRTN(TOK, YYTOK)  update_yylval(Term{TOK, std::string(yytext)});  update_flex((int)yyleng);  return YYTOK; 
 #define YYRTCRLF()  update_yylval( Term{TokenMeta::CRLF, std::string(yytext)}); update_flex((int)yyleng, true); return YY_CRLF;
 // ¿Õ¸ñ, ÖÆ±í·ûµÈ
-#define YYRTNOP() update_yylval( Term{TokenMeta::Nop, std::string(yytext)},  true);  update_flex((int)yyleng); 
+#define YYRTNOP() update_yylval( Term{TokenMeta::Nop, std::string(yytext)}, true);  update_flex((int)yyleng); 
 // include literal const such as pi, true, false, etc.
-#define YYRTNCOMMENT() update_yylval( Term{TokenMeta::Nop, std::string(yytext)},  true);  update_flex((int)yyleng); return YY_NULL;
+#define YYRTNCOMMENT() update_yylval( Term{TokenMeta::Comments, std::string(yytext)},  false);  update_flex((int)yyleng); return YY_COMMENT;
 /*do not call update_yylval because some tokens need to be looked ahead, such as `else if` */
 #define YYRTWORD() {  int p = word_parse(); \
 	update_flex((int)yyleng); \
@@ -164,12 +165,14 @@ wordoperator \.[a-zA-Z_][a-zA-Z0-9]*\.
 %%
 
 <external_scanner>. { if (get_flex_external_context().do_external_scanner(yytext)) { return get_flex_external_context().YYTOK;  } else { } }
-^[Cc]{ws}+.*{newline}$ {	RTCRLF() /*×¢ÊÍ*/}
-!.*{newline}$ { RTCRLF() /*×¢ÊÍ*/}
-^[Cc]{ws}+.*$ {	RTNCOMMENT() /*×¢ÊÍ*/}
-!.*$ { RTNCOMMENT() /*×¢ÊÍ*/}
 
-^{newline}$ { /* ¿ÕÐÐ */ }
+
+^[Cc]{ws}+[^\r\n]* { RTNCOMMENT() /*×¢ÊÍ*/}
+![^\r\n]* { RTNCOMMENT() /*×¢ÊÍ*/}
+
+{newline}{ws}\* {
+	RTNOP() 
+}
 {newline} {RTCRLF() }
 {ws} { RTNOP() }
 ^[0-9]+ {RTN(TokenMeta::Label, YY_LABEL); }
@@ -192,10 +195,12 @@ wordoperator \.[a-zA-Z_][a-zA-Z0-9]*\.
 	RTWORD() 
 }
 {wordoperator} { RTWORD() }
-\"(\\.|[^"])*\" {RTSTRING(TokenMeta::META_STRING) 
-/* The delimiting quotes are escaped because they are Flex meta-characters. */}
-\'(\\.|[^'])*\' {RTSTRING(TokenMeta::META_STRING) 
-/* string with `'` */}
+\"(\\.|[^"])*\" {
+	RTSTRING(TokenMeta::META_STRING) /* The delimiting quotes are escaped because they are Flex meta-characters. */
+}
+\'(\\.|[^'])*\' {
+	RTSTRING(TokenMeta::META_STRING) /* string with `'` */
+}
 . {/* all other things, including some operators not listed */ RTILLEGAL(TokenMeta::META_ILLEGAL) }
 
 %%

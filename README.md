@@ -1,4 +1,4 @@
-# CFortranTranslator
+﻿# CFortranTranslator
 A translator from Fortran90/Fortran77(ISO/IEC 1539:1991) to C++
 
 Fortran is an efficient tool in scientific calculation. However sometimes translating old fortran codes to C++ will enable more programming abstraction, better GUI framework support, higher performance IDE and easier interaction.
@@ -55,6 +55,12 @@ bjam --toolset=msvc-14.0 address-model=64
 
 ### Use fortran standard library
 fortran standard library requires compiler support at least C++14 standard
+
+### start
+
+    -f file_name : translate file_name into C++
+    -d : use debug mode
+    -C : use c-style array
 
 ## Debug
 Only fatal errors hinderring parsing will be reported by translator. 
@@ -344,6 +350,37 @@ if this common block is an unamed block, `COMMON_NAME` is by default `G`
 #### parameters
 1. optional parameter: instead of c-style optional parameter, wrap optional parameters with `foroptional<T>`, function `forpresent` functions as `present` function in fortran90
 2. keyword/named parameter: C++ don't support keyword parameters, all keyword parameter will be reorganized in normal paramtable
+
+## fortran 77 standard support
+### fixed form
+> 3.3.2 Fixed source form
+In fixed source form, there are restrictions on where a statement may appear within a line. If a source line
+contains only default kind characters, it must contain exactly 72 characters; otherwise, its maximum number of
+characters is processor dependent.
+Except in a character context, blanks are insignificant and may be used freely throughout the program.
+
+> 3.3.2.1 Fixed form commentary
+The character "!" initiates a comment except when it appears within a character context or in character position
+6. The comment extends to the end of the line. If the first nonblank character on a line is an "!" in any character
+position other than character position 6, the line is a comment line. Lines beginning with a "C" or "*" in
+character position 1 and lines containing only blanks are also comments. Comments may appear anywhere within
+a program unit and may precede the first statement of the program unit. Comments have no effect on the
+interpretation of the program unit.
+
+> 3.3.2.2 Fixed form statement separation
+The character ";" separates statements, or partial statements, on a single source line except when it appears in a
+character context or in a comment. If a ";" separator is followed by zero or more blanks and one or more ";"
+separators, the sequence from the first ";" to the last, inclusive, is interpreted as a single ";" separator. A ";"
+separator that is the last nonblank character on a line, or the last nonblank character ahead of commentary, is
+ignored.
+
+> 3.3.2.3 Fixed form statement continuation
+Except within commentary, character position 6 is used to indicate continuation. If character position 6 contains
+a blank or zero, this line is the initial line of a new statement which begins in character position 7. If character
+position 6 contains any character other than blank or zero, character positions 7–72 of this line constitute a
+continuation of the preceding noncomment line. Note that an "!" or ";" in character position 6 indicates a
+continuation of the preceding noncomment line. Comment lines cannot be continued. Comment lines may occur
+within a continued statement.
 
 # Develop
 refer to [/Develop.md](/Develop.md)

@@ -48,7 +48,7 @@ using namespace std;
 
 %token /*_YY_VOID*/ YY_IGNORE_THIS YY_CRLF
 %token /*_YY_OP*/ YY_GT YY_GE YY_EQ YY_LE YY_LT YY_NEQ YY_NEQV YY_EQV YY_ANDAND YY_OROR YY_NOT YY_POWER YY_DOUBLECOLON YY_NEG YY_POS
-%token /*_YY_TYPE*/ YY_INTEGER YY_FLOAT YY_WORD YY_OPERATOR YY_STRING YY_ILLEGAL YY_COMPLEX YY_TRUE YY_FALSE YY_FORMAT_STMT
+%token /*_YY_TYPE*/ YY_INTEGER YY_FLOAT YY_WORD YY_OPERATOR YY_STRING YY_ILLEGAL YY_COMPLEX YY_TRUE YY_FALSE YY_FORMAT_STMT YY_COMMENT
 %token /*_YY_CONTROL*/ YY_LABEL YY_END YY_IF YY_THEN YY_ELSE YY_ELSEIF YY_ENDIF YY_DO YY_ENDDO YY_CONTINUE YY_BREAK YY_WHILE YY_ENDWHILE YY_WHERE YY_ENDWHERE YY_CASE YY_ENDCASE YY_SELECT YY_ENDSELECT YY_GOTO YY_DOWHILE YY_DEFAULT 
 %token /*_YY_DELIM*/ YY_PROGRAM YY_ENDPROGRAM YY_FUNCTION YY_ENDFUNCTION YY_RECURSIVE YY_RESULT YY_SUBROUTINE YY_ENDSUBROUTINE YY_MODULE YY_ENDMODULE YY_BLOCK YY_ENDBLOCK YY_INTERFACE YY_ENDINTERFACE YY_COMMON YY_DATA
 %token /*_YY_DESCRIBER*/ YY_IMPLICIT YY_NONE YY_USE YY_PARAMETER YY_ENTRY YY_DIMENSION YY_ARRAYINITIAL_START YY_ARRAYINITIAL_END YY_INTENT YY_IN YY_OUT YY_INOUT YY_OPTIONAL YY_LEN YY_KIND YY_SAVE
@@ -243,7 +243,8 @@ using namespace std;
 		| YY_STRING
 			{
 				// replace `'` with `"`
-				$$ = gen_token(Term{ TokenMeta::String, "\"" + $1.to_string().substr(1, $1.to_string().size() - 2) + "\"" }); // string
+				std::string s = $1.to_string().substr(1, $1.to_string().size() - 2);
+				$$ = gen_token(Term{ TokenMeta::String, "\"" + s + "\"" }); // string
 			}
 		| YY_TRUE
 			{
@@ -632,7 +633,7 @@ using namespace std;
 		| var_def _crlf_semicolon
 			{
 				/* 因为var_def本身可能生成多行代码, 因此此处生成代码不应当带分号`;` */
-				$$ = gen_stmt($1, "%s ");
+				$$ = gen_stmt($1, "%s");
 				update_pos($$, $1, $2);
 			}
         | compound_stmt
@@ -661,11 +662,13 @@ using namespace std;
 				$$ = gen_stmt($1);
 				update_pos($$, $1, $1);
 			}
+				
 		| semicolon YY_CRLF
 			{
 				ParseNode & xx = $1;
 				update_pos($$, $1, $2);
 			}
+			
 		| common_stmt
 			{
 				$$ = $1;
@@ -680,6 +683,11 @@ using namespace std;
 			{
 				$$ = $1;
 				update_pos($$, $1, $1);
+			}
+		| YY_COMMENT crlf
+			{
+				$$ = gen_token(Term{TokenMeta::Comments, "/*" + $1.to_string() + "*/"});
+				update_pos($$, $1, $2);
 			}
 
 
@@ -719,13 +727,13 @@ using namespace std;
 
 	suite : stmt
 			{
-				$$ = gen_promote("%s\n", TokenMeta::NT_SUITE, $1);
+				ParseNode & stmt = $1; // TokenMeta::NT_LABEL
+				$$ = gen_promote("%s\n", TokenMeta::NT_SUITE, stmt);
 				update_pos($$, $1, $1);
 			}
 		| stmt suite
 			{
-
-				ParseNode & stmt = $1; // TokenMeta::NT_LABEL
+				ParseNode & stmt = $1; 
 				ParseNode & suite = $2;
 				if (stmt.fs.CurrentTerm.token == TokenMeta::NT_LABEL)
 				{
@@ -753,8 +761,6 @@ using namespace std;
 				$$ = gen_flattern($1, $2, "%s%s", TokenMeta::NT_SUITE);
 				update_pos($$, $1, $2);
 			}
-
-
 
 	_optional_lbrace : 
 		| '('
@@ -903,7 +909,7 @@ using namespace std;
 			}
 		| type_name '*' YY_INTEGER
 			{
-				// $$ = gen_type($1, $3);
+				$$ = $1;
 				update_pos($$, $1, $3);
 			}
 		| type_name
@@ -1041,9 +1047,6 @@ using namespace std;
 				/* give generate stmt */
 				$$ = gen_array_from_hiddendo($2);
 				update_pos($$, $1, $3);
-				// rule `YY_ARRAYINITIAL_START variable '(' dimen_slice ')' YY_ARRAYINITIAL_END ` is included in this rule because \
-				// these two rules can not be splitted because `exp` and `variable` + '(' can cause reduction conflict 
-				// so either that `variable '(' dimen_slice ')'` is an `exp`
 			}
 
 	/* array_builder can accept mixed */
@@ -1070,14 +1073,21 @@ using namespace std;
 		| YY_ENDIF
 
 
-	if_stmt : _optional_construct_name YY_IF exp YY_THEN crlf suite _yy_endif crlf
+	if_stmt : _optional_construct_name YY_IF '(' exp ')' stmt crlf
+			{
+				ParseNode & exp = $4;
+				ParseNode & stmt_true = $6;
+				$$ = gen_if_oneline(exp, stmt_true);
+				update_pos($$, $1, $7);
+			}
+		| _optional_construct_name YY_IF exp YY_THEN YY_CRLF /* must have \n */ suite _yy_endif crlf
 			{
 				ParseNode & exp = $3;
 				ParseNode & suite_true = $6; 
 				$$ = gen_if(exp, suite_true, gen_dummy(), gen_dummy());
 				update_pos($$, $1, $8);
 			}
-		| _optional_construct_name YY_IF exp YY_THEN crlf suite YY_ELSE crlf suite _yy_endif crlf
+		| _optional_construct_name YY_IF exp YY_THEN YY_CRLF suite YY_ELSE crlf suite _yy_endif crlf
 			{
 				ParseNode & exp = $3;
 				ParseNode & suite_true = $6; 
@@ -1085,7 +1095,7 @@ using namespace std;
 				$$ = gen_if(exp, suite_true, gen_dummy(), suite_else);
 				update_pos($$, $1, $11);
 			}
-		| _optional_construct_name YY_IF exp YY_THEN crlf suite elseif_stmt _yy_endif crlf
+		| _optional_construct_name YY_IF exp YY_THEN YY_CRLF suite elseif_stmt _yy_endif crlf
 			{
 				ParseNode & exp = $3;
 				ParseNode & suite_true = $6;
@@ -1093,7 +1103,7 @@ using namespace std;
 				$$ = gen_if(exp, suite_true, elseif, gen_dummy());
 				update_pos($$, $1, $9);
 			}
-		| _optional_construct_name YY_IF exp YY_THEN crlf suite elseif_stmt YY_ELSE crlf suite _yy_endif crlf
+		| _optional_construct_name YY_IF exp YY_THEN YY_CRLF suite elseif_stmt YY_ELSE crlf suite _yy_endif crlf
 			{
 				ParseNode & exp = $3;
 				ParseNode & suite_true = $6;
@@ -1101,20 +1111,6 @@ using namespace std;
 				ParseNode & suite_else = $10;
 				$$ = gen_if(exp, suite_true, elseif, suite_else);
 				update_pos($$, $1, $12);
-			}
-		| _optional_construct_name YY_IF exp YY_THEN stmt
-			{
-				ParseNode & exp = $3;
-				ParseNode & stmt_true = $5; 
-				$$ = gen_if_oneline(exp, stmt_true);
-				update_pos($$, $1, $5);
-			}
-		| _optional_construct_name YY_IF exp stmt
-			{
-				ParseNode & exp = $3;
-				ParseNode & stmt_true = $4;
-				$$ = gen_if_oneline(exp, stmt_true);
-				update_pos($$, $1, $4);
 			}
 
 	elseif_stmt : YY_ELSEIF exp YY_THEN crlf suite
@@ -1137,13 +1133,13 @@ using namespace std;
 	_yy_enddo : YY_END YY_DO
 		| YY_ENDDO
 
-	do_stmt : _optional_construct_name YY_DO crlf suite _yy_enddo crlf
+	do_stmt : _optional_construct_name YY_DO YY_CRLF suite _yy_enddo crlf
 			{
 				ParseNode & suite = $4; 
 				$$ = gen_do(suite);
 				update_pos($$, $1, $6);
 			}
-		| _optional_construct_name YY_DO variable '=' exp ',' exp crlf suite _yy_enddo crlf
+		| _optional_construct_name YY_DO variable '=' exp ',' exp YY_CRLF suite _yy_enddo crlf
 			{
 				ParseNode & loop_variable = $3;
 				ParseNode & exp_from = $5;
@@ -1153,7 +1149,7 @@ using namespace std;
 				$$ = gen_do_range(loop_variable, exp_from, exp_to, step, suite);
 				update_pos($$, $1, $11);
 			}
-		| _optional_construct_name YY_DO variable '=' exp ',' exp ',' exp crlf suite _yy_enddo crlf
+		| _optional_construct_name YY_DO variable '=' exp ',' exp ',' exp YY_CRLF suite _yy_enddo crlf
 			{
 				ParseNode & loop_variable = $3;
 				ParseNode & exp1 = $5;
@@ -1163,7 +1159,7 @@ using namespace std;
 				$$ = gen_do_range(loop_variable, exp1, exp2, exp3, suite);
 				update_pos($$, $1, $12);
 			}
-		| _optional_construct_name YY_DOWHILE exp crlf suite _yy_enddo crlf
+		| _optional_construct_name YY_DOWHILE exp YY_CRLF suite _yy_enddo crlf
 			{
 				ParseNode & exp = $3;
 				ParseNode & suite = $5; 
@@ -1250,12 +1246,13 @@ using namespace std;
 				$$ = gen_program_explicit(gen_token(Term{TokenMeta::NT_PROGRAM_EXPLICIT , ""}));
 				update_pos($$, $1, $7);
 			}
+		 
 		| suite
-			/* R1101 main-program is [ program-stmt ]
-				[ specification-part ]
-				[ execution-part ]
-				[ internal-subprogram-part ]
-				end-program-stmt */
+			// R1101 main-program is [ program-stmt ]
+			//	[ specification-part ]
+			//	[ execution-part ]
+			//	[ internal-subprogram-part ]
+			//	end-program-stmt 
 			{
 				ParseNode & suite = $1;
 				$$ = gen_program(suite);
@@ -1265,14 +1262,13 @@ using namespace std;
 
 	wrapper :  function_decl
 			{
-				sprintf(codegen_buf, "%s", $1.to_string().c_str());
 				$$ = $1;
 			}
 		| program
 			{
-				sprintf(codegen_buf, "%s", $1.to_string().c_str());
 				$$ = $1;
-			}	
+			}
+
 
 	wrappers : wrapper
 			{
@@ -1289,7 +1285,7 @@ using namespace std;
 				newnode.addchild($1); // wrapper
 				newnode.addchild($2); // wrappers
 				sprintf(codegen_buf, "%s\n%s", $1.to_string().c_str(), $2.to_string().c_str());
-				newnode = flattern_bin(newnode);
+				newnode = flattern_bin_right(newnode);
 				newnode.fs.CurrentTerm = Term{ TokenMeta::NT_WRAPPERS, string(codegen_buf) };
 				$$ = newnode;
 				update_pos($$, $1, $2);

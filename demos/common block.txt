@@ -1,8 +1,14 @@
 common /cb/ a, b, c(10)
-program
-	integer::x, y
+subroutine sub()
+	integer::x
 	common /cb/ x, y, z(10)
+end subroutine
+common /ca/ n
+program
+	common /cb/ a, b, c(10)
+	common /ca/ m
 end program
+
 !int & x = cb._1
 !int & y = cd._2;
 !farray<double> & z = cb._3

@@ -1,3 +1,5 @@
+	dimension a(1)
+	* , b(2)
 	do i = 1, 1
 		if (a == 1) a(22)
 		if (a == 2) b(33)
