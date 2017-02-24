@@ -296,6 +296,6 @@ bool iselement(TokenMeta_T x);
 
 struct KeywordMeta {
 	std::string what;
-	int token;
+	TokenMeta_T token;
 	int yytoken;
 };

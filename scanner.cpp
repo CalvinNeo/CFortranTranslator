@@ -25,10 +25,6 @@ bool isNumeric(char asc)
 {
 	return ((asc >= '0' && asc <= '9') || asc == '.');
 }
-bool isNumericS(char asc)
-{
-	return (asc >= '0' && asc <= '9');
-}
 string::iterator Jump(string & src, string::iterator c, int flag, char lb, char rb)
 {
 	int k = 0;

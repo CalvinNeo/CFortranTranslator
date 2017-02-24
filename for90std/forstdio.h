@@ -158,7 +158,7 @@ namespace for90std {
 		fprintf(f, "%s", x.c_str());
 	};
 	inline void _forwritefree_one(FILE * f, bool x) {
-		fprintf(f, "%s", x ? "true" : "false");
+		fprintf(f, "%s", x ? "T" : "F");
 	};
 	inline void _forwritefree_one(FILE * f, const char * x) {
 		fprintf(f, "%s", x);

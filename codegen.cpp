@@ -55,7 +55,7 @@ ParseNode gen_token(Term term) {
 }
 
 ParseNode gen_dummy() {
-	return ParseNode(gen_flex(Term{ TokenMeta::NT_DUMMY, "" }), nullptr);
+	return gen_token(Term{ TokenMeta::NT_DUMMY, "" });
 }
 
 ParseNode gen_promote(std::string rule, int merged_token_meta, const ParseNode & lower) {
@@ -175,9 +175,8 @@ ParseNode gen_flattern(const ParseNode & item, const ParseNode & list, std::stri
 
 
 ParseNode gen_merge(const ParseNode & list1, const ParseNode & list2, std::string merge_rule, int merged_token_meta) {
-	ParseNode nn = ParseNode();
 	sprintf(codegen_buf, merge_rule.c_str(), list1.fs.CurrentTerm.what.c_str(), list2.fs.CurrentTerm.what.c_str());
-	nn.fs.CurrentTerm = Term{ merged_token_meta, string(codegen_buf) };
+	ParseNode nn = gen_token(Term{ merged_token_meta, string(codegen_buf) });
 	for (auto i = 0; i < list1.child.size(); i++)
 	{
 		nn.addchild(list1.get(i));

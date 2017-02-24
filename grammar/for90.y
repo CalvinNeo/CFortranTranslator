@@ -39,6 +39,7 @@ extern void set_buff(const std::string & code);
 extern void release_buff();
 #define YYDEBUG 1
 #define YYERROR_VERBOSE
+#define YYINITDEPTH 500
 // static is necessary, or will cause lnk
 static char codegen_buf[MAX_CODE_LENGTH];
 using namespace std;
@@ -49,7 +50,7 @@ using namespace std;
 %token /*_YY_VOID*/ YY_IGNORE_THIS YY_CRLF
 %token /*_YY_OP*/ YY_GT YY_GE YY_EQ YY_LE YY_LT YY_NEQ YY_NEQV YY_EQV YY_ANDAND YY_OROR YY_NOT YY_POWER YY_DOUBLECOLON YY_NEG YY_POS
 %token /*_YY_TYPE*/ YY_INTEGER YY_FLOAT YY_WORD YY_OPERATOR YY_STRING YY_ILLEGAL YY_COMPLEX YY_TRUE YY_FALSE YY_FORMAT_STMT YY_COMMENT
-%token /*_YY_CONTROL*/ YY_LABEL YY_END YY_IF YY_THEN YY_ELSE YY_ELSEIF YY_ENDIF YY_DO YY_ENDDO YY_CONTINUE YY_BREAK YY_WHILE YY_ENDWHILE YY_WHERE YY_ENDWHERE YY_CASE YY_ENDCASE YY_SELECT YY_ENDSELECT YY_GOTO YY_DOWHILE YY_DEFAULT 
+%token /*_YY_CONTROL*/ YY_LABEL YY_END YY_IF YY_THEN YY_ELSE YY_ELSEIF YY_ENDIF YY_DO YY_ENDDO YY_CONTINUE YY_BREAK YY_EXIT YY_CYCLE YY_WHILE YY_ENDWHILE YY_WHERE YY_ENDWHERE YY_CASE YY_ENDCASE YY_SELECT YY_ENDSELECT YY_GOTO YY_DOWHILE YY_DEFAULT 
 %token /*_YY_DELIM*/ YY_PROGRAM YY_ENDPROGRAM YY_FUNCTION YY_ENDFUNCTION YY_RECURSIVE YY_RESULT YY_SUBROUTINE YY_ENDSUBROUTINE YY_MODULE YY_ENDMODULE YY_BLOCK YY_ENDBLOCK YY_INTERFACE YY_ENDINTERFACE YY_COMMON YY_DATA
 %token /*_YY_DESCRIBER*/ YY_IMPLICIT YY_NONE YY_USE YY_PARAMETER YY_ENTRY YY_DIMENSION YY_ARRAYINITIAL_START YY_ARRAYINITIAL_END YY_INTENT YY_IN YY_OUT YY_INOUT YY_OPTIONAL YY_LEN YY_KIND YY_SAVE
 %token /*_YY_TYPEDEF*/ YY_INTEGER_T YY_FLOAT_T YY_STRING_T YY_COMPLEX_T YY_BOOL_T YY_CHARACTER_T
@@ -68,31 +69,46 @@ using namespace std;
 %start fortran_program
 
 %%
-	crlf : YY_CRLF
+
+	crlf_or_not : YY_CRLF
 			{
 				$$.fs.CurrentTerm = Term{ TokenMeta::CRLF, "\n" };
+				update_pos($$, $1, $1);
 			}
-		| ';'
+		|
+			{
+				$$.fs.CurrentTerm = Term{ TokenMeta::Nop, "" };
+				update_pos($$);
+			}
+
+	at_least_one_end_line : YY_CRLF
+			{
+				$$.fs.CurrentTerm = Term{ TokenMeta::CRLF, "\n" };
+				update_pos($$, $1, $1);
+			}
+		| at_least_one_end_line YY_CRLF
+			{
+				$$.fs.CurrentTerm = Term{ TokenMeta::CRLF, "\n" };
+				update_pos($$, $1, $2);
+			}
+		| semicolon
+			{
+				$$.fs.CurrentTerm = Term{ TokenMeta::CRLF, "\n" };
+				update_pos($$, $1, $1);
+			}
+		| at_least_one_end_line semicolon
+			{
+				$$.fs.CurrentTerm = Term{ TokenMeta::CRLF, "\n" };
+				update_pos($$, $1, $2);
+			}
+
+	semicolon : ';'
 			{
 				$$.fs.CurrentTerm = Term{ TokenMeta::Semicolon, ";" };
 			}
-		|
-			{
-				$$.fs.CurrentTerm = Term{ TokenMeta::Nop, "" };
-			}
 
-	block_name_crlf : YY_WORD YY_CRLF
-			{
-				$$.fs.CurrentTerm = Term{ TokenMeta::CRLF, "\n" };
-			}
-		| YY_CRLF
-			{
-				$$.fs.CurrentTerm = Term{ TokenMeta::CRLF, "\n" };
-			}
-		|
-			{
-				$$.fs.CurrentTerm = Term{ TokenMeta::Nop, "" };
-			}
+	end_of_stmt : YY_CRLF
+		| semicolon
 
 	dummy_function_iden : YY_RECURSIVE
 		|
@@ -601,26 +617,13 @@ using namespace std;
 				update_pos($$, $1, $1);
 			}
 
-
-	_crlf_semicolon: crlf
-		| ';' crlf
-
-	semicolon : ';'
-			{
-				$$ = $1;
-			}
-		|
-			{
-				$$.fs.CurrentTerm = Term{ TokenMeta::Nop, "" };
-			}
-
 	label : YY_LABEL
 		{
 			$$ = gen_label($1);
 			update_pos($$, $1, $1);
 		}
 
-	stmt : exp _crlf_semicolon
+	stmt : exp 
 			{
 				/*
 					一般来说, 可以不单独建立stmt的ParseNode, 再添加唯一的child(exp, var_def, compound_stmt等).
@@ -628,13 +631,13 @@ using namespace std;
 					所以单独建立stmt节点兵添加$1位stmt节点的唯一的儿子
 				*/
 				$$ = gen_stmt($1, "%s;");
-				update_pos($$, $1, $2);
+				update_pos($$, $1, $1);
 			}
-		| var_def _crlf_semicolon
+		| var_def 
 			{
 				/* 因为var_def本身可能生成多行代码, 因此此处生成代码不应当带分号`;` */
 				$$ = gen_stmt($1, "%s");
-				update_pos($$, $1, $2);
+				update_pos($$, $1, $1);
 			}
         | compound_stmt
 			{
@@ -662,104 +665,163 @@ using namespace std;
 				$$ = gen_stmt($1);
 				update_pos($$, $1, $1);
 			}
-				
-		| semicolon YY_CRLF
-			{
-				ParseNode & xx = $1;
-				update_pos($$, $1, $2);
-			}
-			
+
 		| common_stmt
 			{
 				$$ = $1;
 				update_pos($$, $1, $1);
 			}
-		| YY_FORMAT_STMT _crlf_semicolon
+		| YY_FORMAT_STMT
 			{
 				$$ = gen_format($1);
-				update_pos($$, $1, $2);
-			}
-		| label
-			{
-				$$ = $1;
 				update_pos($$, $1, $1);
 			}
-		| YY_COMMENT crlf
+		| YY_COMMENT
 			{
 				$$ = gen_token(Term{TokenMeta::Comments, "/*" + $1.to_string() + "*/"});
-				update_pos($$, $1, $2);
+				update_pos($$, $1, $1);
+			}
+		| pause_stmt 
+		| stop_stmt 
+		| YY_CONTINUE
+			{
+				$$ = gen_token(Term{TokenMeta::Comments, "nop();"});
+				update_pos($$, $1, $1);
+			}
+		| 
+			{
+				$$ = gen_token(Term{ TokenMeta::NT_STATEMENT, "" });
+				update_pos($$);
 			}
 
 
+    output_stmt : write
+		| print
 
-    output_stmt : write _crlf_semicolon
-		| print _crlf_semicolon
-
-	input_stmt : read _crlf_semicolon
+	input_stmt : read
 
 	compound_stmt : if_stmt 
 		| do_stmt 
 		| select_stmt
 
-	jump_stmt : YY_CONTINUE _crlf_semicolon
-		| YY_BREAK _crlf_semicolon
-		| YY_GOTO YY_INTEGER _crlf_semicolon
+	jump_stmt : YY_CYCLE
 			{
-				$$ = gen_token(Term{TokenMeta::Goto, "goto " + $1.to_string() + ";\n"});
-				update_pos($$, $1, $3);
+				$$ = gen_token(Term{TokenMeta::META_ANY, "continue;"});
+				update_pos($$, $1, $1);
+			}
+		| YY_EXIT
+			{
+				$$ = gen_token(Term{TokenMeta::META_ANY, "break;"});
+				update_pos($$, $1, $1);
+			}
+		| YY_GOTO YY_INTEGER
+			{
+				$$ = gen_token(Term{TokenMeta::Goto, "goto " + $2.to_string() + ";\n"});
+				update_pos($$, $1, $2);
 			}
 
-	let_stmt : exp '=' exp _crlf_semicolon
+	pause_stmt : YY_PAUSE literal
+			{
+				ParseNode & lit = $2;
+				$$ = gen_token(Term{ TokenMeta::META_ANY, "printf(" + lit.to_string() + ");\nsystem(\"pause\");\n" });
+				update_pos($$, $1, $2);
+			}
+		| YY_PAUSE
+			{
+				$$ = gen_token(Term{ TokenMeta::META_ANY, "system(\"pause\");\n" });
+				update_pos($$, $1, $1);
+			}
+	stop_stmt : YY_STOP literal
+		{
+			ParseNode & lit = $2;
+			$$ = gen_token(Term{ TokenMeta::META_ANY, "printf(" + lit.to_string() + ");\nsystem(\"pause\");\n" });
+			update_pos($$, $1, $2);
+		}
+	| YY_STOP
+		{
+			$$ = gen_token(Term{ TokenMeta::META_ANY, "system(\"pause\");\n" });
+			update_pos($$, $1, $1);
+		}
+
+	let_stmt : exp '=' exp
 			{
 				ParseNode & exp1 = $1;
 				ParseNode & op = $2;
 				ParseNode & exp2 = $3;
 				$$ = gen_exp(exp1, op, exp2, "%s = %s");
-				update_pos($$);
-			}
-
-	dummy_stmt : YY_IMPLICIT YY_NONE crlf
-			{
-				// dummy stmt
-				$$ = gen_token(Term{ TokenMeta::NT_STATEMENT, "" });
 				update_pos($$, $1, $3);
 			}
 
-	suite : stmt
+	dummy_stmt : YY_IMPLICIT YY_NONE
+			{
+				// dummy stmt
+				$$ = gen_token(Term{ TokenMeta::NT_STATEMENT, "" });
+				update_pos($$, $1, $2);
+			}
+
+	suite : label stmt
+			{
+				ParseNode & label = $1; // TokenMeta::Label
+				ParseNode & stmt = $2;
+				if (stmt.child.size() > 0 && stmt.get(0).fs.CurrentTerm.token == TokenMeta::NT_FORMAT)
+				{
+					log_format_index(label.to_string(), stmt);
+					$$ = gen_token(Term{TokenMeta::Nop, ""}); // do not print format stmt
+				}
+				else {
+					sprintf(codegen_buf, "%s\n%s", label.to_string().c_str(), stmt.to_string().c_str());
+					ParseNode & newnode = gen_token(Term{ TokenMeta::NT_SUITE , string(codegen_buf) });
+					newnode.addchild(label);
+					newnode.addchild(stmt);
+					$$ = newnode;
+				}
+				update_pos($$, $1, $2);
+			}
+		| label stmt end_of_stmt suite
+			{
+				ParseNode & label = $1; 
+				ParseNode & stmt = $2;
+				ParseNode & suite = $4;				
+				if (stmt.child.size() > 0 && stmt.get(0).fs.CurrentTerm.token == TokenMeta::NT_FORMAT)
+				{
+					log_format_index(label.to_string(), stmt);
+					$$ = suite; // do not print format stmt
+				}
+				else {
+					sprintf(codegen_buf, "%s\n%s\n%s", label.to_string().c_str(), stmt.to_string().c_str(), suite.to_string().c_str());
+					ParseNode & newnode = gen_token(Term{ TokenMeta::NT_SUITE , string(codegen_buf) });
+					newnode.addchild(label);
+					newnode.addchild(stmt);
+					for (int i = 0; i < suite.child.size(); i++)
+					{
+						newnode.addchild(suite.get(i));
+					}
+					$$ = newnode;
+				}
+				update_pos($$, $1, $2);
+			}
+		| stmt
 			{
 				ParseNode & stmt = $1; // TokenMeta::NT_LABEL
 				$$ = gen_promote("%s\n", TokenMeta::NT_SUITE, stmt);
 				update_pos($$, $1, $1);
 			}
-		| stmt suite
+		| stmt end_of_stmt suite
 			{
 				ParseNode & stmt = $1; 
-				ParseNode & suite = $2;
-				if (stmt.fs.CurrentTerm.token == TokenMeta::NT_LABEL)
-				{
-					ParseNode & label = stmt.get(0); // TokenMeta::Label
-					if (suite.child.size() > 0 && suite.get(0).child.size() > 0 && suite.get(0).get(0).fs.CurrentTerm.token == TokenMeta::NT_FORMAT)
-					{
-						log_format_index(label.to_string(), suite.get(0));
-						$$ = suite;
-					}
-					else {
-						$$ = gen_flattern(stmt, suite, "%s\n%s", TokenMeta::NT_SUITE);
-					}
-				}else {
-					$$ = gen_flattern(stmt, suite, "%s\n%s", TokenMeta::NT_SUITE);
-				}
-				update_pos($$, $1, $2);
+				ParseNode & suite = $3;
+				$$ = gen_flattern(stmt, suite, "%s\n%s", TokenMeta::NT_SUITE);
+				update_pos($$, $1, $3);
 			}
 		| interface_decl
 			{
 				$$ = gen_promote("", TokenMeta::NT_SUITE, $1);
 				update_pos($$, $1, $1);
 			}
-		| interface_decl suite
+		| interface_decl end_of_stmt suite
 			{
-				$$ = gen_flattern($1, $2, "%s%s", TokenMeta::NT_SUITE);
-				update_pos($$, $1, $2);
+				$$ = gen_flattern($1, $3, "%s%s", TokenMeta::NT_SUITE);
+				update_pos($$, $1, $3);
 			}
 
 	_optional_lbrace : 
@@ -1073,47 +1135,47 @@ using namespace std;
 		| YY_ENDIF
 
 
-	if_stmt : _optional_construct_name YY_IF '(' exp ')' stmt crlf
+	if_stmt : _optional_construct_name YY_IF '(' exp ')' stmt 
 			{
 				ParseNode & exp = $4;
 				ParseNode & stmt_true = $6;
 				$$ = gen_if_oneline(exp, stmt_true);
-				update_pos($$, $1, $7);
+				update_pos($$, $1, $6);
 			}
-		| _optional_construct_name YY_IF exp YY_THEN YY_CRLF /* must have \n */ suite _yy_endif crlf
+		| _optional_construct_name YY_IF exp YY_THEN at_least_one_end_line /* must have \n */ suite _yy_endif
 			{
 				ParseNode & exp = $3;
 				ParseNode & suite_true = $6; 
 				$$ = gen_if(exp, suite_true, gen_dummy(), gen_dummy());
-				update_pos($$, $1, $8);
+				update_pos($$, $1, $7);
 			}
-		| _optional_construct_name YY_IF exp YY_THEN YY_CRLF suite YY_ELSE crlf suite _yy_endif crlf
+		| _optional_construct_name YY_IF exp YY_THEN at_least_one_end_line suite YY_ELSE at_least_one_end_line suite _yy_endif
 			{
 				ParseNode & exp = $3;
 				ParseNode & suite_true = $6; 
 				ParseNode & suite_else = $9; 
 				$$ = gen_if(exp, suite_true, gen_dummy(), suite_else);
-				update_pos($$, $1, $11);
+				update_pos($$, $1, $10);
 			}
-		| _optional_construct_name YY_IF exp YY_THEN YY_CRLF suite elseif_stmt _yy_endif crlf
+		| _optional_construct_name YY_IF exp YY_THEN at_least_one_end_line suite elseif_stmt _yy_endif
 			{
 				ParseNode & exp = $3;
 				ParseNode & suite_true = $6;
 				ParseNode & elseif = $7;
 				$$ = gen_if(exp, suite_true, elseif, gen_dummy());
-				update_pos($$, $1, $9);
+				update_pos($$, $1, $8);
 			}
-		| _optional_construct_name YY_IF exp YY_THEN YY_CRLF suite elseif_stmt YY_ELSE crlf suite _yy_endif crlf
+		| _optional_construct_name YY_IF exp YY_THEN at_least_one_end_line suite elseif_stmt YY_ELSE at_least_one_end_line suite _yy_endif
 			{
 				ParseNode & exp = $3;
 				ParseNode & suite_true = $6;
 				ParseNode & elseif = $7;
 				ParseNode & suite_else = $10;
 				$$ = gen_if(exp, suite_true, elseif, suite_else);
-				update_pos($$, $1, $12);
+				update_pos($$, $1, $11);
 			}
 
-	elseif_stmt : YY_ELSEIF exp YY_THEN crlf suite
+	elseif_stmt : YY_ELSEIF exp YY_THEN at_least_one_end_line suite
 			{
 				ParseNode & exp = $2;
 				ParseNode & suite_true = $5;
@@ -1121,7 +1183,7 @@ using namespace std;
 				update_pos($$, $1, $5);
 			}
 
-		| YY_ELSEIF exp YY_THEN crlf suite elseif_stmt
+		| YY_ELSEIF exp YY_THEN at_least_one_end_line suite elseif_stmt
 			{
 				ParseNode & exp = $2;
 				ParseNode & suite_true = $5;
@@ -1132,14 +1194,14 @@ using namespace std;
 
 	_yy_enddo : YY_END YY_DO
 		| YY_ENDDO
-
-	do_stmt : _optional_construct_name YY_DO YY_CRLF suite _yy_enddo crlf
+	
+	do_stmt : _optional_construct_name YY_DO at_least_one_end_line suite crlf_or_not _yy_enddo
 			{
 				ParseNode & suite = $4; 
 				$$ = gen_do(suite);
-				update_pos($$, $1, $6);
+				update_pos($$, $1, $5);
 			}
-		| _optional_construct_name YY_DO variable '=' exp ',' exp YY_CRLF suite _yy_enddo crlf
+		| _optional_construct_name YY_DO variable '=' exp ',' exp at_least_one_end_line suite crlf_or_not _yy_enddo
 			{
 				ParseNode & loop_variable = $3;
 				ParseNode & exp_from = $5;
@@ -1149,7 +1211,7 @@ using namespace std;
 				$$ = gen_do_range(loop_variable, exp_from, exp_to, step, suite);
 				update_pos($$, $1, $11);
 			}
-		| _optional_construct_name YY_DO variable '=' exp ',' exp ',' exp YY_CRLF suite _yy_enddo crlf
+		| _optional_construct_name YY_DO variable '=' exp ',' exp ',' exp at_least_one_end_line suite crlf_or_not _yy_enddo
 			{
 				ParseNode & loop_variable = $3;
 				ParseNode & exp1 = $5;
@@ -1157,28 +1219,28 @@ using namespace std;
 				ParseNode & exp3 = $9;
 				ParseNode & suite = $11;
 				$$ = gen_do_range(loop_variable, exp1, exp2, exp3, suite);
-				update_pos($$, $1, $12);
+				update_pos($$, $1, $11);
 			}
-		| _optional_construct_name YY_DOWHILE exp YY_CRLF suite _yy_enddo crlf
+		| _optional_construct_name YY_DOWHILE exp at_least_one_end_line suite crlf_or_not _yy_enddo
 			{
 				ParseNode & exp = $3;
 				ParseNode & suite = $5; 
 				$$ = gen_do_while(exp, suite);
-				update_pos($$, $1, $7);
+				update_pos($$, $1, $6);
 			}
 	
 	_yy_endselect : YY_END YY_SELECT
 		| YY_ENDSELECT
 
-	select_stmt : _optional_construct_name YY_SELECT YY_CASE _optional_lbrace exp _optional_rbrace crlf case_stmt _yy_endselect crlf
+	select_stmt : _optional_construct_name YY_SELECT YY_CASE _optional_lbrace exp _optional_rbrace at_least_one_end_line case_stmt _yy_endselect
 			{
 				ParseNode & select = $2;
 				ParseNode & exp = $5;
 				ParseNode & case_stmt = $8;
 				$$ = gen_select(exp, case_stmt);
-				update_pos($$, $1, $10);
+				update_pos($$, $1, $9);
 			}
-	case_stmt_elem : YY_CASE _optional_lbrace dimen_slice _optional_rbrace crlf suite
+	case_stmt_elem : YY_CASE _optional_lbrace dimen_slice _optional_rbrace at_least_one_end_line suite
 			{
 				// one case
 				ParseNode & dimen_slice = $3;
@@ -1219,7 +1281,7 @@ using namespace std;
 	_optional_function : YY_FUNCTION
 		| YY_SUBROUTINE
 
-	function_decl : dummy_function_iden _optional_function variable '(' paramtable ')' _optional_result crlf suite YY_END _optional_function crlf
+	function_decl : dummy_function_iden _optional_function variable '(' paramtable ')' _optional_result at_least_one_end_line suite YY_END _optional_function
 			{
 				/* fortran90 does not declare type of arguments in function declaration statement*/
 				ParseNode & variable_function = $3; // function name
@@ -1229,22 +1291,22 @@ using namespace std;
 				ParseNode & suite = $9;
 
 				$$ = gen_function(variable_function, paramtable, variable_result, suite);
-				update_pos($$, $1, $12);
+				update_pos($$, $1, $11);
 			}
 	
 	_optional_name : YY_WORD
 		|
 
-    program : YY_PROGRAM _optional_name crlf suite YY_END YY_PROGRAM _optional_name crlf
+    program : YY_PROGRAM _optional_name at_least_one_end_line suite YY_END YY_PROGRAM _optional_name
 			{
 				ParseNode & suite = $4;
 				$$ = gen_program_explicit(suite);
-				update_pos($$, $1, $8);
+				update_pos($$, $1, $7);
 			}
-		| YY_PROGRAM _optional_name crlf YY_END YY_PROGRAM _optional_name crlf
+		| YY_PROGRAM _optional_name at_least_one_end_line YY_END YY_PROGRAM _optional_name
 			{
 				$$ = gen_program_explicit(gen_token(Term{TokenMeta::NT_PROGRAM_EXPLICIT , ""}));
-				update_pos($$, $1, $7);
+				update_pos($$, $1, $6);
 			}
 		 
 		| suite
@@ -1261,14 +1323,7 @@ using namespace std;
 
 
 	wrapper :  function_decl
-			{
-				$$ = $1;
-			}
 		| program
-			{
-				$$ = $1;
-			}
-
 
 	wrappers : wrapper
 			{
@@ -1279,29 +1334,28 @@ using namespace std;
 				$$ = newnode;
 				update_pos($$, $1, $1);
 			}
-		| wrapper wrappers
+		| wrapper at_least_one_end_line wrappers
 			{
 				ParseNode newnode = ParseNode();
 				newnode.addchild($1); // wrapper
-				newnode.addchild($2); // wrappers
-				sprintf(codegen_buf, "%s\n%s", $1.to_string().c_str(), $2.to_string().c_str());
+				newnode.addchild($3); // wrappers
+				sprintf(codegen_buf, "%s\n%s", $1.to_string().c_str(), $3.to_string().c_str());
 				newnode = flattern_bin_right(newnode);
 				newnode.fs.CurrentTerm = Term{ TokenMeta::NT_WRAPPERS, string(codegen_buf) };
 				$$ = newnode;
-				update_pos($$, $1, $2);
+				update_pos($$, $1, $3);
 			}
 
-	interface_decl : YY_INTERFACE _optional_name crlf wrappers crlf YY_END YY_INTERFACE _optional_name crlf
+	interface_decl : YY_INTERFACE _optional_name at_least_one_end_line wrappers crlf_or_not YY_END YY_INTERFACE _optional_name
 			{
 				$$ = gen_interface($4);
-				update_pos($$, $1, $9);
+				update_pos($$, $1, $8);
 			}
 
 	fortran_program : wrappers
 			{
 				gen_fortran_program($1);
 			}
-		|
 
 
 %%

@@ -1,0 +1,9 @@
+	do i=1,m
+	do j=1,n(i)
+301	continue
+!	endif ! 重要
+c	endif ! 重要
+	enddo
+	n(i)=n1   !去除部分实验测读的点
+	enddo
+4	continue

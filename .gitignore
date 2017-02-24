@@ -54,3 +54,6 @@ build/CFortran77Translator/x64/
 *.lnk
 *.log
 *.tmp
+*.output
+*.flex.cpp
+*.tab.cpp

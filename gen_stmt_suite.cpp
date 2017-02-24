@@ -34,8 +34,8 @@ ParseNode gen_stmt(const ParseNode & content, const std::string & rules) {
 }
 
 ParseNode gen_empty_suite() {
-	ParseNode newnode = ParseNode();
-	ParseNode & stmt = gen_token(Term{ TokenMeta::NT_SUITE, "\n" });
+	ParseNode newnode = gen_token(Term{ TokenMeta::NT_SUITE	, "" });
+	ParseNode & stmt = gen_token(Term{ TokenMeta::NT_STATEMENT, "" });
 	newnode.addchild(stmt); // stmt
 	return newnode;
 }

@@ -18,7 +18,7 @@
 */
 
 #include "tokenizer.h"
-#include "grammar\for90.tab.h"
+#include "grammar/for90.tab.h"
 #include "gen_config.h"
 
 using namespace std;
@@ -101,11 +101,15 @@ const vector<KeywordMeta> keywords = {
 		, YY_DOWHILE
 	}
 	, KeywordMeta{"exit"
-		, TokenMeta::Break
-		, YY_BREAK
+		, TokenMeta::META_ANY
+		, YY_EXIT
 	}
 	, KeywordMeta{"cycle"
-		, TokenMeta::Continue
+		, TokenMeta::META_ANY
+		, YY_CYCLE
+	}
+	, KeywordMeta{"continue"
+		, TokenMeta::META_ANY
 		, YY_CONTINUE
 	}
 	, KeywordMeta{"while"
@@ -168,7 +172,7 @@ const vector<KeywordMeta> keywords = {
 		, TokenMeta::META_ANY
 		, YY_PARAMETER
 	}
-	, KeywordMeta{"and" 
+	, KeywordMeta{".and." 
 		, TokenMeta::AndAnd
 		, YY_ANDAND
 	}
@@ -216,7 +220,7 @@ const vector<KeywordMeta> keywords = {
 		, TokenMeta::EQ
 		, YY_EQ
 	}
-	, KeywordMeta{".neq."
+	, KeywordMeta{".ne."
 		, TokenMeta::NEQ
 		, YY_NEQ
 	}
@@ -350,3 +354,4 @@ FlexState & get_flex_state() {
 	static FlexState flex_state;
 	return flex_state;
 }
+

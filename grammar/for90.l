@@ -28,45 +28,16 @@
 #include "../parser.h"
 #include "../context.h"
 #include "../gen_config.h"
-//#include "../format.h"
-
-
-// 前置声明
 #ifdef USE_YACC
 #include "for90.tab.h"
 #else
 
 #endif
-struct FlexContext{
-	char * iter_buff = nullptr;
-	YY_BUFFER_STATE yy_buffer = nullptr;
-};
-FlexContext & get_flex_context() {
-	static FlexContext fc;
-	return fc;
-}
-struct FlexExternalContext {
-	std::string external_state;
-	int left_brackets = 0;
-	std::string code;
-	void begin_external_scanner(std::string trigger);
-	void end_external_scanner();
-	bool do_external_scanner(const char * text);
-	int YYTOK;
-	int len;
-};
-FlexExternalContext & get_flex_external_context() {
-	static FlexExternalContext fc;
-	return fc;
-}
-static bool abandon = false;
-#ifdef USE_YACC
-// USE YACC
-int word_parse();
+
 void update_flex(int len, bool newline = false) {
 	// do not update CurrentTerm
 	if (newline) {
-		get_flex_state().parse_line++; 
+		get_flex_state().parse_line++;
 		get_flex_state().parse_pos += len; get_flex_state().line_pos = 0; get_flex_state().parse_len = len;
 	}
 	else {
@@ -84,42 +55,137 @@ void update_yylval(Term & current_term, bool empty = false) {
 		yylval.fs.CurrentTerm = current_term;
 	}
 }
+struct FlexContext{
+	char * iter_buff = nullptr;
+	YY_BUFFER_STATE yy_buffer = nullptr;
+};
+FlexContext & get_flex_context() {
+	static FlexContext fc;
+	return fc;
+}
+struct FlexScannerContext {
+	std::string trigger;
+	int condition;
+	virtual void begin_scanner(std::string trigger, int condition) {
+		// 此时parse_pos已经扫过了trigger字符串
+		this->trigger = trigger;
+		this->condition = condition;
+		code = "";
+		BEGIN(condition);
+	}
+	virtual void end_scanner(int yy_token, Term term) {
+		this->YYTOK = yy_token;
+		update_yylval(term);
+		BEGIN(0);
+	}
+	int YYTOK;
+	std::string code;
+};
 
 std::string parse_ioformatter(const std::string & src); // gen_io.cpp
+struct FlexExternalContext : public FlexScannerContext {
+	int left_brackets = 0;
+	int len;
+	void begin_scanner(std::string trigger, int condition) {
+		left_brackets = 0;
+		len = 0;
+		FlexScannerContext::begin_scanner(trigger, condition);
+	}
+	bool do_scanner(const char * text) {
+		// return true to return a YYTOK
+		len++;
+		code += text;
+		if (this->trigger == "format")
+		{
+			if (text[0] == '(')
+			{
+				left_brackets++;
+			}
+			else if (text[0] == ')') {
+				left_brackets--;
+				if (left_brackets == 0)
+				{
+					std::string result = parse_ioformatter(code); //
+					update_flex((int)len);
+					FlexScannerContext::end_scanner(YY_FORMAT_STMT, Term{ TokenMeta::NT_FORMAT, result });
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+};
+FlexExternalContext & get_flex_external_context() {
+	static FlexExternalContext fc;
+	return fc;
+}
+struct FlexLabelEndContext : public FlexScannerContext {
+	bool end_label_hit = false;
+	bool quit;
+	void begin_scanner(std::string trigger, int condition) {
+		end_label_hit = false;
+		FlexScannerContext::begin_scanner(trigger, condition);
+	}
+	void end_scanner(int yy_token, Term term) {
+		this->YYTOK = yy_token;
+		update_yylval(term);
+		end_label_hit = false;
+		if (quit)
+		{
+			BEGIN(0);
+		}
+		else {
+			// keep in the label_end_scanner mode
+		}
+	}
+};
+FlexLabelEndContext & get_label_end_context() {
+	static FlexLabelEndContext fc;
+	return fc;
+}
+struct FlexJumpToContext : public FlexScannerContext {
+	int index = 0;
+	int goal;
+	bool jumped_do_label;
+	void begin_scanner(std::string trigger, int condition, int next_n) {
+		index = 0;
+		goal = next_n;
+		jumped_do_label = false;
+		FlexScannerContext::begin_scanner(trigger, condition);
+	}
+	bool do_scanner(const char * text) {
+		// return true to return a YYTOK
+		index++;
+		if (index == goal)
+		{
+			FlexScannerContext::end_scanner(YY_NULL, Term{ TokenMeta::Nop, "" });
+			return false; // 不返回
+		}
+		return false;
+	}
+};
+FlexJumpToContext & get_jump_to_context() {
+	static FlexJumpToContext fc;
+	return fc;
+}
+static bool abandon = false;
+#ifdef USE_YACC
+// USE YACC
+int word_parse();
+
+
 #define YYRTN(TOK, YYTOK)  update_yylval(Term{TOK, std::string(yytext)});  update_flex((int)yyleng);  return YYTOK; 
 #define YYRTCRLF()  update_yylval( Term{TokenMeta::CRLF, std::string(yytext)}); update_flex((int)yyleng, true); return YY_CRLF;
 // 空格, 制表符等
-#define YYRTNOP() update_yylval( Term{TokenMeta::Nop, std::string(yytext)}, true);  update_flex((int)yyleng); 
+#define YYRTNOP() /* do not update yylval */  update_flex((int)yyleng); /* do not return */
 // include literal const such as pi, true, false, etc.
-#define YYRTNCOMMENT() update_yylval( Term{TokenMeta::Comments, std::string(yytext)},  false);  update_flex((int)yyleng); return YY_COMMENT;
-/*do not call update_yylval because some tokens need to be looked ahead, such as `else if` */
-#define YYRTWORD() {  int p = word_parse(); \
-	update_flex((int)yyleng); \
-	if (p != YY_IGNORE_THIS) { \
-		  return p;  \
-	}\
-}
+#define YYRTNCOMMENT() /* do not update yylval */  update_flex((int)yyleng, false/* not empty */);  /* do not return */
 
 // 对于非char运算符要预先解析
-#define YYRTOP(TOK, YYTOK) YYRTN(TOK, YYTOK)
-#define YYRTINT(TOK) YYRTN(TOK, YY_INTEGER) 
-#define YYRTFLOAT(TOK) YYRTN(TOK, YY_FLOAT) 
-#define YYRTSTRING(TOK) YYRTN(TOK, YY_STRING) 
 #define YYRTCOMPLEX(TOK) YYRTN(TOK, YY_COMPLEX) 
 // 规则中被定义的终结符, **包括ascii表内的单个字符**
 #define YYRTILLEGAL(TOK) YYRTN(TOK, yytext[0])
 
-#define RTN(TOK, YYTOK) YYRTN(TOK, YYTOK) 
-#define RTOP(TOK, YYTOK) YYRTOP(TOK, YYTOK)
-#define RTWORD() YYRTWORD()
-#define RTINT(TOK) YYRTINT(TOK)
-#define RTFLOAT(TOK) YYRTFLOAT(TOK)
-#define RTSTRING(TOK) YYRTSTRING(TOK)
-#define RTCOMPLEX(TOK) YYRTCOMPLEX(TOK)
-#define RTILLEGAL(TOK) YYRTILLEGAL(TOK)
-#define RTCRLF() YYRTCRLF()
-#define RTNOP() YYRTNOP()
-#define RTNCOMMENT() YYRTNCOMMENT()
 #else
 // more spectific
 // DO **NOT** USE WHEN USE YACC EITHER
@@ -138,70 +204,149 @@ int make_term_flex(const TokenMeta_T & token, const char * w) {
 #define NYRTCRLF() update_flex(yyleng, true);  /*DO NOT RETURN, CONTINUE yylex*/
 #define NYRTNOP() update_flex(yyleng); /*DO NOT RETURN*/
 
-#define RTN(TOK, YYTOK) NYRTN(TOK)
-#define RTOP(TOK, YYTOK) NYRTOP(TOK)
-#define RTWORD(TOK) NYRTWORD(TOK)
-#define RTINT(TOK) NYRTINT(TOK)
-#define RTFLOAT(TOK) NYRTFLOAT(TOK)
-#define RTSTRING(TOK) NYRTSTRING(TOK)
-#define RTILLEGAL(TOK) NYRTILLEGAL(TOK)
-#define RTCRLF() NYRTCRLF()
-#define RTNOP() NYRTNOP()
 #endif // USE_YACC
 
 %}
 
 %option yymore
 %x external_scanner
+%s label_end_scanner
+%x jump_to_scanner
 
 delim   [ \t]
 ws      {delim}+
 newline [\r\n]
-floating [0-9\.]+([eE][0-9\.]+)?
-integral [0-9]+
-wordname [a-zA-Z_][a-zA-Z0-9_]*
-wordoperator \.[a-zA-Z_][a-zA-Z0-9]*\.
+/***
+R412 signed - real - literal - constant is[sign] real - literal - constant
+R413 real - literal - constant is significand[exponent - letter exponent][_ kind - param]
+	or digit - string exponent - letter exponent[_ kind - param]
+R414 significand is digit - string .[digit - string]
+	or .digit - string
+R415 exponent - letter is E
+	or D
+R416 exponent is signed - digit - string
+Constraint : If both kind - param and exponent - letter are present, exponent - letter must be E.
+	Constraint : The value of kind - param must specify an approximation method that exists on the processor.
+	A real literal constant without a kind type parameter is a default real constant if it is without an exponent part or
+	has exponent letter E, and is a double precision real constant if it has exponent letter D.A real literal constant
+	written with a kind type parameter is a real constant with the specified kind type parameter.
+**/
+digit [0-9]
+letter [a-zA-Z]
+digits {digit}+
+kind_param (digits|{letter}+)
+exponent [eEdD][-+]?{digits}?\.{digits}
+floating {digits}?\.{digits}{exponent}?
+narrow_floating {digits}\.
+integral {digits}(_{kind_param})?
+starter ({letter}|_)
+wordname {starter}({starter}|{digit})*
+wordoperator \.{wordname}\.
+word ({wordname}|{wordoperator})
 
 %%
 
-<external_scanner>. { if (get_flex_external_context().do_external_scanner(yytext)) { return get_flex_external_context().YYTOK;  } else { } }
+<external_scanner,jump_to_scanner>. { 
+	if (get_flex_external_context().do_scanner(yytext)) { 
+		return get_flex_external_context().YYTOK;  
+	} else {
+		/* DON'T return */
+	} 
+}
 
 
-^[Cc]{ws}+[^\r\n]* { RTNCOMMENT() /*注释*/}
-![^\r\n]* { RTNCOMMENT() /*注释*/}
+^[Cc]{delim}*[^\r\n]* {
+	// std::cout << yytext << std::endl;
+	YYRTNCOMMENT() 
+}
+![^\r\n]* {
+	// std::cout << yytext << std::endl;
+	YYRTNCOMMENT() 
+}
 
 {newline}{ws}\* {
-	RTNOP() 
+	YYRTNOP() 
 }
-{newline} {RTCRLF() }
-{ws} { RTNOP() }
-^[0-9]+ {RTN(TokenMeta::Label, YY_LABEL); }
-{integral} { RTINT(TokenMeta::META_INTEGER) }
-{floating} { RTFLOAT(TokenMeta::META_FLOAT) }
-{floating}_[-+]?{floating} { RTCOMPLEX(TokenMeta::META_COMPLEX) }
-"(/" {RTOP(TokenMeta::META_ANY, YY_ARRAYINITIAL_START) }
-"/)" {RTOP(TokenMeta::META_ANY, YY_ARRAYINITIAL_END) }
-"::" { RTOP(TokenMeta::DoubleColon, YY_DOUBLECOLON) }
-"**" { RTOP(TokenMeta::Power, YY_POWER) }
-">" { RTOP(TokenMeta::GT, YY_GT) }
-">=" { RTOP(TokenMeta::GE, YY_GE) }
-"<" { RTOP(TokenMeta::LT, YY_LT) }
-"<=" { RTOP(TokenMeta::LE, YY_LE) }
-"==" { RTOP(TokenMeta::EQ, YY_EQ) }
-"/=" { RTOP(TokenMeta::NEQ, YY_NEQ) }
-"//" { RTOP(TokenMeta::Add, '+') /* string concat */}
+{newline} {YYRTCRLF() }
+{ws} { YYRTNOP() }
+<INITIAL>^{ws}[0-9]+ {
+	YYRTN(TokenMeta::Label, YY_LABEL); 
+}
+<label_end_scanner>^{delim}*[0-9]+ {
+	auto iter = get_context().end_labels.find(std::string(yytext));
+	if (iter != get_context().end_labels.end()) {
+		iter->second.pop_back();
+		get_label_end_context().end_label_hit = true;
+		if (iter->second.size() == 0)
+		{
+			get_label_end_context().quit = true;
+		}
+	}
+	YYRTNOP()
+}
+<label_end_scanner>{integral} {
+	if (!get_jump_to_context().jumped_do_label) {
+		// std::cout << "---11 " << yytext << std::endl;
+		get_jump_to_context().jumped_do_label = true;
+		YYRTNOP()
+	}
+	else {
+		// std::cout << "+++11 " << yytext << std::endl;
+		YYRTN(TokenMeta::META_INTEGER, YY_INTEGER)
+	}
+}
+<INITIAL>{integral} { YYRTN(TokenMeta::META_INTEGER, YY_INTEGER) }
+{floating} {
+	YYRTN(TokenMeta::META_FLOAT, YY_FLOAT)
+}
+{narrow_floating} {
+	YYRTN(TokenMeta::META_FLOAT, YY_FLOAT)
+}
+{floating}_[-+]?{floating} { YYRTN(TokenMeta::META_COMPLEX, YY_COMPLEX) }
+"(/" {YYRTN(TokenMeta::META_ANY, YY_ARRAYINITIAL_START) }
+"/)" {YYRTN(TokenMeta::META_ANY, YY_ARRAYINITIAL_END) }
+"::" { YYRTN(TokenMeta::DoubleColon, YY_DOUBLECOLON) }
+"**" { YYRTN(TokenMeta::Power, YY_POWER) }
+">" { YYRTN(TokenMeta::GT, YY_GT) }
+">=" { YYRTN(TokenMeta::GE, YY_GE) }
+"<" { YYRTN(TokenMeta::LT, YY_LT) }
+"<=" { YYRTN(TokenMeta::LE, YY_LE) }
+"==" { YYRTN(TokenMeta::EQ, YY_EQ) }
+"/=" { YYRTN(TokenMeta::NEQ, YY_NEQ) }
+"//" { YYRTN(TokenMeta::Add, '+') /* string concat */}
 
-{wordname} { 
-	RTWORD() 
+<INITIAL>{word} {
+	// RTWORD() 
+	/*do not call update_yylval in this macro because some tokens need to be looked ahead, such as `else if` */
+	int p = word_parse();
+	update_flex((int)yyleng); // IMPORTANT, yyleng NOT always equal to `lowercase_name.size()` because of `pre_map`
+	// std::cout << "-----------" << yytext << std::endl;
+	if (p != YY_IGNORE_THIS) {
+		return p;  
+	}
 }
-{wordoperator} { RTWORD() }
+
+<label_end_scanner>{word} {
+	int p = word_parse();
+	update_flex((int)yyleng); // IMPORTANT, yyleng NOT always equal to `lowercase_name.size()` because of `pre_map`
+	if (p == YY_CONTINUE && get_label_end_context().end_label_hit == true) {
+		 std::cout << "---" << yytext << std::endl;
+		// do not update_flex
+		get_label_end_context().end_scanner(YY_ENDDO, Term{TokenMeta::RBrace, "enddo"});
+		return YY_ENDDO;
+	}
+	if (p != YY_IGNORE_THIS) {
+		return p;
+	}
+}
+
 \"(\\.|[^"])*\" {
-	RTSTRING(TokenMeta::META_STRING) /* The delimiting quotes are escaped because they are Flex meta-characters. */
+	YYRTN(TokenMeta::META_STRING, YY_STRING) /* The delimiting quotes are escaped because they are Flex meta-characters. */
 }
 \'(\\.|[^'])*\' {
-	RTSTRING(TokenMeta::META_STRING) /* string with `'` */
+	YYRTN(TokenMeta::META_STRING, YY_STRING)  /* string with `'` */
 }
-. {/* all other things, including some operators not listed */ RTILLEGAL(TokenMeta::META_ILLEGAL) }
+. {/* all other things, including some operators not listed */ YYRTILLEGAL(TokenMeta::META_ILLEGAL) }
 
 %%
 
@@ -225,40 +370,49 @@ int word_parse() {
 FIND_CONCAT:
 	if (lowercase_name == "format")
 	{
-		get_flex_external_context().begin_external_scanner("format");
+		get_flex_external_context().begin_scanner("format", external_scanner);
 		return YY_IGNORE_THIS;
 	}
-	else {
-		auto keyword_iter = find_if(keywords.begin(), keywords.end(), [&](const auto & x) {return x.what == lowercase_name; });
-		if (keyword_iter != keywords.end()) {
-			auto forward1_iter = find_if(forward1.begin(), forward1.end(), [&](const auto & x) {return x.first == lowercase_name; });
-			if (forward1_iter != forward1.end()) {
-				// not a valid yylval
-				std::string next = CutString(get_context().global_code.begin() + fs.parse_pos + yyleng
-					/* yyleng != fs.parse_len because RTNWORD do not update_flex before */
-					, get_context().global_code.end(), false);
-				auto next_iter = find_if(forward1_iter->second.begin(), forward1_iter->second.end(), [&](const auto & x) {return x == next; });
-				if (next_iter != forward1_iter->second.end()) {
-					// concat two string
-					lowercase_name += next;
-					abandon = true; // ignore next
-					goto FIND_CONCAT;
-				}
-			}
-			/* this is a keyword with specialized yytoken */
-			if (pre_map.find(lowercase_name) != pre_map.end()) {
-				lowercase_name = pre_map.at(lowercase_name);
-			}
-			update_yylval(Term{ keyword_iter->token , std::string(lowercase_name) });
-			return keyword_iter->yytoken;
+	else if (lowercase_name == "do") {
+		std::string next = CutString(get_context().global_code.begin() + fs.parse_pos + yyleng
+			/* yyleng != fs.parse_len because RTNWORD do not update_flex before */
+			, get_context().global_code.end(), false);
+		if (next[0] >= '0' && next[0] <= '9') {
+			// label-do-stmt is [ do-construct-name : ] DO label [ loop-control ]
+			get_context().end_labels[next].push_back("do");
+			get_label_end_context().begin_scanner("do", label_end_scanner);
+			return YY_DO;
 		}
-		if (pre_map.find(lowercase_name) != pre_map.end()) {
-			// replace according to tokenizer.cpp
-			lowercase_name = pre_map.at(lowercase_name);
-		}
-		update_yylval(Term{ TokenMeta::META_WORD , std::string(lowercase_name) });
-		return YY_WORD;
 	}
+NORMAL_CONDITION:
+	int tok = TokenMeta::META_WORD;
+	int yytok = YY_WORD;
+	auto keyword_iter = find_if(keywords.begin(), keywords.end(), [&](const auto & x) {return x.what == lowercase_name; });
+	if (keyword_iter != keywords.end()) {
+		// if fortran keyword
+		auto forward1_iter = find_if(forward1.begin(), forward1.end(), [&](const auto & x) {return x.first == lowercase_name; });
+		if (forward1_iter != forward1.end()) {
+			// not a valid yylval
+			std::string next = CutString(get_context().global_code.begin() + fs.parse_pos + yyleng
+				/* yyleng != fs.parse_len because RTNWORD do not update_flex before */
+				, get_context().global_code.end(), false);
+			auto next_iter = find_if(forward1_iter->second.begin(), forward1_iter->second.end(), [&](const auto & x) {return x == next; });
+			if (next_iter != forward1_iter->second.end()) {
+				// concat two string
+				lowercase_name += next;
+				abandon = true; // ignore next
+				goto FIND_CONCAT;
+			}
+		}
+		tok = keyword_iter->token;
+		yytok = keyword_iter->yytoken;
+	}
+	if (pre_map.find(lowercase_name) != pre_map.end()) {
+		// replace according to tokenizer.cpp
+		lowercase_name = pre_map.at(lowercase_name);
+	}
+	update_yylval(Term{ tok, std::string(lowercase_name) });
+	return yytok;
 }
 
 void set_buff(const std::string & code) {
@@ -281,43 +435,7 @@ void release_buff() {
 	yy_delete_buffer(get_flex_context().yy_buffer);
 	free(get_flex_context().iter_buff); get_flex_context().iter_buff = nullptr;
 }
-void FlexExternalContext::begin_external_scanner(std::string trigger) {
-	external_state = trigger;
-	left_brackets = 0;
-	code = "";
-	// 此时parse_pos已经扫过了trigger字符串
-	len = 0;
-	BEGIN(external_scanner);
-}
-void FlexExternalContext::end_external_scanner() {
-	BEGIN(0);
-}
-bool FlexExternalContext::do_external_scanner(const char * text) {
-	len++;
-	if (external_state == "format")
-	{
-		if (text[0] == '(')
-		{
-			left_brackets++;
-		}
-		else if (text[0] == ')') {
-			left_brackets--;
-			if (left_brackets == 0)
-			{
-				end_external_scanner();
-				YYTOK = YY_FORMAT_STMT;
-				std::string result = parse_ioformatter(code);
-				update_yylval(Term{ TokenMeta::NT_FORMAT, result });
-				update_flex((int)len);
-				return true;
-			}
-		}
-		else {
-			code += text;
-		}
-	}
-	return false;
-}
+
 #else
 FlexState next_token(const std::string & in_str, int start){
 	using namespace std;

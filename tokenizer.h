@@ -58,6 +58,7 @@ extern const std::map<std::string, std::vector<std::string> > forward1;
 std::string CutString(std::string::iterator & b, std::string::iterator e, bool save, char jmp = ' ');
 
 
+
 // for90.l
 #include <stdint.h>
 

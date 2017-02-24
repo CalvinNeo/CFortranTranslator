@@ -36,6 +36,7 @@ struct TranslateContext {
 	ParseNode program_tree;
 	std::string global_code;
 	ParseConfig parse_config;
+	std::map<std::string, std::vector<std::string> > end_labels; // (lineno, blockname)
 	bool inited;
 };
 

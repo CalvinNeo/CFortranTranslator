@@ -222,14 +222,26 @@ void print_error(const std::string & error_info, const ParseNode & yylval) {
 		, get_flex_state().parse_line + 1, get_flex_state().line_pos, get_flex_state().parse_pos, get_flex_state().parse_len
 		, get_intent_name(yylval.fs.CurrentTerm.token).c_str(), yylval.fs.CurrentTerm.token, yylval.fs.CurrentTerm.what.c_str());
 	char buf[255];
-	const int length = 20; // print `length * 2 + len(parse_len)` context characters if possible
-	int left = max(0, get_flex_state().parse_pos - get_flex_state().parse_len - length); // left-most character index
-	int left_indent = get_flex_state().parse_pos - get_flex_state().parse_len - left; // error start position
-	int right = min((int)get_context().global_code.size(), get_flex_state().parse_pos + length); // right-most character index
-	int right_length = right - get_flex_state().parse_pos;
-	sprintf(buf, "%s", get_context().global_code.substr(left, left_indent + get_flex_state().parse_len + right_length).c_str());
+	const int extend_length = 20; // print `length * 2 + len(parse_len)` context characters if possible
+	int error_start = get_flex_state().parse_pos - get_flex_state().parse_len;
+	int error_end = get_flex_state().parse_pos;
+	int error_len = get_flex_state().parse_len;
+	int left = max(0, error_start - extend_length); // left-most character index
+	int left_length = error_start - left; 
+	int right = min((int)get_context().global_code.size(), error_end + extend_length); // right-most character index
+	int right_length = right - error_end; 
+	/********************************************************
+	*...................XXXXXXXXXXXXXXXXXX....................
+	*|l|				|err|
+	*|e|				|or |
+	*|f|				|sta|
+	*|t|				|rt |
+	*---------------------------------------------------------
+	*     left length  |   error length   |   right length   |
+	*********************************************************/
+	sprintf(buf, "%s", get_context().global_code.substr(left, left_length + error_len + right_length).c_str());
 	string cont = string(buf);
-	string marker = compose_marker(cont, left_indent, left_indent + get_flex_state().parse_len);
+	string marker = compose_marker(cont, left_length, left_length + error_len);
 	replace_all_distinct(cont, "\n", "\\n");
 	cont += marker;
 	printf("%s", cont.c_str());

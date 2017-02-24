@@ -146,6 +146,7 @@ vector<tuple<string, ParseNode, ParseNode *>> get_full_paramtable(const ParseNod
 			else if (vardef->fs.CurrentTerm.token == TokenMeta::NT_FUNCTIONDECLARE) {
 				// interface function
 				string interface_paramtable_str = "";
+				regen_function(*vardef);
 				if (vardef->attr != nullptr) {
 					// variables declared in the interface block
 					FunctionAttr * interface_attr = dynamic_cast<FunctionAttr *>(vardef->attr);
@@ -161,14 +162,14 @@ vector<tuple<string, ParseNode, ParseNode *>> get_full_paramtable(const ParseNod
 						sprintf(codegen_buf, "%s %s", param_typestr.c_str(), param_name.c_str());
 						interface_paramtable_str += string(codegen_buf);
 					}
+					get<1>(paramtable_info[i]) = gen_type(Term{ TokenMeta::Function_Def, "std::function<"
+						+ vardef->get(3)/*vardef return type*/.fs.CurrentTerm.what
+						+ "(" + interface_paramtable_str + ")>" });
+					get<2>(paramtable_info[i]) = vardef;
 				}
 				else {
 					print_error("Invalid interface: " + vardef->fs.CurrentTerm.what);
 				}
-				get<1>(paramtable_info[i]) = gen_type(Term{TokenMeta::Function_Def, "std::function<"
-					+ vardef->get(3)/*vardef return value*/.get(0).fs.CurrentTerm.what
-					+ "(" + interface_paramtable_str + ")>" });
-				get<2>(paramtable_info[i]) = vardef;
 			}
 		}
 	}
@@ -182,7 +183,7 @@ ParseNode gen_function(const ParseNode & variable_function, const ParseNode & pa
 	newnode.addchild(ParseNode()); // reserved functionhead 0
 	newnode.addchild(variable_function); // function name 1
 	newnode.addchild(kvparamtable); // paramtable 2
-	newnode.addchild(variable_result); // result 3
+	newnode.addchild(gen_type(Term{ TokenMeta::Void_Def, "void" })); // result type(unknown until regen_function)3
 	newnode.addchild(suite); // function body 4
 	return newnode;
 }
@@ -205,7 +206,7 @@ void regen_function(ParseNode & functiondecl_node) {
 	string newsuitestr = regen_suite(oldsuite); 
 	string paramtblstr = regen_paramtable(paramtable_info);
 	// return_value
-	if (get<2>(paramtable_info[paramtable_info.size() - 1]) == nullptr) {
+	if (get<2>(paramtable_info.back()) == nullptr) {
 		// void function
 		ParseNode vardef = gen_vardef_from_implicit(gen_type(Term{ TokenMeta::Void_Def, "void" }), "");
 	}
