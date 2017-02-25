@@ -44,6 +44,8 @@ private:
 	bool changed = false;
 };
 
+
+
 // ·ÖÎöÊ÷
 struct ParseNode {
 	FlexState fs;
@@ -56,7 +58,6 @@ struct ParseNode {
 	struct ParseAttr * attr = nullptr;
 
 	void addchildptr(ParseNode * ptrn, bool add_back = true);
-
 	void addchild(const ParseNode & n, bool add_back = true);
 
 	template <typename ... Args>
@@ -77,9 +78,9 @@ struct ParseNode {
 
 	ParseNode(const ParseNode &);
 	ParseNode & operator= (const ParseNode &) ;
-	ParseNode() : father(nullptr), attr(nullptr) {}
+	ParseNode() = default;
 	ParseNode(const FlexState & s, ParseNode * fa, ParseAttr * att = nullptr) : father(fa), attr(att), fs(s) {}
-	virtual ~ParseNode();
+	~ParseNode();
 };
 
 
@@ -96,9 +97,6 @@ void print_error(const std::string & error_info);
 typedef ParseNode yystype_t;
 #define YYSTYPE ParseNode
 
-/* update pos os non-terminal tokens(terminal tokens have pos updated in flex using update_flex and update_yylval) */
-void update_pos(YYSTYPE & current);
-void update_pos(YYSTYPE & current, YYSTYPE & start, YYSTYPE & end);
 std::string tabber(std::string &); // add tab(`\t`) into the front of each line
 ParseNode flattern_bin_right(const ParseNode & pn); // eliminate right recursion of an binary tree
 ParseNode flattern_bin_left(const ParseNode & pn); // eliminate left recursion of an binary tree

@@ -177,7 +177,7 @@ vector<tuple<string, ParseNode, ParseNode *>> get_full_paramtable(const ParseNod
 }
 
 
-ParseNode gen_function(const ParseNode & variable_function, const ParseNode & paramtable, const ParseNode & variable_result, ParseNode & suite) {
+ParseNode gen_function(const ParseNode & variable_function, const ParseNode & paramtable, const ParseNode & variable_result, const ParseNode & suite) {
 	ParseNode newnode = gen_token(Term{ TokenMeta::NT_FUNCTIONDECLARE, ""});
 	ParseNode kvparamtable = promote_argtable_to_paramtable(paramtable); // a flatterned paramtable with all keyvalue elements
 	newnode.addchild(ParseNode()); // reserved functionhead 0

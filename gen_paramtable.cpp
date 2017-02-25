@@ -43,7 +43,7 @@ ParseNode gen_keyvalue_from_exp(const ParseNode & variable, const ParseNode & in
 }
 
 
-ParseNode gen_paramtable(ParseNode & paramtable_elem) {
+ParseNode gen_paramtable(const ParseNode & paramtable_elem) {
 	ParseNode newnode = ParseNode();
 	if (paramtable_elem.fs.CurrentTerm.token == TokenMeta::NT_DIMENSLICE) {
 		print_error("Can't generate paramtable from dimen_slice", newnode);
@@ -84,7 +84,7 @@ bool is_param_like(const ParseNode & elem) {
 	return elem.fs.CurrentTerm.token == TokenMeta::NT_PARAMTABLE_PURE || elem.fs.CurrentTerm.token == TokenMeta::NT_KEYVALUE;
 }
 
-ParseNode gen_paramtable(ParseNode & paramtable_elem, ParseNode & paramtable) {
+ParseNode gen_paramtable(const ParseNode & paramtable_elem, const ParseNode & paramtable) {
 	ParseNode newnode = gen_token(Term{ TokenMeta::NT_PARAMTABLE_PURE, "" });
 	bool to_param = is_param_like(paramtable_elem) || is_param_like(paramtable);
 	bool all_param = is_param_like(paramtable_elem) && is_param_like(paramtable);
@@ -150,47 +150,44 @@ ParseNode promote_argtable_to_paramtable(const ParseNode & paramtable) {
 	return newnode;
 }
 
-ParseNode gen_dimenslice(ParseNode & dimen_slice) {
+ParseNode gen_dimenslice(const ParseNode & dimen_slice) {
 	// all promoted to dimen_slice
-	ParseNode newnode = ParseNode();
+	ParseNode newnode = dimen_slice;
 	int sliceid = 0; 
-	for (sliceid = 0; sliceid < dimen_slice.child.size(); sliceid++)
+	for (sliceid = 0; sliceid < newnode.child.size(); sliceid++)
 	{
 		if (sliceid != 0) {
-			dimen_slice.fs.CurrentTerm.what += ", ";
+			newnode.fs.CurrentTerm.what += ", ";
 		}
-		newnode.addchild(dimen_slice.get(sliceid));
-		if (dimen_slice.get(sliceid).fs.CurrentTerm.token == TokenMeta::NT_SLICE) {
+		if (newnode.get(sliceid).fs.CurrentTerm.token == TokenMeta::NT_SLICE) {
 			// slice
-			if (dimen_slice.get(sliceid).child.size() == 2) {
+			if (newnode.get(sliceid).child.size() == 2) {
 				/* from, to */
-				sprintf(codegen_buf, "%s, %s", dimen_slice.get(sliceid).get(0).fs.CurrentTerm.what.c_str()
-					, dimen_slice.get(sliceid).get(1).fs.CurrentTerm.what.c_str());
+				sprintf(codegen_buf, "%s, %s", newnode.get(sliceid).get(0).fs.CurrentTerm.what.c_str()
+					, newnode.get(sliceid).get(1).fs.CurrentTerm.what.c_str());
 			}
 			else {
 				// size
-				sprintf(codegen_buf, "%s", dimen_slice.get(sliceid).get(0).fs.CurrentTerm.what.c_str());
+				sprintf(codegen_buf, "%s", newnode.get(sliceid).get(0).fs.CurrentTerm.what.c_str());
 			}
 		}
 		else {
 			// exp
-			sprintf(codegen_buf, "%s", dimen_slice.get(sliceid).fs.CurrentTerm.what.c_str());
+			sprintf(codegen_buf, "%s", newnode.get(sliceid).fs.CurrentTerm.what.c_str());
 		}
 	}
-	sprintf(codegen_buf, "/* deprecated */ slice(%%s, %s)", dimen_slice.fs.CurrentTerm.what.c_str());
-	newnode.fs.CurrentTerm = Term{ TokenMeta::NT_DIMENSLICE, string(codegen_buf) };
+	newnode.fs.CurrentTerm = Term{ TokenMeta::NT_DIMENSLICE, "LAZY GEN DIMENSLICE" };
 	return newnode;
 }
 
-ParseNode gen_argtable(ParseNode & argtable) {
-	ParseNode newnode = ParseNode();
+ParseNode gen_argtable(const ParseNode & argtable) {
+	ParseNode newnode = argtable;
 	int sliceid = 0; 
-	for (sliceid = 0; sliceid < argtable.child.size(); sliceid++)
+	for (sliceid = 0; sliceid < newnode.child.size(); sliceid++)
 	{
 		if (sliceid != 0) {
-			argtable.fs.CurrentTerm.what += ", ";
+			newnode.fs.CurrentTerm.what += ", ";
 		}
-		newnode.addchild(argtable.get(sliceid));
 		// should not set codegen_buf here
 		sprintf(codegen_buf, "%s", argtable.get(sliceid).fs.CurrentTerm.what.c_str());
 	}

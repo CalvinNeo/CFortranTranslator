@@ -76,7 +76,7 @@ std::string lazy_gen(ParseNode * ptree) {
 			default:
 				break;
 			}
-			update_pos(*p);
+			// update_pos(*p);
 		}
 	}
 	return "";

@@ -141,7 +141,8 @@ extern int yydebug;
      YY_PRINT = 350,
      YY_CALL = 351,
      YY_STOP = 352,
-     YY_PAUSE = 353
+     YY_PAUSE = 353,
+     YY_RETURN = 354
    };
 #endif
 

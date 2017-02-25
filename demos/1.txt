@@ -1,3 +1,4 @@
-	  DO 121 I=1,M
-C        DO 121 J=1,N(I)
-121   CONTINUE
+aa(1)
+
+subroutine M(A)
+endsubroutine

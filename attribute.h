@@ -22,17 +22,15 @@
 #include "Function.h"
 #include "Variable.h"
 
-
 // ÊôÐÔÎÄ·¨
 struct ParseAttr {
-	ParseNode * parsenode; // observer ptr
+	struct ParseNode * parsenode; // observer ptr
 
 	ParseAttr() = default;
 	ParseAttr(const ParseAttr & pa) = default; // do not call `clone()` in copy constructor else will cause stackoverflow
 	virtual ParseAttr * clone() = 0; /* use clone because copy-constructor can not be virtual */
-	virtual ~ParseAttr() = default;
+	virtual ~ParseAttr() {};
 	// virtual ParseAttr * merge() = 0;
-
 };
 
 struct TypeAttr : public ParseAttr {
@@ -43,6 +41,8 @@ struct TypeAttr : public ParseAttr {
 		this->name = ta.name;
 	}
 	ParseAttr * clone() { return new TypeAttr(*this); }
+	~TypeAttr() {
+	}
 	// void merge(const VariableDescAttr & pa) {  }
 };
 
@@ -56,7 +56,8 @@ struct VariableAttr : public ParseAttr {
 		this->vinfoptr = va.vinfoptr;
 	}
 	ParseAttr * clone() { return new VariableAttr(*this); }
-
+	~VariableAttr() {
+	}
 };
 
 struct VariableDescAttr : public ParseAttr {
@@ -75,6 +76,8 @@ struct VariableDescAttr : public ParseAttr {
 	void merge(const VariableDescAttr & x2) {
 		desc.merge(x2.desc);
 	}
+	~VariableDescAttr() {
+	}
 };
 
 struct FunctionAttr : public ParseAttr {
@@ -88,5 +91,7 @@ struct FunctionAttr : public ParseAttr {
 
 	void merge(const FunctionAttr & x2) {
 
+	}
+	~FunctionAttr() {
 	}
 };

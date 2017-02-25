@@ -32,12 +32,6 @@ struct Term {
 
 #define USE_YACC
 
-#ifdef USE_YACC
-#else
-//// flex part code
-//// implement in for90.l
-//int make_term_flex(const TokenMeta & token, const char * w);
-#endif
 struct FlexState {
 	// ´Ê·¨·ÖÎö
 	Term CurrentTerm;
@@ -57,7 +51,8 @@ extern const std::map<std::string, std::vector<std::string> > forward1;
 //FlexState iter_token(const std::string & in_str, int start);
 std::string CutString(std::string::iterator & b, std::string::iterator e, bool save, char jmp = ' ');
 
-
+int pure_yylex(void);
+int yylex(void);
 
 // for90.l
 #include <stdint.h>

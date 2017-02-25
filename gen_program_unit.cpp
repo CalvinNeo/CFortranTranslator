@@ -51,13 +51,13 @@ ParseNode gen_program_end(ParseNode & suite) {
 	return newnode;
 }
 
-void gen_fortran_program(ParseNode & wrappers) {
+void gen_fortran_program(const ParseNode & wrappers) {
 	std::string codes;
 	std::string main_code;
 	get_context().program_tree = wrappers;
 	for (size_t i = 0; i < wrappers.child.size(); i++)
 	{
-		ParseNode & wrapper = wrappers.get(i);
+		ParseNode & wrapper = get_context().program_tree.get(i);
 		if (wrapper.fs.CurrentTerm.token == TokenMeta::NT_PROGRAM_EXPLICIT)
 		{
 			get_context().current_module = "";

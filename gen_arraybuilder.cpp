@@ -19,7 +19,7 @@
 
 #include "gen_common.h"
 
-ParseNode gen_array_from_hiddendo(ParseNode & hiddendo) {
+ParseNode gen_array_from_hiddendo(const ParseNode & hiddendo) {
 	/* give hiddendo */
 	// use gen_hiddendo
 	return gen_promote(TokenMeta::NT_ARRAYBUILDER_LAMBDA, hiddendo);

@@ -36,16 +36,15 @@ VariableDesc & get_variabledesc_attr(ParseNode & vardescattr_node) {
 	return x->desc;
 }
 
-ParseNode gen_variabledesc_from_dimenslice(ParseNode & dimen_slice) {
-	int sliceid = 0; /* if the array has 2 dimensions, sliceid is 0..1 */
-	ParseNode dimen = ParseNode(dimen_slice);
-	for (sliceid = 0; sliceid < dimen.child.size(); sliceid++)
+ParseNode gen_variabledesc_from_dimenslice(const ParseNode & dimen_slice) {
+	ParseNode dimen = dimen_slice;
+	for (int sliceid = 0; sliceid < dimen.child.size(); sliceid++)
 	{
 		if (dimen.get(sliceid).fs.CurrentTerm.token == TokenMeta::NT_SLICE) {
 
 		}
 		else {
-			ParseNode tmp = promote_exp_to_slice(*dimen.child[sliceid]);
+			ParseNode tmp = promote_exp_to_slice(dimen.get(sliceid));
 			delete dimen.child[sliceid];
 			dimen.child[sliceid] = new ParseNode(tmp);
 		}

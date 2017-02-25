@@ -1,0 +1,4 @@
+   END
+
+	 SUBROUTINE MINTW(M)
+	 end SUBROUTINE
