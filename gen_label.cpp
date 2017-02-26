@@ -33,16 +33,16 @@
 //are all statement labels.The last two are equivalent
 
 ParseNode gen_label(const ParseNode & tag) {
-	ParseNode newnode = gen_token(Term{ TokenMeta::NT_LABEL, "LABEL_" + tag.fs.CurrentTerm.what + ":\n" });
+	ParseNode newnode = gen_token(Term{ TokenMeta::NT_LABEL, tag.to_string() });
 	newnode.addchild(tag);
 	return newnode;
 }
 
-void log_format_index(std::string format_index, const ParseNode & stmt) {
-	
+void log_format_index(std::string format_index, const ParseNode & format) {
+	get_context().labels[format_index] = format;
 }
 
 ParseNode require_format_index(std::string format_index) {
 	// read/write 语句可以直接使用format语句的行号作为参数
-	return ParseNode();
+	return get_context().labels[format_index];
 }

@@ -26,8 +26,8 @@
 struct TranslateContext {
 	std::string current_module = "@";
 	std::string current_function = "@";
-	std::map<std::string, CommonBlockInfo> commonblocks;
-	std::map<std::string, ParseNode> labels;
+	std::map < std::string, CommonBlockInfo> commonblocks;
+	std::map < std::string, ParseNode > labels;
 	std::map < std::string, VariableInfo * > variables;
 	std::map < std::string, VariableInfo * > temporary_variables;
 	std::map < std::string, FunctionInfo * > functions;

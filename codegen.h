@@ -26,7 +26,6 @@
 #include <boost/lexical_cast.hpp>
 
 std::string for2cpp(std::string for_code);
-std::string tabber(std::string & src);
 
 ParseNode gen_token(Term term);
 ParseNode gen_dummy();
@@ -72,15 +71,15 @@ ParseNode gen_function(const ParseNode & variable_function, const ParseNode & pa
 void regen_function(ParseNode & functiondecl_node); // function define
 
 ParseNode gen_select(const ParseNode & exp, const ParseNode & case_stmt);
-ParseNode gen_case(const ParseNode & dimen_slice, ParseNode & suite);
+ParseNode gen_case(const ParseNode & dimen_slice, const ParseNode & suite);
 
-ParseNode gen_if(const ParseNode & exp, ParseNode & suite_true, const ParseNode & elseif, ParseNode & suite_else);
+ParseNode gen_if(const ParseNode & exp, const ParseNode & suite_true, const ParseNode & elseif, const ParseNode & suite_else);
 ParseNode gen_if_oneline(const ParseNode & exp, const ParseNode & stmt_true);
-ParseNode gen_elseif(const ParseNode & exp, ParseNode & suite_true, const ParseNode & elseif);
+ParseNode gen_elseif(const ParseNode & exp, const ParseNode & suite_true, const ParseNode & elseif);
 
-ParseNode gen_do(ParseNode & suite);
-ParseNode gen_do_range(const ParseNode & loop_variable, const ParseNode & exp1, const ParseNode & exp2, const ParseNode & exp3, ParseNode & suite);
-ParseNode gen_do_while(const ParseNode & exp, ParseNode & suite);
+ParseNode gen_do(const ParseNode & suite);
+ParseNode gen_do_range(const ParseNode & loop_variable, const ParseNode & exp1, const ParseNode & exp2, const ParseNode & exp3, const ParseNode & suite);
+ParseNode gen_do_while(const ParseNode & exp, const ParseNode & suite);
 ParseNode gen_hiddendo(const ParseNode & argtable, const ParseNode & index, const ParseNode & from, const ParseNode & to, TokenMeta_T return_token = TokenMeta::NT_HIDDENDO);
 std::vector<const ParseNode *> gen_nested_hiddendo_layers(const ParseNode & hiddendo);
 std::string gen_hiddendo_expr(const ParseNode & hiddendo);
@@ -127,7 +126,7 @@ ParseNode gen_interface(const ParseNode & wrappers);
 void add_function_forward(const ParseNode & function_decl);
 
 ParseNode gen_label(const ParseNode & tag); 
-void log_format_index(std::string format_index, const ParseNode & stmt);
+void log_format_index(std::string format_index, const ParseNode & format);
 ParseNode require_format_index(std::string format_index);
 
 std::string gen_rights(std::string filename, std::string author);

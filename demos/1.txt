@@ -1,4 +1,3 @@
-aa(1)
 
-subroutine M(A)
-endsubroutine
+111 format(10x,1A,6F)
+write (*,111) aa

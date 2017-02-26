@@ -21,13 +21,12 @@ using namespace std;
 %%
 
 stmt : EXP
-	|
 stmts : stmt CRLF stmts
 	| stmt
 function : FUNCTIONBEGIN stmts FUNCTIONEND
 unit : function
 	| stmts
 program : unit
-	| unit CRLF %prec ADVCRLF program
+	| unit program
 
 %%

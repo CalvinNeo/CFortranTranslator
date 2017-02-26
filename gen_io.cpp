@@ -64,7 +64,13 @@ ParseNode gen_write(const ParseNode & io_info, const ParseNode & argtable) {
 		}
 	}
 	else {
-		string fmt = io_info.get(1).fs.CurrentTerm.what.substr(1, io_info.get(1).fs.CurrentTerm.what.size() - 1); // strip " 
+		string fmt;
+		if (io_info.get(1).fs.CurrentTerm.token == TokenMeta::NT_FORMATTER_LOCATION)
+		{
+			fmt = get_context().labels[io_info.get(1).to_string()].to_string();
+		} else{
+			fmt = io_info.get(1).fs.CurrentTerm.what.substr(1, io_info.get(1).fs.CurrentTerm.what.size() - 1); // strip " 
+		}
 		if (device == "-1") {
 			// device = "6"; // stdout
 			sprintf(codegen_buf, "forwrite(stdout, \"%s\", %s) ;", parse_ioformatter(fmt).c_str(), argtable.fs.CurrentTerm.what.c_str());

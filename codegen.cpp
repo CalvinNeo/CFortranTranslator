@@ -79,7 +79,7 @@ FlexState gen_flex(Term term) {
 	return f;
 }
 
-std::string tabber(std::string & src) {
+std::string tabber(const std::string & src) {
 	std::string newline;
 	string ans = "";
 	std::istringstream f(src);

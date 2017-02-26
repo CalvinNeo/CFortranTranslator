@@ -19,25 +19,21 @@
 
 #include "gen_common.h"
 
-ParseNode gen_do(ParseNode & suite) {
+ParseNode gen_do(const ParseNode & suite) {
 	ParseNode newnode = ParseNode();
-	suite.fs.CurrentTerm.what = tabber(suite.to_string());
-	sprintf(codegen_buf, "do{\n%s}", suite.to_string().c_str());
+	sprintf(codegen_buf, "do{\n%s}", tabber(suite.to_string()).c_str());
 	newnode.fs.CurrentTerm = Term{ TokenMeta::NT_DO, string(codegen_buf) };
 	newnode.addchild(ParseNode()); // do
 	newnode.addchild(suite); // suite
 	return newnode;
 }
 
-ParseNode gen_do_range(const ParseNode & loop_variable, const ParseNode & exp1, const ParseNode & exp2, const ParseNode & exp3, ParseNode & suite){
+ParseNode gen_do_range(const ParseNode & loop_variable, const ParseNode & exp1, const ParseNode & exp2, const ParseNode & exp3, const ParseNode & suite){
 	ParseNode newnode = ParseNode();
-	suite.fs.CurrentTerm.what = tabber(suite.to_string());
-#ifndef LAZY_GEN
 	sprintf(codegen_buf, "for(%s = %s; %s <= %s; %s += %s){\n%s}", loop_variable.to_string().c_str(), exp1.to_string().c_str()
 		, loop_variable.to_string().c_str(), exp2.to_string().c_str()
-		, loop_variable.to_string().c_str(), exp3.to_string().c_str(), suite.to_string().c_str());
+		, loop_variable.to_string().c_str(), exp3.to_string().c_str(), tabber(suite.to_string()).c_str());
 	newnode.fs.CurrentTerm = Term{ TokenMeta::NT_DO, string(codegen_buf) };
-#endif // !LAZY_GEN
 
 	newnode.addchild(ParseNode()); // do
 	newnode.addchild(loop_variable); // loop_variable name
@@ -48,10 +44,9 @@ ParseNode gen_do_range(const ParseNode & loop_variable, const ParseNode & exp1, 
 	return newnode;
 }
 
-ParseNode gen_do_while(const ParseNode & exp, ParseNode & suite) {
+ParseNode gen_do_while(const ParseNode & exp, const ParseNode & suite) {
 	ParseNode newnode = ParseNode();
-	suite.fs.CurrentTerm.what = tabber(suite.to_string());
-	sprintf(codegen_buf, "while(%s){\n%s}", exp.to_string().c_str(), suite.to_string().c_str());
+	sprintf(codegen_buf, "while(%s){\n%s}", exp.to_string().c_str(), tabber(suite.to_string()).c_str());
 	newnode.fs.CurrentTerm = Term{ TokenMeta::NT_WHILE, string(codegen_buf) };
 	newnode.addchild(ParseNode()); // while
 	newnode.addchild(exp); // exp

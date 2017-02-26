@@ -97,7 +97,7 @@ void print_error(const std::string & error_info);
 typedef ParseNode yystype_t;
 #define YYSTYPE ParseNode
 
-std::string tabber(std::string &); // add tab(`\t`) into the front of each line
+std::string tabber(const std::string &); // add tab(`\t`) into the front of each line
 ParseNode flattern_bin_right(const ParseNode & pn); // eliminate right recursion of an binary tree
 ParseNode flattern_bin_left(const ParseNode & pn); // eliminate left recursion of an binary tree
 void flattern_bin_inplace(ParseNode & pn, bool recursion_direction_right); // 

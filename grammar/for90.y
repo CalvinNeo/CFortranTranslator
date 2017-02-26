@@ -108,15 +108,16 @@ using namespace std;
 %token /*_YY_TYPEDEF*/ YY_INTEGER_T YY_FLOAT_T YY_STRING_T YY_COMPLEX_T YY_BOOL_T YY_CHARACTER_T
 %token /*_YY_COMMAND*/ YY_WRITE YY_READ YY_PRINT YY_CALL  YY_STOP YY_PAUSE YY_RETURN
 
+%left YY_EQV YY_NEQV
 %left YY_OROR
 %left YY_ANDAND
+%right YY_NOT
 %left YY_EQ YY_NEQ
 %left YY_GT YY_GE YY_LE YY_LT
 %right YY_NEG YY_POS
 %left '+' '-' 
 %left '*' '/' 
 %right YY_POWER /* x**y**z -> x**(y**z) */
-%right YY_NOT
 
 %start fortran_program
 
@@ -132,7 +133,7 @@ using namespace std;
 				$$.fs.CurrentTerm = Term{ TokenMeta::Nop, "" };
 				update_pos($$);
 			}
-
+		
 	at_least_one_end_line : YY_CRLF
 			{
 				$$.fs.CurrentTerm = Term{ TokenMeta::CRLF, "\n" };
@@ -242,12 +243,7 @@ using namespace std;
 				update_pos($$, $1, $1);
 			}
 				
-	variable_desc : ',' variable_desc_elem
-			{
-				$$ = $2;
-				update_pos($$, $1, $2);
-			}
-		| ',' variable_desc_elem variable_desc
+	variable_desc : ',' variable_desc_elem variable_desc
 			{
 				ParseNode variable_elem = $2;
 				ParseNode variable_desc = $3;
@@ -260,6 +256,13 @@ using namespace std;
 				$$ = newnode;
 				update_pos($$, $1, $3);
 			}
+			/*
+		| ',' variable_desc_elem
+			{
+				$$ = $2;
+				update_pos($$, $1, $2);
+			}
+			*/
 		|
 			{
 				ParseNode newnode = gen_token(Term{ TokenMeta::NT_VARIABLEDESC, "NT_VARIABLEDESC" });
@@ -500,6 +503,7 @@ using namespace std;
 				const ParseNode & op = $2;
 				const ParseNode & exp2 = $3;
 				$$ = gen_exp(exp1, op, exp2, "%s(%s)");
+				update_pos($$, $1, $4);
 			}
 		| '(' exp ')' 
 			{
@@ -817,18 +821,17 @@ using namespace std;
 				$$ = gen_token(Term{ TokenMeta::NT_STATEMENT, "" });
 				update_pos($$, $1, $2);
 			}
-
-	suite : label stmt
+	labeled_stmt : label stmt
 			{
 				const ParseNode & label = $1; // TokenMeta::Label
 				const ParseNode & stmt = $2;
 				if (stmt.child.size() > 0 && stmt.get(0).fs.CurrentTerm.token == TokenMeta::NT_FORMAT)
 				{
-					log_format_index(label.to_string(), stmt);
-					$$ = gen_token(Term{TokenMeta::Nop, ""}); // do not print format stmt
+					log_format_index(label.to_string(), stmt.get(0));
+					$$ = gen_token(Term{ TokenMeta::Nop, "" }); // do not print format stmt
 				}
 				else {
-					sprintf(codegen_buf, "%s\n%s", label.to_string().c_str(), stmt.to_string().c_str());
+					sprintf(codegen_buf, "LABEL_%s:\n%s", label.to_string().c_str(), stmt.to_string().c_str());
 					ParseNode & newnode = gen_token(Term{ TokenMeta::NT_SUITE , string(codegen_buf) });
 					newnode.addchild(label);
 					newnode.addchild(stmt);
@@ -836,28 +839,18 @@ using namespace std;
 				}
 				update_pos($$, $1, $2);
 			}
-		| label stmt end_of_stmt suite
+
+	suite : labeled_stmt
 			{
-				const ParseNode & label = $1; 
-				const ParseNode & stmt = $2;
-				const ParseNode & suite = $4;				
-				if (stmt.child.size() > 0 && stmt.get(0).fs.CurrentTerm.token == TokenMeta::NT_FORMAT)
-				{
-					log_format_index(label.to_string(), stmt);
-					$$ = suite; // do not print format stmt
-				}
-				else {
-					sprintf(codegen_buf, "%s\n%s\n%s", label.to_string().c_str(), stmt.to_string().c_str(), suite.to_string().c_str());
-					ParseNode & newnode = gen_token(Term{ TokenMeta::NT_SUITE , string(codegen_buf) });
-					newnode.addchild(label);
-					newnode.addchild(stmt);
-					for (int i = 0; i < suite.child.size(); i++)
-					{
-						newnode.addchild(suite.get(i));
-					}
-					$$ = newnode;
-				}
-				update_pos($$, $1, $2);
+				$$ = $1;
+				update_pos($$, $1, $1);
+			}
+		| labeled_stmt end_of_stmt suite
+			{
+				const ParseNode & labeled_stmt = $1;
+				const ParseNode & suite = $3;				
+				$$ = gen_merge(labeled_stmt, suite, "%s\n%s", TokenMeta::NT_SUITE);
+				update_pos($$, $1, $3);
 			}
 				
 		| stmt end_of_stmt suite
@@ -884,32 +877,36 @@ using namespace std;
 				$$ = gen_flattern($1, $3, "%s%s", TokenMeta::NT_SUITE);
 				update_pos($$, $1, $3);
 			}
-			
 
-	_optional_comma : ','
-		|
 	_optional_device : '*'
 			{
 				$$.fs.CurrentTerm = Term{ TokenMeta::META_NONTERMINAL, "-1" }; // -1 stands for stdin/stdout, and will be translated at read/write stmt
+				update_pos($$, $1, $1);
 			}
 		| YY_INTEGER
 			{
 				$$.fs.CurrentTerm = Term{ TokenMeta::META_NONTERMINAL, $1.to_string() };
+				update_pos($$, $1, $1);
 			}
 	_optional_formatter : '*'
 			{
 				$$.fs.CurrentTerm = Term{ TokenMeta::NT_AUTOFORMATTER, "" };
+				update_pos($$, $1, $1);
 			}
 		| YY_INTEGER
 			{
 				// use format stmt at line $1 to format
-				require_format_index($1.to_string());
+				const ParseNode & integer = $1;
+				std::string location_label = integer.to_string();
+				$$ = gen_token(Term{ TokenMeta::NT_FORMATTER_LOCATION, location_label });
+				update_pos($$, $1, $1);
 			}
 		| YY_STRING
 			{
 				// replace `'` with `"`
 				string modified = "\"" + $1.to_string().substr(1, $1.to_string().size() - 2) + "\"";
 				$$.fs.CurrentTerm = Term{ TokenMeta::NT_FORMATTER, modified };
+				update_pos($$, $1, $1);
 			}
 
 	io_info : '(' _optional_device ',' _optional_formatter ')'
@@ -923,11 +920,10 @@ using namespace std;
 				$$ = newnode;
 				update_pos($$, $1, $5);
 			}
-		| _optional_formatter _optional_comma
+		| _optional_formatter ','
 			{
 				ParseNode newnode = gen_token(Term{ TokenMeta::META_NONTERMINAL, "" });
-				ParseNode _optional_device = ParseNode();
-				_optional_device.fs.CurrentTerm = Term{ TokenMeta::META_NONTERMINAL, "" };
+				ParseNode _optional_device = gen_token(Term{ TokenMeta::META_NONTERMINAL, "" });
 				const ParseNode & _optional_formatter = $1;
 				/* target code of io_info depend on context */
 				newnode.addchild(_optional_device); // _optional_device
@@ -1196,39 +1192,39 @@ using namespace std;
 	if_stmt : _optional_construct_name YY_IF '(' exp ')' stmt 
 			{
 				const ParseNode & exp = $4;
-				ParseNode  stmt_true = $6;
+				const ParseNode &  stmt_true = $6;
 				$$ = gen_if_oneline(exp, stmt_true);
 				update_pos($$, $1, $6);
 			}
 		| _optional_construct_name YY_IF exp YY_THEN at_least_one_end_line /* must have \n */ suite _yy_endif
 			{
 				const ParseNode & exp = $3;
-				ParseNode  suite_true = $6; 
+				const ParseNode &  suite_true = $6;
 				$$ = gen_if(exp, suite_true, gen_dummy(), gen_dummy());
 				update_pos($$, $1, $7);
 			}
 		| _optional_construct_name YY_IF exp YY_THEN at_least_one_end_line suite YY_ELSE at_least_one_end_line suite _yy_endif
 			{
 				const ParseNode & exp = $3;
-				ParseNode  suite_true = $6; 
-				ParseNode  suite_else = $9; 
+				const ParseNode &  suite_true = $6;
+				const ParseNode &  suite_else = $9;
 				$$ = gen_if(exp, suite_true, gen_dummy(), suite_else);
 				update_pos($$, $1, $10);
 			}
 		| _optional_construct_name YY_IF exp YY_THEN at_least_one_end_line suite elseif_stmt _yy_endif
 			{
 				const ParseNode & exp = $3;
-				ParseNode  suite_true = $6;
-				ParseNode  elseif = $7;
+				const ParseNode &  suite_true = $6;
+				const ParseNode &  elseif = $7;
 				$$ = gen_if(exp, suite_true, elseif, gen_dummy());
 				update_pos($$, $1, $8);
 			}
 		| _optional_construct_name YY_IF exp YY_THEN at_least_one_end_line suite elseif_stmt YY_ELSE at_least_one_end_line suite _yy_endif
 			{
 				const ParseNode & exp = $3;
-				ParseNode  suite_true = $6;
-				ParseNode  elseif = $7;
-				ParseNode  suite_else = $10;
+				const ParseNode &  suite_true = $6;
+				const ParseNode &  elseif = $7;
+				const ParseNode &  suite_else = $10;
 				$$ = gen_if(exp, suite_true, elseif, suite_else);
 				update_pos($$, $1, $11);
 			}
@@ -1236,7 +1232,7 @@ using namespace std;
 	elseif_stmt : YY_ELSEIF exp YY_THEN at_least_one_end_line suite
 			{
 				const ParseNode & exp = $2;
-				ParseNode  suite_true = $5;
+				const ParseNode &  suite_true = $5;
 				$$ = gen_elseif(exp, suite_true, gen_dummy());;
 				update_pos($$, $1, $5);
 			}
@@ -1244,8 +1240,8 @@ using namespace std;
 		| YY_ELSEIF exp YY_THEN at_least_one_end_line suite elseif_stmt
 			{
 				const ParseNode & exp = $2;
-				ParseNode  suite_true = $5;
-				ParseNode  elseif = $6;
+				const ParseNode &  suite_true = $5;
+				const ParseNode &  elseif = $6;
 				$$ = gen_elseif(exp, suite_true, elseif);
 				update_pos($$, $1, $6);
 			}
@@ -1255,7 +1251,7 @@ using namespace std;
 		|
 	do_stmt : _optional_construct_name YY_DO at_least_one_end_line suite crlf_or_not _yy_enddo
 			{
-				ParseNode  suite = $4; 
+				const ParseNode &  suite = $4;
 				$$ = gen_do(suite);
 				update_pos($$, $1, $5);
 			}
@@ -1265,7 +1261,7 @@ using namespace std;
 				const ParseNode & exp_from = $6;
 				const ParseNode & exp_to = $8;
 				const ParseNode & step = gen_promote(TokenMeta::NT_EXPRESSION, gen_token(Term{ TokenMeta::META_INTEGER , "1" }));
-				ParseNode  suite = $10; 
+				const ParseNode &  suite = $10;
 				$$ = gen_do_range(loop_variable, exp_from, exp_to, step, suite);
 				update_pos($$, $1, $12);
 			}
@@ -1275,25 +1271,25 @@ using namespace std;
 				const ParseNode & exp1 = $6;
 				const ParseNode & exp2 = $8;
 				const ParseNode & exp3 = $10;
-				ParseNode  suite = $12;
+				const ParseNode &  suite = $12;
 				$$ = gen_do_range(loop_variable, exp1, exp2, exp3, suite);
 				update_pos($$, $1, $14);
 			}
 		| _optional_construct_name YY_DOWHILE exp at_least_one_end_line suite crlf_or_not _yy_enddo
 			{
 				const ParseNode & exp = $3;
-				ParseNode  suite = $5; 
+				const ParseNode &  suite = $5;
 				$$ = gen_do_while(exp, suite);
 				update_pos($$, $1, $6);
 			}
 	
 	_yy_endselect :  YY_ENDSELECT
+			{
+				$$ = $1;
+				update_pos($$, $1, $1);
+			}
 
-	_optional_lbrace : 
-		| '('
-	_optional_rbrace : 
-		| ')'
-	select_stmt : _optional_construct_name YY_SELECT YY_CASE _optional_lbrace exp _optional_rbrace at_least_one_end_line case_stmt _yy_endselect
+	select_stmt : _optional_construct_name YY_SELECT YY_CASE '(' exp ')' at_least_one_end_line case_stmt _yy_endselect
 			{
 				const ParseNode & select = $2;
 				const ParseNode & exp = $5;
@@ -1301,14 +1297,23 @@ using namespace std;
 				$$ = gen_select(exp, case_stmt);
 				update_pos($$, $1, $9);
 			}
-	case_stmt_elem : YY_CASE _optional_lbrace dimen_slice _optional_rbrace at_least_one_end_line suite
+	case_stmt_elem : YY_CASE '(' dimen_slice ')' at_least_one_end_line suite
 			{
 				// one case
 				const ParseNode & dimen_slice = $3;
-				ParseNode suite = $6; 
+				const ParseNode & suite = $6;
 				$$ = gen_case(dimen_slice, suite);
 				update_pos($$, $1, $6);
 			}
+		| YY_CASE '(' argtable ')' at_least_one_end_line suite
+			{
+				// one case
+				const ParseNode & dimen_slice = $3;
+				const ParseNode & suite = $6;
+				$$ = gen_case(dimen_slice, suite);
+				update_pos($$, $1, $6);
+			}
+
 	case_stmt : case_stmt_elem
 			{
 				const ParseNode & case_stmt_elem = $1;
@@ -1321,8 +1326,7 @@ using namespace std;
 			{
 				const ParseNode & case_stmt_elem = $1;
 				const ParseNode & case_stmt = $2;
-				ParseNode newnode = gen_token(Term{ TokenMeta::NT_CASES, "" });
-				newnode.addchild(case_stmt_elem, false /* add to the front of the vector */); // case_stmt_elem
+				ParseNode newnode = gen_flattern(case_stmt_elem, case_stmt, "%s\n%s", TokenMeta::NT_CASES);
 				$$ = newnode;
 				update_pos($$, $1, $2);
 			}

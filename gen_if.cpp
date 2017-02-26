@@ -19,35 +19,35 @@
 
 #include "gen_common.h"
 
-ParseNode gen_if(const ParseNode & exp, ParseNode & suite_true, const ParseNode & elseif, ParseNode & suite_else) {
+ParseNode gen_if(const ParseNode & exp, const ParseNode & suite_true, const ParseNode & elseif, const ParseNode & suite_else) {
 	ParseNode newnode = ParseNode();
 
-
+	string true_str, else_str;
 	if (suite_else.fs.CurrentTerm.token != TokenMeta::NT_DUMMY) {
-		suite_else.fs.CurrentTerm.what = tabber(suite_else.fs.CurrentTerm.what);
+		else_str = tabber(suite_else.fs.CurrentTerm.what);
 	}
-	suite_true.fs.CurrentTerm.what = tabber(suite_true.fs.CurrentTerm.what);
+	true_str = tabber(suite_true.fs.CurrentTerm.what);
 
 	if (elseif.fs.CurrentTerm.token == TokenMeta::NT_DUMMY) {
 		if (suite_else.fs.CurrentTerm.token == TokenMeta::NT_DUMMY) {
 			// neither elseif or suite_else
-			sprintf(codegen_buf, "if (%s) {\n%s}", exp.fs.CurrentTerm.what.c_str(), suite_true.fs.CurrentTerm.what.c_str());
+			sprintf(codegen_buf, "if (%s) {\n%s}", exp.fs.CurrentTerm.what.c_str(), true_str.c_str());
 		}
 		else {
 			// bare suite_else
 
-			sprintf(codegen_buf, "if (%s) {\n%s}\nelse {\n %s}", exp.fs.CurrentTerm.what.c_str(), suite_true.fs.CurrentTerm.what.c_str(), suite_else.fs.CurrentTerm.what.c_str());
+			sprintf(codegen_buf, "if (%s) {\n%s}\nelse {\n %s}", exp.fs.CurrentTerm.what.c_str(), true_str.c_str(), else_str.c_str());
 		}
 	}
 	else {
 		if (suite_else.fs.CurrentTerm.token == TokenMeta::NT_DUMMY) {
 			// bare elseif
 
-			sprintf(codegen_buf, "if (%s) {\n%s}\n%s", exp.fs.CurrentTerm.what.c_str(), suite_true.fs.CurrentTerm.what.c_str(), elseif.fs.CurrentTerm.what.c_str());
+			sprintf(codegen_buf, "if (%s) {\n%s}\n%s", exp.fs.CurrentTerm.what.c_str(), true_str.c_str(), elseif.fs.CurrentTerm.what.c_str());
 		}
 		else {
 			// elseif + else
-			sprintf(codegen_buf, "if (%s) {\n%s}\n%selse {\n%s}", exp.fs.CurrentTerm.what.c_str(), suite_true.fs.CurrentTerm.what.c_str(), elseif.fs.CurrentTerm.what.c_str(), suite_else.fs.CurrentTerm.what.c_str());
+			sprintf(codegen_buf, "if (%s) {\n%s}\n%selse {\n%s}", exp.fs.CurrentTerm.what.c_str(), true_str.c_str(), elseif.fs.CurrentTerm.what.c_str(), else_str.c_str());
 		}
 	}
 
@@ -76,14 +76,14 @@ ParseNode gen_if_oneline(const ParseNode & exp, const ParseNode & stmt_true) {
 	return newnode;
 }
 
-ParseNode gen_elseif(const ParseNode & exp, ParseNode & suite_true, const ParseNode & elseif) {
+ParseNode gen_elseif(const ParseNode & exp, const ParseNode & suite_true, const ParseNode & elseif) {
 	ParseNode newnode = ParseNode();
-	suite_true.fs.CurrentTerm.what = tabber(suite_true.fs.CurrentTerm.what);
+	string true_str = tabber(suite_true.fs.CurrentTerm.what);
 
 	if (elseif.fs.CurrentTerm.token == TokenMeta::NT_DUMMY) {
-		sprintf(codegen_buf, "else if(%s) {\n%s}", exp.fs.CurrentTerm.what.c_str(), suite_true.fs.CurrentTerm.what.c_str());}
+		sprintf(codegen_buf, "else if(%s) {\n%s}", exp.fs.CurrentTerm.what.c_str(), true_str.c_str());}
 	else {
-		sprintf(codegen_buf, "else if(%s){\n%s}\n%s", exp.fs.CurrentTerm.what.c_str(), suite_true.fs.CurrentTerm.what.c_str(), elseif.fs.CurrentTerm.what.c_str());
+		sprintf(codegen_buf, "else if(%s){\n%s}\n%s", exp.fs.CurrentTerm.what.c_str(), true_str.c_str(), elseif.fs.CurrentTerm.what.c_str());
 	}
 	newnode.fs.CurrentTerm = Term{ TokenMeta::NT_ELSEIF, string(codegen_buf) };
 

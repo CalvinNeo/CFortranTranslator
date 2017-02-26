@@ -88,6 +88,10 @@ const vector<KeywordMeta> keywords = {
 		, TokenMeta::RBrace
 		, YY_ENDMODULE
 	}
+	, KeywordMeta{"endselect"
+		, TokenMeta::RBrace
+		, YY_ENDSELECT
+	}
 	, KeywordMeta{"endinterface"
 		, TokenMeta::RBrace
 		, YY_ENDINTERFACE
