@@ -32,12 +32,6 @@
 //010
 //are all statement labels.The last two are equivalent
 
-ParseNode gen_label(const ParseNode & tag) {
-	ParseNode newnode = gen_token(Term{ TokenMeta::NT_LABEL, tag.to_string() });
-	newnode.addchild(tag);
-	return newnode;
-}
-
 void log_format_index(std::string format_index, const ParseNode & format) {
 	get_context().labels[format_index] = format;
 }

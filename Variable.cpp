@@ -23,7 +23,7 @@
 #include <boost/algorithm/string/predicate.hpp>
 
 VariableInfo * get_variable(std::string module_name, std::string function_name, std::string variable_name) {
-	if (module_name == "@" && function_name == "@") {
+	if (function_name == "@") {
 		if (get_context().temporary_variables.find(variable_name) != get_context().temporary_variables.end()) {
 			return get_context().temporary_variables[variable_name];
 		}
@@ -43,7 +43,7 @@ VariableInfo * get_variable(std::string module_name, std::string function_name, 
 }
 
 VariableInfo * add_variable(std::string module_name, std::string function_name, std::string variable_name, const VariableInfo & variable) {
-	if (module_name == "@" && function_name == "@") {
+	if (function_name == "@") {
 		get_context().temporary_variables[variable_name] = new VariableInfo(variable);
 		return get_context().temporary_variables[variable_name];
 	}
@@ -73,7 +73,7 @@ void clear_variables() {
 
 void forall_variable_in_function(std::string module_name, std::string function_name, std::function<void(const std::pair<std::string, VariableInfo *> &)> func) {
 
-	if (module_name == "@" && function_name == "@") {
+	if (function_name == "@") {
 		for (std::map < std::string, VariableInfo* >::iterator iter = get_context().temporary_variables.begin(); iter != get_context().temporary_variables.end(); iter++)
 		{
 			func(*iter);

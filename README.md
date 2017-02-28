@@ -78,30 +78,30 @@ include [for90std/for90std.h](/for90std/for90std.h) to use C++ implementation of
 #### type and type cast function
 |fortran|C++|
 |:-:|:-:|
-|INTEGER()|to_int|
-|REAL()|to_double|
-|LOGICAL()|to_bool|
-|COMPLEX()|to_forcomplex|
-|CHARACTER()|to_string|
+|`INTEGER()`|`to_int`|
+|`REAL()`|`to_double`|
+|`LOGICAL()`|`to_bool`|
+|`COMPLEX()`|`to_forcomplex`|
+|`CHARACTER()`|`to_string`|
 
 #### mathematical
 |fortran|C++|
 |:-:|:-:|
-|min|min_n|
-|max|max_n|
+|`min`|`min_n`|
+|`max`|`max_n`|
 
 #### array
 refer types:array
 
 ### IO function mapping
-#### device id mapping
+#### unit id mapping
 
 |fortran|C++|
 |:-:|:-:|
-|*|stdin/stdout|
-|5|stdin|
-|6|stdout|
-|id|get_file(id)|
+|*|`stdin`/`stdout`|
+|5|`stdin`|
+|6|`stdout`|
+|id|`get_file(id)`|
 
 #### file function mapping
 
@@ -289,9 +289,8 @@ refer to [/grammar/for90.y](/grammar/for90.y) for all accepted grammar
 |`f1a_flatmap(array, begin_iterator, end_iterator, lambda)`|return a vector of all elements mapped by function `lambda` in fortran/c order|
 
 ### variables
-1. implicit variables is permitted
-2. variable names in fortran is **case-insensitive**, and their names will be translated into lower case.
-3. variable names that conflicts with C++ keywords and std functions will be renamed with a `R_` surffix
+1. variable names in fortran is **case-insensitive**, and their names will be translated into lower case.
+2. variable names that conflicts with C++ keywords and std functions will be renamed with a `R_` surffix
 
 #### common block
 common blocks, can be accessed by any of the scoping units in an executable program
@@ -303,7 +302,7 @@ common blocks, can be accessed by any of the scoping units in an executable prog
 |`COMMON C`| `T & c = G.c` |
 |`COMMON /COMMON_NAME/ D`| `T & c = COMMON_NAME.c` |
 
-where T conform to fortran's implicit type deduction
+where T conform to fortran's implicit type deduction(refer fortran 77 standard support for detail)
 each commom block will be create a singleton struct
 ```
 struct{
@@ -315,20 +314,43 @@ struct{
 if this common block is an unamed block, `COMMON_NAME` is by default `G`
 
 
-### functions and subroutines
+### subroutines and functions
+#### parameter tables
 1. remove all definition of local variables which is also in parameter list
-2. replace all interface with forward declaration when necessary
-3. parameter passing strategy:
+2. optional parameter: instead of c-style optional parameter, wrap optional parameters with `foroptional<T>`, function `forpresent` functions as `present` function in fortran90
+3. keyword/named parameter: C++ don't support keyword parameters, all keyword parameter will be reorganized in normal paramtable
+
+#### interface
+1. replace all interface with forward declaration when necessary
+
+#### attribute specification statements
+
+> The INTENT (IN) attribute specifies that the dummy argument must not be redefined or become undefined
+during the execution of the procedure.
+
+> The INTENT (OUT) attribute specifies that the dummy argument must be defined before a reference to the
+dummy argument is made within the procedure and any actual argument that becomes associated with such a
+dummy argument must be definable. On invocation of the procedure, such a dummy argument becomes
+undefined.
+
+> The INTENT (INOUT) attribute specifies that the dummy argument is intended for use both to receive data from
+and to return data to the invoking scoping unit. Any actual argument that becomes associated with such a dummy
+argument must be definable.
+
+> If no INTENT attribute is specified for a dummy argument, its use is subject to the limitations of the associated
+actual argument (12.5.2.1, 12.5.2.2, 12.5.2.3).
+
 
 |intent|parameter|save|result|
 |:-:|:-:|:-:|:-:|
-|/|/|/|`T`|
+|/|/|/|refer fortran 77 standard support|
 |ignore|/|save|`static`|
 |ignore|parameter|save|`static const`|
 |ignore|parameter|/|`const T`|
 |in|ignore|/|`const T &`|
 |out|ignore|/|`T &`|
 |inout|ignore|/|`T &`|
+
 
 ### operators
 1. defined operators is not supported
@@ -347,10 +369,6 @@ if this common block is an unamed block, `COMMON_NAME` is by default `G`
 | `.ge.` | `>=` |
 | `.lt.` | `<` |
 | `.le.` | `<=` |
-
-#### parameters
-1. optional parameter: instead of c-style optional parameter, wrap optional parameters with `foroptional<T>`, function `forpresent` functions as `present` function in fortran90
-2. keyword/named parameter: C++ don't support keyword parameters, all keyword parameter will be reorganized in normal paramtable
 
 ## fortran 77 standard support
 ### fixed form
@@ -382,6 +400,45 @@ position 6 contains any character other than blank or zero, character positions 
 continuation of the preceding noncomment line. Note that an "!" or ";" in character position 6 indicates a
 continuation of the preceding noncomment line. Comment lines cannot be continued. Comment lines may occur
 within a continued statement.
+
+In order to support some old fortran codes, a tab `'\t'` at the beginning of one line is also treated as the 5 characters indent
+
+### implicit 
+
+> 5.3 IMPLICIT statement
+> In a scoping unit, an IMPLICIT statement specifies a type, and possibly type parameters, for all implicitly
+typed data entities whose names begin with one of the letters specified in the statement. Alternatively, it may
+indicate that no implicit typing rules are to apply in a particular scoping unit.
+
+> In each scoping unit, there is a mapping, which may be null, between each of the letters A, B, ..., Z and a type
+(and type parameters). An IMPLICIT statement specifies the mapping for the letters in its letter-spec-list.
+IMPLICIT NONE specifies the null mapping for all the letters. If a mapping is not specified for a letter, the
+default for a program unit or an interface body is default integer if the letter is I, J, ..., or N and default real
+otherwise, and the default for an internal or module procedure is the mapping in the host scoping unit.
+
+> Any data entity that is not explicitly declared by a type declaration statement, is not an intrinsic function, and is
+not made accessible by use association or host association is declared implicitly to be of the type (and type
+parameters) mapped from the first letter of its name, provided the mapping is not null. Note that the mapping can
+be to a derived type that is inaccessible in the local scope if the derived type is accessible to the host scope. The
+data entity is treated as if it were declared in an explicit type declaration in the outermost scoping unit in which
+it appears. An explicit type specification in a FUNCTION statement overrides an IMPLICIT statement for the
+name of that function subprogram.
+
+#### implicit common block
+
+#### implicit parammeters table
+Not all data entities need be declared explicitly in a paramtable
+
+### subroutines and functions
+#### parameters table
+
+#### attribute specification statements
+fortran77 programs do not specify intent:
+
+|fortran|C++|
+|:-:|:-:|
+|literals(right value)|`T`|
+|left value|`T &`|
 
 # Develop
 refer to [/Develop.md](/Develop.md)

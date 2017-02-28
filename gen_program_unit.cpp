@@ -68,11 +68,11 @@ void gen_fortran_program(const ParseNode & wrappers) {
 		else if(wrapper.fs.CurrentTerm.token == TokenMeta::NT_PROGRAM){
 			get_context().current_module = "";
 			get_context().current_function = "";
-			string newsuitestr = regen_suite(wrapper.get(0));
+			string newsuitestr = regen_suite(wrapper.get(0), true);
 			main_code += tabber(newsuitestr);
 		}
 		else if (wrapper.fs.CurrentTerm.token == TokenMeta::NT_FUNCTIONDECLARE) {
-			get_context().current_module = "@";
+			get_context().current_module = "";
 			get_context().current_function = "@";
 			regen_function(wrapper);
 			codes += wrapper.fs.CurrentTerm.what;

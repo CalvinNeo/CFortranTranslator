@@ -83,7 +83,7 @@ std::string gen_vardef_array_str(VariableInfo * vinfo, ParseNode & entity_variab
 		sprintf(codegen_buf, "{%s};\n", gen_lbound_size_str(shape).c_str());
 		arr_decl += string(codegen_buf);
 		ParseNode & compound_arraybuilder = entity_variable.get(1); // NT_ARRAYBUILDER
-		gen_arraybuilder_str(compound_arraybuilder);
+		regen_arraybuilder_str(compound_arraybuilder);
 		sprintf(codegen_buf, "%s = %s", alias_name.c_str(), compound_arraybuilder.fs.CurrentTerm.what.c_str());
 		arr_decl += string(codegen_buf);
 	}
@@ -151,7 +151,6 @@ ParseNode gen_vardef(const ParseNode & type_nospec, const ParseNode & variable_d
 		newvardef.addchild(variable_desc); // variable_desc
 		newvardef.addchild(kvparamtable.get(i));  // variable_entity
 		newvardef.setattr(variable_desc.attr->clone()); 
-
 		newnode.addchild(newvardef);
 	}
 	return newnode;

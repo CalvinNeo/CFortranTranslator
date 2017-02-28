@@ -19,6 +19,7 @@
 
 #pragma once
 #include "parser.h"
+#include "Variable.h"
 
 struct FunctionDesc {
 	// all variables passed as paramtable(must also be declared in function) and declared in the function
@@ -33,6 +34,7 @@ struct FunctionDesc {
 };
 struct FunctionInfo {
 	FunctionDesc funcdesc;
+	std::map < std::string, FunctionInfo * > function_variables;
 	FunctionInfo(const FunctionDesc & desc) : funcdesc(desc){
 
 	}

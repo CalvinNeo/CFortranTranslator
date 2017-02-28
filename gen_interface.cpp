@@ -20,7 +20,7 @@
 #include "gen_common.h"
 
 ParseNode gen_interface(const ParseNode & wrappers) {
-	ParseNode newnode = ParseNode(gen_flex(Term{TokenMeta::NT_INTERFACE, ""/*wrappers.fs.CurrentTerm.what*/}), nullptr);
+	ParseNode newnode = gen_token(Term{TokenMeta::NT_INTERFACE, ""/*wrappers.fs.CurrentTerm.what*/});
 
 	newnode.addchild(wrappers);
 	return newnode;

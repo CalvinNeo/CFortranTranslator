@@ -27,11 +27,8 @@
 ## c++ code generate
 when using immediate code generate(or using lazy gen), upper level non-terminal can channge generated codes by low level non-terminal, so `gen_` functions pass `ParseNode &` other than `const ParseNode &`:
 
-1. `function_decl` change `suite`(function body)
-2. all `suite` will be changed(`tabber` function)
-3. ~~`dimen_slice` will append 1 child to the end of size == 1 slice~~
-4. argtable will change `CurrentTerm.what` of `dimen_slice`
-5. `gen_variabledesc_from_dimenslice` will promote `exp` to `slice`. because it is definitly an array other than a argtable now.
+1. all `regen_` function will change its input `ParseNode &`
+2. all `gen_` function will not change its input `const ParseNode &`
 
 child ParseNode may also be referred when generating upper level ParseNode, so do not change child index of:
 

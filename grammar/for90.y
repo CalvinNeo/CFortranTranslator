@@ -125,39 +125,39 @@ using namespace std;
 
 	crlf_or_not : YY_CRLF
 			{
-				$$.fs.CurrentTerm = Term{ TokenMeta::CRLF, "\n" };
+				$$ = gen_token(Term{ TokenMeta::CRLF, "\n" });
 				update_pos($$, $1, $1);
 			}
 		|
 			{
-				$$.fs.CurrentTerm = Term{ TokenMeta::Nop, "" };
+				$$ = gen_token(Term{ TokenMeta::Nop, "" });
 				update_pos($$);
 			}
 		
 	at_least_one_end_line : YY_CRLF
 			{
-				$$.fs.CurrentTerm = Term{ TokenMeta::CRLF, "\n" };
+				$$ = gen_token(Term{ TokenMeta::CRLF, "\n" });
 				update_pos($$, $1, $1);
 			}
 		| at_least_one_end_line YY_CRLF
 			{
-				$$.fs.CurrentTerm = Term{ TokenMeta::CRLF, "\n" };
+				$$ = gen_token(Term{ TokenMeta::CRLF, "\n" });
 				update_pos($$, $1, $2);
 			}
 		| semicolon
 			{
-				$$.fs.CurrentTerm = Term{ TokenMeta::CRLF, "\n" };
+				$$ = gen_token(Term{ TokenMeta::CRLF, "\n" });
 				update_pos($$, $1, $1);
 			}
 		| at_least_one_end_line semicolon
 			{
-				$$.fs.CurrentTerm = Term{ TokenMeta::CRLF, "\n" };
+				$$ = gen_token(Term{ TokenMeta::CRLF, "\n" });
 				update_pos($$, $1, $2);
 			}
 
 	semicolon : ';'
 			{
-				$$.fs.CurrentTerm = Term{ TokenMeta::Semicolon, ";" };
+				$$ = gen_token(Term{ TokenMeta::Semicolon, ";" });
 			}
 
 	end_of_stmt : YY_CRLF
@@ -280,7 +280,8 @@ using namespace std;
 	type_selector : YY_KIND '=' YY_INTEGER
 			{
 				int kind;
-				sscanf($3.to_string().c_str(), "%d", &kind);
+				const ParseNode & integer = $1;
+				sscanf(integer.to_string().c_str(), "%d", &kind);
 
 				/* type size */
 				ParseNode newnode = gen_token(Term{ TokenMeta::NT_VARIABLEDESC, "NT_VARIABLEDESC" });
@@ -293,7 +294,8 @@ using namespace std;
 				// though use std::string
 				// still need to initialize the string to YY_LEN
 				int len;
-				sscanf($3.to_string().c_str(), "%d", &len);
+				const ParseNode & integer = $1;
+				sscanf(integer.to_string().c_str(), "%d", &len);
 
 				/* string length */
 				ParseNode newnode = gen_token(Term{ TokenMeta::NT_VARIABLEDESC, "NT_VARIABLEDESC" });
@@ -305,16 +307,19 @@ using namespace std;
 	literal : YY_FLOAT
 			{
 				/* 该条目下的右部全部为单个终结符号(语法树的叶子节点), 因此$1全部来自lex程序 */
-				$$ = gen_token(Term{ TokenMeta::Float, $1.to_string() });// float number
+				const ParseNode & lit = $1;
+				$$ = gen_token(Term{ TokenMeta::Float, lit.to_string() });// float number
 			}
 		| YY_INTEGER
 			{
-				$$ = gen_token(Term{ TokenMeta::Int, $1.to_string() });// int number
+				const ParseNode & lit = $1;
+				$$ = gen_token(Term{ TokenMeta::Int, lit.to_string() });// int number
 			}
 		| YY_STRING
 			{
 				// replace `'` with `"`
-				std::string s = $1.to_string().substr(1, $1.to_string().size() - 2);
+				const ParseNode & lit = $1;
+				std::string s = lit.to_string().substr(1, lit.to_string().size() - 2);
 				$$ = gen_token(Term{ TokenMeta::String, "\"" + s + "\"" }); // string
 			}
 		| YY_TRUE
@@ -327,7 +332,8 @@ using namespace std;
 			}
         | YY_COMPLEX
             {
-				string strcplx = $1.to_string();
+				const ParseNode & lit = $1;
+				string strcplx = lit.to_string();
 				auto splitter = strcplx.find_first_of('_', 0);
 				$$ = gen_token(Term{ TokenMeta::Complex, "forcomplex(" + strcplx.substr(0, splitter) + ", " + strcplx.substr(splitter + 1) + ") " }); //complex
 			}
@@ -336,7 +342,8 @@ using namespace std;
 
 	variable : YY_WORD
 			{
-				ParseNode newnode = gen_token(Term{ TokenMeta::UnknownVariant, $1.to_string() });// variant
+				const ParseNode & lit = $1;
+				ParseNode newnode = gen_token(Term{ TokenMeta::UnknownVariant, lit.to_string() });
 				$$ = newnode;
 				update_pos($$, $1, $1);
 			}
@@ -673,12 +680,6 @@ using namespace std;
 				update_pos($$, $1, $1);
 			}
 
-	label : YY_LABEL
-		{
-			$$ = gen_label($1);
-			update_pos($$, $1, $1);
-		}
-
 	stmt : exp 
 			{
 				/*
@@ -692,7 +693,7 @@ using namespace std;
 		| var_def 
 			{
 				/* 因为var_def本身可能生成多行代码, 因此此处生成代码不应当带分号`;` */
-				$$ = gen_stmt($1, "%s");
+				$$ = $1;
 				update_pos($$, $1, $1);
 			}
         | compound_stmt
@@ -733,8 +734,9 @@ using namespace std;
 				update_pos($$, $1, $1);
 			}
 		| YY_COMMENT
-			{
-				$$ = gen_token(Term{TokenMeta::Comments, "/*" + $1.to_string() + "*/"});
+			{ 
+				const ParseNode & comment = $1;
+				$$ = gen_token(Term{TokenMeta::Comments, "/*" + comment.to_string() + "*/"});
 				update_pos($$, $1, $1);
 			}
 		| pause_stmt 
@@ -779,7 +781,8 @@ using namespace std;
 			}
 		| YY_GOTO YY_INTEGER
 			{
-				$$ = gen_token(Term{TokenMeta::Goto, "goto " + $2.to_string() + ";\n"});
+				const ParseNode & line = $2;
+				$$ = gen_token(Term{TokenMeta::Goto, "goto " + line.to_string() + ";\n"});
 				update_pos($$, $1, $2);
 			}
 
@@ -821,18 +824,21 @@ using namespace std;
 				$$ = gen_token(Term{ TokenMeta::NT_STATEMENT, "" });
 				update_pos($$, $1, $2);
 			}
-	labeled_stmt : label stmt
+
+	labeled_stmt : YY_LABEL stmt
 			{
 				const ParseNode & label = $1; // TokenMeta::Label
 				const ParseNode & stmt = $2;
 				if (stmt.child.size() > 0 && stmt.get(0).fs.CurrentTerm.token == TokenMeta::NT_FORMAT)
 				{
-					log_format_index(label.to_string(), stmt.get(0));
-					$$ = gen_token(Term{ TokenMeta::Nop, "" }); // do not print format stmt
+					log_format_index(label.to_string(), stmt.get(0)); 
+					ParseNode newnode = gen_token(Term{ TokenMeta::NT_SUITE , "GENERATED IN REGEN_SUITE" });// do not print format stmt
+					newnode.addchild(label);
+					newnode.addchild(stmt);
+					$$ = newnode;
 				}
 				else {
-					sprintf(codegen_buf, "LABEL_%s:\n%s", label.to_string().c_str(), stmt.to_string().c_str());
-					ParseNode & newnode = gen_token(Term{ TokenMeta::NT_SUITE , string(codegen_buf) });
+					ParseNode newnode = gen_token(Term{ TokenMeta::NT_SUITE , "GENERATED IN REGEN_SUITE" });
 					newnode.addchild(label);
 					newnode.addchild(stmt);
 					$$ = newnode;
@@ -862,7 +868,7 @@ using namespace std;
 			}
 		| stmt
 			{
-				const ParseNode & stmt = $1; // TokenMeta::NT_LABEL
+				const ParseNode & stmt = $1; 
 				$$ = gen_promote("%s\n", TokenMeta::NT_SUITE, stmt);
 				update_pos($$, $1, $1);
 			}
@@ -880,17 +886,18 @@ using namespace std;
 
 	_optional_device : '*'
 			{
-				$$.fs.CurrentTerm = Term{ TokenMeta::META_NONTERMINAL, "-1" }; // -1 stands for stdin/stdout, and will be translated at read/write stmt
+				$$ = gen_token(Term{ TokenMeta::META_NONTERMINAL, "-1" }); // -1 stands for stdin/stdout, and will be translated at read/write stmt
 				update_pos($$, $1, $1);
 			}
 		| YY_INTEGER
 			{
-				$$.fs.CurrentTerm = Term{ TokenMeta::META_NONTERMINAL, $1.to_string() };
+				const ParseNode & integer = $1;
+				$$ = gen_token(Term{ TokenMeta::META_NONTERMINAL, integer.to_string() });
 				update_pos($$, $1, $1);
 			}
 	_optional_formatter : '*'
 			{
-				$$.fs.CurrentTerm = Term{ TokenMeta::NT_AUTOFORMATTER, "" };
+				$$ = gen_token(Term{ TokenMeta::NT_AUTOFORMATTER, "" });
 				update_pos($$, $1, $1);
 			}
 		| YY_INTEGER
@@ -904,19 +911,40 @@ using namespace std;
 		| YY_STRING
 			{
 				// replace `'` with `"`
-				string modified = "\"" + $1.to_string().substr(1, $1.to_string().size() - 2) + "\"";
-				$$.fs.CurrentTerm = Term{ TokenMeta::NT_FORMATTER, modified };
+				const ParseNode & s = $1;
+				string modified = "\"" + s.to_string().substr(1, s.to_string().size() - 2) + "\"";
+				$$ = gen_token(Term{ TokenMeta::NT_FORMATTER, modified });
 				update_pos($$, $1, $1);
 			}
-
+	/**
+	*	9.4.1 Control information list
+	*	The io-control-spec-list is a control information list that includes:
+	*	(1) A reference to the source or destination of the data to be transferred
+	*	(2) Optional specification of editing processes
+	*	(3) Optional specification to identify a record
+	*	(4) Optional specification of exception handling
+	*	(5) Optional return of status
+	*	(6) Optional record advancing specification
+	*	(7) Optional return of number of characters read
+	*	The control information list governs the data transfer.
+	*	R912 io-control-spec is [ UNIT = ] io-unit
+	*	or [ FMT = ] format
+	*	or [ NML = ] namelist-group-name
+	*	or REC = scalar-int-expr
+	*	or IOSTAT = scalar-default-int-variable
+	*	or ERR = label
+	*	or END = label
+	*	or ADVANCE = scalar-default-char-expr
+	*	or SIZE = scalar-default-int-variable
+	*	or EOR = label
+	**/
 	io_info : '(' _optional_device ',' _optional_formatter ')'
 			{
 				ParseNode newnode = gen_token(Term{ TokenMeta::META_NONTERMINAL, "" });
 				const ParseNode & _optional_device = $2;
 				const ParseNode & _optional_formatter = $4;
 				/* target code of io_info depend on context, can be either iostream/cstdio */
-				newnode.addchild(_optional_device); // _optional_device
-				newnode.addchild(_optional_formatter); // _optional_formatter
+				newnode.addlist(_optional_device, _optional_formatter);
 				$$ = newnode;
 				update_pos($$, $1, $5);
 			}
@@ -926,8 +954,7 @@ using namespace std;
 				ParseNode _optional_device = gen_token(Term{ TokenMeta::META_NONTERMINAL, "" });
 				const ParseNode & _optional_formatter = $1;
 				/* target code of io_info depend on context */
-				newnode.addchild(_optional_device); // _optional_device
-				newnode.addchild(_optional_formatter); // _optional_formatter
+				newnode.addlist(_optional_device, _optional_formatter);
 				$$ = newnode;
 				update_pos($$, $1, $2);
 			}
@@ -937,7 +964,9 @@ using namespace std;
 			{
 				const ParseNode & io_info = $2;
 				const ParseNode & argtable = $3;
-				$$ = gen_write(io_info, argtable);
+				ParseNode newnode = gen_token(Term{ TokenMeta::NT_WRITE_STMT, "GENERATED IN REGEN_SUITE" });
+				newnode.addlist(io_info, argtable);
+				$$ = newnode;
 				update_pos($$, $1, $3);
 			}
 
@@ -945,7 +974,9 @@ using namespace std;
 			{
 				const ParseNode & io_info = $2;
 				const ParseNode & argtable = $3;
-				$$ = gen_print(io_info, argtable);
+				ParseNode newnode = gen_token(Term{ TokenMeta::NT_PRINT_STMT, "GENERATED IN REGEN_SUITE" });
+				newnode.addlist(io_info, argtable);
+				$$ = newnode;
 				update_pos($$, $1, $3);
 			}
 
@@ -954,7 +985,9 @@ using namespace std;
 			{
 				const ParseNode & io_info = $2;
 				const ParseNode & argtable = $3;
-				$$ = gen_read(io_info, argtable);
+				ParseNode newnode = gen_token(Term{ TokenMeta::NT_READ_STMT, "GENERATED IN REGEN_SUITE" });
+				newnode.addlist(io_info, argtable);
+				$$ = newnode;
 				update_pos($$, $1, $3);
 			}
 
@@ -989,38 +1022,10 @@ using namespace std;
 				update_pos($$, $1, $1);
 			}
 
-    type_spec : YY_INTEGER_T '(' type_selector ')'
+    type_spec : type_name '(' type_selector ')'
 			{
 				// now translated in pre_map
 				$$ = gen_type($1, $3);
-				update_pos($$, $1, $4);
-			}
-        | YY_FLOAT_T '(' type_selector ')'
-			{
-				$$ = gen_type($1, $3);
-				update_pos($$, $1, $4);
-			}
-        | YY_STRING_T '(' type_selector ')'
-			{
-				$$ = gen_type($1, $3);
-				update_pos($$, $1, $4);
-			}
-        | YY_COMPLEX_T '(' type_selector ')'
-			{
-				$$ = gen_type($1, $3);
-				update_pos($$, $1, $4);
-			}
-        | YY_BOOL_T '(' type_selector ')'
-			{
-				$$ = gen_type($1, $3);
-				update_pos($$, $1, $4);
-			}
-        | YY_CHARACTER_T '(' type_selector ')'
-			{
-				ParseNode newnode = gen_type($1);
-				int len;
-				sscanf($3.to_string().c_str(), "%d", &len);
-				set_variabledesc_attr(newnode, boost::none, boost::none, boost::none, boost::none, len, boost::none);
 				update_pos($$, $1, $4);
 			}
 		| type_name '*' YY_INTEGER
@@ -1170,14 +1175,16 @@ using namespace std;
 	array_builder : array_builder_elem
 			{
 				const ParseNode & array_builder_elem = $1;
+				ParseNode newnode;
 				if (array_builder_elem.fs.CurrentTerm.token == TokenMeta::NT_ARRAYBUILDER)
 				{
-					$$ = array_builder_elem;
+					newnode = array_builder_elem;
 				}
 				else {
-					$$ = gen_promote("%s", TokenMeta::NT_ARRAYBUILDER, array_builder_elem); // array_builder_elem
+					newnode = gen_promote("%s", TokenMeta::NT_ARRAYBUILDER, array_builder_elem); // array_builder_elem
 				}
-				gen_arraybuilder_str($$);
+				regen_arraybuilder_str(newnode);
+				$$ = $1;
 				update_pos($$, $1, $1);
 			}
 
@@ -1185,10 +1192,6 @@ using namespace std;
 	_optional_construct_name : YY_WORD ':'
 		|
 	
-
-	_yy_endif : YY_ENDIF
-
-
 	if_stmt : _optional_construct_name YY_IF '(' exp ')' stmt 
 			{
 				const ParseNode & exp = $4;
@@ -1196,14 +1199,14 @@ using namespace std;
 				$$ = gen_if_oneline(exp, stmt_true);
 				update_pos($$, $1, $6);
 			}
-		| _optional_construct_name YY_IF exp YY_THEN at_least_one_end_line /* must have \n */ suite _yy_endif
+		| _optional_construct_name YY_IF exp YY_THEN at_least_one_end_line /* must have \n */ suite YY_ENDIF
 			{
 				const ParseNode & exp = $3;
 				const ParseNode &  suite_true = $6;
 				$$ = gen_if(exp, suite_true, gen_dummy(), gen_dummy());
 				update_pos($$, $1, $7);
 			}
-		| _optional_construct_name YY_IF exp YY_THEN at_least_one_end_line suite YY_ELSE at_least_one_end_line suite _yy_endif
+		| _optional_construct_name YY_IF exp YY_THEN at_least_one_end_line suite YY_ELSE at_least_one_end_line suite YY_ENDIF
 			{
 				const ParseNode & exp = $3;
 				const ParseNode &  suite_true = $6;
@@ -1211,7 +1214,7 @@ using namespace std;
 				$$ = gen_if(exp, suite_true, gen_dummy(), suite_else);
 				update_pos($$, $1, $10);
 			}
-		| _optional_construct_name YY_IF exp YY_THEN at_least_one_end_line suite elseif_stmt _yy_endif
+		| _optional_construct_name YY_IF exp YY_THEN at_least_one_end_line suite elseif_stmt YY_ENDIF
 			{
 				const ParseNode & exp = $3;
 				const ParseNode &  suite_true = $6;
@@ -1219,7 +1222,7 @@ using namespace std;
 				$$ = gen_if(exp, suite_true, elseif, gen_dummy());
 				update_pos($$, $1, $8);
 			}
-		| _optional_construct_name YY_IF exp YY_THEN at_least_one_end_line suite elseif_stmt YY_ELSE at_least_one_end_line suite _yy_endif
+		| _optional_construct_name YY_IF exp YY_THEN at_least_one_end_line suite elseif_stmt YY_ELSE at_least_one_end_line suite YY_ENDIF
 			{
 				const ParseNode & exp = $3;
 				const ParseNode &  suite_true = $6;
@@ -1246,16 +1249,15 @@ using namespace std;
 				update_pos($$, $1, $6);
 			}
 
-	_yy_enddo : YY_ENDDO
 	_optional_label_construct : YY_INTEGER
 		|
-	do_stmt : _optional_construct_name YY_DO at_least_one_end_line suite crlf_or_not _yy_enddo
+	do_stmt : _optional_construct_name YY_DO at_least_one_end_line suite crlf_or_not YY_ENDDO
 			{
 				const ParseNode &  suite = $4;
 				$$ = gen_do(suite);
 				update_pos($$, $1, $5);
 			}
-		| _optional_construct_name YY_DO _optional_label_construct variable '=' exp ',' exp at_least_one_end_line suite crlf_or_not _yy_enddo
+		| _optional_construct_name YY_DO _optional_label_construct variable '=' exp ',' exp at_least_one_end_line suite crlf_or_not YY_ENDDO
 			{
 				const ParseNode & loop_variable = $4;
 				const ParseNode & exp_from = $6;
@@ -1265,7 +1267,7 @@ using namespace std;
 				$$ = gen_do_range(loop_variable, exp_from, exp_to, step, suite);
 				update_pos($$, $1, $12);
 			}
-		| _optional_construct_name YY_DO _optional_label_construct variable '=' exp ',' exp ',' exp at_least_one_end_line suite crlf_or_not _yy_enddo
+		| _optional_construct_name YY_DO _optional_label_construct variable '=' exp ',' exp ',' exp at_least_one_end_line suite crlf_or_not YY_ENDDO
 			{
 				const ParseNode & loop_variable = $4;
 				const ParseNode & exp1 = $6;
@@ -1275,7 +1277,7 @@ using namespace std;
 				$$ = gen_do_range(loop_variable, exp1, exp2, exp3, suite);
 				update_pos($$, $1, $14);
 			}
-		| _optional_construct_name YY_DOWHILE exp at_least_one_end_line suite crlf_or_not _yy_enddo
+		| _optional_construct_name YY_DOWHILE exp at_least_one_end_line suite crlf_or_not YY_ENDDO
 			{
 				const ParseNode & exp = $3;
 				const ParseNode &  suite = $5;
@@ -1283,13 +1285,7 @@ using namespace std;
 				update_pos($$, $1, $6);
 			}
 	
-	_yy_endselect :  YY_ENDSELECT
-			{
-				$$ = $1;
-				update_pos($$, $1, $1);
-			}
-
-	select_stmt : _optional_construct_name YY_SELECT YY_CASE '(' exp ')' at_least_one_end_line case_stmt _yy_endselect
+	select_stmt : _optional_construct_name YY_SELECT YY_CASE '(' exp ')' at_least_one_end_line case_stmt YY_ENDSELECT
 			{
 				const ParseNode & select = $2;
 				const ParseNode & exp = $5;
@@ -1346,11 +1342,11 @@ using namespace std;
 	_optional_function : YY_FUNCTION
 		| YY_SUBROUTINE
 
-	_yy_endfunction : YY_ENDFUNCTION
+	_optional_endfunction : YY_ENDFUNCTION
 		| YY_ENDSUBROUTINE
 		| YY_RETURN
 
-	function_decl : dummy_function_iden _optional_function variable '(' paramtable ')' _optional_result at_least_one_end_line suite _yy_endfunction
+	function_decl : dummy_function_iden _optional_function variable '(' paramtable ')' _optional_result at_least_one_end_line suite _optional_endfunction
 			{
 				/* fortran90 does not declare type of arguments in function declaration statement*/
 				const ParseNode & variable_function = $3; // function name
@@ -1366,8 +1362,6 @@ using namespace std;
 	_optional_name : YY_WORD
 		|
 
-	_yy_endprogram :  YY_ENDPROGRAM
-
     program : suite
 			// R1101 main-program is [ program-stmt ]
 			//	[ specification-part ]
@@ -1379,13 +1373,13 @@ using namespace std;
 				$$ = gen_program(suite);
 				update_pos($$, $1, $1);
 			}
-		| YY_PROGRAM _optional_name at_least_one_end_line suite _yy_endprogram _optional_name
+		| YY_PROGRAM _optional_name at_least_one_end_line suite YY_ENDPROGRAM _optional_name
 			{
 				ParseNode  suite = $4;
 				$$ = gen_program_explicit(suite);
 				update_pos($$, $1, $6);
 			}
-		| YY_PROGRAM _optional_name at_least_one_end_line _yy_endprogram _optional_name
+		| YY_PROGRAM _optional_name at_least_one_end_line YY_ENDPROGRAM _optional_name
 			{
 				$$ = gen_program_explicit(gen_token(Term{TokenMeta::NT_PROGRAM_EXPLICIT , ""}));
 				update_pos($$, $1, $5);
@@ -1418,8 +1412,7 @@ using namespace std;
 				update_pos($$, $1, $3);
 			}
 
-	_yy_endinterface :  YY_ENDINTERFACE
-	interface_decl : YY_INTERFACE _optional_name at_least_one_end_line wrappers crlf_or_not _yy_endinterface _optional_name
+	interface_decl : YY_INTERFACE _optional_name at_least_one_end_line wrappers crlf_or_not YY_ENDINTERFACE _optional_name
 			{
 				$$ = gen_interface($4);
 				update_pos($$, $1, $7);

@@ -25,8 +25,9 @@ ParseNode gen_keyvalue_from_name(std::string name) {
 
 	sprintf(codegen_buf, "%s", name.c_str());
 	ParseNode newnode = gen_token(Term{ TokenMeta::NT_VARIABLEINITIAL, string(codegen_buf) });
-	newnode.addchild(gen_token(Term{ TokenMeta::UnknownVariant, name })); // variable name
-	newnode.addchild(gen_token(Term{ TokenMeta::NT_VARIABLEINITIALDUMMY, string("void") })); // void is dummy initial
+	newnode.addlist(gen_token(Term{ TokenMeta::UnknownVariant, name }) // name
+		, gen_token(Term{ TokenMeta::NT_VARIABLEINITIALDUMMY, string("void") // dummy initial
+	}));
 	return newnode;
 }
 
@@ -36,9 +37,7 @@ ParseNode gen_keyvalue_from_exp(const ParseNode & variable, const ParseNode & in
 
 	sprintf(codegen_buf, "%s", variable.fs.CurrentTerm.what.c_str());
 	ParseNode newnode = gen_token(Term{ TokenMeta::NT_VARIABLEINITIAL, string(codegen_buf) });
-	newnode.addchild(variable); // variable name
-	newnode.addchild(initial); // void is dummy initial
-
+	newnode.addlist(variable, initial);
 	return newnode;
 }
 

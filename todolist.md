@@ -39,7 +39,7 @@
 - keyword conflict between fortran and c++, such as `class`, `struct`, `int`
 - defined blocks
 - arithmatic if
-- labeled do, if
+- ~~labeled do,~~ if
 - `exit`, `cycle` outer do-loop
 - detailed type attr(add TokenMeta::Int64, etc.)
 - unicode file

@@ -40,8 +40,7 @@ ParseNode gen_common(const ParseNode & commonname_node, const ParseNode & paramt
 		common_info = get_context().commonblocks.find(common_name);
 	}
 	ParseNode newnode = gen_token(Term{ TokenMeta::NT_COMMONBLOCK, "" });
-	newnode.addchild(commonname_node);
-	newnode.addchild(kvparamtable);
+	newnode.addlist(commonname_node, kvparamtable);
 	return newnode;
 }
 
@@ -107,4 +106,9 @@ ParseNode gen_common_definition(std::string common_name) {
 		sprintf(codegen_buf, "struct{\n%s\n}%s;\n", tabber(struct_str).c_str(), common_name.c_str());
 	}
 	return gen_token(Term{ TokenMeta::NT_COMMONBLOCKDEFINE, string(codegen_buf) });
+}
+
+
+void check_implicit_variable(const ParseNode &) {
+	
 }

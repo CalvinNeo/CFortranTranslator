@@ -351,7 +351,7 @@ const std::map<std::string, std::vector<std::string> > forward1 = {
 	{"else", {"if"}}
 	, {"do", { "while" }}
 	, { "go", { "to" } }
-	,{ "end",{ "if", "do", "function", "subroutine", "program", "select" } }
+	,{ "end",{ "if", "do", "function", "subroutine", "program", "select", "interface" } }
 
 };
 

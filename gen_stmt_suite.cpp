@@ -40,7 +40,7 @@ ParseNode gen_empty_suite() {
 	return newnode;
 }
 
-std::string regen_suite(ParseNode & oldsuite) {
+std::string regen_suite(ParseNode & oldsuite, bool is_partial) {
 	// regen suite(especially variable declaration)
 	/* this function regen code of `suite` node and 
 	 * 1. remove all NT_DECLAREDVARIABLE in suite
@@ -51,9 +51,9 @@ std::string regen_suite(ParseNode & oldsuite) {
 	{
 		// oldsuite.child[i]: stmt/ interface_decl
 		ParseNode & stmt = oldsuite.get(i);
-		if (stmt.child.size() > 0 && stmt.get(0).fs.CurrentTerm.token == TokenMeta::NT_VARIABLEDEFINESET)
+		if (stmt.fs.CurrentTerm.token == TokenMeta::NT_VARIABLEDEFINESET)
 		{
-			ParseNode & vardef_set = stmt.get(0);
+			ParseNode & vardef_set = stmt;
 			// examine all variable define stmt
 			for (int j = 0; j < vardef_set.child.size(); j++)
 			{
@@ -117,6 +117,34 @@ std::string regen_suite(ParseNode & oldsuite) {
 		else if (stmt.fs.CurrentTerm.token == TokenMeta::NT_INTERFACE) {
 			// do not generate declared string
 		}
+		else if (stmt.fs.CurrentTerm.token == TokenMeta::Label) {
+			int j = i + 1;
+			if (j < oldsuite.child.size())
+			{
+				const ParseNode & next_stmt = oldsuite.get(j);
+				if (next_stmt.child.size() > 0 && next_stmt.get(0).fs.CurrentTerm.token == TokenMeta::NT_FORMAT)
+				{
+
+				}
+				else {
+					sprintf(codegen_buf, "LABEL_%s:\n", stmt.to_string().c_str());
+					newsuitestr += string(codegen_buf);
+				}
+			}
+			
+		}
+		else if (stmt.fs.CurrentTerm.token == TokenMeta::NT_READ_STMT) {
+			regen_read(stmt);
+			newsuitestr += stmt.fs.CurrentTerm.what;
+		}
+		else if (stmt.fs.CurrentTerm.token == TokenMeta::NT_WRITE_STMT) {
+			regen_write(stmt);
+			newsuitestr += stmt.fs.CurrentTerm.what;
+		}
+		else if (stmt.fs.CurrentTerm.token == TokenMeta::NT_PRINT_STMT) {
+			regen_print(stmt);
+			newsuitestr += stmt.fs.CurrentTerm.what;
+		}
 		else {
 			// normal stmt
 			newsuitestr += stmt.fs.CurrentTerm.what;
@@ -124,21 +152,24 @@ std::string regen_suite(ParseNode & oldsuite) {
 		}
 	}
 	// 这部分一定要放在commonblock检查之后
-	forall_variable_in_function(get_context().current_module, get_context().current_function, [&](const std::pair<std::string, VariableInfo *> & p) {
-		if (p.second->implicit_defined)
-		{
-			string local_type = p.second->type;
-			if (p.second->commonblock_name == "") {
-				sprintf(codegen_buf, "%s %s;\n", local_type.c_str(), p.first.c_str());
-			}
-			else {
-				std::string common_varname = "_" + to_string(p.second->commonblock_index + 1);
-				sprintf(codegen_buf, "%s & %s = %s.%s;\n", local_type.c_str()
-					, p.second->local_name.c_str(), p.second->commonblock_name.c_str(), common_varname.c_str());
-			}
-			newsuitestr = string(codegen_buf) + newsuitestr;
-		};
-	});
+	if (!is_partial)
+	{
+		forall_variable_in_function(get_context().current_module, get_context().current_function, [&](const std::pair<std::string, VariableInfo *> & p) {
+			if (p.second->implicit_defined)
+			{
+				string local_type = p.second->type;
+				if (p.second->commonblock_name == "") {
+					sprintf(codegen_buf, "%s %s;\n", local_type.c_str(), p.first.c_str());
+				}
+				else {
+					std::string common_varname = "_" + to_string(p.second->commonblock_index + 1);
+					sprintf(codegen_buf, "%s & %s = %s.%s;\n", local_type.c_str()
+						, p.second->local_name.c_str(), p.second->commonblock_name.c_str(), common_varname.c_str());
+				}
+				newsuitestr = string(codegen_buf) + newsuitestr;
+			};
+		});
+	}
 	oldsuite.fs.CurrentTerm.what = tabber(newsuitestr);
 	//// CAN NOT call `clear_temporary_variables();` HERE
 	return newsuitestr;

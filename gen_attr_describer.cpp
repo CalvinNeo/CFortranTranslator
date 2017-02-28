@@ -44,9 +44,7 @@ ParseNode gen_variabledesc_from_dimenslice(const ParseNode & dimen_slice) {
 
 		}
 		else {
-			ParseNode tmp = promote_exp_to_slice(dimen.get(sliceid));
-			delete dimen.child[sliceid];
-			dimen.child[sliceid] = new ParseNode(tmp);
+			dimen.replace(sliceid, promote_exp_to_slice(dimen.get(sliceid)));
 		}
 		sprintf(codegen_buf, "(%s, %s)"
 			/* from, to */

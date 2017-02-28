@@ -49,9 +49,9 @@ ParseNode gen_flattern(const ParseNode & item, const ParseNode & list, std::stri
 ParseNode gen_merge(const ParseNode & list1, const ParseNode & list2, std::string merge_rule, int merged_token_meta = -1);
 
 std::string parse_ioformatter(const std::string &); 
-ParseNode gen_read(const ParseNode & io_info, const ParseNode & argtable);
-ParseNode gen_write(const ParseNode & io_info, const ParseNode & argtable);
-ParseNode gen_print(const ParseNode & io_info, const ParseNode & argtable); 
+void regen_read(ParseNode & stmt);
+void regen_write(ParseNode & stmt);
+void regen_print(ParseNode & stmt);
 ParseNode gen_format(const ParseNode & format);
 
 ParseNode gen_exp(const ParseNode & exp1, const ParseNode & op, const ParseNode & exp2, std::string trans_rule);
@@ -111,11 +111,11 @@ ParseNode gen_argtable(const ParseNode & argtable);
 
 ParseNode gen_stmt(const ParseNode & content);
 ParseNode gen_stmt(const ParseNode & content, const std::string & rules); 
-std::string regen_suite(ParseNode & oldsuite);
+std::string regen_suite(ParseNode & oldsuite, bool is_partial = false);
 
 ParseNode gen_array_from_hiddendo(const ParseNode & hiddendo);
 ParseNode gen_array_from_paramtable(const ParseNode & argtable);
-void gen_arraybuilder_str(ParseNode & arraybuilder);
+void regen_arraybuilder_str(ParseNode & arraybuilder);
 
 void set_variabledesc_attr(ParseNode & vardescattr_node, boost::optional<bool> reference, boost::optional<bool> constant, boost::optional<bool> optional, boost::optional<ParseNode> slice, boost::optional<int> kind, boost::optional<bool> save);
 VariableDesc & get_variabledesc_attr(ParseNode & vardescattr_node);
@@ -125,7 +125,6 @@ ParseNode gen_interface(const ParseNode & wrappers);
 
 void add_function_forward(const ParseNode & function_decl);
 
-ParseNode gen_label(const ParseNode & tag); 
 void log_format_index(std::string format_index, const ParseNode & format);
 ParseNode require_format_index(std::string format_index);
 
@@ -135,6 +134,7 @@ ParseNode gen_header();
 ParseNode gen_common_definition(std::string common_name);
 ParseNode gen_common(const ParseNode & commonname_node, const ParseNode & paramtable);
 void regen_common(ParseNode & common_block);
+void check_implicit_variable(const ParseNode &);
 
 ParseNode gen_program_explicit(ParseNode & suite);
 ParseNode gen_program(ParseNode & suite);

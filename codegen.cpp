@@ -92,7 +92,6 @@ std::string tabber(const std::string & src) {
 }
 
 ParseNode flattern_bin_right(const ParseNode & pn) {
-	/* it cant work well because it create a whole new tree copy too much */
 	/* THIS ALGORITHM FLATTERNS A RIGHT-RECURSIVE BINARY TREE */
 	if (pn.child.size() == 2) {
 		ParseNode newp = ParseNode();
@@ -143,7 +142,41 @@ ParseNode flattern_bin_left(const ParseNode & pn) {
 }
 
 void flattern_bin_inplace(ParseNode & pn, bool recursion_direction_right) {
-
+	if (pn.child.size() == 2) {
+		ParseNode * list, *item;
+		if (recursion_direction_right)
+		{
+			list = pn.child[1];
+			item = pn.child[0];
+		}
+		else {
+			list = pn.child[0];
+			item = pn.child[1];
+		}
+		pn.child.clear();
+		if (recursion_direction_right)
+		{
+			pn.child.push_back(item);
+		}
+		for (int i = 0; i < list->child.size(); i++)
+		{
+			pn.child.push_back(list->child[i]);
+		}
+		list->child.clear(); // must clear child vector or list will delete it's child recursively in its dtor
+		delete list; // all list's child is now pn's child, so list is useless
+		// don't delete item because it's add to pn directly
+		if (!recursion_direction_right)
+		{
+			pn.child.push_back(item);
+		}
+		/* pn.child[1] is a **list** of ALREADY flatterned elements */
+		//	e.g
+		//	child[0] is 1 
+		//	child[1] is [2, 3, 4, 5]
+	}
+	else {
+		return;
+	}
 }
 
 ParseNode gen_flattern(const ParseNode & item, const ParseNode & list, std::string merge_rule, int merged_token_meta, bool left_recursion) {

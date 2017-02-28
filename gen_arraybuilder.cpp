@@ -61,7 +61,7 @@ CAN_ONLY_GEN_ONE:
 	return newnode;
 }
 
-void gen_arraybuilder_str(ParseNode & arraybuilder) {
+void regen_arraybuilder_str(ParseNode & arraybuilder) {
 	// wrap arraybuilder.fs.CurrentTerm.what with make_farray function
 	string arr_decl;
 	const ParseNode & compound_arraybuilder = arraybuilder; // NT_ARRAYBUILDER
@@ -134,7 +134,7 @@ void gen_arraybuilder_str(ParseNode & arraybuilder) {
 				sprintf(codegen_buf, "make_init_list(%s)", array_builder.fs.CurrentTerm.what.c_str());
 			}
 			if (builderid > 0) {
-				arr_decl += " , ";
+				arr_decl += ", ";
 			}
 			arr_decl += codegen_buf;
 		}

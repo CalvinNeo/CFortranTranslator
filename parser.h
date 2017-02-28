@@ -51,19 +51,15 @@ struct ParseNode {
 	FlexState fs;
 	std::vector<ParseNode *> child;
 	struct ParseNode * father;
-	/*
-	对于终结符: cpp-stylish
-	对于非终结符: 当前非终结符的语法子树的cpp code
-	*/
 	struct ParseAttr * attr = nullptr;
 
 	void addchildptr(ParseNode * ptrn, bool add_back = true);
 	void addchild(const ParseNode & n, bool add_back = true);
 
 	template <typename ... Args>
-	void addlist(const ParseNode & x, Args ... args) {
+	void addlist(const ParseNode & x, Args&& ... args) {
 		addchild(x);
-		addlist(std::forward<Args...>(args...));
+		addlist(std::forward<Args>(args)...);
 	}
 	template <typename ... Args>
 	void addlist(const ParseNode & x) {

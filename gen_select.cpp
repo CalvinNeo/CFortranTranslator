@@ -22,9 +22,7 @@
 ParseNode gen_case(const ParseNode & dimen_slice, const ParseNode & suite) {
 	// one case
 	ParseNode newnode = gen_token(Term{ TokenMeta::NT_CASE, "" }); // Yes, empty string
-	newnode.addchild(ParseNode()); // case
-	newnode.addchild(dimen_slice); // dimen_slice
-	newnode.addchild(suite); // suite
+	newnode.addlist(ParseNode(), dimen_slice, suite);
 	return newnode;
 }
 
@@ -88,8 +86,6 @@ ParseNode gen_select(const ParseNode & exp, const ParseNode & case_stmt) {
 		codegen += codegen_buf;
 	}
 	newnode.fs.CurrentTerm = Term{ TokenMeta::NT_SELECT, codegen };
-	newnode.addchild(ParseNode()); // select
-	newnode.addchild(exp); // exp
-	newnode.addchild(case_stmt); // suite
+	newnode.addlist(ParseNode(), exp, case_stmt);
 	return newnode;
 }

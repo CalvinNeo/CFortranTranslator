@@ -33,8 +33,9 @@
 #include <tuple>
 #define YY_DECL int pure_yylex(void)
 
-void update_flex(int len, bool newline = false) {
+void update_flex(int len) {
 	// do not update CurrentTerm
+	bool newline = std::string(yytext) == "\n";
 	if (newline) {
 		get_flex_state().parse_line++;
 		get_flex_state().parse_pos += len; get_flex_state().line_pos = 0; get_flex_state().parse_len = len;
@@ -43,15 +44,13 @@ void update_flex(int len, bool newline = false) {
 		get_flex_state().parse_pos += len; get_flex_state().line_pos += get_flex_state().parse_len; get_flex_state().parse_len = len;
 	}
 }
-void update_yylval(Term & current_term, bool empty = false) {
-	// YYRTWORD 不会调用该函数
-	if (empty) {
-		// 空格字符等
-	}
-	else {
-		yylval.fs = FlexState(get_flex_state());
-		yylval.fs.CurrentTerm = current_term;
-	}
+void update_flex() {
+	// do not update CurrentTerm
+	update_flex(yyleng);
+}
+void update_yylval(Term & current_term) {
+	yylval.fs = FlexState(get_flex_state());
+	yylval.fs.CurrentTerm = current_term;
 }
 struct FlexContext{
 	char * iter_buff = nullptr;
@@ -228,28 +227,34 @@ string ({string1}|{string2})
 ^[Cc]{delim}*[^\r\n]* {
 	// std::cout << yytext << std::endl;
 	int p = comment_parse(yytext);
+	update_flex();
 	DORET(p);
 }
 ![^\r\n]* {
 	// std::cout << yytext << std::endl;
 	int p = comment_parse(yytext);
+	update_flex();
 	DORET(p);
 }
 
 {newline}{ws}\* {
 	int p = nop_parse();
+	update_flex();
 	DORET(p);
 }
 {newline} {
 	int p = crlf_parse(yytext);
+	update_flex();
 	DORET(p);
 }
 {ws} {
 	int p = nop_parse();
+	update_flex();
 	DORET(p);
 }
 <INITIAL>^{delim}*[0-9]+ {
 	int p = label_parse(yytext);
+	update_flex();
 	DORET(p);
 }
 <label_end_scanner>^{delim}*[0-9]+ {
@@ -271,60 +276,67 @@ string ({string1}|{string2})
 			}
 			get_flex_context().terminal_cache.push_back(std::make_tuple(YY_CRLF, Term{ TokenMeta::CRLF, std::string("") }));
 		}
-		update_flex((int)yyleng);
+		update_flex();
 		return YY_ENDDO;
 	}
 	else {
 		int p = label_parse(yytext);
-		update_flex((int)yyleng);
+		update_flex();
 		DORET(p);
 	}
 }
 
 {integral} { 
 	int p = literal_parse(yytext, TokenMeta::META_INTEGER, YY_INTEGER);
+	update_flex();
 	DORET(p)
 }
 {floating} {
 	int p = literal_parse(yytext, TokenMeta::META_FLOAT, YY_FLOAT);
+	update_flex();
 	DORET(p)
 }
 {narrow_floating} {
 	int p = literal_parse(yytext, TokenMeta::META_FLOAT, YY_FLOAT);
+	update_flex();
 	DORET(p)
 }
 {floating}_[-+]?{floating} {
 	int p = literal_parse(yytext, TokenMeta::META_COMPLEX, YY_COMPLEX);
+	update_flex();
 	DORET(p)
 }
 {string} {
 	/* The delimiting quotes are escaped because they are Flex meta-characters. */
 	int p = literal_parse(yytext, TokenMeta::META_STRING, YY_STRING);
+	update_flex();
 	DORET(p)
 }
 
-"(/" { int p = operator_parse(yytext, TokenMeta::META_ANY, YY_ARRAYINITIAL_START);  DORET(p) }
-"/)" { int p = operator_parse(yytext, TokenMeta::META_ANY, YY_ARRAYINITIAL_END); DORET(p)  }
-"::" { int p = operator_parse(yytext, TokenMeta::DoubleColon, YY_DOUBLECOLON); DORET(p) }
-"**" { int p = operator_parse(yytext, TokenMeta::Power, YY_POWER);  DORET(p) }
-">" { int p = operator_parse(yytext, TokenMeta::GT, YY_GT);  DORET(p)  }
-">=" { int p = operator_parse(yytext, TokenMeta::GE, YY_GE);  DORET(p)  }
-"<" { int p = operator_parse(yytext, TokenMeta::LT, YY_LT);  DORET(p)  }
-"<=" { int p = operator_parse(yytext, TokenMeta::LE, YY_LE);  DORET(p) }
-"==" { int p = operator_parse(yytext, TokenMeta::EQ, YY_EQ);  DORET(p) }
-"/=" { int p = operator_parse(yytext, TokenMeta::NEQ, YY_NEQ);  DORET(p)  }
-"//" { int p = operator_parse(yytext, TokenMeta::Add, '+');  DORET(p) /* string concat */}
+"(/" { int p = operator_parse(yytext, TokenMeta::META_ANY, YY_ARRAYINITIAL_START);  update_flex(); DORET(p) }
+"/)" { int p = operator_parse(yytext, TokenMeta::META_ANY, YY_ARRAYINITIAL_END); update_flex(); DORET(p)  }
+"::" { int p = operator_parse(yytext, TokenMeta::DoubleColon, YY_DOUBLECOLON); update_flex(); DORET(p) }
+"**" { int p = operator_parse(yytext, TokenMeta::Power, YY_POWER);  update_flex(); DORET(p) }
+">" { int p = operator_parse(yytext, TokenMeta::GT, YY_GT);  update_flex(); DORET(p)  }
+">=" { int p = operator_parse(yytext, TokenMeta::GE, YY_GE);  update_flex(); DORET(p)  }
+"<" { int p = operator_parse(yytext, TokenMeta::LT, YY_LT);  update_flex(); DORET(p)  }
+"<=" { int p = operator_parse(yytext, TokenMeta::LE, YY_LE);  update_flex(); DORET(p) }
+"==" { int p = operator_parse(yytext, TokenMeta::EQ, YY_EQ);  update_flex(); DORET(p) }
+"/=" { int p = operator_parse(yytext, TokenMeta::NEQ, YY_NEQ);  update_flex(); DORET(p)  }
+"//" { int p = operator_parse(yytext, TokenMeta::Add, '+');  update_flex(); DORET(p) /* string concat */}
 
 {word} {
 	/*do not call update_yylval in this macro because some tokens need to be looked ahead, such as `else if` */
 	int p = word_parse(yytext);
 	// std::cout << "-----------" << yytext << std::endl;
+	update_flex(); // IMPORTANT, yyleng NOT always equal to `lowercase_name.size()` because of `pre_map`
 	DORET(p)
 }
 
 . {
 	/* all other things, including some operators not listed */
 	int p = else_parse(yytext);
+	update_flex();
 	DORET(p)
 }
 
@@ -332,12 +344,10 @@ string ({string1}|{string2})
 
 int else_parse(const char * origin_yytext) {
 	update_yylval(Term{ TokenMeta::META_ILLEGAL, std::string(origin_yytext) });
-	update_flex((int)yyleng);  
 	return origin_yytext[0];
 }
 int comment_parse(const char * origin_yytext) {
 	/* do not update yylval */  
-	update_flex((int)yyleng, false/* not empty */); 
 	return YY_IGNORE_THIS; /* do not return */
 }
 int label_parse(const char * origin_yytext) {
@@ -345,29 +355,24 @@ int label_parse(const char * origin_yytext) {
 	int label_index;
 	sscanf(origin_yytext, "%d", &label_index);
 	update_yylval(Term{ TokenMeta::Label, std::to_string(label_index) });
-	update_flex((int)yyleng);
 	return YY_LABEL;
 }
 int literal_parse(const char * origin_yytext, TokenMeta_T token, int yytoken) {
 	update_yylval(Term{ token, std::string(origin_yytext) });
-	update_flex((int)yyleng);
 	return yytoken;
 }
 int nop_parse() {
 	/* do not update yylval */  
-	update_flex((int)yyleng); 
 	return YY_IGNORE_THIS; /* do not return */
 }
 
 int crlf_parse(const char * origin_yytext) {
 	update_yylval(Term{ TokenMeta::CRLF, std::string(origin_yytext) });
-	update_flex((int)yyleng, true); 
 	return YY_CRLF;
 }
 
 int operator_parse(const char * origin_yytext, TokenMeta_T token, int yytoken) {
-	update_yylval(Term{ token, std::string(origin_yytext) });
-	update_flex((int)yyleng);  
+	update_yylval(Term{ token, std::string(origin_yytext) });  
 	return yytoken;
 }
 
@@ -378,7 +383,6 @@ int word_parse(const char * origin_yytext) {
 	if (abandon) {
 		// 跳过这个字符
 		abandon = false;
-		update_flex((int)yyleng);
 		return YY_IGNORE_THIS;
 	}
 	string lowercase_name = string(origin_yytext);
@@ -386,8 +390,7 @@ int word_parse(const char * origin_yytext) {
 FIND_CONCAT:
 	if (lowercase_name == "format")
 	{
-		enter_condition(new FlexExternalContext("format", external_scanner));
-		update_flex((int)yyleng); // IMPORTANT, yyleng NOT always equal to `lowercase_name.size()` because of `pre_map`
+		enter_condition(new FlexExternalContext("format", external_scanner));		
 		return YY_IGNORE_THIS;
 	}
 	else if (lowercase_name == "do") {
@@ -396,7 +399,6 @@ FIND_CONCAT:
 			// label-do-stmt is [ do-construct-name : ] DO label [ loop-control ]
 			get_context().end_labels[next].push_back("do");
 			enter_condition(new FlexLabelEndContext("do", label_end_scanner));
-			update_flex((int)yyleng); // IMPORTANT, yyleng NOT always equal to `lowercase_name.size()` because of `pre_map`
 			return YY_DO;
 		}
 	}
@@ -426,7 +428,6 @@ NORMAL_CONDITION:
 		// replace according to tokenizer.cpp
 		lowercase_name = pre_map.at(lowercase_name);
 	}
-	update_flex((int)yyleng); // IMPORTANT, yyleng NOT always equal to `lowercase_name.size()` because of `pre_map`
 	update_yylval(Term{ tok, std::string(lowercase_name) });
 	return yytok;
 }

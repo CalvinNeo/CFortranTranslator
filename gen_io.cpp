@@ -19,48 +19,53 @@
 
 #include "gen_common.h"
 
-ParseNode gen_read(const ParseNode & io_info, const ParseNode & argtable) {
-	ParseNode newnode = ParseNode();
-	ParseNode * formatter = io_info.child[1];
-	string device = io_info.get(0).fs.CurrentTerm.what;
+void regen_read(ParseNode & stmt) {
+	const ParseNode & io_info = stmt.get(0);
+	const ParseNode & argtable = stmt.get(1);
+	string device = io_info.get(0).to_string();
 	if (io_info.get(1).fs.CurrentTerm.token == TokenMeta::NT_AUTOFORMATTER) {
 		if (device == "-1" || device == "") {
 			//device = "5"; // stdin
-			sprintf(codegen_buf, "forreadfree(stdin, %s) ;", argtable.fs.CurrentTerm.what.c_str());
+			sprintf(codegen_buf, "forreadfree(stdin, %s);\n", argtable.fs.CurrentTerm.what.c_str());
 		}
 		else {
-			sprintf(codegen_buf, "forreadfree(get_file(%s), %s) ;", device.c_str(), argtable.fs.CurrentTerm.what.c_str());
+			sprintf(codegen_buf, "forreadfree(get_file(%s), %s);\n", device.c_str(), argtable.fs.CurrentTerm.what.c_str());
 		}
 	}
 	else {
-		string fmt = io_info.get(1).fs.CurrentTerm.what.substr(1, io_info.get(1).fs.CurrentTerm.what.size() - 1); // strip " 
-		if (device == "-1" || device == "") {
-			//device = "5"; // stdin
-			sprintf(codegen_buf, "forread(stdin, \"%s\", %s) ;", parse_ioformatter(fmt).c_str(), argtable.fs.CurrentTerm.what.c_str());
+		string fmt;
+		if (io_info.get(1).fs.CurrentTerm.token == TokenMeta::NT_FORMATTER_LOCATION)
+		{
+			fmt = get_context().labels[io_info.get(1).to_string()].to_string();
 		}
 		else {
-			sprintf(codegen_buf, "forread(get_file(%s), \"%s\", %s) ;", device.c_str(), parse_ioformatter(fmt).c_str(), argtable.fs.CurrentTerm.what.c_str());
+			fmt = io_info.get(1).fs.CurrentTerm.what.substr(1, io_info.get(1).fs.CurrentTerm.what.size() - 1); // strip " 
+		}
+		if (device == "-1" || device == "") {
+			//device = "5"; // stdin
+			sprintf(codegen_buf, "forread(stdin, \"%s\", %s);\n", parse_ioformatter(fmt).c_str(), argtable.fs.CurrentTerm.what.c_str());
+		}
+		else {
+			sprintf(codegen_buf, "forread(get_file(%s), \"%s\", %s);\n", device.c_str(), parse_ioformatter(fmt).c_str(), argtable.fs.CurrentTerm.what.c_str());
 		}
 	}
-	newnode.fs.CurrentTerm = Term{ TokenMeta::META_NONTERMINAL, string(codegen_buf) };
-	newnode.addchild(io_info); // ioinfo
-	newnode.addchild(argtable); // argtable
-	return newnode;
+	stmt.fs.CurrentTerm = Term{ TokenMeta::NT_READ_STMT, string(codegen_buf) };
+	return;
 }
 
 
-ParseNode gen_write(const ParseNode & io_info, const ParseNode & argtable) {
+void regen_write(ParseNode & stmt) {
 	// brace is forced
-	ParseNode newnode = ParseNode();
-	ParseNode * formatter = io_info.child[1];
-	string device = io_info.get(0).fs.CurrentTerm.what;
+	const ParseNode & io_info = stmt.get(0);
+	const ParseNode & argtable = stmt.get(1);
+	string device = io_info.get(0).to_string();
 	if (io_info.get(1).fs.CurrentTerm.token == TokenMeta::NT_AUTOFORMATTER) {
 		if (device == "-1") {
 			// device = "6"; // stdout
-			sprintf(codegen_buf, "forwritefree(stdout, %s) ;", argtable.fs.CurrentTerm.what.c_str());
+			sprintf(codegen_buf, "forwritefree(stdout, %s);\n", argtable.fs.CurrentTerm.what.c_str());
 		}
 		else {
-			sprintf(codegen_buf, "forwritefree(get_file(%s), %s) ;", device.c_str(), argtable.fs.CurrentTerm.what.c_str());
+			sprintf(codegen_buf, "forwritefree(get_file(%s), %s);\n", device.c_str(), argtable.fs.CurrentTerm.what.c_str());
 		}
 	}
 	else {
@@ -73,31 +78,34 @@ ParseNode gen_write(const ParseNode & io_info, const ParseNode & argtable) {
 		}
 		if (device == "-1") {
 			// device = "6"; // stdout
-			sprintf(codegen_buf, "forwrite(stdout, \"%s\", %s) ;", parse_ioformatter(fmt).c_str(), argtable.fs.CurrentTerm.what.c_str());
+			sprintf(codegen_buf, "forwrite(stdout, \"%s\", %s);\n", parse_ioformatter(fmt).c_str(), argtable.fs.CurrentTerm.what.c_str());
 		}
 		else {
-			sprintf(codegen_buf, "forwrite(get_file(%s), \"%s\", %s) ;", device.c_str(), parse_ioformatter(fmt).c_str(), argtable.fs.CurrentTerm.what.c_str());
+			sprintf(codegen_buf, "forwrite(get_file(%s), \"%s\", %s);\n", device.c_str(), parse_ioformatter(fmt).c_str(), argtable.fs.CurrentTerm.what.c_str());
 		}
 	}
-	newnode.fs.CurrentTerm = Term{ TokenMeta::META_NONTERMINAL, string(codegen_buf) };
-	newnode.addchild(io_info); // ioinfo
-	newnode.addchild(argtable); // argtable
-	return newnode;
+	stmt.fs.CurrentTerm = Term{ TokenMeta::NT_WRITE_STMT, string(codegen_buf) };
+	return;
 }
-ParseNode gen_print(const ParseNode & io_info, const ParseNode & argtable) {
-
-	ParseNode newnode = ParseNode();
+void regen_print(ParseNode & stmt) {
+	const ParseNode & io_info = stmt.get(0);
+	const ParseNode & argtable = stmt.get(1);
 	if (io_info.get(1).fs.CurrentTerm.token == TokenMeta::NT_AUTOFORMATTER) {
-		sprintf(codegen_buf, "forprintfree(%s) ;", argtable.fs.CurrentTerm.what.c_str());
+		sprintf(codegen_buf, "forprintfree(%s);\n", argtable.fs.CurrentTerm.what.c_str());
 	}
 	else {
-		string fmt = io_info.get(1).fs.CurrentTerm.what.substr(1, io_info.get(1).fs.CurrentTerm.what.size() - 1); // strip " 
-		sprintf(codegen_buf, "forprint(\"%s\", %s) ;", parse_ioformatter(fmt).c_str(), argtable.fs.CurrentTerm.what.c_str());
+		string fmt;
+		if (io_info.get(1).fs.CurrentTerm.token == TokenMeta::NT_FORMATTER_LOCATION)
+		{
+			fmt = get_context().labels[io_info.get(1).to_string()].to_string();
+		}
+		else {
+			fmt = io_info.get(1).fs.CurrentTerm.what.substr(1, io_info.get(1).fs.CurrentTerm.what.size() - 1); // strip " 
+		}
+		sprintf(codegen_buf, "forprint(\"%s\", %s);\n", parse_ioformatter(fmt).c_str(), argtable.fs.CurrentTerm.what.c_str());
 	}
-	newnode.fs.CurrentTerm = Term{ TokenMeta::META_NONTERMINAL, string(codegen_buf) };
-	newnode.addchild(io_info); // ioinfo
-	newnode.addchild(argtable); // argtable
-	return newnode;
+	stmt.fs.CurrentTerm = Term{ TokenMeta::NT_PRINT_STMT, string(codegen_buf) };
+	return;
 }
 ParseNode gen_format(const ParseNode & format) {
 	ParseNode newnode = gen_token(Term{ TokenMeta::NT_STATEMENT, "" });

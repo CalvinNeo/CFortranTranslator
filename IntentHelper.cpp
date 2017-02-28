@@ -258,12 +258,15 @@ std::map<int, std::string> IntentName = {
 	, {-2036, "NT_WRAPPERS"}
 	, {-2037, "NT_PARAMTABLE_PURE"}
 	, {-2038, "NT_FORMAT"}
-	, {-2039, "NT_LABEL"}
+	, {-2039, "NT_LABEL_STMT"}
 	, {-2040, "NT_PROGRAM_EXPLICIT"}
 	, {-2041, "NT_COMMONBLOCK"}
 	, {-2042, "NT_COMMONBLOCKDEFINE"}
 	, {-2043, "NT_VARIABLEDEFINESET"}
 	, {-2044, "NT_FORMATTER_LOCATION"}
+	, { -2045, "NT_READ_STMT" }
+	, { -2046, "NT_WRITE_STMT" }
+	, { -2047, "NT_PRINT_STMT" }
 	,{ -9999, "NT_DUMMY"}
 };
 
