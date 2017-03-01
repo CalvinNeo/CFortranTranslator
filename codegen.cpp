@@ -91,44 +91,33 @@ std::string tabber(const std::string & src) {
 	return ans;
 }
 
-ParseNode flattern_bin_right(const ParseNode & pn) {
-	/* THIS ALGORITHM FLATTERNS A RIGHT-RECURSIVE BINARY TREE */
+ParseNode flattern_bin(const ParseNode & pn, bool recursion_direction_right) {
+	/* it cant work well because it create a whole new tree copy too much */
+	/* THIS ALGORITHM FLATTERNS A LEFT/RIGHT-RECURSIVE BINARY TREE */
 	if (pn.child.size() == 2) {
 		ParseNode newp = ParseNode();
 		/* child[0] is the only data node */
-		newp.addchild(pn.get(0));
-
-		/* pn.child[1] is a **list** of ALREADY flatterned elements */
-		//	e.g
-		//	child[0] is 1 
-		//	child[1] is [2, 3, 4, 5]
-		for (int i = 0; i < pn.get(1).child.size(); i++)
+		if (recursion_direction_right)
 		{
-			newp.addchild(pn.get(1).get(i));
+			/* pn.child[1] is a **list** of ALREADY flatterned elements */
+			// child[0] is 1 
+			// child[1] is [2, 3, 4, 5]
+			newp.addchild(pn.get(0));
+			for (int i = 0; i < pn.get(1).child.size(); i++)
+			{
+				newp.addchild(pn.get(1).get(i));
+			}
 		}
-		newp.fs = pn.fs;
-		newp.father = pn.father;
-		if (pn.attr != nullptr) {
-			newp.setattr(pn.attr->clone());
+		else {
+			/* pn.child[0] is a **list** of ALREADY flatterned elements */
+			// child[0] is [2, 3, 4, 5]
+			// child[1] is 1 
+			for (int i = 0; i < pn.get(0).child.size(); i++)
+			{
+				newp.addchild(pn.get(0).get(i));
+			}
+			newp.addchild(pn.get(1));
 		}
-		return newp;
-	}
-	else {
-		return pn;
-	}
-}
-
-ParseNode flattern_bin_left(const ParseNode & pn) {
-	/* it cant work well because it create a whole new tree copy too much */
-	/* THIS ALGORITHM FLATTERNS A RIGHT-RECURSIVE BINARY TREE */
-	if (pn.child.size() == 2) {
-		ParseNode newp = ParseNode();
-		for (int i = 0; i < pn.get(0).child.size(); i++)
-		{
-			newp.addchild(pn.get(0).get(i));
-		}
-
-		newp.addchild(pn.get(1));
 		newp.fs = pn.fs;
 		newp.father = pn.father;
 		if (pn.attr != nullptr) {
@@ -194,14 +183,12 @@ ParseNode gen_flattern(const ParseNode & item, const ParseNode & list, std::stri
 	nn.fs.CurrentTerm = Term{ merged_token_meta, string(codegen_buf) };
 	if (left_recursion)
 	{
-		nn.addchild(list); // list
-		nn.addchild(item); // item
-		nn = flattern_bin_left(nn);
+		nn.addlist(list, item);
+		nn = flattern_bin(nn, false);
 	}
 	else {
-		nn.addchild(item); // item
-		nn.addchild(list); // list
-		nn = flattern_bin_right(nn);
+		nn.addlist(item, list);
+		nn = flattern_bin(nn, true);
 	}
 	return nn;
 }

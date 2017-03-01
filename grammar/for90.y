@@ -205,12 +205,9 @@ using namespace std;
 			{
 				/* define array like a(1) */
 				ParseNode newnode = gen_token(Term{ TokenMeta::NT_VARIABLEDESC, "NT_VARIABLEDESC" });
-				ParseNode slice = ParseNode();
 				const ParseNode & exp_to = $3;
-				ParseNode & exp_from = gen_promote(TokenMeta::NT_EXPRESSION, gen_token(Term{ TokenMeta::META_INTEGER, "1" }));
 
-				slice.addchild(exp_from); // slice from 1
-				slice.addchild(exp_to); // slice to
+				ParseNode slice = promote_exp_to_slice(exp_to);
 
 				ParseNode attr = gen_variabledesc_from_dimenslice(gen_promote("", TokenMeta::NT_DIMENSLICE, slice));
 				newnode.addchild(attr); // def slice
@@ -833,14 +830,12 @@ using namespace std;
 				{
 					log_format_index(label.to_string(), stmt.get(0)); 
 					ParseNode newnode = gen_token(Term{ TokenMeta::NT_SUITE , "GENERATED IN REGEN_SUITE" });// do not print format stmt
-					newnode.addchild(label);
-					newnode.addchild(stmt);
+					newnode.addlist(label, stmt);
 					$$ = newnode;
 				}
 				else {
 					ParseNode newnode = gen_token(Term{ TokenMeta::NT_SUITE , "GENERATED IN REGEN_SUITE" });
-					newnode.addchild(label);
-					newnode.addchild(stmt);
+					newnode.addlist(label, stmt);
 					$$ = newnode;
 				}
 				update_pos($$, $1, $2);
@@ -1085,9 +1080,10 @@ using namespace std;
 				$$ = gen_vardef(type_spec, variable_desc, paramtable);
 				update_pos($$, $1, $3);
 			}
+		/* no shift-reduce confliction */
 		| YY_DIMENSION paramtable
 			{
-				/* array decl */
+				// array decl 
 				const ParseNode & paramtable = $2;
 				ParseNode & type_spec = gen_token(Term {TokenMeta::Implicit_Def, ""});
 				ParseNode variable_desc = gen_token(Term{ TokenMeta::NT_VARIABLEDESC, "NT_VARIABLEDESC" });
@@ -1095,7 +1091,7 @@ using namespace std;
 				$$ = gen_vardef(type_spec, variable_desc, paramtable);
 				update_pos($$, $1, $2);
 			}
-
+			
     
 	pure_paramtable : keyvalue
 			{
@@ -1392,7 +1388,7 @@ using namespace std;
 			{
 				const ParseNode & wrapper = $1;
 				ParseNode newnode = ParseNode();
-				newnode.addchild(wrapper); // wrapper
+				newnode.addchild(wrapper);
 				sprintf(codegen_buf, "%s", wrapper.to_string().c_str());
 				newnode.fs.CurrentTerm = Term{ TokenMeta::NT_WRAPPERS, string(codegen_buf) };
 				$$ = newnode;
@@ -1403,10 +1399,9 @@ using namespace std;
 				ParseNode newnode = ParseNode();
 				const ParseNode & wrapper = $1;
 				const ParseNode & wrappers = $3;
-				newnode.addchild(wrapper); // wrapper
-				newnode.addchild(wrappers); // wrappers
+				newnode.addlist(wrapper, wrappers);
 				sprintf(codegen_buf, "%s\n%s", wrapper.to_string().c_str(), wrappers.to_string().c_str());
-				newnode = flattern_bin_right(newnode);
+				newnode = flattern_bin(newnode, true);
 				newnode.fs.CurrentTerm = Term{ TokenMeta::NT_WRAPPERS, string(codegen_buf) };
 				$$ = newnode;
 				update_pos($$, $1, $3);

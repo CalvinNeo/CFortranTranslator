@@ -25,15 +25,16 @@
 2. update `funcname_map` in [/gen_config.cpp](/gen_config.cpp) if necessary
 
 ## c++ code generate
+### lazy generate
 when using immediate code generate(or using lazy gen), upper level non-terminal can channge generated codes by low level non-terminal, so `gen_` functions pass `ParseNode &` other than `const ParseNode &`:
 
 1. all `regen_` function will change its input `ParseNode &`
 2. all `gen_` function will not change its input `const ParseNode &`
 
-child ParseNode may also be referred when generating upper level ParseNode, so do not change child index of:
-
-1. `NT_VARIABLEINITIAL`: referred in `function_decl`
-2. `NT_FUNCTIONDECLARE`: can represent interface, referred in `paramtable` and `function_decl`
+due to fortran's implicit declaration, code above `stmt` level, including `function_decl`, `program` will be regenerated after the whole AST is builded by following steps:
+1. `gen_fortran_program` handles `program`, `function_decl`
+2. `regen_suite` handles `suite` rule
+3. `regen_common` generates `common` statement code
 
 ### name mapping
 many type names and function names are mapped, they are defined in in [/gen_config.h](/gen_config.h)
@@ -66,6 +67,13 @@ all parse tree nodes are defined in [/Intent.h](/Intent.h) with an `NT_` prefix
 	* FunctionAttr
 	* VariableDescAttr
 4. father: parent node
+
+### nodes
+
+child ParseNode may also be referred when generating upper level ParseNode, so do not change child index of:
+
+1. `NT_VARIABLEINITIAL`: referred in `function_decl`
+2. `NT_FUNCTIONDECLARE`: can represent interface, referred in `paramtable` and `function_decl`
 
 ### rules explanation
 #### argtable, dimen_slice, pure_paramtable

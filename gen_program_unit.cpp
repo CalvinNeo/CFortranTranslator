@@ -29,24 +29,18 @@ R202 program-unit is main-program
 
 ParseNode gen_program_explicit(ParseNode & suite) {
 	ParseNode newnode = gen_token(Term{ TokenMeta::NT_PROGRAM_EXPLICIT, tabber(suite.fs.CurrentTerm.what) });
-	// get all variables declared in this function
-	vector<ParseNode *> param_definition = get_all_explicit_declared(suite);
 	newnode.addchild(suite); //suite
 	return newnode;
 }
 
 ParseNode gen_program(ParseNode & suite) {
 	ParseNode newnode = gen_token(Term{ TokenMeta::NT_PROGRAM, tabber(suite.fs.CurrentTerm.what) });
-	// get all variables declared in this function
-	vector<ParseNode *> param_definition = get_all_explicit_declared(suite);
 	newnode.addchild(suite); //suite
 	return newnode;
 }
 
 ParseNode gen_program_end(ParseNode & suite) {
 	ParseNode newnode = gen_token(Term{ TokenMeta::NT_PROGRAM, tabber(suite.fs.CurrentTerm.what) });
-	// get all variables declared in this function
-	vector<ParseNode *> param_definition = get_all_explicit_declared(suite);
 	newnode.addchild(suite); //suite
 	return newnode;
 }
@@ -55,26 +49,26 @@ void gen_fortran_program(const ParseNode & wrappers) {
 	std::string codes;
 	std::string main_code;
 	get_context().program_tree = wrappers;
+	FunctionInfo * program_info = add_function("", "program", FunctionInfo());
 	for (size_t i = 0; i < wrappers.child.size(); i++)
 	{
 		ParseNode & wrapper = get_context().program_tree.get(i);
 		if (wrapper.fs.CurrentTerm.token == TokenMeta::NT_PROGRAM_EXPLICIT)
 		{
 			get_context().current_module = "";
-			get_context().current_function = "";
-			string newsuitestr = regen_suite(wrapper.get(0));
+			string newsuitestr = regen_suite(program_info, wrapper.get(0));
 			main_code = tabber(newsuitestr);
 		}
 		else if(wrapper.fs.CurrentTerm.token == TokenMeta::NT_PROGRAM){
 			get_context().current_module = "";
-			get_context().current_function = "";
-			string newsuitestr = regen_suite(wrapper.get(0), true);
+			string newsuitestr = regen_suite(program_info, wrapper.get(0), true);
 			main_code += tabber(newsuitestr);
 		}
 		else if (wrapper.fs.CurrentTerm.token == TokenMeta::NT_FUNCTIONDECLARE) {
 			get_context().current_module = "";
-			get_context().current_function = "@";
-			regen_function(wrapper);
+			ParseNode & variable_function = wrapper.get(1);
+			FunctionInfo * finfo = add_function(get_context().current_module, variable_function.fs.CurrentTerm.what, FunctionInfo{});
+			regen_function(finfo, wrapper);
 			codes += wrapper.fs.CurrentTerm.what;
 			codes += "\n";
 		}
@@ -84,10 +78,11 @@ void gen_fortran_program(const ParseNode & wrappers) {
 	}
 	sprintf(codegen_buf, "int main()\n{\n%s\treturn 0;\n}", main_code.c_str());
 	codes += string(codegen_buf);
+	// common definition
 	for (std::map<std::string, CommonBlockInfo>::iterator iter = get_context().commonblocks.begin(); iter != get_context().commonblocks.end(); iter++)
 	{
-		string xx = gen_common_definition(iter->first).fs.CurrentTerm.what;
-		codes = xx + codes;
+		string s = gen_common_definition(iter->first).fs.CurrentTerm.what;
+		codes = s + codes;
 	}
 	get_context().program_tree.fs.CurrentTerm.what = codes;
 }

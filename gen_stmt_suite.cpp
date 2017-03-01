@@ -40,7 +40,7 @@ ParseNode gen_empty_suite() {
 	return newnode;
 }
 
-std::string regen_suite(ParseNode & oldsuite, bool is_partial) {
+std::string regen_suite(FunctionInfo * finfo, ParseNode & oldsuite, bool is_partial) {
 	// regen suite(especially variable declaration)
 	/* this function regen code of `suite` node and 
 	 * 1. remove all NT_DECLAREDVARIABLE in suite
@@ -68,7 +68,7 @@ std::string regen_suite(ParseNode & oldsuite, bool is_partial) {
 				else {
 					if (vardef.fs.CurrentTerm.token == TokenMeta::NT_VARIABLEDEFINE) {
 						// for every variable, generate independent definition
-						VariableInfo * vinfo = get_variable(get_context().current_module, get_context().current_function, name);
+						VariableInfo * vinfo = get_variable(get_context().current_module, finfo->local_name, name);
 						if (vinfo != nullptr)
 						{
 							// variable is defined by common block
@@ -90,7 +90,7 @@ std::string regen_suite(ParseNode & oldsuite, bool is_partial) {
 						else {
 							// variable haven't defined
 							VariableInfo newinfo(name);
-							vinfo = add_variable(get_context().current_module, get_context().current_function, name, newinfo);
+							vinfo = add_variable(get_context().current_module, finfo->local_name, name, newinfo);
 
 							vinfo->commonblock_index; // set in regen_suite and gen_common
 							vinfo->commonblock_name; // set in regen_suite and gen_common
@@ -111,7 +111,7 @@ std::string regen_suite(ParseNode & oldsuite, bool is_partial) {
 			}
 		}
 		else if (stmt.fs.CurrentTerm.token == TokenMeta::NT_COMMONBLOCK) {
-			regen_common(stmt);
+			regen_common(finfo, stmt);
 			newsuitestr += stmt.fs.CurrentTerm.what;
 		}
 		else if (stmt.fs.CurrentTerm.token == TokenMeta::NT_INTERFACE) {
@@ -154,7 +154,7 @@ std::string regen_suite(ParseNode & oldsuite, bool is_partial) {
 	// 这部分一定要放在commonblock检查之后
 	if (!is_partial)
 	{
-		forall_variable_in_function(get_context().current_module, get_context().current_function, [&](const std::pair<std::string, VariableInfo *> & p) {
+		forall_variable_in_function(get_context().current_module, finfo->local_name, [&](const std::pair<std::string, VariableInfo *> & p) {
 			if (p.second->implicit_defined)
 			{
 				string local_type = p.second->type;

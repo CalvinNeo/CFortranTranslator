@@ -44,7 +44,7 @@ ParseNode gen_common(const ParseNode & commonname_node, const ParseNode & paramt
 	return newnode;
 }
 
-void regen_common(ParseNode & common_block) {
+void regen_common(FunctionInfo * finfo, ParseNode & common_block) {
 	ParseNode & commonname_node = common_block.get(0);
 	ParseNode & kvparamtable = common_block.get(1);
 	string common_name = commonname_node.fs.CurrentTerm.what;
@@ -58,11 +58,11 @@ void regen_common(ParseNode & common_block) {
 	{
 		ParseNode & entity_variable = kvparamtable.get(i);
 		std::string local_varname = get_variable_name(entity_variable);
-		VariableInfo * local_vinfo = get_variable(get_context().current_module, get_context().current_function, local_varname);
+		VariableInfo * local_vinfo = get_variable(get_context().current_module, finfo->local_name, local_varname);
 		if (local_vinfo == nullptr)
 		{
 			// if this common variable has no prev explicit declaration
-			local_vinfo = add_variable(get_context().current_module, get_context().current_function, local_varname, VariableInfo(local_varname));
+			local_vinfo = add_variable(get_context().current_module, finfo->local_name, local_varname, VariableInfo(local_varname));
 			ParseNode implicit_type = gen_type(Term{ TokenMeta::Implicit_Def, "" });
 			ParseNode vardef_node = gen_vardef_from_implicit(implicit_type, local_varname);
 			ParseNode & variable_entity = kvparamtable.get(i);

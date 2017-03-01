@@ -94,9 +94,8 @@ typedef ParseNode yystype_t;
 #define YYSTYPE ParseNode
 
 std::string tabber(const std::string &); // add tab(`\t`) into the front of each line
-ParseNode flattern_bin_right(const ParseNode & pn); // eliminate right recursion of an binary tree
-ParseNode flattern_bin_left(const ParseNode & pn); // eliminate left recursion of an binary tree
-void flattern_bin_inplace(ParseNode & pn, bool recursion_direction_right); // 
+ParseNode flattern_bin(const ParseNode & pn, bool recursion_direction_right);// eliminate left/right recursion of an binary tree
+void flattern_bin_inplace(ParseNode & pn, bool recursion_direction_right); // eliminate left/right recursion of an binary tree in place
 
 /* lazygen */
 

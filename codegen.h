@@ -66,9 +66,9 @@ std::string gen_lbound_size_str(const std::tuple<std::vector<int>, std::vector<i
 std::tuple<std::vector<int>, std::vector<int>> gen_lbound_size(const ParseNode * slice);
 ParseNode gen_vardef_from_implicit(const ParseNode & type, std::string name);
 
-std::vector<ParseNode *> get_all_explicit_declared(ParseNode & suite);
+std::vector<ParseNode *> get_all_explicit_declared(FunctionInfo * finfo, ParseNode & suite);
 ParseNode gen_function(const ParseNode & variable_function, const ParseNode & paramtable, const ParseNode & variable_result, const ParseNode & suite); // function define
-void regen_function(ParseNode & functiondecl_node); // function define
+void regen_function(FunctionInfo * finfo, ParseNode & functiondecl_node); // function define
 
 ParseNode gen_select(const ParseNode & exp, const ParseNode & case_stmt);
 ParseNode gen_case(const ParseNode & dimen_slice, const ParseNode & suite);
@@ -111,7 +111,7 @@ ParseNode gen_argtable(const ParseNode & argtable);
 
 ParseNode gen_stmt(const ParseNode & content);
 ParseNode gen_stmt(const ParseNode & content, const std::string & rules); 
-std::string regen_suite(ParseNode & oldsuite, bool is_partial = false);
+std::string regen_suite(FunctionInfo * finfo, ParseNode & oldsuite, bool is_partial = false);
 
 ParseNode gen_array_from_hiddendo(const ParseNode & hiddendo);
 ParseNode gen_array_from_paramtable(const ParseNode & argtable);
@@ -133,7 +133,7 @@ ParseNode gen_header();
 
 ParseNode gen_common_definition(std::string common_name);
 ParseNode gen_common(const ParseNode & commonname_node, const ParseNode & paramtable);
-void regen_common(ParseNode & common_block);
+void regen_common(FunctionInfo * finfo, ParseNode & common_block);
 void check_implicit_variable(const ParseNode &);
 
 ParseNode gen_program_explicit(ParseNode & suite);

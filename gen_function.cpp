@@ -59,12 +59,12 @@ vector<ParseNode *> get_all_declared(std::string module_name, std::string functi
 	return declared_variables_and_functions;
 }
 
-vector<ParseNode *> get_all_explicit_declared(ParseNode & suite) {
+vector<ParseNode *> get_all_explicit_declared(FunctionInfo * finfo, ParseNode & suite) {
 	/* 
 	* find out all var_def and interface-function nodes 
 	* NOT including implicit declared variables
 	*/
-	vector<ParseNode *> dd = get_all_declared(get_context().current_module, get_context().current_function);
+	vector<ParseNode *> dd = get_all_declared(get_context().current_module, finfo->local_name);
 	vector<ParseNode *> declared_variables;
 	for (int i = 0; i < (int)suite.child.size(); i++)
 	{
@@ -147,12 +147,8 @@ vector<tuple<string, ParseNode, ParseNode *>> get_full_paramtable(const ParseNod
 			else if (vardef->fs.CurrentTerm.token == TokenMeta::NT_FUNCTIONDECLARE) {
 				// interface function
 				string interface_paramtable_str = "";
-				string temp_module = get_context().current_module;
-				string temp_function = get_context().current_function;
-				get_context().current_module = "@"; // function is a interface
-				regen_function(*vardef); // regen interface function
-				get_context().current_module = temp_module;
-				get_context().current_function = temp_function;
+				FunctionInfo * interface_finfo = add_function("@", "", FunctionInfo{});
+				regen_function(interface_finfo, *vardef); // regen interface function
 				if (vardef->attr != nullptr) {
 					// variables declared in the interface block
 					FunctionAttr * interface_attr = dynamic_cast<FunctionAttr *>(vardef->attr);
@@ -189,7 +185,7 @@ ParseNode gen_function(const ParseNode & variable_function, const ParseNode & pa
 	return newnode;
 }
 
-void regen_function(ParseNode & functiondecl_node) {
+void regen_function(FunctionInfo * finfo, ParseNode & functiondecl_node) {
 	/* fortran90 does not declare type of arguments in function declaration statement*/
 	// paramtable is raw for90 paramtable and every variable in the table has no type infomation
 	ParseNode & variable_function = functiondecl_node.get(1);
@@ -200,11 +196,11 @@ void regen_function(ParseNode & functiondecl_node) {
 	bool is_subroutine = variable_result.fs.CurrentTerm.what == "";
 	
 	// get all variables declared in this function
-	vector<ParseNode *> declared_variables = get_all_explicit_declared(suite);
+	vector<ParseNode *> declared_variables = get_all_explicit_declared(finfo, suite);
 	// get all params in paramtable of function declare (var_name, var_type, ParseNode*)
 	vector<tuple<string, ParseNode, ParseNode *>> paramtable_info = get_full_paramtable(kvparamtable, variable_result, declared_variables, is_subroutine);
 	// make newnode
-	string newsuitestr = regen_suite(oldsuite); 
+	string newsuitestr = regen_suite(finfo, oldsuite);
 	string paramtblstr = regen_paramtable(paramtable_info);
 
 	std::string return_type_str = get<1>(paramtable_info[paramtable_info.size() - 1]).to_string();
@@ -219,8 +215,8 @@ void regen_function(ParseNode & functiondecl_node) {
 	functiondecl_node.fs.CurrentTerm.what = string(codegen_buf);
 
 	// log function and set attr 
-	FunctionDesc funcdesc = FunctionDesc(declared_variables, paramtable_info);
-	FunctionAttr functionattr = FunctionAttr(add_function(get_context().current_module, variable_function.fs.CurrentTerm.what, FunctionInfo(funcdesc)));
+	finfo->funcdesc = FunctionDesc(declared_variables, paramtable_info);
+	FunctionAttr functionattr = FunctionAttr(finfo);
 	functiondecl_node.setattr(functionattr.clone());
 
 	// cleaning

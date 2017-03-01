@@ -23,8 +23,7 @@ ParseNode gen_do(const ParseNode & suite) {
 	ParseNode newnode = ParseNode();
 	sprintf(codegen_buf, "do{\n%s}", tabber(suite.to_string()).c_str());
 	newnode.fs.CurrentTerm = Term{ TokenMeta::NT_DO, string(codegen_buf) };
-	newnode.addchild(ParseNode()); // do
-	newnode.addchild(suite); // suite
+	newnode.addlist(ParseNode(), suite);
 	return newnode;
 }
 
@@ -35,12 +34,7 @@ ParseNode gen_do_range(const ParseNode & loop_variable, const ParseNode & exp1, 
 		, loop_variable.to_string().c_str(), exp3.to_string().c_str(), tabber(suite.to_string()).c_str());
 	newnode.fs.CurrentTerm = Term{ TokenMeta::NT_DO, string(codegen_buf) };
 
-	newnode.addchild(ParseNode()); // do
-	newnode.addchild(loop_variable); // loop_variable name
-	newnode.addchild(exp1); // begin
-	newnode.addchild(exp2); // end
-	newnode.addchild(exp3); // step
-	newnode.addchild(suite); // suite
+	newnode.addlist(ParseNode(), loop_variable, exp1, exp2, exp3, suite);
 	return newnode;
 }
 
@@ -48,9 +42,8 @@ ParseNode gen_do_while(const ParseNode & exp, const ParseNode & suite) {
 	ParseNode newnode = ParseNode();
 	sprintf(codegen_buf, "while(%s){\n%s}", exp.to_string().c_str(), tabber(suite.to_string()).c_str());
 	newnode.fs.CurrentTerm = Term{ TokenMeta::NT_WHILE, string(codegen_buf) };
-	newnode.addchild(ParseNode()); // while
-	newnode.addchild(exp); // exp
-	newnode.addchild(suite); // suite
+
+	newnode.addlist(ParseNode(), exp, suite);
 	return newnode;
 }
 
@@ -117,10 +110,7 @@ std::string gen_hiddendo_expr(const ParseNode & hiddendo) {
 ParseNode gen_hiddendo(const ParseNode & argtable, const ParseNode & index, const ParseNode & from, const ParseNode & to, TokenMeta_T return_token) {
 	/* give generate stmt */
 	ParseNode newnode = gen_token(Term{ TokenMeta::NT_HIDDENDO, "" });
-	newnode.addchild(argtable); // 0 exp
-	newnode.addchild(index); // 1 index variable
-	newnode.addchild(from); // 2 exp_from
-	newnode.addchild(to); // 3 exp_to
+	newnode.addlist(argtable, index, from, to);
 	std::string stuff;
 	for (auto iter = argtable.child.begin(); iter < argtable.child.end(); iter++)
 	{

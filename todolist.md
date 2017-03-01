@@ -72,3 +72,4 @@
 	    A = 2
     end subroutine
     ```
+- `temporary_variable` to `FunctionInfo` variable

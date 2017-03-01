@@ -31,13 +31,13 @@ struct FunctionDesc {
 	: paramtable_info(paramtable_info), declared_variables(declared_variables){
 
 	}
+	FunctionDesc() {
+	}
 };
 struct FunctionInfo {
+	std::string local_name; // name can only set by add_function
 	FunctionDesc funcdesc;
 	std::map < std::string, FunctionInfo * > function_variables;
-	FunctionInfo(const FunctionDesc & desc) : funcdesc(desc){
-
-	}
 };
 typedef std::tuple<std::string, std::string, std::string> KeywordParamInfo;
 

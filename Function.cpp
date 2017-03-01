@@ -43,20 +43,22 @@ FunctionInfo * get_function(std::string module_name, std::string function_name) 
 }
 
 FunctionInfo * add_function(std::string module_name, std::string function_name, const FunctionInfo & func) {
+	FunctionInfo * finfo = new FunctionInfo(func);
 	if (module_name == "@") {
-		get_context().temporary_functions[function_name] = new FunctionInfo(func);
-		return get_context().temporary_functions[function_name];
+		get_context().temporary_functions[function_name] = finfo;
 	}
 	else {
 		std::string fullname = module_name + "::" + function_name;
 		if (get_context().functions.find(fullname) != get_context().functions.end()) {
+			assert("function name conflict");
 			return nullptr;
 		}
 		else {
-			get_context().functions[fullname] = new FunctionInfo(func);
-			return get_context().functions[fullname];
+			get_context().functions[fullname] = finfo;
 		}
 	}
+	finfo->local_name = function_name;
+	return finfo;
 }
 
 void insert_temporary_functions(std::string module_name) {

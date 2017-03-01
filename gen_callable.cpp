@@ -28,8 +28,7 @@ ParseNode gen_function_array(const ParseNode & callable_head, const ParseNode & 
 	ParseNode newnode = ParseNode();
 	string name;
 	string func_header;
-	newnode.addchild(callable_head); // function/array name
-	newnode.addchild(argtable); // argtable
+	newnode.addlist(callable_head, argtable);
 	if (funcname_map.find(callable_head.fs.CurrentTerm.what) != funcname_map.end()) {
 		// some fortran intrinsic function NAME must be replaced with its c++ implementation function NAME in for90std.h
 		name = funcname_map.at(callable_head.fs.CurrentTerm.what);
