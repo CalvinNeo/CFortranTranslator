@@ -292,12 +292,12 @@ string ({string1}|{string2})
 	DORET(p)
 }
 {floating} {
-	int p = literal_parse(yytext, TokenMeta::META_FLOAT, YY_FLOAT);
+	int p = literal_parse(yytext, TokenMeta::META_REAL, YY_FLOAT);
 	update_flex();
 	DORET(p)
 }
 {narrow_floating} {
-	int p = literal_parse(yytext, TokenMeta::META_FLOAT, YY_FLOAT);
+	int p = literal_parse(yytext, TokenMeta::META_REAL, YY_FLOAT);
 	update_flex();
 	DORET(p)
 }

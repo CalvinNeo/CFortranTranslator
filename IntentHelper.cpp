@@ -144,8 +144,6 @@ std::map<int, std::string> IntentName = {
 	,{ -211, "Extern" }
 	,{ -212, "Partial" }
 	,{ -213, "Final" }
-	,{ -214, "Readonly" }
-	,{ -215, "Region" }
 
 	,{ -216, "Enum" }
 	,{ -217, "Abstract" }
@@ -154,7 +152,7 @@ std::map<int, std::string> IntentName = {
 	,{ -302, "META_INTEGER or Int" }
 	,{ -303, "META_STRING or String" }
 	,{ -304, "META_CHARACTER or Char" }
-	,{ -305, "META_FLOAT or Double" }
+	,{ -305, "META_REAL or Double" }
 	,{ -306, "META_OPERATOR" }
 	,{ -307, "META_ILLEGAL" }
 	,{ -308, "META_ANY" }
@@ -167,10 +165,16 @@ std::map<int, std::string> IntentName = {
 	,{ -326, "Dynamic" }
 	,{ -327, "Bool" }
 	,{ -328, "Pointer" }
+	, {-329, "Float"}
 	,{ -330, "Long" }
 	,{ -331, "Complex" }
 	,{ -332, "Short" }
 	, { -333, "Function" }
+		, { -334, "Int8" }
+		, { -335, "Int16" }
+		, { -336, "Int32" }
+		, { -337, "Int64" }
+		, {-338, "LongDouble"}
 
 	,{ TokenMeta::Void - 100, "Void_Def" }
 	,{ TokenMeta::Obj - 100, "Obj_Def" }
@@ -185,7 +189,12 @@ std::map<int, std::string> IntentName = {
 	,{ TokenMeta::Long - 100, "Long_Def" }
 	,{ TokenMeta::Complex - 100, "Complex_Def" }
 	,{ TokenMeta::Short - 100, "Short_Def" }
-	, { TokenMeta::Function - 100, "Function_Def" }
+	, { TokenMeta::Function - 100, "Function_def" }
+		, { TokenMeta::Int8 - 100, "Int8_Def" }
+		, { TokenMeta::Int16 - 100, "Int16_Def" }
+		, { TokenMeta::Int32 - 100, "Int32_Def" }
+		, { TokenMeta::Int64 - 100, "Int64_Def" }
+		, { TokenMeta::LongDouble - 100, "LongDouble_Def" }
 		, { -599, "Implicit_Def" }
 
 	,{ -600, "If" }
@@ -267,6 +276,7 @@ std::map<int, std::string> IntentName = {
 	, { -2045, "NT_READ_STMT" }
 	, { -2046, "NT_WRITE_STMT" }
 	, { -2047, "NT_PRINT_STMT" }
+	, { -2048, "NT_DORANGE" }
 	,{ -9999, "NT_DUMMY"}
 };
 

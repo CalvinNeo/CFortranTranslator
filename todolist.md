@@ -72,4 +72,5 @@
 	    A = 2
     end subroutine
     ```
-- `temporary_variable` to `FunctionInfo` variable
+- ~~`temporary_variable` to `FunctionInfo` variable~~
+- `regen_if`, `regen_do`, `regen_suite`

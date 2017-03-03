@@ -89,7 +89,7 @@ namespace IntentMeta {
 		LetAnd = 108,
 		LetOr = 109,
 
-		Nop = 0, //Parse时表示一个不合法的字符, 或者在VM中作为占位符
+		Nop = 0, 
 
 		// non/special priority operators
 		LB = -1, //(
@@ -110,21 +110,21 @@ namespace IntentMeta {
 		True = -102,
 		False = -103,
 
-		OperatorCall = -110, //operator() 函数调用
+		OperatorCall = -110, 
 		CallArgs = -111,
-		HyperFuncCall = -112, //高阶函数f()()
-		VacantArg = -113, //参数为空
+		HyperFuncCall = -112, 
+		VacantArg = -113, 
 		Lambda = -114,
-		Operator = -115, //operator+-*.等, 占位符
+		Operator = -115,
 		Return = -116,
 		SetReturnValue = -117,
 
 		PushPointer = -120,
 		PushVar = -121,
-		PushLiteralConst = -122, // 像LovalV加载常量
-		PushExtern = -123, // 在闭包函数中 StaticBind 变量
-		SystemFunction = -124, // 调用系统内置函数
-		DynamicVariable = -125, //Heap中的指针
+		PushLiteralConst = -122, 
+		PushExtern = -123,
+		SystemFunction = -124, 
+		DynamicVariable = -125, 
 		UnknownVariant = -126, //尚未定位符号表的变量
 
 		New = -131,
@@ -135,12 +135,12 @@ namespace IntentMeta {
 		Define = -138,
 		Using = -139,
 		Duplicate = -140,
+
 		
 		Stop = -150, // For Debug
 		Format = -151, // fortran77 format commandd
 
 		// Describer
-		Virtual = -201,
 		Const = -202,
 		Static = -203,
 		Public = -204,
@@ -152,9 +152,6 @@ namespace IntentMeta {
 		Extern = -211,
 		Partial = -212,
 		Final = -213,
-		Readonly = -214,
-		Region = -215,
-		/* readonly is dynamic but can not change its value, it is not used, as it is replaced by final. const is static  */
 		Enum = -216,
 		Abstract = -217,
 
@@ -164,7 +161,7 @@ namespace IntentMeta {
 		META_INTEGER = -302,
 		META_STRING = -303,
 		META_CHARACTER = -304,
-		META_FLOAT = -305,
+		META_REAL = -305,
 		META_OPERATOR = -306,
 		META_ILLEGAL = -307,
 		META_ANY = -308, // 尚未解析的Intent
@@ -179,15 +176,20 @@ namespace IntentMeta {
 		Int = META_INTEGER,
 		Char = META_CHARACTER, 
 		String = META_STRING,
-		Double = META_FLOAT,
+		Double = META_REAL,
 		Dynamic = -326,
 		Bool = -327, // no use because Bool is true + false
 		Pointer = -328, // 声明指针类型
-		Float = META_FLOAT,
+		Float = -329,
 		Long = -330,
 		Complex = -331,
 		Short = -332,
-		Function = -333, //TODO function声明 用于匿名函数等
+		Function = -333,
+		Int8 = -334,
+		Int16 = -335,
+		Int32 = -336,
+		Int64 = -337,
+		LongDouble = -338,
 
 		// 变量声明 -400~-500
 		Void_Def = Void - 100,
@@ -203,8 +205,13 @@ namespace IntentMeta {
 		Long_Def = Long - 100,
 		Complex_Def = Complex - 100,
 		Short_Def = Short - 100,
-		Function_Def = Function - 100,
 		Implicit_Def = -599,
+		Int8_Def = Int8 - 100,
+		Int16_Def = Int16 - 100,
+		Int32_Def = Int32 - 100,
+		Int64_Def = Int64 - 100,
+		Function_Def = Function -100,
+		LongDouble_Def = LongDouble - 100,
 
 		// Flow-Control
 		If = -600,
@@ -289,6 +296,7 @@ namespace IntentMeta {
 		NT_READ_STMT = -2045,
 		NT_WRITE_STMT = -2046,
 		NT_PRINT_STMT = -2047,
+		NT_DORANGE = -2048,
 
 		NT_DUMMY = -9999,
 };

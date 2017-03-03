@@ -35,7 +35,7 @@ ParseNode gen_stmt(const ParseNode & content, const std::string & rules) {
 
 ParseNode gen_empty_suite() {
 	ParseNode newnode = gen_token(Term{ TokenMeta::NT_SUITE	, "" });
-	ParseNode & stmt = gen_token(Term{ TokenMeta::NT_STATEMENT, "" });
+	ParseNode stmt = gen_token(Term{ TokenMeta::NT_STATEMENT, "" });
 	newnode.addchild(stmt); // stmt
 	return newnode;
 }
@@ -134,16 +134,50 @@ std::string regen_suite(FunctionInfo * finfo, ParseNode & oldsuite, bool is_part
 			
 		}
 		else if (stmt.fs.CurrentTerm.token == TokenMeta::NT_READ_STMT) {
-			regen_read(stmt);
+			regen_read(finfo, stmt);
 			newsuitestr += stmt.fs.CurrentTerm.what;
 		}
 		else if (stmt.fs.CurrentTerm.token == TokenMeta::NT_WRITE_STMT) {
-			regen_write(stmt);
+			regen_write(finfo, stmt);
 			newsuitestr += stmt.fs.CurrentTerm.what;
 		}
 		else if (stmt.fs.CurrentTerm.token == TokenMeta::NT_PRINT_STMT) {
-			regen_print(stmt);
+			regen_print(finfo, stmt);
 			newsuitestr += stmt.fs.CurrentTerm.what;
+		}
+		else if (stmt.fs.CurrentTerm.token == TokenMeta::NT_DO) {
+			newsuitestr += stmt.fs.CurrentTerm.what;
+			newsuitestr += '\n';
+		}
+		else if (stmt.fs.CurrentTerm.token == TokenMeta::NT_IF) {
+			regen_if(finfo, stmt);
+			newsuitestr += stmt.fs.CurrentTerm.what;
+			newsuitestr += '\n';
+		}
+		else if (stmt.fs.CurrentTerm.token == TokenMeta::NT_ELSEIF) {
+			regen_elseif(finfo, stmt);
+			newsuitestr += stmt.fs.CurrentTerm.what;
+			newsuitestr += '\n';
+		}
+		else if (stmt.fs.CurrentTerm.token == TokenMeta::NT_DO) {
+			regen_do(finfo, stmt);
+			newsuitestr += stmt.fs.CurrentTerm.what;
+			newsuitestr += '\n';
+		}
+		else if (stmt.fs.CurrentTerm.token == TokenMeta::NT_DORANGE) {
+			regen_do_range(finfo, stmt);
+			newsuitestr += stmt.fs.CurrentTerm.what;
+			newsuitestr += '\n';
+		}
+		else if (stmt.fs.CurrentTerm.token == TokenMeta::NT_WHILE) {
+			regen_do_while(finfo, stmt);
+			newsuitestr += stmt.fs.CurrentTerm.what;
+			newsuitestr += '\n';
+		}
+		else if (stmt.fs.CurrentTerm.token == TokenMeta::NT_SELECT) {
+			regen_select(finfo, stmt);
+			newsuitestr += stmt.fs.CurrentTerm.what;
+			newsuitestr += '\n';
 		}
 		else {
 			// normal stmt
@@ -170,7 +204,7 @@ std::string regen_suite(FunctionInfo * finfo, ParseNode & oldsuite, bool is_part
 			};
 		});
 	}
-	oldsuite.fs.CurrentTerm.what = tabber(newsuitestr);
+	oldsuite.fs.CurrentTerm.what = newsuitestr;
 	//// CAN NOT call `clear_temporary_variables();` HERE
 	return newsuitestr;
 }

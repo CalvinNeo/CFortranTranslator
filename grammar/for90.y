@@ -829,12 +829,12 @@ using namespace std;
 				if (stmt.child.size() > 0 && stmt.get(0).fs.CurrentTerm.token == TokenMeta::NT_FORMAT)
 				{
 					log_format_index(label.to_string(), stmt.get(0)); 
-					ParseNode newnode = gen_token(Term{ TokenMeta::NT_SUITE , "GENERATED IN REGEN_SUITE" });// do not print format stmt
+					ParseNode newnode = gen_token(Term{ TokenMeta::NT_SUITE , "LABEL GENERATED IN REGEN_SUITE" });// do not print format stmt
 					newnode.addlist(label, stmt);
 					$$ = newnode;
 				}
 				else {
-					ParseNode newnode = gen_token(Term{ TokenMeta::NT_SUITE , "GENERATED IN REGEN_SUITE" });
+					ParseNode newnode = gen_token(Term{ TokenMeta::NT_SUITE , "LABEL GENERATED IN REGEN_SUITE" });
 					newnode.addlist(label, stmt);
 					$$ = newnode;
 				}
@@ -959,7 +959,7 @@ using namespace std;
 			{
 				const ParseNode & io_info = $2;
 				const ParseNode & argtable = $3;
-				ParseNode newnode = gen_token(Term{ TokenMeta::NT_WRITE_STMT, "GENERATED IN REGEN_SUITE" });
+				ParseNode newnode = gen_token(Term{ TokenMeta::NT_WRITE_STMT, "WRITE GENERATED IN REGEN_SUITE" });
 				newnode.addlist(io_info, argtable);
 				$$ = newnode;
 				update_pos($$, $1, $3);
@@ -969,7 +969,7 @@ using namespace std;
 			{
 				const ParseNode & io_info = $2;
 				const ParseNode & argtable = $3;
-				ParseNode newnode = gen_token(Term{ TokenMeta::NT_PRINT_STMT, "GENERATED IN REGEN_SUITE" });
+				ParseNode newnode = gen_token(Term{ TokenMeta::NT_PRINT_STMT, "PRINT GENERATED IN REGEN_SUITE" });
 				newnode.addlist(io_info, argtable);
 				$$ = newnode;
 				update_pos($$, $1, $3);
@@ -980,7 +980,7 @@ using namespace std;
 			{
 				const ParseNode & io_info = $2;
 				const ParseNode & argtable = $3;
-				ParseNode newnode = gen_token(Term{ TokenMeta::NT_READ_STMT, "GENERATED IN REGEN_SUITE" });
+				ParseNode newnode = gen_token(Term{ TokenMeta::NT_READ_STMT, "READ GENERATED IN REGEN_SUITE" });
 				newnode.addlist(io_info, argtable);
 				$$ = newnode;
 				update_pos($$, $1, $3);
@@ -1192,14 +1192,18 @@ using namespace std;
 			{
 				const ParseNode & exp = $4;
 				const ParseNode &  stmt_true = $6;
-				$$ = gen_if_oneline(exp, stmt_true);
+				ParseNode newnode = gen_token(Term{ TokenMeta::NT_IF, "" });
+				newnode.addlist(exp, stmt_true, gen_dummy(), gen_dummy());
+				$$ = newnode;
 				update_pos($$, $1, $6);
 			}
 		| _optional_construct_name YY_IF exp YY_THEN at_least_one_end_line /* must have \n */ suite YY_ENDIF
 			{
 				const ParseNode & exp = $3;
 				const ParseNode &  suite_true = $6;
-				$$ = gen_if(exp, suite_true, gen_dummy(), gen_dummy());
+				ParseNode newnode = gen_token(Term{ TokenMeta::NT_IF, "IF GENERATED IN REGEN_SUITE" });
+				newnode.addlist(exp, suite_true, gen_dummy(), gen_dummy());
+				$$ = newnode;
 				update_pos($$, $1, $7);
 			}
 		| _optional_construct_name YY_IF exp YY_THEN at_least_one_end_line suite YY_ELSE at_least_one_end_line suite YY_ENDIF
@@ -1207,7 +1211,9 @@ using namespace std;
 				const ParseNode & exp = $3;
 				const ParseNode &  suite_true = $6;
 				const ParseNode &  suite_else = $9;
-				$$ = gen_if(exp, suite_true, gen_dummy(), suite_else);
+				ParseNode newnode = gen_token(Term{ TokenMeta::NT_IF, "IF GENERATED IN REGEN_SUITE" });
+				newnode.addlist(exp, suite_true, gen_dummy(), suite_else);
+				$$ = newnode;
 				update_pos($$, $1, $10);
 			}
 		| _optional_construct_name YY_IF exp YY_THEN at_least_one_end_line suite elseif_stmt YY_ENDIF
@@ -1215,7 +1221,9 @@ using namespace std;
 				const ParseNode & exp = $3;
 				const ParseNode &  suite_true = $6;
 				const ParseNode &  elseif = $7;
-				$$ = gen_if(exp, suite_true, elseif, gen_dummy());
+				ParseNode newnode = gen_token(Term{ TokenMeta::NT_IF, "IF GENERATED IN REGEN_SUITE" });
+				newnode.addlist(exp, suite_true, elseif, gen_dummy());
+				$$ = newnode;
 				update_pos($$, $1, $8);
 			}
 		| _optional_construct_name YY_IF exp YY_THEN at_least_one_end_line suite elseif_stmt YY_ELSE at_least_one_end_line suite YY_ENDIF
@@ -1224,7 +1232,9 @@ using namespace std;
 				const ParseNode &  suite_true = $6;
 				const ParseNode &  elseif = $7;
 				const ParseNode &  suite_else = $10;
-				$$ = gen_if(exp, suite_true, elseif, suite_else);
+				ParseNode newnode = gen_token(Term{ TokenMeta::NT_IF, "IF GENERATED IN REGEN_SUITE" });
+				newnode.addlist(exp, suite_true, elseif, suite_else);
+				$$ = newnode;
 				update_pos($$, $1, $11);
 			}
 
@@ -1232,7 +1242,9 @@ using namespace std;
 			{
 				const ParseNode & exp = $2;
 				const ParseNode &  suite_true = $5;
-				$$ = gen_elseif(exp, suite_true, gen_dummy());;
+				ParseNode newnode = gen_token(Term{ TokenMeta::NT_ELSEIF, "ELSEIF GENERATED IN REGEN_SUITE" });
+				newnode.addlist(exp, suite_true, gen_dummy());
+				$$ = newnode;
 				update_pos($$, $1, $5);
 			}
 
@@ -1241,7 +1253,9 @@ using namespace std;
 				const ParseNode & exp = $2;
 				const ParseNode &  suite_true = $5;
 				const ParseNode &  elseif = $6;
-				$$ = gen_elseif(exp, suite_true, elseif);
+				ParseNode newnode = gen_token(Term{ TokenMeta::NT_ELSEIF, "ELSEIF GENERATED IN REGEN_SUITE" });
+				newnode.addlist(exp, suite_true, elseif);
+				$$ = newnode;
 				update_pos($$, $1, $6);
 			}
 
@@ -1250,7 +1264,9 @@ using namespace std;
 	do_stmt : _optional_construct_name YY_DO at_least_one_end_line suite crlf_or_not YY_ENDDO
 			{
 				const ParseNode &  suite = $4;
-				$$ = gen_do(suite);
+				ParseNode newnode = gen_token(Term{ TokenMeta::NT_DO, "DO-BARE GENERATED IN REGEN_SUITE" });
+				newnode.addlist(suite);
+				$$ = newnode;
 				update_pos($$, $1, $5);
 			}
 		| _optional_construct_name YY_DO _optional_label_construct variable '=' exp ',' exp at_least_one_end_line suite crlf_or_not YY_ENDDO
@@ -1260,24 +1276,30 @@ using namespace std;
 				const ParseNode & exp_to = $8;
 				const ParseNode & step = gen_promote(TokenMeta::NT_EXPRESSION, gen_token(Term{ TokenMeta::META_INTEGER , "1" }));
 				const ParseNode &  suite = $10;
-				$$ = gen_do_range(loop_variable, exp_from, exp_to, step, suite);
+				ParseNode newnode = gen_token(Term{ TokenMeta::NT_DORANGE, "DO-RANGE GENERATED IN REGEN_SUITE" });
+				newnode.addlist(loop_variable, exp_from, exp_to, step, suite);
+				$$ = newnode;
 				update_pos($$, $1, $12);
 			}
 		| _optional_construct_name YY_DO _optional_label_construct variable '=' exp ',' exp ',' exp at_least_one_end_line suite crlf_or_not YY_ENDDO
 			{
 				const ParseNode & loop_variable = $4;
-				const ParseNode & exp1 = $6;
-				const ParseNode & exp2 = $8;
-				const ParseNode & exp3 = $10;
+				const ParseNode & exp_from = $6;
+				const ParseNode & exp_to = $8;
+				const ParseNode & step = $10;
 				const ParseNode &  suite = $12;
-				$$ = gen_do_range(loop_variable, exp1, exp2, exp3, suite);
+				ParseNode newnode = gen_token(Term{ TokenMeta::NT_DORANGE, "DO-RANGE GENERATED IN REGEN_SUITE" });
+				newnode.addlist(loop_variable, exp_from, exp_to, step, suite);
+				$$ = newnode;
 				update_pos($$, $1, $14);
 			}
 		| _optional_construct_name YY_DOWHILE exp at_least_one_end_line suite crlf_or_not YY_ENDDO
 			{
 				const ParseNode & exp = $3;
 				const ParseNode &  suite = $5;
-				$$ = gen_do_while(exp, suite);
+				ParseNode newnode = gen_token(Term{ TokenMeta::NT_WHILE, "DO-WHILE GENERATED IN REGEN_SUITE" });
+				newnode.addlist(exp, suite);
+				$$ = newnode;
 				update_pos($$, $1, $6);
 			}
 	
@@ -1286,15 +1308,21 @@ using namespace std;
 				const ParseNode & select = $2;
 				const ParseNode & exp = $5;
 				const ParseNode & case_stmt = $8;
-				$$ = gen_select(exp, case_stmt);
+				ParseNode newnode = gen_token(Term{ TokenMeta::NT_SELECT, "SELECT GENERATED IN REGEN_SUITE" });
+				newnode.addlist(exp, case_stmt);
+				$$ = newnode;
 				update_pos($$, $1, $9);
 			}
+
 	case_stmt_elem : YY_CASE '(' dimen_slice ')' at_least_one_end_line suite
 			{
 				// one case
 				const ParseNode & dimen_slice = $3;
-				const ParseNode & suite = $6;
-				$$ = gen_case(dimen_slice, suite);
+				const ParseNode & suite = $6; 
+
+				ParseNode newnode = gen_token(Term{ TokenMeta::NT_CASE, "CASE GENERATED IN REGEN_SUITE" }); // Yes, empty string
+				newnode.addlist(dimen_slice, suite);
+				$$ = newnode;
 				update_pos($$, $1, $6);
 			}
 		| YY_CASE '(' argtable ')' at_least_one_end_line suite
@@ -1302,14 +1330,17 @@ using namespace std;
 				// one case
 				const ParseNode & dimen_slice = $3;
 				const ParseNode & suite = $6;
-				$$ = gen_case(dimen_slice, suite);
+
+				ParseNode newnode = gen_token(Term{ TokenMeta::NT_CASE, "CASE GENERATED IN REGEN_SUITE" }); // Yes, empty string
+				newnode.addlist(dimen_slice, suite);
+				$$ = newnode;
 				update_pos($$, $1, $6);
 			}
 
 	case_stmt : case_stmt_elem
 			{
 				const ParseNode & case_stmt_elem = $1;
-				ParseNode newnode = gen_token(Term{ TokenMeta::NT_CASES, "" });
+				ParseNode newnode = gen_token(Term{ TokenMeta::NT_CASES, "CASE GENERATED IN REGEN_SUITE" });
 				newnode.addchild(case_stmt_elem); // case_stmt_elem
 				$$ = newnode;
 				update_pos($$, $1, $1);

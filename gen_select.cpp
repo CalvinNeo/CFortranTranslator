@@ -19,30 +19,23 @@
 
 #include "gen_common.h"
 
-ParseNode gen_case(const ParseNode & dimen_slice, const ParseNode & suite) {
-	// one case
-	ParseNode newnode = gen_token(Term{ TokenMeta::NT_CASE, "" }); // Yes, empty string
-	newnode.addlist(ParseNode(), dimen_slice, suite);
-	return newnode;
-}
-
-ParseNode gen_select(const ParseNode & exp, const ParseNode & case_stmt) {
-
-	ParseNode newnode = ParseNode();
-	string codegen = "";
+void regen_select(FunctionInfo * finfo, ParseNode & select_stmt) {
+	ParseNode & exp = select_stmt.get(0);
+	ParseNode & case_stmt = select_stmt.get(1); 
+	select_stmt.fs.CurrentTerm = Term{ TokenMeta::NT_SELECT, "" };
 	for (size_t i = 0; i < case_stmt.child.size(); i++)
 	{
-		const ParseNode & case_stmt_elem = case_stmt.get(i);
-		const ParseNode & dimen_slice = case_stmt_elem.get(1);
-		const ParseNode & body = case_stmt_elem.get(2);
-
+		ParseNode & case_stmt_elem = case_stmt.get(i);
+		ParseNode & dimen_slice = case_stmt_elem.get(0);
+		ParseNode & body = case_stmt_elem.get(1);
+		regen_suite(finfo, body, true);
 		if (dimen_slice.fs.CurrentTerm.token == TokenMeta::NT_DIMENSLICE) {
 			// NT_DIMENSLICE
 			string selector;
 			for (int sliceid = 0; sliceid < dimen_slice.child.size(); sliceid++)
 			{
-				const ParseNode & from = dimen_slice.get(sliceid).get(0);
-				const ParseNode & to = dimen_slice.get(sliceid).get(1);
+				ParseNode & from = dimen_slice.get(sliceid).get(0);
+				ParseNode & to = dimen_slice.get(sliceid).get(1);
 				if (sliceid == 0) {
 					sprintf(codegen_buf, "(%s >= %s && %s < %s)", exp.to_string().c_str(), from.to_string().c_str(), exp.to_string().c_str(), to.to_string().c_str());
 				}
@@ -79,13 +72,10 @@ ParseNode gen_select(const ParseNode & exp, const ParseNode & case_stmt) {
 				}
 				selector += codegen_buf;
 			}
-			sprintf(codegen_buf, "){\n%s}\n", tabber(case_stmt_elem.get(2).to_string()).c_str());
+			sprintf(codegen_buf, "){\n%s}\n", tabber(case_stmt_elem.get(1).to_string()).c_str());
 			selector += codegen_buf;
 			sprintf(codegen_buf, "%s", selector.c_str());
 		}
-		codegen += codegen_buf;
+		select_stmt.fs.CurrentTerm.what += codegen_buf;
 	}
-	newnode.fs.CurrentTerm = Term{ TokenMeta::NT_SELECT, codegen };
-	newnode.addlist(ParseNode(), exp, case_stmt);
-	return newnode;
 }

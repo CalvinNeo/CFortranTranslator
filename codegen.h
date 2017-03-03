@@ -49,9 +49,9 @@ ParseNode gen_flattern(const ParseNode & item, const ParseNode & list, std::stri
 ParseNode gen_merge(const ParseNode & list1, const ParseNode & list2, std::string merge_rule, int merged_token_meta = -1);
 
 std::string parse_ioformatter(const std::string &); 
-void regen_read(ParseNode & stmt);
-void regen_write(ParseNode & stmt);
-void regen_print(ParseNode & stmt);
+void regen_read(FunctionInfo * finfo, ParseNode & stmt);
+void regen_write(FunctionInfo * finfo, ParseNode & stmt);
+void regen_print(FunctionInfo * finfo, ParseNode & stmt);
 ParseNode gen_format(const ParseNode & format);
 
 ParseNode gen_exp(const ParseNode & exp1, const ParseNode & op, const ParseNode & exp2, std::string trans_rule);
@@ -70,16 +70,14 @@ std::vector<ParseNode *> get_all_explicit_declared(FunctionInfo * finfo, ParseNo
 ParseNode gen_function(const ParseNode & variable_function, const ParseNode & paramtable, const ParseNode & variable_result, const ParseNode & suite); // function define
 void regen_function(FunctionInfo * finfo, ParseNode & functiondecl_node); // function define
 
-ParseNode gen_select(const ParseNode & exp, const ParseNode & case_stmt);
-ParseNode gen_case(const ParseNode & dimen_slice, const ParseNode & suite);
+void regen_select(FunctionInfo * finfo, ParseNode & select_stmt);
 
-ParseNode gen_if(const ParseNode & exp, const ParseNode & suite_true, const ParseNode & elseif, const ParseNode & suite_else);
-ParseNode gen_if_oneline(const ParseNode & exp, const ParseNode & stmt_true);
-ParseNode gen_elseif(const ParseNode & exp, const ParseNode & suite_true, const ParseNode & elseif);
+void regen_if(FunctionInfo * finfo, ParseNode & if_stmt);
+void regen_elseif(FunctionInfo * finfo, ParseNode & elseif_stmt);
 
-ParseNode gen_do(const ParseNode & suite);
-ParseNode gen_do_range(const ParseNode & loop_variable, const ParseNode & exp1, const ParseNode & exp2, const ParseNode & exp3, const ParseNode & suite);
-ParseNode gen_do_while(const ParseNode & exp, const ParseNode & suite);
+void regen_do(FunctionInfo * finfo, ParseNode & do_stmt);
+void regen_do_range(FunctionInfo * finfo, ParseNode & do_stmt);
+void regen_do_while(FunctionInfo * finfo, ParseNode & do_stmt);
 ParseNode gen_hiddendo(const ParseNode & argtable, const ParseNode & index, const ParseNode & from, const ParseNode & to, TokenMeta_T return_token = TokenMeta::NT_HIDDENDO);
 std::vector<const ParseNode *> gen_nested_hiddendo_layers(const ParseNode & hiddendo);
 std::string gen_hiddendo_expr(const ParseNode & hiddendo);
@@ -94,16 +92,16 @@ ParseNode promote_argtable_to_dimenslice(const ParseNode & argtable);
 
 ParseNode gen_keyvalue_from_name(std::string name);
 ParseNode gen_keyvalue_from_exp(const ParseNode & variable, const ParseNode & initial);
-ParseNode gen_paramtable(const ParseNode & paramtable_elem);
-ParseNode gen_paramtable(const ParseNode & paramtable_elem, const ParseNode & paramtable);
 ParseNode promote_exp_to_keyvalue(const ParseNode & paramtable_elem);
 ParseNode promote_argtable_to_paramtable(const ParseNode & paramtable);
+ParseNode gen_paramtable(const ParseNode & paramtable_elem);
+ParseNode gen_paramtable(const ParseNode & paramtable_elem, const ParseNode & paramtable);
 
 ParseNode implicit_type_from_name(std::string name);
 ParseNode gen_type(const ParseNode & type_nospec, const ParseNode & _type_kind);
 ParseNode gen_type(const ParseNode & type_nospec);
 ParseNode gen_type(Term typeterm);
-ParseNode promote_type(const ParseNode & type_spec, VariableDesc & vardesc);
+void promote_type(ParseNode & type_nospec, VariableDesc & vardesc);
 std::string gen_qualified_typestr(const ParseNode & type_name, VariableDesc & vardesc);
 
 ParseNode gen_dimenslice(const ParseNode & dimen_slice);

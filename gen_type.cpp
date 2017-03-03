@@ -50,43 +50,42 @@ ParseNode implicit_type_from_name(std::string name) {
 	}
 }
 
-ParseNode promote_type(const ParseNode & type_nospec, VariableDesc & vardesc) {
+void promote_type(ParseNode & type_nospec, VariableDesc & vardesc) {
 	// reset type according to kind
-	ParseNode promoted_type = ParseNode(type_nospec); // type
 	/* merge type_spec and variable_desc attr */
 	vardesc.merge(dynamic_cast<VariableDescAttr *>(type_nospec.attr)->desc);
 	if (vardesc.kind.isdirty()) {
 		if (type_nospec.fs.CurrentTerm.token == TokenMeta::Int_Def) {
 			if (vardesc.kind == 1) {
-				promoted_type.fs.CurrentTerm.what = "int8_t";
+				type_nospec.fs.CurrentTerm = Term{ TokenMeta::Int8_Def,"int8_t" };
 			}
 			else if (vardesc.kind == 2) {
-				promoted_type.fs.CurrentTerm.what = "int16_t";
+				type_nospec.fs.CurrentTerm = Term{ TokenMeta::Int16_Def,"int16_t" };
 			}
 			else if (vardesc.kind == 4) {
-				promoted_type.fs.CurrentTerm.what = "int32_t";
+				type_nospec.fs.CurrentTerm = Term{ TokenMeta::Int32_Def,"int32_t" };
 			}
 			else if (vardesc.kind == 8) {
-				promoted_type.fs.CurrentTerm.what = "int64_t";
+				type_nospec.fs.CurrentTerm = Term{ TokenMeta::Int64_Def,"int64_t" };
 			}
 		}
 		else if (type_nospec.fs.CurrentTerm.token == TokenMeta::Float_Def) {
 			if (vardesc.kind < 4) {
-				promoted_type.fs.CurrentTerm.what = "float";
+				type_nospec.fs.CurrentTerm = Term{ TokenMeta::Float_Def,"float" };
 			}
 			else if (vardesc.kind == 4) {
-				promoted_type.fs.CurrentTerm.what = "double";
+				type_nospec.fs.CurrentTerm = Term{ TokenMeta::Double_Def,"double" };
 			}
 			else if (vardesc.kind == 8) {
-				promoted_type.fs.CurrentTerm.what = "long double";
+				type_nospec.fs.CurrentTerm = Term{ TokenMeta::LongDouble_Def,"long double" };
 			}
 		}
 	}
-	return promoted_type;
 }
 
 std::string gen_qualified_typestr(const ParseNode & type_nospec, VariableDesc & vardesc) {
-	ParseNode type_spec = promote_type(type_nospec, vardesc); // reset type according to kind
+	ParseNode type_spec = type_nospec;
+	promote_type(type_spec, vardesc); // reset type according to kind
 	string var_pattern;
 	if (vardesc.optional)
 	{

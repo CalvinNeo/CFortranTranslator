@@ -143,10 +143,10 @@ ParseNode gen_vardef_from_implicit(const ParseNode & type, std::string name) {
 
 ParseNode gen_vardef(const ParseNode & type_nospec, const ParseNode & variable_desc, const ParseNode & paramtable) {
 	ParseNode kvparamtable = promote_argtable_to_paramtable(paramtable); // a flatterned paramtable with all keyvalue elements
-	ParseNode newnode = gen_token(Term{ TokenMeta::NT_VARIABLEDEFINESET, "LAZY GENERATED" });
+	ParseNode newnode = gen_token(Term{ TokenMeta::NT_VARIABLEDEFINESET, "VARDEFSET GENERATED IN REGEN_SUITE" });
 	for (int i = 0; i < (int)kvparamtable.child.size(); i++)
 	{
-		ParseNode newvardef = gen_token(Term{ TokenMeta::NT_VARIABLEDEFINE, "LAZY GENERATED" });
+		ParseNode newvardef = gen_token(Term{ TokenMeta::NT_VARIABLEDEFINE, "VARDEF GENERATED IN REGEN_SUITE" });
 		newvardef.addlist(type_nospec, variable_desc, kvparamtable.get(i)/*variable_entity*/);
 		newvardef.setattr(variable_desc.attr->clone()); 
 		newnode.addchild(newvardef);

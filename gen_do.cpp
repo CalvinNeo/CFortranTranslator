@@ -19,32 +19,32 @@
 
 #include "gen_common.h"
 
-ParseNode gen_do(const ParseNode & suite) {
-	ParseNode newnode = ParseNode();
+void regen_do(FunctionInfo * finfo, ParseNode & do_stmt) {
+	ParseNode & suite = do_stmt.get(0);
+	regen_suite(finfo, suite, true);
 	sprintf(codegen_buf, "do{\n%s}", tabber(suite.to_string()).c_str());
-	newnode.fs.CurrentTerm = Term{ TokenMeta::NT_DO, string(codegen_buf) };
-	newnode.addlist(ParseNode(), suite);
-	return newnode;
+	do_stmt.fs.CurrentTerm = Term{ TokenMeta::NT_DO, string(codegen_buf) };
 }
 
-ParseNode gen_do_range(const ParseNode & loop_variable, const ParseNode & exp1, const ParseNode & exp2, const ParseNode & exp3, const ParseNode & suite){
-	ParseNode newnode = ParseNode();
+void regen_do_range(FunctionInfo * finfo, ParseNode & do_stmt){
+	const ParseNode & loop_variable = do_stmt.get(0);
+	const ParseNode & exp1 = do_stmt.get(1);
+	const ParseNode & exp2 = do_stmt.get(2);
+	const ParseNode & exp3 = do_stmt.get(3);
+	ParseNode & suite = do_stmt.get(4);
+	regen_suite(finfo, suite, true);
 	sprintf(codegen_buf, "for(%s = %s; %s <= %s; %s += %s){\n%s}", loop_variable.to_string().c_str(), exp1.to_string().c_str()
 		, loop_variable.to_string().c_str(), exp2.to_string().c_str()
 		, loop_variable.to_string().c_str(), exp3.to_string().c_str(), tabber(suite.to_string()).c_str());
-	newnode.fs.CurrentTerm = Term{ TokenMeta::NT_DO, string(codegen_buf) };
-
-	newnode.addlist(ParseNode(), loop_variable, exp1, exp2, exp3, suite);
-	return newnode;
+	do_stmt.fs.CurrentTerm = Term{ TokenMeta::NT_DORANGE, string(codegen_buf) };
 }
 
-ParseNode gen_do_while(const ParseNode & exp, const ParseNode & suite) {
-	ParseNode newnode = ParseNode();
+void regen_do_while(FunctionInfo * finfo, ParseNode & do_stmt) {
+	const ParseNode & exp = do_stmt.get(0);
+	ParseNode & suite = do_stmt.get(1);
+	regen_suite(finfo, suite, true);
 	sprintf(codegen_buf, "while(%s){\n%s}", exp.to_string().c_str(), tabber(suite.to_string()).c_str());
-	newnode.fs.CurrentTerm = Term{ TokenMeta::NT_WHILE, string(codegen_buf) };
-
-	newnode.addlist(ParseNode(), exp, suite);
-	return newnode;
+	do_stmt.fs.CurrentTerm = Term{ TokenMeta::NT_WHILE, string(codegen_buf) };
 }
 
 std::vector<const ParseNode *> gen_nested_hiddendo_layers_from_exp(const ParseNode & hiddendo) {

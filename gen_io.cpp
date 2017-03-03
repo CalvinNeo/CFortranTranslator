@@ -19,7 +19,7 @@
 
 #include "gen_common.h"
 
-void regen_read(ParseNode & stmt) {
+void regen_read(FunctionInfo * finfo, ParseNode & stmt) {
 	const ParseNode & io_info = stmt.get(0);
 	const ParseNode & argtable = stmt.get(1);
 	string device = io_info.get(0).to_string();
@@ -54,7 +54,7 @@ void regen_read(ParseNode & stmt) {
 }
 
 
-void regen_write(ParseNode & stmt) {
+void regen_write(FunctionInfo * finfo, ParseNode & stmt) {
 	// brace is forced
 	const ParseNode & io_info = stmt.get(0);
 	const ParseNode & argtable = stmt.get(1);
@@ -87,7 +87,7 @@ void regen_write(ParseNode & stmt) {
 	stmt.fs.CurrentTerm = Term{ TokenMeta::NT_WRITE_STMT, string(codegen_buf) };
 	return;
 }
-void regen_print(ParseNode & stmt) {
+void regen_print(FunctionInfo * finfo, ParseNode & stmt) {
 	const ParseNode & io_info = stmt.get(0);
 	const ParseNode & argtable = stmt.get(1);
 	if (io_info.get(1).fs.CurrentTerm.token == TokenMeta::NT_AUTOFORMATTER) {
@@ -268,12 +268,16 @@ std::string parse_ioformatter(const std::string & src) {
 		case '\"':
 			for (i++; i < src.size() && src[i] != '\"'; i++)
 			{
-				rt += src[i];
+				if (src[i] != '\'') {
+					rt += src[i];
+				}
 			}
 		case '\'':
 			for (i++; i < src.size() && src[i] != '\''; i++)
 			{
-				rt += src[i];
+				if (src[i] != '\"') {
+					rt += src[i];
+				}
 			}
 			break;
 		case '\n':

@@ -1,15 +1,11 @@
-subroutine add(do_add)
-	interface
-		function do_add() result (a)
-			integer::a
-		end function
-	end interface
-end subroutine
-
-subroutine sub(do_sub)
-	interface
-		function do_sub() result (b)
-			integer::b
-		end function
-	end interface
-end subroutine
+program
+	real::x, y
+	read *, x
+	select case (x >= 0)
+		case (.true.)
+			y = x + 5.0
+		case (.false.)
+			y = -x
+	end select
+	print *, x, y
+end program
