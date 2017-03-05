@@ -184,11 +184,11 @@ ParseNode gen_flattern(const ParseNode & item, const ParseNode & list, std::stri
 	if (left_recursion)
 	{
 		nn.addlist(list, item);
-		nn = flattern_bin(nn, false);
+		flattern_bin_inplace(nn, false);
 	}
 	else {
 		nn.addlist(item, list);
-		nn = flattern_bin(nn, true);
+		flattern_bin_inplace(nn, true);
 	}
 	return nn;
 }

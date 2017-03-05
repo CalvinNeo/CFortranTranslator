@@ -163,9 +163,6 @@ void regen_vardef(VariableInfo * vinfo, ParseNode & vardef_node, ParseNode & typ
 		type_nospec.fs.CurrentTerm.what = implicit_type_from_name(get_variable_name(entity_variable)).fs.CurrentTerm.what;
 		type_nospec.setattr(new VariableDescAttr());
 	}
-	else {
-		type_nospec.fs.CurrentTerm.what = gen_qualified_typestr(type_nospec, desc);
-	}
 	if(do_arr){
 		// ARRAY
 		type_str = gen_qualified_typestr(type_nospec, desc);
@@ -193,6 +190,6 @@ void regen_vardef(VariableInfo * vinfo, ParseNode & vardef_node, ParseNode & typ
 	vinfo->commonblock_name; // set in regen_suite and gen_common
 	vinfo->desc = desc; // set in regen_vardef
 	vinfo->implicit_defined; // set in regen_suite
-	vinfo->type = type_str; // set in regen_vardef
+	vinfo->type = type_nospec; // set in regen_vardef
 	vinfo->entity_variable = entity_variable; // set in regen_vardef
 }

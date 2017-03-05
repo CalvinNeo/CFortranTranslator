@@ -56,13 +56,13 @@ void gen_fortran_program(const ParseNode & wrappers) {
 		if (wrapper.fs.CurrentTerm.token == TokenMeta::NT_PROGRAM_EXPLICIT)
 		{
 			get_context().current_module = "";
-			string newsuitestr = regen_suite(program_info, wrapper.get(0));
-			main_code = tabber(newsuitestr);
+			regen_suite(program_info, wrapper.get(0));
+			main_code += tabber(wrapper.get(0).to_string());
 		}
 		else if(wrapper.fs.CurrentTerm.token == TokenMeta::NT_PROGRAM){
-			get_context().current_module = "";
-			string newsuitestr = regen_suite(program_info, wrapper.get(0), true);
-			main_code += tabber(newsuitestr);
+			get_context().current_module = ""; 
+			regen_suite(program_info, wrapper.get(0), true);
+			main_code += tabber(wrapper.get(0).to_string());
 		}
 		else if (wrapper.fs.CurrentTerm.token == TokenMeta::NT_FUNCTIONDECLARE) {
 			get_context().current_module = "";

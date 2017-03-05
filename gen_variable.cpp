@@ -62,19 +62,21 @@ void regen_common(FunctionInfo * finfo, ParseNode & common_block) {
 		if (local_vinfo == nullptr)
 		{
 			// if this common variable has no prev explicit declaration
-			local_vinfo = add_variable(get_context().current_module, finfo->local_name, local_varname, VariableInfo(local_varname));
-			ParseNode implicit_type = gen_type(Term{ TokenMeta::Implicit_Def, "" });
-			ParseNode vardef_node = gen_vardef_from_implicit(implicit_type, local_varname);
-			ParseNode & variable_entity = kvparamtable.get(i);
-			VariableDesc desc;
-			regen_vardef(local_vinfo, vardef_node, implicit_type, desc, variable_entity);
-			local_vinfo->commonblock_name = common_name;
-			local_vinfo->commonblock_index = i;
-			local_vinfo->implicit_defined = true;
+			local_vinfo = add_variable(get_context().current_module, finfo->local_name, local_varname, VariableInfo{});
 		}
 		else {
-			// 出现错误，因为regen_vardef在regen_suite里面调用，此时gen_common已经结束了
+			
 		}
+
+		ParseNode implicit_type = implicit_type_from_name(local_varname) ;
+		local_vinfo->commonblock_index = i; // set in regen_suite and gen_common
+		local_vinfo->commonblock_name = common_name; // set in regen_suite and gen_common
+		local_vinfo->desc = VariableDesc(); // set in regen_vardef
+		local_vinfo->implicit_defined = true; // set in regen_suite and regen_common
+		local_vinfo->type = implicit_type; // set in regen_vardef
+		local_vinfo->entity_variable = kvparamtable.get(i);; // set in regen_vardef
+		local_vinfo->vardef = nullptr; // set in regen_suite and gen_common
+
 		if (new_common)
 		{
 			VariableInfo global_vinfo(*local_vinfo);
@@ -93,9 +95,9 @@ ParseNode gen_common_definition(std::string common_name) {
 		print_error("Common block without definition");
 	}
 	int i = 0;
-	string struct_str = make_str_list(common_info->second.variables.begin(), common_info->second.variables.end(), [&](const VariableInfo & x) {
+	string struct_str = make_str_list(common_info->second.variables.begin(), common_info->second.variables.end(), [&](VariableInfo & x) {
 		std::string common_varname = "_" + to_string(++i);
-		sprintf(codegen_buf, "%s %s;", x.type.c_str(), common_varname.c_str());
+		sprintf(codegen_buf, "%s %s;", gen_qualified_typestr(x.type, x.desc).c_str(), common_varname.c_str());
 		return string(codegen_buf);
 	}, "\n");
 	if (common_name == "")

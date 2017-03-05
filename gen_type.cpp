@@ -57,27 +57,27 @@ void promote_type(ParseNode & type_nospec, VariableDesc & vardesc) {
 	if (vardesc.kind.isdirty()) {
 		if (type_nospec.fs.CurrentTerm.token == TokenMeta::Int_Def) {
 			if (vardesc.kind == 1) {
-				type_nospec.fs.CurrentTerm = Term{ TokenMeta::Int8_Def,"int8_t" };
+				type_nospec.fs.CurrentTerm = Term{ TokenMeta::Int8_Def, "int8_t" };
 			}
 			else if (vardesc.kind == 2) {
-				type_nospec.fs.CurrentTerm = Term{ TokenMeta::Int16_Def,"int16_t" };
+				type_nospec.fs.CurrentTerm = Term{ TokenMeta::Int16_Def, "int16_t" };
 			}
 			else if (vardesc.kind == 4) {
-				type_nospec.fs.CurrentTerm = Term{ TokenMeta::Int32_Def,"int32_t" };
+				type_nospec.fs.CurrentTerm = Term{ TokenMeta::Int32_Def, "int32_t" };
 			}
 			else if (vardesc.kind == 8) {
-				type_nospec.fs.CurrentTerm = Term{ TokenMeta::Int64_Def,"int64_t" };
+				type_nospec.fs.CurrentTerm = Term{ TokenMeta::Int64_Def, "int64_t" };
 			}
 		}
 		else if (type_nospec.fs.CurrentTerm.token == TokenMeta::Float_Def) {
 			if (vardesc.kind < 4) {
-				type_nospec.fs.CurrentTerm = Term{ TokenMeta::Float_Def,"float" };
+				type_nospec.fs.CurrentTerm = Term{ TokenMeta::Float_Def, "float" };
 			}
 			else if (vardesc.kind == 4) {
-				type_nospec.fs.CurrentTerm = Term{ TokenMeta::Double_Def,"double" };
+				type_nospec.fs.CurrentTerm = Term{ TokenMeta::Double_Def, "double" };
 			}
 			else if (vardesc.kind == 8) {
-				type_nospec.fs.CurrentTerm = Term{ TokenMeta::LongDouble_Def,"long double" };
+				type_nospec.fs.CurrentTerm = Term{ TokenMeta::LongDouble_Def, "long double" };
 			}
 		}
 	}

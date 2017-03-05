@@ -26,18 +26,15 @@ struct FunctionDesc {
 	std::vector<struct ParseNode *> declared_variables;
 	// tuple (name, type node, variable_initial node) of all parameters
 	std::vector<std::tuple<std::string, ParseNode, struct ParseNode *>> paramtable_info;
-	FunctionDesc(const std::vector<struct ParseNode *> &declared_variables
-		, const std::vector<std::tuple<std::string, ParseNode, struct ParseNode *>> & paramtable_info)
-	: paramtable_info(paramtable_info), declared_variables(declared_variables){
+	// std::map < std::string, struct FunctionInfo * > function_variables;
+	std::vector<struct ParseNode *> declared_commons;
 
-	}
 	FunctionDesc() {
 	}
 };
 struct FunctionInfo {
 	std::string local_name; // name can only set by add_function
 	FunctionDesc funcdesc;
-	std::map < std::string, FunctionInfo * > function_variables;
 };
 typedef std::tuple<std::string, std::string, std::string> KeywordParamInfo;
 

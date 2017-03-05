@@ -109,7 +109,7 @@ ParseNode gen_argtable(const ParseNode & argtable);
 
 ParseNode gen_stmt(const ParseNode & content);
 ParseNode gen_stmt(const ParseNode & content, const std::string & rules); 
-std::string regen_suite(FunctionInfo * finfo, ParseNode & oldsuite, bool is_partial = false);
+void regen_suite(FunctionInfo * finfo, ParseNode & oldsuite, bool is_partial = false);
 
 ParseNode gen_array_from_hiddendo(const ParseNode & hiddendo);
 ParseNode gen_array_from_paramtable(const ParseNode & argtable);

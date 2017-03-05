@@ -90,7 +90,6 @@ void print_error(const std::string & error_info);
 
 // yacc part code
 // implement in for90.y
-typedef ParseNode yystype_t;
 #define YYSTYPE ParseNode
 
 std::string tabber(const std::string &); // add tab(`\t`) into the front of each line

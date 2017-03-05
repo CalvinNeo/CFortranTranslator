@@ -49,54 +49,6 @@ std::string regen_paramtable(const vector<tuple<string, ParseNode, ParseNode *>>
 	return paramtblstr;
 }
 
-vector<ParseNode *> get_all_declared(std::string module_name, std::string function_name) {
-	vector<ParseNode *> declared_variables_and_functions;
-	forall_variable_in_function(module_name, function_name, [&](const std::pair<std::string, VariableInfo *> p) {
-		declared_variables_and_functions.push_back(&(p.second->entity_variable));
-	});
-	forall_function_in_module(module_name, [&](const std::pair<std::string, FunctionInfo *> p) {
-	});
-	return declared_variables_and_functions;
-}
-
-vector<ParseNode *> get_all_explicit_declared(FunctionInfo * finfo, ParseNode & suite) {
-	/* 
-	* find out all var_def and interface-function nodes 
-	* NOT including implicit declared variables
-	*/
-	vector<ParseNode *> dd = get_all_declared(get_context().current_module, finfo->local_name);
-	vector<ParseNode *> declared_variables;
-	for (int i = 0; i < (int)suite.child.size(); i++)
-	{
-		ParseNode & stmti = suite.get(i);
-		if (stmti.fs.CurrentTerm.token == TokenMeta::NT_VARIABLEDEFINESET) {
-			ParseNode & vardef_set = stmti;
-			for (int j = 0; (int)j < vardef_set.child.size(); j++)
-			{
-				declared_variables.push_back(&vardef_set.get(j));
-			}
-		}
-		else if (stmti.fs.CurrentTerm.token == TokenMeta::NT_INTERFACE) {
-			// interface function
-			if (stmti.child.size() > 0) {
-				ParseNode & wrappers = stmti.get(0);
-				for (int i = 0; i < wrappers.child.size(); i++)
-				{
-					ParseNode & wrapper = wrappers.get(i);
-					if (wrapper.fs.CurrentTerm.token == TokenMeta::NT_PROGRAM) {
-
-					}
-					else if (wrapper.fs.CurrentTerm.token == TokenMeta::NT_FUNCTIONDECLARE) {
-						// wrapper.child[1] is function name
-						declared_variables.push_back(const_cast<ParseNode *>(&wrapper));
-					}
-				}
-			}
-		}
-	}
-	return declared_variables;
-}
-
 vector<tuple<string, ParseNode, ParseNode *>> get_full_paramtable(const ParseNode & paramtable, const ParseNode & variable_result, const vector<ParseNode *> & declared_variables, bool is_subroutine) {
 	vector<tuple<string, ParseNode, ParseNode *>> paramtable_info; // (var_name, var_type, ParseNode*)
 	/* add the paramtable */
@@ -195,29 +147,30 @@ void regen_function(FunctionInfo * finfo, ParseNode & functiondecl_node) {
 	ParseNode & oldsuite = suite;
 	bool is_subroutine = variable_result.fs.CurrentTerm.what == "";
 	
+	// regen_suite
+	regen_suite(finfo, oldsuite);
 	// get all variables declared in this function
-	vector<ParseNode *> declared_variables = get_all_explicit_declared(finfo, suite);
+	vector<ParseNode *> declared_variables = finfo->funcdesc.declared_variables;
 	// get all params in paramtable of function declare (var_name, var_type, ParseNode*)
 	vector<tuple<string, ParseNode, ParseNode *>> paramtable_info = get_full_paramtable(kvparamtable, variable_result, declared_variables, is_subroutine);
 	// make newnode
-	string newsuitestr = regen_suite(finfo, oldsuite);
+	string newsuitestr = oldsuite.to_string();
 	string paramtblstr = regen_paramtable(paramtable_info);
 
 	std::string return_type_str = get<1>(paramtable_info[paramtable_info.size() - 1]).to_string();
 	/* generate function code */
 	sprintf(codegen_buf, "%s %s(%s)\n{\n%s\treturn %s;\n}\n"
 		, return_type_str.c_str() // return value type, "void" if subroutine
-		, variable_function.fs.CurrentTerm.what.c_str() // function name
+		, variable_function.to_string().c_str() // function name
 		, paramtblstr.c_str() // paramtable
-		, oldsuite.fs.CurrentTerm.what.c_str() // code
+		, tabber(oldsuite.to_string()).c_str() // code
 		, (is_subroutine ? "" : variable_result/* variable_result is raw for90 return without type*/.fs.CurrentTerm.what.c_str()) // add return stmt if not function
 	);
 	functiondecl_node.fs.CurrentTerm.what = string(codegen_buf);
 
 	// log function and set attr 
-	finfo->funcdesc = FunctionDesc(declared_variables, paramtable_info);
-	FunctionAttr functionattr = FunctionAttr(finfo);
-	functiondecl_node.setattr(functionattr.clone());
+	finfo->funcdesc.paramtable_info = paramtable_info;
+	functiondecl_node.setattr(new FunctionAttr(finfo));
 
 	// cleaning
 	insert_temporary_variables("@", variable_function.fs.CurrentTerm.what);

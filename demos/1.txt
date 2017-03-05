@@ -1,11 +1,4 @@
-program
-	real::x, y
-	read *, x
-	select case (x >= 0)
-		case (.true.)
-			y = x + 5.0
-		case (.false.)
-			y = -x
-	end select
-	print *, x, y
-end program
+subroutine sub()
+	integer::x
+	common /cb/ x,z(10)
+end subroutine

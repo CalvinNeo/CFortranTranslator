@@ -57,7 +57,9 @@ VariableInfo * add_variable(std::string module_name, std::string function_name, 
 			return nullptr;
 		}
 		else {
-			get_context().variables[fullname] = new VariableInfo(variable);
+			VariableInfo * ninfo = new VariableInfo(variable);
+			ninfo->local_name = variable_name;
+			get_context().variables[fullname] = ninfo;
 			return get_context().variables[fullname];
 		}
 	}

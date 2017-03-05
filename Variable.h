@@ -73,17 +73,17 @@ struct VariableInfo
 		return desc.slice.is_initialized();
 	}
 	std::string local_name;
-	std::string type;
+	ParseNode type;
 	VariableDesc desc;
 	ParseNode entity_variable; // TokenMeta::NT_VARIABLEINITIALDUMMY if no initial
+	ParseNode * vardef;
+
 	std::string commonblock_name; 
 	int commonblock_index = 0;
-	bool implicit_defined = false; // no use
-	VariableInfo(std::string typestr, std::string localname, const VariableDesc & vdesc, const ParseNode & variable_initial_node) 
-		: type(typestr), local_name(localname), desc(vdesc), entity_variable(variable_initial_node), implicit_defined(false), commonblock_name(""), commonblock_index(0){
-	}
-	VariableInfo(std::string localname)
-		: type(""), local_name(localname), implicit_defined(false), commonblock_index(0), commonblock_name("") {
+	bool implicit_defined = true; // TODO must in constructor to initialize, no use here, why
+
+	VariableInfo()
+		: local_name(""), implicit_defined(true), commonblock_index(0), commonblock_name("") {
 
 	}
 };

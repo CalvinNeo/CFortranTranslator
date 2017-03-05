@@ -253,13 +253,6 @@ using namespace std;
 				$$ = newnode;
 				update_pos($$, $1, $3);
 			}
-			/*
-		| ',' variable_desc_elem
-			{
-				$$ = $2;
-				update_pos($$, $1, $2);
-			}
-			*/
 		|
 			{
 				ParseNode newnode = gen_token(Term{ TokenMeta::NT_VARIABLEDESC, "NT_VARIABLEDESC" });
@@ -1432,7 +1425,7 @@ using namespace std;
 				const ParseNode & wrappers = $3;
 				newnode.addlist(wrapper, wrappers);
 				sprintf(codegen_buf, "%s\n%s", wrapper.to_string().c_str(), wrappers.to_string().c_str());
-				newnode = flattern_bin(newnode, true);
+				flattern_bin_inplace(newnode, true);
 				newnode.fs.CurrentTerm = Term{ TokenMeta::NT_WRAPPERS, string(codegen_buf) };
 				$$ = newnode;
 				update_pos($$, $1, $3);
