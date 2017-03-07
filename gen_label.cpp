@@ -32,7 +32,7 @@
 //010
 //are all statement labels.The last two are equivalent
 
-void log_format_index(std::string format_index, const ParseNode & format) {
+void log_format_index(std::string format_index, ARG_IN format) {
 	get_context().labels[format_index] = format;
 }
 

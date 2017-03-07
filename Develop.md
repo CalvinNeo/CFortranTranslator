@@ -122,10 +122,7 @@ To specify, `type_name` is like `INTEGER` and a `type_spec` is like `INTEGER(kin
 | wrappers |  | wrapper + |
 | wrapper | / | function_decl / program |
 | function_decl | NT_FUNCTIONDECLARE |  |
-| var_def | NT_VARIABLEDEFINE | typeinfo, NT_DIMENSLICE / dummy, NT_PARAMTABLE_PURE |
-| paramtable_elem | / | dimen_slice / keyvalue / exp |
-| paramtable | NT_PARAMTABLE_PURE | paramtable_elem + |
-| | NT_DECLAREDVARIABLE | no rules, renamed from keyvalue |
+| var_def | NT_VARIABLEDEFINE/NT_DECLAREDVARIABLE |   |
 | keyvalue | NT_VARIABLEINITIAL(namely NT_KEYVALUE) | variable, NT_EXPRESSION / NT_VARIABLEINITIALDUMMY |
 | | NT_VARIABLEINITIAL | variable, exp |
 | suite | NT_SUITE | NT_STATEMENT \* |

@@ -19,19 +19,6 @@
 
 #include "gen_common.h"
 
-ParseNode gen_stmt(const ParseNode & content) {
-	sprintf(codegen_buf, "%s;", content.fs.CurrentTerm.what.c_str());
-	ParseNode newnode = gen_token(Term{ TokenMeta::NT_STATEMENT, string(codegen_buf) });
-	newnode.addchild(content); 
-	return newnode;
-}
-
-ParseNode gen_stmt(const ParseNode & content, const std::string & rules) {
-	sprintf(codegen_buf, rules.c_str() , content.fs.CurrentTerm.what.c_str());
-	ParseNode newnode = gen_token(Term{ TokenMeta::NT_STATEMENT, string(codegen_buf) });
-	newnode.addchild(content); 
-	return newnode;
-}
 
 vector<ParseNode *> get_all_declared(std::string module_name, std::string function_name) {
 	vector<ParseNode *> declared_variables_and_functions;
@@ -155,7 +142,7 @@ void regen_suite(FunctionInfo * finfo, ParseNode & oldsuite, bool is_partial) {
 			int j = i + 1;
 			if (j < oldsuite.child.size())
 			{
-				const ParseNode & next_stmt = oldsuite.get(j);
+				ARG_IN next_stmt = oldsuite.get(j);
 				if (next_stmt.child.size() > 0 && next_stmt.get(0).fs.CurrentTerm.token == TokenMeta::NT_FORMAT)
 				{
 

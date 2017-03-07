@@ -1,4 +1,4 @@
-subroutine sub()
-	integer::x
-	common /cb/ x,z(10)
-end subroutine
+	  DO 121 I=1,M
+         DO 121 J=1,N
+        EA(I,J)=EA(I,J)/100.0
+  121   CONTINUE

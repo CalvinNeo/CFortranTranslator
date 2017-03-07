@@ -49,8 +49,10 @@ void update_flex() {
 	update_flex(yyleng);
 }
 void update_yylval(Term & current_term) {
-	yylval.fs = FlexState(get_flex_state());
-	yylval.fs.CurrentTerm = current_term;
+	ParseNode newnode{};
+	newnode.fs = FlexState(get_flex_state());
+	newnode.fs.CurrentTerm = current_term;
+	yylval = RETURN_NT(newnode);
 }
 struct FlexContext{
 	char * iter_buff = nullptr;
@@ -399,6 +401,7 @@ FIND_CONCAT:
 			// label-do-stmt is [ do-construct-name : ] DO label [ loop-control ]
 			get_context().end_labels[next].push_back("do");
 			enter_condition(new FlexLabelEndContext("do", label_end_scanner));
+			update_yylval(Term{ YY_DO, "do" });
 			return YY_DO;
 		}
 	}

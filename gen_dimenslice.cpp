@@ -19,7 +19,7 @@
 
 #include "gen_common.h"
 
-ParseNode gen_slice(const ParseNode & lb, const ParseNode & ub, const ParseNode & step) {
+ParseNode gen_slice(ARG_IN lb, ARG_IN ub, ARG_IN step) {
 	/* arr[from : to] */
 	/* target code of slice depend on context */
 	ParseNode newnode = gen_token(Term{ TokenMeta::NT_SLICE, "" });
@@ -27,7 +27,7 @@ ParseNode gen_slice(const ParseNode & lb, const ParseNode & ub, const ParseNode 
 	return newnode;
 }
 
-ParseNode gen_slice(const ParseNode & lb, const ParseNode & ub) {
+ParseNode gen_slice(ARG_IN lb, ARG_IN ub) {
 	/* arr[from : to] */
 	/* target code of slice depend on context */
 	ParseNode newnode = gen_token(Term{ TokenMeta::NT_SLICE, "" });
@@ -35,12 +35,12 @@ ParseNode gen_slice(const ParseNode & lb, const ParseNode & ub) {
 	return newnode;
 }
 
-ParseNode promote_exp_to_slice(const ParseNode & exp) {
+ParseNode promote_exp_to_slice(ARG_IN exp) {
 	ParseNode newnode = gen_slice(gen_promote(TokenMeta::NT_EXPRESSION, gen_token(Term{ TokenMeta::META_INTEGER, "1" })), exp);
 	return newnode;
 }
 
-ParseNode promote_argtable_to_dimenslice(const ParseNode & argtable) {
+ParseNode promote_argtable_to_dimenslice(ARG_IN argtable) {
 	const ParseNode * pn = &argtable;
 	ParseNode newnode = gen_token(Term{ TokenMeta::NT_DIMENSLICE, "" });
 	do {

@@ -16,15 +16,14 @@ using namespace std;
 %start program
 
 %%
-
 stmt : EXP
 	|
-stmts : stmt CRLF stmts
+stmts : stmts CRLF stmt
 	| stmt
 function : FUNCTIONBEGIN CRLF stmts CRLF FUNCTIONEND
 unit : function
-	| stmts
-program : unit
-	| unit CRLF program
+	| stmt
+program : /* empty */
+	| program CRLF unit
 
 %%

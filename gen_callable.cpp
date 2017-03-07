@@ -56,7 +56,7 @@ ParseNode gen_function_array(const ParseNode & callable_head, const ParseNode & 
 				}
 				slice_info_str += "{";
 				if (argtable.get(i).fs.CurrentTerm.token == TokenMeta::NT_SLICE) {
-					const ParseNode & slice = argtable.get(i);
+					ARG_IN slice = argtable.get(i);
 					bool empty_slice = false;
 					int slice_info_arr[] = {1, 1, 1};
 					for (auto j = 0; j < slice.child.size(); j++)
@@ -203,24 +203,3 @@ ParseNode gen_function_array(const ParseNode & callable_head, const ParseNode & 
 	return newnode;
 }
 
-ParseNode gen_function_array(const ParseNode & callable_head, const ParseNode & argtable, const ParseNode & paramtable) {
-	// kwargs functrion
-	/* function call OR array index */
-	ParseNode newnode = ParseNode();
-	string name;
-	if (funcname_map.find(callable_head.fs.CurrentTerm.what) != funcname_map.end()) {
-		// some fortran intrinsic function name must be replaced with its c++ implementation in for90std.h
-		name = funcname_map.at(callable_head.fs.CurrentTerm.what);
-	}
-	else {
-		name = callable_head.fs.CurrentTerm.what;
-	}
-	if (argtable.fs.CurrentTerm.token == TokenMeta::NT_DIMENSLICE) {
-		// error
-	}
-	else {
-		sprintf(codegen_buf, "%s(%s, %s)", name.c_str(), argtable.fs.CurrentTerm.what.c_str(), paramtable.fs.CurrentTerm.what.c_str());
-		newnode.fs.CurrentTerm = Term{ TokenMeta::NT_FUCNTIONARRAY,  string(codegen_buf) };
-	}
-	return newnode;
-}

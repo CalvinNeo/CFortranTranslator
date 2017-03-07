@@ -19,7 +19,7 @@
 
 #include "gen_common.h"
 
-ParseNode gen_type(const ParseNode & type_nospec, const ParseNode & _type_kind) {
+ParseNode gen_type(ARG_IN type_nospec, ARG_IN _type_kind) {
 	// attach _type_kind to type_nospec nonterminal
 	ParseNode newnode = type_nospec;
 	// now name translated in pre_map
@@ -27,7 +27,7 @@ ParseNode gen_type(const ParseNode & type_nospec, const ParseNode & _type_kind) 
 	return newnode;
 }
 
-ParseNode gen_type(const ParseNode & type_nospec) {
+ParseNode gen_type(ARG_IN type_nospec) {
 	// promote type_nospec to default type_spec nonterminal
 	ParseNode newnode = type_nospec;
 	// now name translated in pre_map
@@ -83,7 +83,7 @@ void promote_type(ParseNode & type_nospec, VariableDesc & vardesc) {
 	}
 }
 
-std::string gen_qualified_typestr(const ParseNode & type_nospec, VariableDesc & vardesc) {
+std::string gen_qualified_typestr(ARG_IN type_nospec, VariableDesc & vardesc) {
 	ParseNode type_spec = type_nospec;
 	promote_type(type_spec, vardesc); // reset type according to kind
 	string var_pattern;

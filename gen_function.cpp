@@ -49,7 +49,7 @@ std::string regen_paramtable(const vector<tuple<string, ParseNode, ParseNode *>>
 	return paramtblstr;
 }
 
-vector<tuple<string, ParseNode, ParseNode *>> get_full_paramtable(const ParseNode & paramtable, const ParseNode & variable_result, const vector<ParseNode *> & declared_variables, bool is_subroutine) {
+vector<tuple<string, ParseNode, ParseNode *>> get_full_paramtable(ARG_IN paramtable, ARG_IN variable_result, const vector<ParseNode *> & declared_variables, bool is_subroutine) {
 	vector<tuple<string, ParseNode, ParseNode *>> paramtable_info; // (var_name, var_type, ParseNode*)
 	/* add the paramtable */
 	for (auto iter = paramtable.child.begin(); iter < paramtable.child.end(); iter++)
@@ -130,7 +130,7 @@ vector<tuple<string, ParseNode, ParseNode *>> get_full_paramtable(const ParseNod
 }
 
 
-ParseNode gen_function(const ParseNode & variable_function, const ParseNode & paramtable, const ParseNode & variable_result, const ParseNode & suite) {
+ParseNode gen_function(ARG_IN variable_function, ARG_IN paramtable, ARG_IN variable_result, ARG_IN suite) {
 	ParseNode newnode = gen_token(Term{ TokenMeta::NT_FUNCTIONDECLARE, ""});
 	ParseNode kvparamtable = promote_argtable_to_paramtable(paramtable); // a flatterned paramtable with all keyvalue elements
 	newnode.addlist(ParseNode(), variable_function, kvparamtable, variable_result, suite);
@@ -146,13 +146,14 @@ void regen_function(FunctionInfo * finfo, ParseNode & functiondecl_node) {
 	ParseNode & suite = functiondecl_node.get(4);
 	ParseNode & oldsuite = suite;
 	bool is_subroutine = variable_result.fs.CurrentTerm.what == "";
-	
-	// regen_suite
-	regen_suite(finfo, oldsuite);
+
 	// get all variables declared in this function
-	vector<ParseNode *> declared_variables = finfo->funcdesc.declared_variables;
+	// 必须在regen_suite前面调用，这不是重复调用，目的是为了去掉DECARED_VARIABLE
+	vector<ParseNode *> declared_variables = get_all_explicit_declared(finfo, suite);
 	// get all params in paramtable of function declare (var_name, var_type, ParseNode*)
 	vector<tuple<string, ParseNode, ParseNode *>> paramtable_info = get_full_paramtable(kvparamtable, variable_result, declared_variables, is_subroutine);
+	// regen_suite
+	regen_suite(finfo, oldsuite);
 	// make newnode
 	string newsuitestr = oldsuite.to_string();
 	string paramtblstr = regen_paramtable(paramtable_info);

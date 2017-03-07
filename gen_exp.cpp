@@ -18,7 +18,7 @@
 */
 #include "gen_common.h"
 
-ParseNode  gen_exp(const ParseNode & exp1, const ParseNode & op, const ParseNode & exp2, std::string trans_rule) {
+ParseNode  gen_exp(ARG_IN exp1, ARG_IN op, ARG_IN exp2, std::string trans_rule) {
 	ParseNode newnode = ParseNode();
 	sprintf(codegen_buf, trans_rule.c_str(), exp1.fs.CurrentTerm.what.c_str(), exp2.fs.CurrentTerm.what.c_str());
 	newnode.fs.CurrentTerm = Term{ TokenMeta::NT_EXPRESSION, string(codegen_buf) };
@@ -26,7 +26,7 @@ ParseNode  gen_exp(const ParseNode & exp1, const ParseNode & op, const ParseNode
 	return newnode;
 }
 
-ParseNode gen_exp(const ParseNode & exp1, const ParseNode & op, std::string trans_rule) {
+ParseNode gen_exp(ARG_IN exp1, ARG_IN op, std::string trans_rule) {
 	ParseNode newnode = ParseNode();
 	sprintf(codegen_buf, trans_rule.c_str(), exp1.fs.CurrentTerm.what.c_str());
 	newnode.fs.CurrentTerm = Term{ TokenMeta::NT_EXPRESSION, string(codegen_buf) };

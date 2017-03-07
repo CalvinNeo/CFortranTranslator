@@ -27,10 +27,10 @@ void regen_do(FunctionInfo * finfo, ParseNode & do_stmt) {
 }
 
 void regen_do_range(FunctionInfo * finfo, ParseNode & do_stmt){
-	const ParseNode & loop_variable = do_stmt.get(0);
-	const ParseNode & exp1 = do_stmt.get(1);
-	const ParseNode & exp2 = do_stmt.get(2);
-	const ParseNode & exp3 = do_stmt.get(3);
+	ARG_IN loop_variable = do_stmt.get(0);
+	ARG_IN exp1 = do_stmt.get(1);
+	ARG_IN exp2 = do_stmt.get(2);
+	ARG_IN exp3 = do_stmt.get(3);
 	ParseNode & suite = do_stmt.get(4);
 	regen_suite(finfo, suite, true);
 	sprintf(codegen_buf, "for(%s = %s; %s <= %s; %s += %s){\n%s}", loop_variable.to_string().c_str(), exp1.to_string().c_str()
@@ -40,14 +40,14 @@ void regen_do_range(FunctionInfo * finfo, ParseNode & do_stmt){
 }
 
 void regen_do_while(FunctionInfo * finfo, ParseNode & do_stmt) {
-	const ParseNode & exp = do_stmt.get(0);
+	ARG_IN exp = do_stmt.get(0);
 	ParseNode & suite = do_stmt.get(1);
 	regen_suite(finfo, suite, true);
 	sprintf(codegen_buf, "while(%s){\n%s}", exp.to_string().c_str(), tabber(suite.to_string()).c_str());
 	do_stmt.fs.CurrentTerm = Term{ TokenMeta::NT_WHILE, string(codegen_buf) };
 }
 
-std::vector<const ParseNode *> gen_nested_hiddendo_layers_from_exp(const ParseNode & hiddendo) {
+std::vector<const ParseNode *> gen_nested_hiddendo_layers_from_exp(ARG_IN hiddendo) {
 	std::vector<const ParseNode *> hiddendo_layer;
 	const ParseNode * pn = &hiddendo;
 	while (pn->fs.CurrentTerm.token == TokenMeta::NT_HIDDENDO) {
@@ -61,7 +61,7 @@ std::vector<const ParseNode *> gen_nested_hiddendo_layers_from_exp(const ParseNo
 	}
 	return hiddendo_layer;
 }
-std::vector<const ParseNode *> gen_nested_hiddendo_layers(const ParseNode & hiddendo) {
+std::vector<const ParseNode *> gen_nested_hiddendo_layers(ARG_IN hiddendo) {
 	std::vector<const ParseNode *> hiddendo_layer;
 	const ParseNode * pn = &hiddendo;
 	while (pn->fs.CurrentTerm.token == TokenMeta::NT_HIDDENDO) {
@@ -76,7 +76,7 @@ std::vector<const ParseNode *> gen_nested_hiddendo_layers(const ParseNode & hidd
 	return hiddendo_layer;
 }
 
-std::string gen_hiddendo_expr(const ParseNode & hiddendo) {
+std::string gen_hiddendo_expr(ARG_IN hiddendo) {
 	if (get_context().parse_config.usefarray)
 	{
 		std::vector<const ParseNode *> hiddendo_layer = gen_nested_hiddendo_layers(hiddendo);
@@ -96,10 +96,10 @@ std::string gen_hiddendo_expr(const ParseNode & hiddendo) {
 		return string(codegen_buf);
 	}
 	else {
-		const ParseNode & exp = hiddendo.get(0);
-		const ParseNode & index = hiddendo.get(1);
-		const ParseNode & from = hiddendo.get(2);
-		const ParseNode & to = hiddendo.get(3);
+		ARG_IN exp = hiddendo.get(0);
+		ARG_IN index = hiddendo.get(1);
+		ARG_IN from = hiddendo.get(2);
+		ARG_IN to = hiddendo.get(3);
 		sprintf(codegen_buf, "[](int %s){return %s ;}", index.to_string().c_str(), exp.to_string().c_str());
 		string str_lambda_body = string(codegen_buf);
 		sprintf(codegen_buf, "f1a_init_hiddendo(%s, %s, %s)", from.to_string().c_str(), to.to_string().c_str(), str_lambda_body.c_str());
@@ -107,7 +107,7 @@ std::string gen_hiddendo_expr(const ParseNode & hiddendo) {
 	}
 }
 
-ParseNode gen_hiddendo(const ParseNode & argtable, const ParseNode & index, const ParseNode & from, const ParseNode & to, TokenMeta_T return_token) {
+ParseNode gen_hiddendo(ARG_IN argtable, ARG_IN index, ARG_IN from, ARG_IN to, TokenMeta_T return_token) {
 	/* give generate stmt */
 	ParseNode newnode = gen_token(Term{ TokenMeta::NT_HIDDENDO, "" });
 	newnode.addlist(argtable, index, from, to);

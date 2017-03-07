@@ -74,7 +74,7 @@ struct ParseNode {
 
 	ParseNode(const ParseNode &);
 	ParseNode & operator= (const ParseNode &) ;
-	ParseNode() = default;
+	ParseNode() : attr(nullptr), father(nullptr) {};
 	ParseNode(const FlexState & s, ParseNode * fa, ParseAttr * att = nullptr) : father(fa), attr(att), fs(s) {}
 	~ParseNode();
 };
@@ -90,10 +90,27 @@ void print_error(const std::string & error_info);
 
 // yacc part code
 // implement in for90.y
-#define YYSTYPE ParseNode
+#define YYSTYPE ParseNode*
+#define RETURN_NT(X) new ParseNode(X)
+#define YY2ARG(X) (X == nullptr? ParseNode(): *X)
+#define ARG_IN const ParseNode &
+#define ARG_OUT ParseNode &
+template <typename ... Args>
+void CLEAN_RIGHT(YYSTYPE x, Args&& ... args) {
+	delete x;
+	//x = nullptr;
+	CLEAN_RIGHT(std::forward<Args>(args)...);
+}
+template <typename ... Args>
+void CLEAN_RIGHT(YYSTYPE x) {
+	delete x;
+	//x = nullptr;
+}
+//#define RETURN_NT(X) X
+//#define YY2ARG(X) X
 
 std::string tabber(const std::string &); // add tab(`\t`) into the front of each line
-ParseNode flattern_bin(const ParseNode & pn, bool recursion_direction_right);// eliminate left/right recursion of an binary tree
+ParseNode flattern_bin(ARG_IN pn, bool recursion_direction_right);// eliminate left/right recursion of an binary tree
 void flattern_bin_inplace(ParseNode & pn, bool recursion_direction_right); // eliminate left/right recursion of an binary tree in place
 
 /* lazygen */

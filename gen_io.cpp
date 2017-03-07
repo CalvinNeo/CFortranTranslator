@@ -20,8 +20,8 @@
 #include "gen_common.h"
 
 void regen_read(FunctionInfo * finfo, ParseNode & stmt) {
-	const ParseNode & io_info = stmt.get(0);
-	const ParseNode & argtable = stmt.get(1);
+	ARG_IN io_info = stmt.get(0);
+	ARG_IN argtable = stmt.get(1);
 	string device = io_info.get(0).to_string();
 	if (io_info.get(1).fs.CurrentTerm.token == TokenMeta::NT_AUTOFORMATTER) {
 		if (device == "-1" || device == "") {
@@ -56,8 +56,8 @@ void regen_read(FunctionInfo * finfo, ParseNode & stmt) {
 
 void regen_write(FunctionInfo * finfo, ParseNode & stmt) {
 	// brace is forced
-	const ParseNode & io_info = stmt.get(0);
-	const ParseNode & argtable = stmt.get(1);
+	ARG_IN io_info = stmt.get(0);
+	ARG_IN argtable = stmt.get(1);
 	string device = io_info.get(0).to_string();
 	if (io_info.get(1).fs.CurrentTerm.token == TokenMeta::NT_AUTOFORMATTER) {
 		if (device == "-1") {
@@ -88,8 +88,8 @@ void regen_write(FunctionInfo * finfo, ParseNode & stmt) {
 	return;
 }
 void regen_print(FunctionInfo * finfo, ParseNode & stmt) {
-	const ParseNode & io_info = stmt.get(0);
-	const ParseNode & argtable = stmt.get(1);
+	ARG_IN io_info = stmt.get(0);
+	ARG_IN argtable = stmt.get(1);
 	if (io_info.get(1).fs.CurrentTerm.token == TokenMeta::NT_AUTOFORMATTER) {
 		sprintf(codegen_buf, "forprintfree(%s);\n", argtable.fs.CurrentTerm.what.c_str());
 	}
@@ -107,7 +107,7 @@ void regen_print(FunctionInfo * finfo, ParseNode & stmt) {
 	stmt.fs.CurrentTerm = Term{ TokenMeta::NT_PRINT_STMT, string(codegen_buf) };
 	return;
 }
-ParseNode gen_format(const ParseNode & format) {
+ParseNode gen_format(ARG_IN format) {
 	ParseNode newnode = gen_token(Term{ TokenMeta::NT_STATEMENT, "" });
 	newnode.addchild(gen_token(Term{ TokenMeta::NT_FORMAT, "\"" + format.fs.CurrentTerm.what + "\"" }) );
 	return newnode;

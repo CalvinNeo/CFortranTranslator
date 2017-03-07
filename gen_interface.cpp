@@ -18,10 +18,3 @@
 */
 
 #include "gen_common.h"
-
-ParseNode gen_interface(const ParseNode & wrappers) {
-	ParseNode newnode = gen_token(Term{TokenMeta::NT_INTERFACE, ""/*wrappers.fs.CurrentTerm.what*/});
-
-	newnode.addchild(wrappers);
-	return newnode;
-}

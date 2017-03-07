@@ -133,7 +133,7 @@ std::string gen_vardef_scalar_str(VariableInfo * vinfo, ParseNode & entity_varia
 	return var_decl;
 }
 
-ParseNode gen_vardef_from_implicit(const ParseNode & type, std::string name) {
+ParseNode gen_vardef_from_implicit(ARG_IN type, std::string name) {
 	ParseNode newnode = gen_token(Term{ TokenMeta::NT_VARIABLEDEFINE, name });
 	newnode.addlist(type, gen_token(Term{ TokenMeta::NT_VARIABLEDESC, "NT_VARIABLEDESC" })// variable_desc
 		, gen_keyvalue_from_name(name) // variable_entity
@@ -141,7 +141,7 @@ ParseNode gen_vardef_from_implicit(const ParseNode & type, std::string name) {
 	return newnode;
 }
 
-ParseNode gen_vardef(const ParseNode & type_nospec, const ParseNode & variable_desc, const ParseNode & paramtable) {
+ParseNode gen_vardef(ARG_IN type_nospec, ARG_IN variable_desc, ARG_IN paramtable) {
 	ParseNode kvparamtable = promote_argtable_to_paramtable(paramtable); // a flatterned paramtable with all keyvalue elements
 	ParseNode newnode = gen_token(Term{ TokenMeta::NT_VARIABLEDEFINESET, "VARDEFSET GENERATED IN REGEN_SUITE" });
 	for (int i = 0; i < (int)kvparamtable.child.size(); i++)

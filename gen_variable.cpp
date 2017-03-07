@@ -29,7 +29,7 @@
 //based on storage association(14.6.3).The common blocks specified by the COMMON statement may be named
 //and are called named common blocks, or may be unnamed and are called blank common.
 
-ParseNode gen_common(const ParseNode & commonname_node, const ParseNode & paramtable) {
+ParseNode gen_common(ARG_IN commonname_node, ARG_IN paramtable) {
 	// the unique blank COMMON block must be declared in the main program.
 	ParseNode kvparamtable = promote_argtable_to_paramtable(paramtable);
 	string common_name = commonname_node.fs.CurrentTerm.what;
@@ -111,6 +111,6 @@ ParseNode gen_common_definition(std::string common_name) {
 }
 
 
-void check_implicit_variable(const ParseNode &) {
+void check_implicit_variable(ARG_IN) {
 	
 }

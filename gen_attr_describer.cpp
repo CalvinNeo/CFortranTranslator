@@ -36,7 +36,7 @@ VariableDesc & get_variabledesc_attr(ParseNode & vardescattr_node) {
 	return x->desc;
 }
 
-ParseNode gen_variabledesc_from_dimenslice(const ParseNode & dimen_slice) {
+ParseNode gen_variabledesc_from_dimenslice(ARG_IN dimen_slice) {
 	ParseNode dimen = dimen_slice;
 	for (int sliceid = 0; sliceid < dimen.child.size(); sliceid++)
 	{

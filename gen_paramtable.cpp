@@ -31,7 +31,7 @@ ParseNode gen_keyvalue_from_name(std::string name) {
 	return newnode;
 }
 
-ParseNode gen_keyvalue_from_exp(const ParseNode & variable, const ParseNode & initial) {
+ParseNode gen_keyvalue_from_exp(ARG_IN variable, ARG_IN initial) {
 	/* paramtable is used in function decl */
 	/* this paramtable has only one value */
 
@@ -42,7 +42,7 @@ ParseNode gen_keyvalue_from_exp(const ParseNode & variable, const ParseNode & in
 }
 
 
-ParseNode gen_paramtable(const ParseNode & paramtable_elem) {
+ParseNode gen_paramtable(ARG_IN paramtable_elem) {
 	ParseNode newnode = ParseNode();
 	if (paramtable_elem.fs.CurrentTerm.token == TokenMeta::NT_DIMENSLICE) {
 		print_error("Can't generate paramtable from dimen_slice", newnode);
@@ -70,20 +70,20 @@ ParseNode gen_paramtable(const ParseNode & paramtable_elem) {
 	}
 }
 
-bool is_dimen_like(const ParseNode & elem) {
+bool is_dimen_like(ARG_IN elem) {
 	return elem.fs.CurrentTerm.token == TokenMeta::NT_DIMENSLICE || elem.fs.CurrentTerm.token == TokenMeta::NT_SLICE ;
 }
-bool is_arg_like(const ParseNode & elem) {
+bool is_arg_like(ARG_IN elem) {
 	return elem.fs.CurrentTerm.token == TokenMeta::NT_ARGTABLE_PURE ||
 		(TokenMeta::iselement(elem.fs.CurrentTerm.token)
 			|| elem.fs.CurrentTerm.token == TokenMeta::NT_EXPRESSION
 			|| elem.fs.CurrentTerm.token == TokenMeta::NT_ARRAYBUILDER);
 }
-bool is_param_like(const ParseNode & elem) {
+bool is_param_like(ARG_IN elem) {
 	return elem.fs.CurrentTerm.token == TokenMeta::NT_PARAMTABLE_PURE || elem.fs.CurrentTerm.token == TokenMeta::NT_KEYVALUE;
 }
 
-ParseNode gen_paramtable(const ParseNode & paramtable_elem, const ParseNode & paramtable) {
+ParseNode gen_paramtable(ARG_IN paramtable_elem, ARG_IN paramtable) {
 	ParseNode newnode = gen_token(Term{ TokenMeta::NT_PARAMTABLE_PURE, "" });
 	bool to_param = is_param_like(paramtable_elem) || is_param_like(paramtable);
 	bool all_param = is_param_like(paramtable_elem) && is_param_like(paramtable);
@@ -120,7 +120,7 @@ ParseNode gen_paramtable(const ParseNode & paramtable_elem, const ParseNode & pa
 	return newnode;
 }
 
-ParseNode promote_exp_to_keyvalue(const ParseNode & paramtable_elem) {
+ParseNode promote_exp_to_keyvalue(ARG_IN paramtable_elem) {
 	if (paramtable_elem.fs.CurrentTerm.token == TokenMeta::NT_KEYVALUE) {
 		// keyvalue pair
 		return paramtable_elem;
@@ -130,7 +130,7 @@ ParseNode promote_exp_to_keyvalue(const ParseNode & paramtable_elem) {
 	}
 }
 
-ParseNode promote_argtable_to_paramtable(const ParseNode & paramtable) {
+ParseNode promote_argtable_to_paramtable(ARG_IN paramtable) {
 	const ParseNode * pn = &paramtable;
 	ParseNode newnode = gen_token(Term{ TokenMeta::NT_PARAMTABLE_PURE, "" });
 	do {
@@ -149,7 +149,7 @@ ParseNode promote_argtable_to_paramtable(const ParseNode & paramtable) {
 	return newnode;
 }
 
-ParseNode gen_dimenslice(const ParseNode & dimen_slice) {
+ParseNode gen_dimenslice(ARG_IN dimen_slice) {
 	// all promoted to dimen_slice
 	ParseNode newnode = dimen_slice;
 	int sliceid = 0; 
@@ -179,7 +179,7 @@ ParseNode gen_dimenslice(const ParseNode & dimen_slice) {
 	return newnode;
 }
 
-ParseNode gen_argtable(const ParseNode & argtable) {
+ParseNode gen_argtable(ARG_IN argtable) {
 	ParseNode newnode = argtable;
 	int sliceid = 0; 
 	for (sliceid = 0; sliceid < newnode.child.size(); sliceid++)

@@ -27,25 +27,8 @@ R202 program-unit is main-program
 */
 // external-subprogram is in gen_function
 
-ParseNode gen_program_explicit(ParseNode & suite) {
-	ParseNode newnode = gen_token(Term{ TokenMeta::NT_PROGRAM_EXPLICIT, tabber(suite.fs.CurrentTerm.what) });
-	newnode.addchild(suite); //suite
-	return newnode;
-}
 
-ParseNode gen_program(ParseNode & suite) {
-	ParseNode newnode = gen_token(Term{ TokenMeta::NT_PROGRAM, tabber(suite.fs.CurrentTerm.what) });
-	newnode.addchild(suite); //suite
-	return newnode;
-}
-
-ParseNode gen_program_end(ParseNode & suite) {
-	ParseNode newnode = gen_token(Term{ TokenMeta::NT_PROGRAM, tabber(suite.fs.CurrentTerm.what) });
-	newnode.addchild(suite); //suite
-	return newnode;
-}
-
-void gen_fortran_program(const ParseNode & wrappers) {
+void gen_fortran_program(ARG_IN wrappers) {
 	std::string codes;
 	std::string main_code;
 	get_context().program_tree = wrappers;

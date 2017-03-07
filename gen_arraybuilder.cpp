@@ -19,21 +19,21 @@
 
 #include "gen_common.h"
 
-ParseNode gen_array_from_hiddendo(const ParseNode & hiddendo) {
+ParseNode gen_array_from_hiddendo(ARG_IN hiddendo) {
 	/* give hiddendo */
 	// use gen_hiddendo
 	return gen_promote(TokenMeta::NT_ARRAYBUILDER_LAMBDA, hiddendo);
 }
 
 
-ParseNode gen_array_from_paramtable(const ParseNode & argtable) {
+ParseNode gen_array_from_paramtable(ARG_IN argtable) {
 	/* give initial value */
 	/* `B(1:2:3)` can be either a single-element argtable or a exp, this can probably lead to reduction conflicts, so merge rules */
 	ParseNode newnode = ParseNode();
 	for (int i = 0; i < argtable.child.size(); i++)
 	{
 		if (argtable.get(i).fs.CurrentTerm.token == TokenMeta::NT_EXPRESSION) {
-			const ParseNode & array_builder = argtable.get(i)/* NT_EXPRESSION */.get(0);
+			ARG_IN array_builder = argtable.get(i)/* NT_EXPRESSION */.get(0);
 			if (array_builder.fs.CurrentTerm.token == TokenMeta::NT_FUCNTIONARRAY) {
 				// slice
 				newnode = gen_promote(TokenMeta::NT_ARRAYBUILDER_LIST, array_builder);
@@ -44,7 +44,7 @@ ParseNode gen_array_from_paramtable(const ParseNode & argtable) {
 			}
 			else {
 				// just A(1)(2)(3) or A(1, 2, 3)
-				newnode = gen_promote(TokenMeta::NT_ARRAYBUILDER_LIST, array_builder);
+				newnode = gen_promote(TokenMeta::NT_ARRAYBUILDER_LIST, array_builder); 
 			}
 		}
 		else {
@@ -64,11 +64,11 @@ CAN_ONLY_GEN_ONE:
 void regen_arraybuilder_str(ParseNode & arraybuilder) {
 	// wrap arraybuilder.fs.CurrentTerm.what with make_farray function
 	string arr_decl;
-	const ParseNode & compound_arraybuilder = arraybuilder; // NT_ARRAYBUILDER
+	ARG_IN compound_arraybuilder = arraybuilder; // NT_ARRAYBUILDER
 	bool can_list_init = true;
 	for (auto builderid = 0; builderid < compound_arraybuilder.child.size(); builderid++)
 	{
-		const ParseNode & array_builder = compound_arraybuilder.get(builderid);
+		ARG_IN array_builder = compound_arraybuilder.get(builderid);
 		if (array_builder.fs.CurrentTerm.token == TokenMeta::NT_ARRAYBUILDER_LAMBDA) {
 			can_list_init = false;
 			break;
@@ -83,7 +83,7 @@ void regen_arraybuilder_str(ParseNode & arraybuilder) {
 	int totalsize = 0;
 	for (auto builderid = 0; builderid < compound_arraybuilder.child.size(); builderid++)
 	{
-		const ParseNode & array_builder = compound_arraybuilder.get(builderid);
+		ARG_IN array_builder = compound_arraybuilder.get(builderid);
 		if (array_builder.fs.CurrentTerm.token == TokenMeta::NT_ARRAYBUILDER_LAMBDA /*hidden_do*/) {
 			int from, to;
 			sscanf(array_builder.get(0)/* NT_HIDDENDO */.get(2).fs.CurrentTerm.what.c_str(), "%d", &from );
@@ -99,7 +99,7 @@ void regen_arraybuilder_str(ParseNode & arraybuilder) {
 		// can init array from initializer_list of initial value
 		for (auto builderid = 0; builderid < compound_arraybuilder.child.size(); builderid++)
 		{
-			const ParseNode & array_builder = compound_arraybuilder.get(builderid);
+			ARG_IN array_builder = compound_arraybuilder.get(builderid);
 			// init from list
 			sprintf(codegen_buf, "make_init_list(%s)", array_builder.fs.CurrentTerm.what.c_str());
 			if (builderid > 0) {
@@ -115,7 +115,7 @@ void regen_arraybuilder_str(ParseNode & arraybuilder) {
 		}
 		for (auto builderid = 0; builderid < compound_arraybuilder.child.size(); builderid++)
 		{
-			const ParseNode & array_builder = compound_arraybuilder.get(builderid);
+			ARG_IN array_builder = compound_arraybuilder.get(builderid);
 			if (array_builder.get(0).fs.CurrentTerm.token == TokenMeta::NT_HIDDENDO) {
 				vector<const ParseNode *> hiddendo_layer = gen_nested_hiddendo_layers(array_builder.get(0));
 				std::string vec_from = make_str_list(hiddendo_layer.begin(), hiddendo_layer.end(), [](auto x)->string {return (x)->get(2).fs.CurrentTerm.what; });
