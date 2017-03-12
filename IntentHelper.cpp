@@ -199,7 +199,7 @@ std::map<int, std::string> IntentName = {
 
 	,{ -600, "If" }
 	,{ -601, "Else or ElseIf" }
-	,{ -202, "ElseLast" }
+	,{ -602, "ElseLast" }
 	,{ -603, "While" }
 	,{ -604, "For" }
 	,{ -605, "Goto" }

@@ -19,24 +19,11 @@
 
 #include "gen_common.h"
 
-ParseNode gen_slice(ARG_IN lb, ARG_IN ub, ARG_IN step) {
-	/* arr[from : to] */
-	/* target code of slice depend on context */
-	ParseNode newnode = gen_token(Term{ TokenMeta::NT_SLICE, "" });
-	newnode.addlist(lb, ub, step);
-	return newnode;
-}
-
-ParseNode gen_slice(ARG_IN lb, ARG_IN ub) {
-	/* arr[from : to] */
-	/* target code of slice depend on context */
-	ParseNode newnode = gen_token(Term{ TokenMeta::NT_SLICE, "" });
-	newnode.addlist(lb, ub);
-	return newnode;
-}
 
 ParseNode promote_exp_to_slice(ARG_IN exp) {
-	ParseNode newnode = gen_slice(gen_promote(TokenMeta::NT_EXPRESSION, gen_token(Term{ TokenMeta::META_INTEGER, "1" })), exp);
+	ParseNode lit = gen_token(Term{ TokenMeta::META_INTEGER, "1" });
+	ParseNode exp0 = gen_token(Term{ TokenMeta::NT_EXPRESSION , lit.to_string() }, lit);
+	ParseNode newnode = gen_token(Term{ TokenMeta::NT_SLICE, "" }, exp0, exp);
 	return newnode;
 }
 
@@ -59,3 +46,33 @@ ParseNode promote_argtable_to_dimenslice(ARG_IN argtable) {
 	return newnode;
 }
 
+
+ParseNode gen_dimenslice(ARG_IN dimen_slice) {
+	// all promoted to dimen_slice
+	ParseNode newnode = dimen_slice;
+	int sliceid = 0;
+	for (sliceid = 0; sliceid < newnode.child.size(); sliceid++)
+	{
+		if (sliceid != 0) {
+			newnode.fs.CurrentTerm.what += ", ";
+		}
+		if (newnode.get(sliceid).fs.CurrentTerm.token == TokenMeta::NT_SLICE) {
+			// slice
+			if (newnode.get(sliceid).child.size() == 2) {
+				/* from, to */
+				sprintf(codegen_buf, "%s, %s", newnode.get(sliceid).get(0).fs.CurrentTerm.what.c_str()
+					, newnode.get(sliceid).get(1).fs.CurrentTerm.what.c_str());
+			}
+			else {
+				// size
+				sprintf(codegen_buf, "%s", newnode.get(sliceid).get(0).fs.CurrentTerm.what.c_str());
+			}
+		}
+		else {
+			// exp
+			sprintf(codegen_buf, "%s", newnode.get(sliceid).fs.CurrentTerm.what.c_str());
+		}
+	}
+	newnode.fs.CurrentTerm = Term{ TokenMeta::NT_DIMENSLICE, "LAZY GEN DIMENSLICE" };
+	return newnode;
+}

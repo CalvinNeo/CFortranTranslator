@@ -137,7 +137,7 @@ ParseNode gen_function(ARG_IN variable_function, ARG_IN paramtable, ARG_IN varia
 	return newnode;
 }
 
-void regen_function(FunctionInfo * finfo, ParseNode & functiondecl_node) {
+void regen_function(FunctionInfo * finfo, ARG_OUT functiondecl_node) {
 	/* fortran90 does not declare type of arguments in function declaration statement*/
 	// paramtable is raw for90 paramtable and every variable in the table has no type infomation
 	ParseNode & variable_function = functiondecl_node.get(1);

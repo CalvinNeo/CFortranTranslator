@@ -19,7 +19,7 @@
 
 #include "gen_common.h"
 
-void regen_if(FunctionInfo * finfo, ParseNode & if_stmt) {
+void regen_if(FunctionInfo * finfo, ARG_OUT if_stmt) {
 	ParseNode & exp = if_stmt.get(0);
 	ParseNode & suite_true = if_stmt.get(1);
 	ParseNode & elseif = if_stmt.get(2);
@@ -59,7 +59,7 @@ void regen_if(FunctionInfo * finfo, ParseNode & if_stmt) {
 	if_stmt.fs.CurrentTerm = Term{ TokenMeta::NT_IF, string(codegen_buf) };
 }
 
-void regen_elseif(FunctionInfo * finfo, ParseNode & elseif_stmt) {
+void regen_elseif(FunctionInfo * finfo, ARG_OUT elseif_stmt) {
 	ParseNode & exp = elseif_stmt.get(0);
 	ParseNode & suite_true = elseif_stmt.get(1);
 	ParseNode & elseif = elseif_stmt.get(2);

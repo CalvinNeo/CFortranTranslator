@@ -19,7 +19,7 @@
 
 #include "gen_common.h"
 
-void regen_select(FunctionInfo * finfo, ParseNode & select_stmt) {
+void regen_select(FunctionInfo * finfo, ARG_OUT select_stmt) {
 	ParseNode & exp = select_stmt.get(0);
 	ParseNode & case_stmt = select_stmt.get(1); 
 	select_stmt.fs.CurrentTerm = Term{ TokenMeta::NT_SELECT, "" };

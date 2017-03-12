@@ -19,7 +19,7 @@
 
 #include "gen_common.h"
 
-void set_variabledesc_attr(ParseNode & vardescattr_node, boost::optional<bool> reference, boost::optional<bool> constant
+void set_variabledesc_attr(ARG_OUT vardescattr_node, boost::optional<bool> reference, boost::optional<bool> constant
 	, boost::optional<bool> optional, boost::optional<ParseNode> slice, boost::optional<int> kind, boost::optional<bool> save) {
 	if (vardescattr_node.attr == nullptr) {
 		vardescattr_node.setattr(new VariableDescAttr());

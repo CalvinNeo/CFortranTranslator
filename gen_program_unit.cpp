@@ -33,6 +33,22 @@ void gen_fortran_program(ARG_IN wrappers) {
 	std::string main_code;
 	get_context().program_tree = wrappers;
 	FunctionInfo * program_info = add_function("", "program", FunctionInfo());
+	ParseNode script_program = gen_token(Term{ TokenMeta::NT_SUITE , "" });
+	for (size_t i = 0; i < wrappers.child.size(); i++)
+	{
+		// gather all TokenMeta::SUITE
+		const ParseNode & wrapper = wrappers.get(i);
+		if (wrapper.fs.CurrentTerm.token == TokenMeta::NT_SUITE)
+		{
+			for (size_t j = 0; j < wrapper.child.size(); j++)
+			{
+				script_program.addchild(wrapper.get(j));
+			}
+		}
+	}
+	get_context().current_module = "";
+	regen_suite(program_info, script_program, true);
+	main_code += tabber(script_program.to_string());
 	for (size_t i = 0; i < wrappers.child.size(); i++)
 	{
 		ParseNode & wrapper = get_context().program_tree.get(i);
@@ -42,11 +58,6 @@ void gen_fortran_program(ARG_IN wrappers) {
 			regen_suite(program_info, wrapper.get(0));
 			main_code += tabber(wrapper.get(0).to_string());
 		}
-		else if(wrapper.fs.CurrentTerm.token == TokenMeta::NT_PROGRAM){
-			get_context().current_module = ""; 
-			regen_suite(program_info, wrapper.get(0), true);
-			main_code += tabber(wrapper.get(0).to_string());
-		}
 		else if (wrapper.fs.CurrentTerm.token == TokenMeta::NT_FUNCTIONDECLARE) {
 			get_context().current_module = "";
 			ParseNode & variable_function = wrapper.get(1);
@@ -54,6 +65,11 @@ void gen_fortran_program(ARG_IN wrappers) {
 			regen_function(finfo, wrapper);
 			codes += wrapper.fs.CurrentTerm.what;
 			codes += "\n";
+		}
+		else if (wrapper.fs.CurrentTerm.token == TokenMeta::NT_SUITE)
+		{
+			// handled in the previous loop
+			continue;
 		}
 		else {
 			print_error("Unexpected wrappers");

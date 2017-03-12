@@ -44,7 +44,7 @@ ParseNode gen_common(ARG_IN commonname_node, ARG_IN paramtable) {
 	return newnode;
 }
 
-void regen_common(FunctionInfo * finfo, ParseNode & common_block) {
+void regen_common(FunctionInfo * finfo, ARG_OUT common_block) {
 	ParseNode & commonname_node = common_block.get(0);
 	ParseNode & kvparamtable = common_block.get(1);
 	string common_name = commonname_node.fs.CurrentTerm.what;
@@ -111,6 +111,6 @@ ParseNode gen_common_definition(std::string common_name) {
 }
 
 
-void check_implicit_variable(ARG_IN) {
+void check_implicit_variable(ARG_IN variable) {
 	
 }

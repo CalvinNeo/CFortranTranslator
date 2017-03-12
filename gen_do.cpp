@@ -19,14 +19,14 @@
 
 #include "gen_common.h"
 
-void regen_do(FunctionInfo * finfo, ParseNode & do_stmt) {
+void regen_do(FunctionInfo * finfo, ARG_OUT do_stmt) {
 	ParseNode & suite = do_stmt.get(0);
 	regen_suite(finfo, suite, true);
 	sprintf(codegen_buf, "do{\n%s}", tabber(suite.to_string()).c_str());
 	do_stmt.fs.CurrentTerm = Term{ TokenMeta::NT_DO, string(codegen_buf) };
 }
 
-void regen_do_range(FunctionInfo * finfo, ParseNode & do_stmt){
+void regen_do_range(FunctionInfo * finfo, ARG_OUT do_stmt){
 	ARG_IN loop_variable = do_stmt.get(0);
 	ARG_IN exp1 = do_stmt.get(1);
 	ARG_IN exp2 = do_stmt.get(2);
@@ -39,7 +39,7 @@ void regen_do_range(FunctionInfo * finfo, ParseNode & do_stmt){
 	do_stmt.fs.CurrentTerm = Term{ TokenMeta::NT_DORANGE, string(codegen_buf) };
 }
 
-void regen_do_while(FunctionInfo * finfo, ParseNode & do_stmt) {
+void regen_do_while(FunctionInfo * finfo, ARG_OUT do_stmt) {
 	ARG_IN exp = do_stmt.get(0);
 	ParseNode & suite = do_stmt.get(1);
 	regen_suite(finfo, suite, true);

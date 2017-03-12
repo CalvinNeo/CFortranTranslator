@@ -155,5 +155,4 @@ void debug() {
 		
 	}
 	preorder(&get_context().program_tree);
-	//cout << endl << for2cpp(get_context().global_code) << endl;
 }

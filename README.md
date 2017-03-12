@@ -396,7 +396,7 @@ ignored.
 > 3.3.2.3 Fixed form statement continuation
 Except within commentary, character position 6 is used to indicate continuation. If character position 6 contains
 a blank or zero, this line is the initial line of a new statement which begins in character position 7. If character
-position 6 contains any character other than blank or zero, character positions 7–72 of this line constitute a
+position 6 contains any character other than blank or zero, character positions 7-72 of this line constitute a
 continuation of the preceding noncomment line. Note that an "!" or ";" in character position 6 indicates a
 continuation of the preceding noncomment line. Comment lines cannot be continued. Comment lines may occur
 within a continued statement.

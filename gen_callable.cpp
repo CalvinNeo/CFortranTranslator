@@ -21,7 +21,7 @@
 
 // both function and array is callable
 
-ParseNode gen_function_array(const ParseNode & callable_head, const ParseNode & argtable) {
+ParseNode gen_function_array(ARG_IN callable_head, ARG_IN argtable) {
 
 	/* function call OR array index */
 	/* NOTE that array index can be A(1:2, 3:4) */
@@ -71,7 +71,7 @@ ParseNode gen_function_array(const ParseNode & callable_head, const ParseNode & 
 						}
 					}
 					if (empty_slice || slice.child.size() == 0) {
-
+						print_error("Slice can not be empty");
 					}
 					else if (slice.child.size() == 1) {
 						// a single element, not size

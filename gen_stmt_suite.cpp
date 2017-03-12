@@ -19,6 +19,22 @@
 
 #include "gen_common.h"
 
+void regen_simple_stmt(FunctionInfo * finfo, ARG_OUT stmt) {
+	/*** including:
+	*	exp							NT_STATEMENT
+	*	let_stmt					NT_STATEMENT
+	*	control_stmt				NT_STATEMENT
+	*	format						NT_FORMAT
+	*	var_def						NT_VARIABLEDEFINE
+	*	comment						Comment
+	*	common						NT_COMMONBLOCK
+	*	dummy						NT_DUMMY
+	*	interface(in suite rule)	NT_INTERFACE
+	*	labelin suite rule)			Label
+	*	input_stmt, output_stmt		NT_READ_STMT, NT_WRITE_STMT, NT_PRINT_STMT
+	*	compound_stmt				NT_IF, ...
+	***/
+}
 
 vector<ParseNode *> get_all_declared(std::string module_name, std::string function_name) {
 	vector<ParseNode *> declared_variables_and_functions;
@@ -78,20 +94,29 @@ vector<ParseNode *> get_all_commons(FunctionInfo * finfo, ParseNode & suite) {
 	}
 	return declared_commons;
 }
-void regen_suite(FunctionInfo * finfo, ParseNode & oldsuite, bool is_partial) {
-	// regen suite(especially variable declaration)
-	/* this function regen code of `suite` node and 
+void regen_suite(FunctionInfo * finfo, ARG_OUT oldsuite, bool is_partial) {
+	/**** 
+	 * this function regen code of `suite` node and 
 	 * 1. remove all NT_DECLAREDVARIABLE in suite
 	 * 2. regen_vardef 
-	 */
+	 ****/
 	std::string newsuitestr;
 	vector<ParseNode *> declared_variables = get_all_explicit_declared(finfo, oldsuite);
 	vector<ParseNode *> declared_commons = get_all_commons(finfo, oldsuite);
 	for (int i = 0; i < oldsuite.child.size(); i++)
 	{
-		// oldsuite.child[i]: stmt/ interface_decl
 		ParseNode & stmt = oldsuite.get(i);
-		if (stmt.fs.CurrentTerm.token == TokenMeta::NT_VARIABLEDEFINESET)
+		// exp, leet_stmt, control_stmt
+		if (stmt.fs.CurrentTerm.token == TokenMeta::NT_STATEMENT) {
+			newsuitestr += stmt.fs.CurrentTerm.what;
+			newsuitestr += '\n';
+		}
+		// format
+		else if (stmt.fs.CurrentTerm.token == TokenMeta::NT_FORMAT) {
+		
+		}
+		// var_def
+		else if (stmt.fs.CurrentTerm.token == TokenMeta::NT_VARIABLEDEFINESET)
 		{
 			ParseNode & vardef_set = stmt;
 			// examine all variable define stmt
@@ -131,10 +156,20 @@ void regen_suite(FunctionInfo * finfo, ParseNode & oldsuite, bool is_partial) {
 				}
 			}
 		}
+		// comment
+		else if (stmt.fs.CurrentTerm.token == TokenMeta::Comments) {
+			
+		}
+		// common
 		else if (stmt.fs.CurrentTerm.token == TokenMeta::NT_COMMONBLOCK) {
 			regen_common(finfo, stmt);
 			newsuitestr += stmt.fs.CurrentTerm.what;
 		}
+		// dummy
+		else if (stmt.fs.CurrentTerm.token == TokenMeta::NT_DUMMY) {
+
+		}
+		// interface
 		else if (stmt.fs.CurrentTerm.token == TokenMeta::NT_INTERFACE) {
 			// do not generate declared string
 		}
@@ -143,7 +178,7 @@ void regen_suite(FunctionInfo * finfo, ParseNode & oldsuite, bool is_partial) {
 			if (j < oldsuite.child.size())
 			{
 				ARG_IN next_stmt = oldsuite.get(j);
-				if (next_stmt.child.size() > 0 && next_stmt.get(0).fs.CurrentTerm.token == TokenMeta::NT_FORMAT)
+				if (next_stmt.fs.CurrentTerm.token == TokenMeta::NT_FORMAT)
 				{
 
 				}
@@ -154,6 +189,7 @@ void regen_suite(FunctionInfo * finfo, ParseNode & oldsuite, bool is_partial) {
 			}
 			
 		}
+		// input/output stmt
 		else if (stmt.fs.CurrentTerm.token == TokenMeta::NT_READ_STMT) {
 			regen_read(finfo, stmt);
 			newsuitestr += stmt.fs.CurrentTerm.what;
@@ -166,6 +202,7 @@ void regen_suite(FunctionInfo * finfo, ParseNode & oldsuite, bool is_partial) {
 			regen_print(finfo, stmt);
 			newsuitestr += stmt.fs.CurrentTerm.what;
 		}
+		// compound stmt
 		else if (stmt.fs.CurrentTerm.token == TokenMeta::NT_DO) {
 			newsuitestr += stmt.fs.CurrentTerm.what;
 			newsuitestr += '\n';
@@ -202,8 +239,7 @@ void regen_suite(FunctionInfo * finfo, ParseNode & oldsuite, bool is_partial) {
 		}
 		else {
 			// normal stmt
-			newsuitestr += stmt.fs.CurrentTerm.what;
-			newsuitestr += '\n';
+			print_error("Unknown Statement", stmt);
 		}
 	}
 	// 这部分一定要放在commonblock检查之后

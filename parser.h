@@ -70,7 +70,7 @@ struct ParseNode {
 	const ParseNode & get(int child_index) const;
 	const ParseNode & const_get(int child_index) const;
 	void setattr(ParseAttr * pa);
-	std::string to_string() const { return fs.CurrentTerm.what; }
+	const std::string & to_string() const { return fs.CurrentTerm.what; }
 
 	ParseNode(const ParseNode &);
 	ParseNode & operator= (const ParseNode &) ;

@@ -19,6 +19,6 @@
 
 #include "gen_common.h"
 
-void add_function_forward(const ParseNode & function_decl) {
+void add_function_forward(ARG_IN function_decl) {
 
 }

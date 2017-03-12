@@ -146,7 +146,7 @@ struct FlexExternalContext : public FlexScannerContext {
 				left_brackets--;
 				if (left_brackets == 0)
 				{
-					std::string result = parse_ioformatter(code); 
+					std::string result = code; 
 					update_flex((int)len);
 					return quit_condition(YY_FORMAT_STMT, Term{ TokenMeta::NT_FORMAT, result });
 				}

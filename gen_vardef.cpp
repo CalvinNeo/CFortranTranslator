@@ -19,6 +19,8 @@
 
 #include "gen_common.h"
 
+std::string gen_vardef_array_str(VariableInfo * vinfo, ParseNode & entity_variable, std::string type_str, const std::tuple<std::vector<int>, std::vector<int>> & shape);
+std::string gen_vardef_scalar_str(VariableInfo * vinfo, ParseNode & entity_variable, std::string type_str);
 std::string gen_lbound_size_str(const std::tuple<std::vector<int>, std::vector<int>> & shape) {
 	std::string size_str = "{", lbound_str = "{";
 	lbound_str += make_str_list(get<0>(shape).begin(), get<0>(shape).end(), [&](auto x) { return to_string(x); });
@@ -83,7 +85,7 @@ std::string gen_vardef_array_str(VariableInfo * vinfo, ParseNode & entity_variab
 		sprintf(codegen_buf, "{%s};\n", gen_lbound_size_str(shape).c_str());
 		arr_decl += string(codegen_buf);
 		ParseNode & compound_arraybuilder = entity_variable.get(1); // NT_ARRAYBUILDER
-		regen_arraybuilder_str(compound_arraybuilder);
+		regen_arraybuilder(compound_arraybuilder);
 		sprintf(codegen_buf, "%s = %s", alias_name.c_str(), compound_arraybuilder.fs.CurrentTerm.what.c_str());
 		arr_decl += string(codegen_buf);
 	}
@@ -154,7 +156,7 @@ ParseNode gen_vardef(ARG_IN type_nospec, ARG_IN variable_desc, ARG_IN paramtable
 	return newnode;
 }
 
-void regen_vardef(VariableInfo * vinfo, ParseNode & vardef_node, ParseNode & type_nospec, VariableDesc & desc, ParseNode & entity_variable) {
+void regen_vardef(VariableInfo * vinfo, ARG_OUT vardef_node, ARG_OUT type_nospec, VariableDesc & desc, ARG_OUT entity_variable) {
 	string var_decl = ""; 
 	bool do_arr = desc.slice.is_initialized();
 	string type_str;

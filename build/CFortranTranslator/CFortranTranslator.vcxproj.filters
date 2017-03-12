@@ -24,9 +24,6 @@
     <ClCompile Include="..\..\grammar\for90.flex.cpp">
       <Filter>grammar</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\grammar\for90.tab.cpp">
-      <Filter>grammar</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\parser.cpp">
       <Filter>parser</Filter>
     </ClCompile>
@@ -141,6 +138,9 @@
     <ClCompile Include="..\..\gen_forwarddecl.cpp">
       <Filter>target90</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\grammar\for90.tab.cpp">
+      <Filter>grammar</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\grammar\for90.tab.h">
@@ -215,11 +215,6 @@
     <ClInclude Include="..\..\utf8.h" />
   </ItemGroup>
   <ItemGroup>
-    <Bison Include="..\..\grammar\for90.y">
-      <Filter>grammar</Filter>
-    </Bison>
-  </ItemGroup>
-  <ItemGroup>
     <None Include="..\..\README.md" />
     <None Include="..\..\todolist.md" />
     <None Include="..\..\cn.md" />
@@ -229,5 +224,10 @@
     <Flex Include="..\..\grammar\for90.l">
       <Filter>grammar</Filter>
     </Flex>
+  </ItemGroup>
+  <ItemGroup>
+    <Bison Include="..\..\grammar\for90.y">
+      <Filter>grammar</Filter>
+    </Bison>
   </ItemGroup>
 </Project>

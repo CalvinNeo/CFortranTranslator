@@ -109,8 +109,7 @@ ParseNode gen_paramtable(ARG_IN paramtable_elem, ARG_IN paramtable) {
 	}
 	else if (all_arg) {
 		// all dimen_slice or argument_pure or variable
-		newnode = gen_token(Term{ TokenMeta::NT_ARGTABLE_PURE, "" });
-		newnode.addchild(paramtable_elem);
+		newnode = gen_token(Term{ TokenMeta::NT_ARGTABLE_PURE, "" }, paramtable_elem);
 		sprintf(codegen_buf, "%s, %s", paramtable_elem.fs.CurrentTerm.what.c_str(), paramtable.fs.CurrentTerm.what.c_str());
 		newnode.fs.CurrentTerm.what = string(codegen_buf);
 	}
@@ -149,48 +148,9 @@ ParseNode promote_argtable_to_paramtable(ARG_IN paramtable) {
 	return newnode;
 }
 
-ParseNode gen_dimenslice(ARG_IN dimen_slice) {
-	// all promoted to dimen_slice
-	ParseNode newnode = dimen_slice;
-	int sliceid = 0; 
-	for (sliceid = 0; sliceid < newnode.child.size(); sliceid++)
-	{
-		if (sliceid != 0) {
-			newnode.fs.CurrentTerm.what += ", ";
-		}
-		if (newnode.get(sliceid).fs.CurrentTerm.token == TokenMeta::NT_SLICE) {
-			// slice
-			if (newnode.get(sliceid).child.size() == 2) {
-				/* from, to */
-				sprintf(codegen_buf, "%s, %s", newnode.get(sliceid).get(0).fs.CurrentTerm.what.c_str()
-					, newnode.get(sliceid).get(1).fs.CurrentTerm.what.c_str());
-			}
-			else {
-				// size
-				sprintf(codegen_buf, "%s", newnode.get(sliceid).get(0).fs.CurrentTerm.what.c_str());
-			}
-		}
-		else {
-			// exp
-			sprintf(codegen_buf, "%s", newnode.get(sliceid).fs.CurrentTerm.what.c_str());
-		}
-	}
-	newnode.fs.CurrentTerm = Term{ TokenMeta::NT_DIMENSLICE, "LAZY GEN DIMENSLICE" };
-	return newnode;
-}
 
 ParseNode gen_argtable(ARG_IN argtable) {
 	ParseNode newnode = argtable;
-	int sliceid = 0; 
-	for (sliceid = 0; sliceid < newnode.child.size(); sliceid++)
-	{
-		if (sliceid != 0) {
-			newnode.fs.CurrentTerm.what += ", ";
-		}
-		// should not set codegen_buf here
-		sprintf(codegen_buf, "%s", argtable.get(sliceid).fs.CurrentTerm.what.c_str());
-	}
-	sprintf(codegen_buf, "%s", argtable.fs.CurrentTerm.what.c_str());
-	newnode.fs.CurrentTerm = Term{ TokenMeta::NT_ARGTABLE_PURE, string(codegen_buf) };
+	newnode.fs.CurrentTerm.token = TokenMeta::NT_ARGTABLE_PURE;
 	return newnode;
 }

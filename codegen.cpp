@@ -41,14 +41,6 @@ void do_trans(const std::string & src) {
 	get_context().program_tree.fs.CurrentTerm.what = gen_header().fs.CurrentTerm.what + get_context().program_tree.fs.CurrentTerm.what;
 }
 
-std::string for2cpp(std::string for_code) {
-	using namespace std;
-	string cpp_code = cpp_header;
-	parse(for_code);
-	cpp_code += get_context().program_tree.fs.CurrentTerm.what;
-	return cpp_code;
-}
-
 ParseNode gen_token(Term term) {
 	// four `_pos` is set by update_pos in for90.y
 	return ParseNode(gen_flex(term), nullptr);
@@ -56,19 +48,6 @@ ParseNode gen_token(Term term) {
 
 ParseNode gen_dummy() {
 	return gen_token(Term{ TokenMeta::NT_DUMMY, "" });
-}
-
-ParseNode gen_promote(std::string rule, int merged_token_meta, ARG_IN lower) {
-	sprintf(codegen_buf, rule.c_str(), lower.fs.CurrentTerm.what.c_str());
-	ParseNode newnode = gen_token(Term{ merged_token_meta, string(codegen_buf) });
-	newnode.addchild(lower); 
-	return newnode;
-}
-
-ParseNode gen_promote(int merged_token_meta, ARG_IN lower) {
-	ParseNode newnode = gen_token(Term{ merged_token_meta, lower.fs.CurrentTerm.what });
-	newnode.addchild(lower);
-	return newnode;
 }
 
 FlexState gen_flex(Term term) {

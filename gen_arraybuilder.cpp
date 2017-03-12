@@ -22,7 +22,7 @@
 ParseNode gen_array_from_hiddendo(ARG_IN hiddendo) {
 	/* give hiddendo */
 	// use gen_hiddendo
-	return gen_promote(TokenMeta::NT_ARRAYBUILDER_LAMBDA, hiddendo);
+	return gen_token(Term{ TokenMeta::NT_ARRAYBUILDER_LAMBDA, hiddendo.to_string() }, hiddendo);
 }
 
 
@@ -36,15 +36,15 @@ ParseNode gen_array_from_paramtable(ARG_IN argtable) {
 			ARG_IN array_builder = argtable.get(i)/* NT_EXPRESSION */.get(0);
 			if (array_builder.fs.CurrentTerm.token == TokenMeta::NT_FUCNTIONARRAY) {
 				// slice
-				newnode = gen_promote(TokenMeta::NT_ARRAYBUILDER_LIST, array_builder);
+				newnode = gen_token(Term{ TokenMeta::NT_ARRAYBUILDER_LIST, argtable.to_string() }, array_builder);
 			}
 			else if (array_builder.fs.CurrentTerm.token == TokenMeta::NT_HIDDENDO) {
 				// hidden_do, handled in gen_array_from_hiddendo
-				newnode = gen_promote(TokenMeta::NT_ARRAYBUILDER_LAMBDA, array_builder);
+				newnode = gen_token(Term{ TokenMeta::NT_ARRAYBUILDER_LAMBDA, argtable.to_string() }, array_builder);
 			}
 			else {
 				// just A(1)(2)(3) or A(1, 2, 3)
-				newnode = gen_promote(TokenMeta::NT_ARRAYBUILDER_LIST, array_builder); 
+				newnode = gen_token(Term{ TokenMeta::NT_ARRAYBUILDER_LIST, argtable.to_string() }, array_builder);
 			}
 		}
 		else {
@@ -56,12 +56,11 @@ ParseNode gen_array_from_paramtable(ARG_IN argtable) {
 	}
 	return newnode;
 CAN_ONLY_GEN_ONE:
-	newnode.fs.CurrentTerm = Term{ TokenMeta::NT_ARRAYBUILDER_LIST, string(codegen_buf) };
-	newnode.addchild(argtable); // argtable
+	newnode = gen_token(Term{ TokenMeta::NT_ARRAYBUILDER_LIST, string(codegen_buf) }, argtable);
 	return newnode;
 }
 
-void regen_arraybuilder_str(ParseNode & arraybuilder) {
+void regen_arraybuilder(ARG_OUT arraybuilder) {
 	// wrap arraybuilder.fs.CurrentTerm.what with make_farray function
 	string arr_decl;
 	ARG_IN compound_arraybuilder = arraybuilder; // NT_ARRAYBUILDER

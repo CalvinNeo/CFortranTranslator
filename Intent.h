@@ -125,7 +125,7 @@ namespace IntentMeta {
 		PushExtern = -123,
 		SystemFunction = -124, 
 		DynamicVariable = -125, 
-		UnknownVariant = -126, //尚未定位符号表的变量
+		UnknownVariant = -126, 
 
 		New = -131,
 		Delete = -132,
@@ -137,7 +137,7 @@ namespace IntentMeta {
 		Duplicate = -140,
 
 		
-		Stop = -150, // For Debug
+		Stop = -150, 
 		Format = -151, // fortran77 format commandd
 
 		// Describer
@@ -217,7 +217,7 @@ namespace IntentMeta {
 		If = -600,
 		Else = -601,
 		ElseIf = Else,
-		ElseLast = -202,
+		ElseLast = -602,
 		While = -603,
 		For = -604,
 		Goto = -605,

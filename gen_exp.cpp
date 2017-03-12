@@ -17,20 +17,3 @@
 *   51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 #include "gen_common.h"
-
-ParseNode  gen_exp(ARG_IN exp1, ARG_IN op, ARG_IN exp2, std::string trans_rule) {
-	ParseNode newnode = ParseNode();
-	sprintf(codegen_buf, trans_rule.c_str(), exp1.fs.CurrentTerm.what.c_str(), exp2.fs.CurrentTerm.what.c_str());
-	newnode.fs.CurrentTerm = Term{ TokenMeta::NT_EXPRESSION, string(codegen_buf) };
-	newnode.addlist(exp1, op, exp2);
-	return newnode;
-}
-
-ParseNode gen_exp(ARG_IN exp1, ARG_IN op, std::string trans_rule) {
-	ParseNode newnode = ParseNode();
-	sprintf(codegen_buf, trans_rule.c_str(), exp1.fs.CurrentTerm.what.c_str());
-	newnode.fs.CurrentTerm = Term{ TokenMeta::NT_EXPRESSION, string(codegen_buf) };
-	newnode.addlist(op, exp1);
-	return newnode;
-}
-

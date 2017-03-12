@@ -19,9 +19,9 @@
 
 #include "gen_common.h"
 
-void regen_read(FunctionInfo * finfo, ParseNode & stmt) {
-	ARG_IN io_info = stmt.get(0);
-	ARG_IN argtable = stmt.get(1);
+void regen_read(FunctionInfo * finfo, ARG_OUT stmt) {
+	const ParseNode & io_info = stmt.get(0);
+	const ParseNode & argtable = stmt.get(1);
 	string device = io_info.get(0).to_string();
 	if (io_info.get(1).fs.CurrentTerm.token == TokenMeta::NT_AUTOFORMATTER) {
 		if (device == "-1" || device == "") {
@@ -54,10 +54,10 @@ void regen_read(FunctionInfo * finfo, ParseNode & stmt) {
 }
 
 
-void regen_write(FunctionInfo * finfo, ParseNode & stmt) {
+void regen_write(FunctionInfo * finfo, ARG_OUT stmt) {
 	// brace is forced
-	ARG_IN io_info = stmt.get(0);
-	ARG_IN argtable = stmt.get(1);
+	const ParseNode & io_info = stmt.get(0);
+	const ParseNode & argtable = stmt.get(1);
 	string device = io_info.get(0).to_string();
 	if (io_info.get(1).fs.CurrentTerm.token == TokenMeta::NT_AUTOFORMATTER) {
 		if (device == "-1") {
@@ -87,9 +87,9 @@ void regen_write(FunctionInfo * finfo, ParseNode & stmt) {
 	stmt.fs.CurrentTerm = Term{ TokenMeta::NT_WRITE_STMT, string(codegen_buf) };
 	return;
 }
-void regen_print(FunctionInfo * finfo, ParseNode & stmt) {
-	ARG_IN io_info = stmt.get(0);
-	ARG_IN argtable = stmt.get(1);
+void regen_print(FunctionInfo * finfo, ARG_OUT stmt) {
+	const ParseNode & io_info = stmt.get(0);
+	const ParseNode & argtable = stmt.get(1);
 	if (io_info.get(1).fs.CurrentTerm.token == TokenMeta::NT_AUTOFORMATTER) {
 		sprintf(codegen_buf, "forprintfree(%s);\n", argtable.fs.CurrentTerm.what.c_str());
 	}
@@ -108,8 +108,7 @@ void regen_print(FunctionInfo * finfo, ParseNode & stmt) {
 	return;
 }
 ParseNode gen_format(ARG_IN format) {
-	ParseNode newnode = gen_token(Term{ TokenMeta::NT_STATEMENT, "" });
-	newnode.addchild(gen_token(Term{ TokenMeta::NT_FORMAT, "\"" + format.fs.CurrentTerm.what + "\"" }) );
+	ParseNode newnode = gen_token(Term{ TokenMeta::NT_FORMAT, "\"" + format.to_string() + "\"" }, format);
 	return newnode;
 }
 
@@ -144,7 +143,7 @@ std::string parse_ioformatter(const std::string & src) {
 	int stat = 0; /* stat == 0 repeat */
 	std::vector<int> repeat;
 	std::vector<int> repeat_from;
-	repeat.push_back(1);
+	bool instant_defined = false;
 	bool add_crlf_at_end = true;
 	for (int i = 0; i < src.size(); i++)
 	{
@@ -154,30 +153,60 @@ std::string parse_ioformatter(const std::string & src) {
 		case 'l':
 			// bool
 			descriptor = "%%c";
+			if (!instant_defined)
+			{
+				repeat.push_back(1);
+			}
 			stat = 1;
+			instant_defined = false;
 			break;
 		case 'i':
 			/* integer */
 			descriptor = "%%%sd";
+			if (!instant_defined)
+			{
+				repeat.push_back(1);
+			}
 			stat = 1;
+			instant_defined = false;
 			break;
 		case 'f':
 			descriptor = "%%%sf";
+			if (!instant_defined)
+			{
+				repeat.push_back(1);
+			}
 			stat = 1;
+			instant_defined = false;
 			break;
 		case 'e':
 			descriptor = "%%%sf";
+			if (!instant_defined)
+			{
+				repeat.push_back(1);
+			}
 			stat = 1;
+			instant_defined = false;
 			break;
 		case 'a':
 			/* char */
 			descriptor = "%%%ss";
+			if (!instant_defined)
+			{
+				repeat.push_back(1);
+			}
 			stat = 1;
+			instant_defined = false;
 			break;
 		case 'x':
 			/* space */
 			descriptor += " ";
+			if (!instant_defined)
+			{
+				repeat.push_back(1);
+			}
 			stat = 1;
+			instant_defined = false;
 			break;
 		case '0':
 		case '1':
@@ -203,7 +232,10 @@ std::string parse_ioformatter(const std::string & src) {
 				int j = i + 1;
 				for (; j < src.size() && src[j] >= '0' && src[j] <= '9'; j++);
 				// IMPORTANT in level repeat.size() - 1 BEFORE push_back, or will cause `rt += buf;` failure
-				sscanf(src.substr(i, j - i).c_str(), "%d", &repeat[repeat.size() - 1]);
+				instant_defined = true;
+				int t;
+				sscanf(src.substr(i, j - i).c_str(), "%d", &t);
+				repeat.push_back(t);
 				i = j - 1;
 			}
 			break;
@@ -222,11 +254,13 @@ std::string parse_ioformatter(const std::string & src) {
 		case ',':
 			memset(buf, 0, sizeof(buf));
 			sprintf(buf, descriptor.c_str(), prec.c_str()); // set precision(prec) specifier to descriptor
-			for (int j = 0; j < repeat[repeat.size() - 1]; j++)
+			for (int j = 0; j < repeat.back(); j++)
 			{
 				rt += buf;
 			}
 			descriptor = "";
+			prec = "";
+			repeat.pop_back();
 			stat = 0;
 			break;
 		case '(':
@@ -239,24 +273,28 @@ std::string parse_ioformatter(const std::string & src) {
 			memset(buf, 0, sizeof(buf));
 			sprintf(buf, descriptor.c_str(), prec.c_str()); // set precision(prec) specifier to descriptor
 			// 重复最后一个字符
-			for (int j = 0; j < repeat[repeat.size() - 1]; j++)
+			if (descriptor != "")
 			{
-				rt += buf;
+				for (int j = 0; j < repeat.back(); j++)
+				{
+					rt += buf;
+				}
+				descriptor = "";
+				prec = "";
+				repeat.pop_back();
 			}
-			// pop stack repeat before repeat braced
-			repeat.pop_back();
 			{
-
 				// 重复括号内部的项
 				string braced = rt.substr(repeat_from.back(), i - repeat_from.back() + 1);
-				for (int j = 1; j < repeat[repeat.size() - 1]; j++)
+				for (int j = 1; j < repeat.back(); j++)
 				{
 					rt += braced;
 				}
 				braced = "";
+				repeat.pop_back();
+				repeat_from.pop_back();
 			}
 
-			repeat_from.pop_back();
 			stat = 0;
 			break;
 		case '%':
@@ -298,10 +336,10 @@ std::string parse_ioformatter(const std::string & src) {
 	}
 	memset(buf, 0, sizeof(buf));
 	sprintf(buf, descriptor.c_str(), prec.c_str());
-	for (int j = 0; j < repeat[repeat.size() - 1]; j++)
-	{
-		rt += buf;
-	}
+	//for (int j = 0; j < repeat[repeat.size() - 1]; j++)
+	//{
+	//	rt += buf;
+	//}
 	if (add_crlf_at_end)
 	{
 		rt += "\\n";

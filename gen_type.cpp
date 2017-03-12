@@ -36,8 +36,7 @@ ParseNode gen_type(ARG_IN type_nospec) {
 }
 
 ParseNode gen_type(Term typeterm) {
-	ParseNode newnode = gen_token(typeterm);
-	return gen_type(newnode);
+	return gen_type(gen_token(typeterm));
 }
 
 ParseNode implicit_type_from_name(std::string name) {

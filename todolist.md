@@ -73,4 +73,5 @@
     end subroutine
     ```
 - ~~`temporary_variable` to `FunctionInfo` variable~~
-- `regen_if`, `regen_do`, `regen_suite`
+- ~~`regen_if`, `regen_do`, `regen_suite`~~
+- delete all `gen_` functions except `gen_token` with multiple which accepts a list of `YYSTYPE`
