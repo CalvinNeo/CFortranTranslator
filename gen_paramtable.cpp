@@ -24,10 +24,10 @@ ParseNode gen_keyvalue_from_name(std::string name) {
 	/* this paramtable has only one value */
 
 	sprintf(codegen_buf, "%s", name.c_str());
-	ParseNode newnode = gen_token(Term{ TokenMeta::NT_VARIABLEINITIAL, string(codegen_buf) });
-	newnode.addlist(gen_token(Term{ TokenMeta::UnknownVariant, name }) // name
-		, gen_token(Term{ TokenMeta::NT_VARIABLEINITIALDUMMY, string("void") // dummy initial
-	}));
+	ParseNode newnode = gen_token(Term{ TokenMeta::NT_VARIABLEINITIAL, string(codegen_buf) }
+		, gen_token(Term{ TokenMeta::UnknownVariant, name }) 
+		, gen_token(Term{ TokenMeta::NT_VARIABLEINITIALDUMMY, string("void") })
+	);
 	return newnode;
 }
 
@@ -36,61 +36,44 @@ ParseNode gen_keyvalue_from_exp(ARG_IN variable, ARG_IN initial) {
 	/* this paramtable has only one value */
 
 	sprintf(codegen_buf, "%s", variable.fs.CurrentTerm.what.c_str());
-	ParseNode newnode = gen_token(Term{ TokenMeta::NT_VARIABLEINITIAL, string(codegen_buf) });
-	newnode.addlist(variable, initial);
+	ParseNode newnode = gen_token(Term{ TokenMeta::NT_VARIABLEINITIAL, string(codegen_buf) }, variable, initial);
 	return newnode;
 }
 
 
 ParseNode gen_paramtable(ARG_IN paramtable_elem) {
-	ParseNode newnode = ParseNode();
 	if (paramtable_elem.fs.CurrentTerm.token == TokenMeta::NT_DIMENSLICE) {
-		print_error("Can't generate paramtable from dimen_slice", newnode);
+		print_error("Can't generate paramtable from dimen_slice", paramtable_elem);
 		return gen_dimenslice(paramtable_elem);
 	}
 	else if( paramtable_elem.fs.CurrentTerm.token == TokenMeta::NT_ARGTABLE_PURE) {
-		print_error("Can't generate paramtable from pure argtable", newnode);
+		print_error("Can't generate paramtable from pure argtable", paramtable_elem);
 		// promote dimen_slice to paramtable
 		return gen_argtable(paramtable_elem);
 	}
 	else if(paramtable_elem.fs.CurrentTerm.token == TokenMeta::NT_KEYVALUE){
-		newnode.addchild(paramtable_elem); // keyvalue
 		sprintf(codegen_buf, "%s", paramtable_elem.fs.CurrentTerm.what.c_str());
-		newnode.fs.CurrentTerm = Term{ TokenMeta::NT_PARAMTABLE_PURE, string(codegen_buf) };
+		ParseNode newnode = gen_token(Term{ TokenMeta::NT_PARAMTABLE_PURE, string(codegen_buf) }, paramtable_elem);
 		return newnode;
 	}
 	else if (paramtable_elem.fs.CurrentTerm.token == TokenMeta::NT_PARAMTABLE_PURE) {
-		newnode = paramtable_elem;
-		return newnode;
+		return paramtable_elem;
 	}
 	else {
-		newnode = paramtable_elem;
-		print_error("Illegal gen_paramtable arg", newnode);
-		return newnode;
+		print_error("Illegal gen_paramtable arg", paramtable_elem);
+		return paramtable_elem;
 	}
 }
 
-bool is_dimen_like(ARG_IN elem) {
-	return elem.fs.CurrentTerm.token == TokenMeta::NT_DIMENSLICE || elem.fs.CurrentTerm.token == TokenMeta::NT_SLICE ;
-}
-bool is_arg_like(ARG_IN elem) {
-	return elem.fs.CurrentTerm.token == TokenMeta::NT_ARGTABLE_PURE ||
-		(TokenMeta::iselement(elem.fs.CurrentTerm.token)
-			|| elem.fs.CurrentTerm.token == TokenMeta::NT_EXPRESSION
-			|| elem.fs.CurrentTerm.token == TokenMeta::NT_ARRAYBUILDER);
-}
-bool is_param_like(ARG_IN elem) {
-	return elem.fs.CurrentTerm.token == TokenMeta::NT_PARAMTABLE_PURE || elem.fs.CurrentTerm.token == TokenMeta::NT_KEYVALUE;
-}
 
 ParseNode gen_paramtable(ARG_IN paramtable_elem, ARG_IN paramtable) {
 	ParseNode newnode = gen_token(Term{ TokenMeta::NT_PARAMTABLE_PURE, "" });
-	bool to_param = is_param_like(paramtable_elem) || is_param_like(paramtable);
-	bool all_param = is_param_like(paramtable_elem) && is_param_like(paramtable);
-	bool to_dimen = is_dimen_like(paramtable_elem) || is_dimen_like(paramtable);
-	bool all_dimen = is_dimen_like(paramtable_elem) && is_dimen_like(paramtable);
-	bool to_arg = is_arg_like(paramtable_elem) || is_arg_like(paramtable);
-	bool all_arg = is_dimen_like(paramtable_elem) && is_dimen_like(paramtable);
+	bool to_param = is_paramtable(paramtable_elem) || is_paramtable(paramtable);
+	bool all_param = is_paramtable(paramtable_elem) && is_paramtable(paramtable);
+	bool to_dimen = is_dimenslice(paramtable_elem) || is_dimenslice(paramtable);
+	bool all_dimen = is_dimenslice(paramtable_elem) && is_dimenslice(paramtable);
+	bool to_arg = is_argtable(paramtable_elem) || is_argtable(paramtable);
+	bool all_arg = is_dimenslice(paramtable_elem) && is_dimenslice(paramtable);
 
 	if (all_param) {
 		// all keyvalue pair 
@@ -109,9 +92,8 @@ ParseNode gen_paramtable(ARG_IN paramtable_elem, ARG_IN paramtable) {
 	}
 	else if (all_arg) {
 		// all dimen_slice or argument_pure or variable
-		newnode = gen_token(Term{ TokenMeta::NT_ARGTABLE_PURE, "" }, paramtable_elem);
 		sprintf(codegen_buf, "%s, %s", paramtable_elem.fs.CurrentTerm.what.c_str(), paramtable.fs.CurrentTerm.what.c_str());
-		newnode.fs.CurrentTerm.what = string(codegen_buf);
+		newnode = gen_token(Term{ TokenMeta::NT_ARGTABLE_PURE, string(codegen_buf) }, paramtable_elem);
 	}
 	else {
 		print_error("bad param table");

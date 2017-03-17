@@ -181,8 +181,8 @@ refer to [/grammar/for90.y](/grammar/for90.y) for all accepted grammar
     - construct an array by given lower bound and size of each dimension, and assign an 1d list to the array
 
         ```
-       farray<T>(const size_type(&lower_bound)[D], const size_type(&size)[D], Iterator begin, Iterator end)
-		farray<T>(const size_type(&lower_bound)[D], const size_type(&size)[D], const T(&values)[X])
+        farray<T>(const size_type(&lower_bound)[D], const size_type(&size)[D], Iterator begin, Iterator end)
+        farray<T>(const size_type(&lower_bound)[D], const size_type(&size)[D], const T(&values)[X])
         ```
     - implicitly construct an 1d array from a scalar
 
@@ -225,6 +225,19 @@ refer to [/grammar/for90.y](/grammar/for90.y) for all accepted grammar
         ```
         farr = make_init_list(int repeat, const T & scalar)
         ```
+    - assign from a `farray`
+         this function will return exactly a copy of m
+
+         ```
+        farr = make_init_list(const farray<T> & m)
+        ```
+    - assign from a list of `farray`s
+        all `farrs` must be of the same type `farray<T>`
+
+        ```
+        forconcat(const farray<T>(&farrs)[X])
+        ```
+        
 3. assign value to an array and change its shape
 
     set `farr` 's shape and value equal to given argument `x`

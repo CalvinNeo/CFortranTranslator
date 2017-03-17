@@ -55,6 +55,18 @@ their replacement occur in following stages:
 5. slice selections are handled in [/gen_callable.cpp](/gen_callable.cpp). 
 
 
+### variable definition
+
+#### 3-phase strategy
+1. in [/grammar/for90.y](/grammar/for90.y), generate `NT_VARIABLEDEFINESET` and `NT_VARIABLEDEFINE`
+2. in `regen_suite`
+    1. when encounter `NT_COMMONBLOCK`, call `regen_common` to log `VariableInfo` to `gen_context().variables`, mark `commonblock_name` and `commonblock_index`
+    2. when encounter `NT_VARIABLEDEFINESET` and `NT_VARIABLEDEFINE`, log `VariableInfo` to `gen_context().variables`, mark `commonblock_name` to `""` and `commonblock_index` to `0`
+    3. in `regen_exp` when encounter a `UnknownVariant` which is not logged to `gen_context().variables`(implicit defined), call `check_implicit_variable`
+
+3. at the end of `regen_suite`
+    for each `VariableInfo` in `gen_context().variables`, call `regen_vardef` to generate C++ codes
+
 ## Parse Tree
 all parse tree nodes are defined in [/Intent.h](/Intent.h) with an `NT_` prefix
 ### struct ParseNode
@@ -125,11 +137,9 @@ To specify, `type_name` is like `INTEGER` and a `type_spec` is like `INTEGER(kin
 | var_def | NT_VARIABLEDEFINE/NT_DECLAREDVARIABLE |   |
 | keyvalue | NT_VARIABLEINITIAL(namely NT_KEYVALUE) | variable, NT_EXPRESSION / NT_VARIABLEINITIALDUMMY |
 | | NT_VARIABLEINITIAL | variable, exp |
-| suite | NT_SUITE | NT_STATEMENT \* |
-| stmt | NT_STATEMENT | exp / var_def / compound_stmt / output_stmt / input_stmt / dummy_stmt / let_stmt / jump_stmt / interface_decl |
-| | NT_ARRAYBUILDER | (NT_ARRAYBUILDER_LAMBDA / NT_ARRAYBUILDER_LIST) + |
-| | NT_ARRAYBUILDER_LAMBDA |  |
-| | NT_ARRAYBUILDER_LIST |  |
+| suite | NT_SUITE | stmt |
+| stmt |  | exp / var_def / compound_stmt / output_stmt / input_stmt / dummy_stmt / let_stmt / jump_stmt / interface_decl |
+| | NT_ARRAYBUILDER_LIST | (NT_HIDDENDO / NT_FUNCTIONARRAY / exp)  |
 | type_spec |  | type_name / (type_name, type_selector) |
 
 ### Symbols

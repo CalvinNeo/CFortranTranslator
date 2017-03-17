@@ -20,33 +20,28 @@
 #include "gen_common.h"
 
 void regen_simple_stmt(FunctionInfo * finfo, ARG_OUT stmt) {
-	/*** including:
-	*	exp							NT_STATEMENT
-	*	let_stmt					NT_STATEMENT
-	*	control_stmt				NT_STATEMENT
-	*	format						NT_FORMAT
-	*	var_def						NT_VARIABLEDEFINE
-	*	comment						Comment
-	*	common						NT_COMMONBLOCK
-	*	dummy						NT_DUMMY
-	*	interface(in suite rule)	NT_INTERFACE
-	*	labelin suite rule)			Label
-	*	input_stmt, output_stmt		NT_READ_STMT, NT_WRITE_STMT, NT_PRINT_STMT
-	*	compound_stmt				NT_IF, ...
-	***/
+	// exp and let_stmt
+	if (stmt.child.size() > 0)
+	{
+		ParseNode & exp = stmt.get(0);
+		regen_exp(finfo, exp);
+	}
+	else {
+		// dummy
+	}
 }
 
-vector<ParseNode *> get_all_declared(std::string module_name, std::string function_name) {
+vector<ParseNode *> get_all_declared_by_log(FunctionInfo * finfo, ParseNode & suite) {
 	vector<ParseNode *> declared_variables_and_functions;
-	forall_variable_in_function(module_name, function_name, [&](const std::pair<std::string, VariableInfo *> p) {
-		declared_variables_and_functions.push_back(&(p.second->entity_variable));
+	forall_variable_in_function(get_context().current_module, finfo->local_name, [&](const std::pair<std::string, VariableInfo *> p) {
+		declared_variables_and_functions.push_back(p.second->vardef);
 	});
-	forall_function_in_module(module_name, [&](const std::pair<std::string, FunctionInfo *> p) {
+	forall_function_in_module(get_context().current_module, [&](const std::pair<std::string, FunctionInfo *> p) {
 	});
 	return declared_variables_and_functions;
 }
 
-vector<ParseNode *> get_all_explicit_declared(FunctionInfo * finfo, ParseNode & suite) {
+vector<ParseNode *> get_all_declared_by_node(FunctionInfo * finfo, ParseNode & suite) {
 	/*
 	* find out all var_def and interface-function nodes
 	* NOT including implicit declared variables
@@ -101,13 +96,30 @@ void regen_suite(FunctionInfo * finfo, ARG_OUT oldsuite, bool is_partial) {
 	 * 2. regen_vardef 
 	 ****/
 	std::string newsuitestr;
-	vector<ParseNode *> declared_variables = get_all_explicit_declared(finfo, oldsuite);
-	vector<ParseNode *> declared_commons = get_all_commons(finfo, oldsuite);
 	for (int i = 0; i < oldsuite.child.size(); i++)
 	{
 		ParseNode & stmt = oldsuite.get(i);
+		/*** including:
+		*	exp							NT_STATEMENT
+		*	let_stmt					NT_STATEMENT
+		*	control_stmt				NT_CONTROL_STMT
+		*	format						NT_FORMAT
+		*	var_def						NT_VARIABLEDEFINE
+		*	comment						Comment
+		*	common						NT_COMMONBLOCK
+		*	dummy						NT_DUMMY
+		*	interface(in suite rule)	NT_INTERFACE
+		*	labelin suite rule)			Label
+		*	input_stmt, output_stmt		NT_READ_STMT, NT_WRITE_STMT, NT_PRINT_STMT
+		*	compound_stmt				NT_IF, ...
+		***/
 		// exp, leet_stmt, control_stmt
 		if (stmt.fs.CurrentTerm.token == TokenMeta::NT_STATEMENT) {
+			regen_simple_stmt(finfo, stmt);
+			newsuitestr += stmt.fs.CurrentTerm.what;
+			newsuitestr += '\n';
+		}
+		else if (stmt.fs.CurrentTerm.token == TokenMeta::NT_CONTROL_STMT) {
 			newsuitestr += stmt.fs.CurrentTerm.what;
 			newsuitestr += '\n';
 		}
@@ -140,6 +152,7 @@ void regen_suite(FunctionInfo * finfo, ARG_OUT oldsuite, bool is_partial) {
 							vinfo->desc.merge(get_variabledesc_attr(vardescattr));
 						}
 						else {
+							// `regen_vardef` will be called in the end
 							vinfo = add_variable(get_context().current_module, finfo->local_name, name, VariableInfo{});
 							vinfo->commonblock_index = 0; // set in regen_suite and gen_common
 							vinfo->commonblock_name = ""; // set in regen_suite and gen_common
@@ -251,15 +264,13 @@ void regen_suite(FunctionInfo * finfo, ARG_OUT oldsuite, bool is_partial) {
 			string local_name = vinfo->local_name;
 			ParseNode & entity_variable = vinfo->entity_variable;
 			VariableDesc & desc = vinfo->desc;
-			ParseNode * vardef = vinfo->vardef;
 			ParseNode & local_type = vinfo->type;
-			if (p.second->commonblock_name == "") {
-				regen_vardef(vinfo, *vardef, local_type, desc, entity_variable);
-				sprintf(codegen_buf, "%s;\n", vardef->to_string().c_str());
-			}
-			else {
+			//ParseNode & vardef = vinfo->vardef; 不要使用这个局部变量因为vinfo->vardef是会变的（如果是nullptr会在regen_vardef中补上）
+
+			if (p.second->commonblock_name != "") {
+				// definition in common block
 				desc.reference = true;
-				regen_vardef(vinfo, gen_vardef_from_implicit(local_type, local_name), local_type, desc, entity_variable);
+				regen_vardef(finfo, vinfo, local_type, desc, entity_variable);
 				std::string common_varname = "_" + to_string(vinfo->commonblock_index + 1);
 				sprintf(codegen_buf, "%s %s = %s.%s;\n", gen_qualified_typestr(local_type, desc).c_str()
 					, local_name.c_str(), vinfo->commonblock_name.c_str(), common_varname.c_str());
@@ -272,10 +283,24 @@ void regen_suite(FunctionInfo * finfo, ARG_OUT oldsuite, bool is_partial) {
 					common_info->second.variables[vinfo->commonblock_index].desc = desc;
 					common_info->second.variables[vinfo->commonblock_index].type = local_type;
 				}
+			}else if (vinfo->vardef == nullptr) {
+				// normal definition
+				regen_vardef(finfo, vinfo, local_type, desc, entity_variable);
+				sprintf(codegen_buf, "%s;\n", vinfo->vardef->to_string().c_str());
+			}
+			else {
+				regen_vardef(finfo, vinfo, local_type, desc, entity_variable);
+				sprintf(codegen_buf, "%s;\n", vinfo->vardef->to_string().c_str());
 			}
 			variable_declarations += string(codegen_buf);
 		});
 		newsuitestr = variable_declarations + newsuitestr;
+	}
+
+	std::vector<ParseNode *> declared_variables = get_all_declared(finfo, oldsuite);
+	std::vector<ParseNode *> declared_commons = get_all_commons(finfo, oldsuite);
+	if (!is_partial)
+	{
 		finfo->funcdesc.declared_variables = declared_variables;
 		finfo->funcdesc.declared_commons = declared_commons;
 	}
@@ -284,5 +309,5 @@ void regen_suite(FunctionInfo * finfo, ARG_OUT oldsuite, bool is_partial) {
 		finfo->funcdesc.declared_commons.insert(finfo->funcdesc.declared_commons.end(), declared_commons.begin(), declared_commons.end());
 	}
 	oldsuite.fs.CurrentTerm.what = newsuitestr;
-	//// CAN NOT call `clear_temporary_variables();` HERE
+	//// CAN NOT call `clear_temporary_variables()` HERE
 }

@@ -17,3 +17,45 @@
 *   51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 #include "gen_common.h"
+
+void regen_exp(FunctionInfo * finfo, ARG_OUT exp) {
+	if (exp.child.size() == 2)
+	{
+		// unary op
+		regen_exp(finfo, exp.get(0));
+	}
+	else if (exp.child.size() == 3) {
+		// binary op
+		regen_exp(finfo, exp.get(0));
+		regen_exp(finfo, exp.get(1));
+	}
+	else if (exp.child.size() == 1)	{
+		// function_array, array_builder, hidden_do
+		ParseNode & elem = exp.get(0);
+		switch (elem.fs.CurrentTerm.token)
+		{
+		case TokenMeta::NT_FUCNTIONARRAY:
+			break;
+		case TokenMeta::NT_HIDDENDO:
+			break;
+		case TokenMeta::NT_ARRAYBUILDER:
+			break;
+		default:
+			print_error("error exp: ", exp);
+			break;
+		}
+	}
+	else if(exp.child.size() == 0){
+		// literal, variable
+		if (TokenMeta::isliteral(exp.fs.CurrentTerm.token))
+		{
+
+		}
+		else {
+			check_implicit_variable(finfo, exp.to_string());
+		}
+	}
+	else {
+		print_error("error exp: ", exp);
+	}
+}

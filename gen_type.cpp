@@ -39,7 +39,7 @@ ParseNode gen_type(Term typeterm) {
 	return gen_type(gen_token(typeterm));
 }
 
-ParseNode implicit_type_from_name(std::string name) {
+ParseNode gen_implicit_type(std::string name) {
 	if (name.size() > 0 && name[0] <= 'n' && name[0] >= 'i')
 	{
 		return gen_type(Term{ TokenMeta::Int_Def, "int" });
@@ -49,7 +49,7 @@ ParseNode implicit_type_from_name(std::string name) {
 	}
 }
 
-void promote_type(ParseNode & type_nospec, VariableDesc & vardesc) {
+void promote_type(ARG_OUT type_nospec, VariableDesc & vardesc) {
 	// reset type according to kind
 	/* merge type_spec and variable_desc attr */
 	vardesc.merge(dynamic_cast<VariableDescAttr *>(type_nospec.attr)->desc);

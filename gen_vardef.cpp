@@ -19,8 +19,8 @@
 
 #include "gen_common.h"
 
-std::string gen_vardef_array_str(VariableInfo * vinfo, ParseNode & entity_variable, std::string type_str, const std::tuple<std::vector<int>, std::vector<int>> & shape);
-std::string gen_vardef_scalar_str(VariableInfo * vinfo, ParseNode & entity_variable, std::string type_str);
+std::string gen_vardef_array_str(FunctionInfo * finfo, VariableInfo * vinfo, ParseNode & entity_variable, std::string type_str, const std::tuple<std::vector<int>, std::vector<int>> & shape);
+std::string gen_vardef_scalar_str(FunctionInfo * finfo, VariableInfo * vinfo, ParseNode & entity_variable, std::string type_str);
 std::string gen_lbound_size_str(const std::tuple<std::vector<int>, std::vector<int>> & shape) {
 	std::string size_str = "{", lbound_str = "{";
 	lbound_str += make_str_list(get<0>(shape).begin(), get<0>(shape).end(), [&](auto x) { return to_string(x); });
@@ -29,7 +29,7 @@ std::string gen_lbound_size_str(const std::tuple<std::vector<int>, std::vector<i
 	return lbound_str + ", " + size_str;
 }
 
-std::tuple<std::vector<int>, std::vector<int>> gen_lbound_size(const ParseNode * slice) {
+std::tuple<std::vector<int>, std::vector<int>> get_lbound_size(const ParseNode * slice) {
 	if (slice == nullptr) {
 		return make_tuple(std::vector<int>(), std::vector<int>());
 	}
@@ -58,10 +58,10 @@ std::tuple<std::vector<int>, std::vector<int>> gen_lbound_size(const ParseNode *
 	return make_tuple(lb, sz);
 }
 
-std::string gen_vardef_array_str(VariableInfo * vinfo, ParseNode & entity_variable, std::string type_str, const std::tuple<std::vector<int>, std::vector<int>> & shape) {
+std::string gen_vardef_array_str(FunctionInfo * finfo, VariableInfo * vinfo, ParseNode & entity_variable, std::string type_str, const std::tuple<std::vector<int>, std::vector<int>> & shape) {
 	string arr_decl = "";
 	// entity_variable is 
-	// NT_VARIABLEINITIAL(entity_variable) -> NT_EXPRESSION(entity_variable_name) -> NT_FUCNTIONARRAY -> (UnknownVariant, NT_ARGTABLE_PURE)/NT_VARIABLEINITIAL
+	// NT_VARIABLEINITIAL(entity_variable) -> NT_FUCNTIONARRAY(entity_variable_name) -> (UnknownVariant, NT_ARGTABLE_PURE)/NT_VARIABLEINITIAL
 	// or NT_VARIABLEINITIAL(entity_variable) -> (UnknownVariant, NT_VARIABLEINITIALDUMMY or else)
 	int dimension = (int)get<0>(shape).size();
 	string alias_name = get_variable_name(entity_variable);
@@ -84,27 +84,19 @@ std::string gen_vardef_array_str(VariableInfo * vinfo, ParseNode & entity_variab
 		// init from array_builder
 		sprintf(codegen_buf, "{%s};\n", gen_lbound_size_str(shape).c_str());
 		arr_decl += string(codegen_buf);
-		ParseNode & compound_arraybuilder = entity_variable.get(1); // NT_ARRAYBUILDER
-		regen_arraybuilder(compound_arraybuilder);
-		sprintf(codegen_buf, "%s = %s", alias_name.c_str(), compound_arraybuilder.fs.CurrentTerm.what.c_str());
+		ParseNode & arraybuilder = entity_variable.get(1); // NT_ARRAYBUILDER
+		regen_arraybuilder(finfo, arraybuilder);
+		sprintf(codegen_buf, "%s = %s", alias_name.c_str(), arraybuilder.fs.CurrentTerm.what.c_str());
 		arr_decl += string(codegen_buf);
 	}
 	entity_variable.setattr(new VariableAttr(vinfo));
 	return arr_decl;
 }
 
-bool is_array_variable_node(ParseNode & entity_variable) {
-	ParseNode & entity_variable_name = entity_variable.get(0);
-	if (entity_variable_name.fs.CurrentTerm.token == TokenMeta::NT_EXPRESSION && entity_variable_name.get(0).fs.CurrentTerm.token == TokenMeta::NT_FUCNTIONARRAY)
-	{
-		return true;
-	}
-	return false;
-}
 
-std::string get_variable_name(ParseNode & entity_variable) {
-	ParseNode & entity_variable_name = entity_variable.get(0);
-	if (is_array_variable_node(entity_variable))
+std::string get_variable_name(const ParseNode & entity_variable) {
+	const ParseNode & entity_variable_name = entity_variable;
+	if (is_function_array(entity_variable))
 	{
 		// entity_variable_name->child[0] has subobject designator like `A(0,1,2)`
 		return entity_variable_name.get(0).get(0).fs.CurrentTerm.what;
@@ -119,11 +111,11 @@ std::string get_variable_name(ParseNode & entity_variable) {
 	}
 }
 
-std::string gen_vardef_scalar_str(VariableInfo * vinfo, ParseNode & entity_variable, std::string type_str) {
+std::string gen_vardef_scalar_str(FunctionInfo * finfo, VariableInfo * vinfo, ParseNode & entity_variable, std::string type_str) {
 	string var_decl; 
 	ParseNode & entity_variable_name = entity_variable.get(0);
 	// from entity_variable
-	// NT_VARIABLEINITIAL(entity_variable) -> NT_EXPRESSION(entity_variable_name) -> NT_FUCNTIONARRAY -> (UnknownVariant, NT_ARGTABLE_PURE)
+	// NT_VARIABLEINITIAL(entity_variable) -> NT_FUCNTIONARRAY(entity_variable_name) -> (UnknownVariant, NT_ARGTABLE_PURE)
 	sprintf(codegen_buf, "%s %s", type_str.c_str(), get_variable_name(entity_variable).c_str());
 	var_decl = string(codegen_buf);
 	if (entity_variable.get(1).fs.CurrentTerm.token != TokenMeta::NT_VARIABLEINITIALDUMMY) {
@@ -156,37 +148,50 @@ ParseNode gen_vardef(ARG_IN type_nospec, ARG_IN variable_desc, ARG_IN paramtable
 	return newnode;
 }
 
-void regen_vardef(VariableInfo * vinfo, ARG_OUT vardef_node, ARG_OUT type_nospec, VariableDesc & desc, ARG_OUT entity_variable) {
+void regen_vardef(FunctionInfo * finfo, VariableInfo * vinfo, ARG_OUT type_nospec, VariableDesc & desc, ARG_OUT entity_variable) {
 	string var_decl = ""; 
 	bool do_arr = desc.slice.is_initialized();
 	string type_str;
+	ParseNode * vardef_node_ptr = vinfo->vardef;
 	if (type_nospec.fs.CurrentTerm.what == "")
 	{
-		type_nospec.fs.CurrentTerm.what = implicit_type_from_name(get_variable_name(entity_variable)).fs.CurrentTerm.what;
+		type_nospec.fs.CurrentTerm.what = gen_implicit_type(get_variable_name(entity_variable)).fs.CurrentTerm.what;
 		type_nospec.setattr(new VariableDescAttr());
 	}
 	if(do_arr){
 		// ARRAY
 		type_str = gen_qualified_typestr(type_nospec, desc);
-		var_decl += gen_vardef_array_str(vinfo, entity_variable, type_str, gen_lbound_size(desc.slice.get_ptr()));
-		vardef_node.fs.CurrentTerm = Term{ TokenMeta::NT_VARIABLEDEFINE, var_decl };
+		var_decl += gen_vardef_array_str(finfo, vinfo, entity_variable, type_str, get_lbound_size(desc.slice.get_ptr()));
+		if (vardef_node_ptr == nullptr)
+		{
+			vinfo->vardef = new ParseNode(gen_vardef_from_implicit(vinfo->type, vinfo->local_name));
+		}
+		else {
+			vardef_node_ptr->fs.CurrentTerm = Term{ TokenMeta::NT_VARIABLEDEFINE, var_decl };
+		}
 	}
 	else {
 		// SCALAR
-		if (is_array_variable_node(entity_variable))
+		if (is_function_array(entity_variable))
 		{
 			ParseNode & entity_variable_name = entity_variable.get(0);
-			ParseNode & argtable = entity_variable_name.get(0).get(1);
-			std::tuple<std::vector<int>, std::vector<int>> ls = gen_lbound_size(&argtable);
+			ParseNode & argtable = entity_variable_name.get(1);
+			std::tuple<std::vector<int>, std::vector<int>> ls = get_lbound_size(&argtable);
 			desc.slice = argtable; // add slice attribute to vardescattr.desc
 			type_str = gen_qualified_typestr(type_nospec, desc);
-			var_decl = gen_vardef_array_str(vinfo, entity_variable, type_str, ls);
+			var_decl = gen_vardef_array_str(finfo, vinfo, entity_variable, type_str, ls);
 		}
 		else {
 			type_str = gen_qualified_typestr(type_nospec, desc);
-			var_decl = gen_vardef_scalar_str(vinfo, entity_variable, type_str);
+			var_decl = gen_vardef_scalar_str(finfo, vinfo, entity_variable, type_str);
 		}
-		vardef_node.fs.CurrentTerm = Term{ TokenMeta::NT_VARIABLEDEFINE, var_decl };
+		if (vardef_node_ptr == nullptr)
+		{
+			vinfo->vardef = new ParseNode(gen_vardef_from_implicit(vinfo->type, vinfo->local_name));
+		}
+		else {
+			vardef_node_ptr->fs.CurrentTerm = Term{ TokenMeta::NT_VARIABLEDEFINE, var_decl };
+		}
 	} // end if
 	vinfo->commonblock_index; // set in regen_suite and gen_common
 	vinfo->commonblock_name; // set in regen_suite and gen_common

@@ -59,23 +59,11 @@ void regen_common(FunctionInfo * finfo, ARG_OUT common_block) {
 		ParseNode & entity_variable = kvparamtable.get(i);
 		std::string local_varname = get_variable_name(entity_variable);
 		VariableInfo * local_vinfo = get_variable(get_context().current_module, finfo->local_name, local_varname);
-		if (local_vinfo == nullptr)
-		{
-			// if this common variable has no prev explicit declaration
-			local_vinfo = add_variable(get_context().current_module, finfo->local_name, local_varname, VariableInfo{});
-		}
-		else {
-			
-		}
-
-		ParseNode implicit_type = implicit_type_from_name(local_varname) ;
-		local_vinfo->commonblock_index = i; // set in regen_suite and gen_common
-		local_vinfo->commonblock_name = common_name; // set in regen_suite and gen_common
-		local_vinfo->desc = VariableDesc(); // set in regen_vardef
-		local_vinfo->implicit_defined = true; // set in regen_suite and regen_common
-		local_vinfo->type = implicit_type; // set in regen_vardef
-		local_vinfo->entity_variable = kvparamtable.get(i);; // set in regen_vardef
-		local_vinfo->vardef = nullptr; // set in regen_suite and gen_common
+		
+		local_vinfo = check_implicit_variable(finfo, local_varname);
+		local_vinfo->entity_variable = kvparamtable.get(i);; 
+		local_vinfo->commonblock_index = i; 
+		local_vinfo->commonblock_name = common_name; 
 
 		if (new_common)
 		{
@@ -111,6 +99,20 @@ ParseNode gen_common_definition(std::string common_name) {
 }
 
 
-void check_implicit_variable(ARG_IN variable) {
-	
+VariableInfo * check_implicit_variable(FunctionInfo * finfo, const std::string & name) {
+	// log this variable if it's not defined before
+	VariableInfo * vinfo = get_variable(get_context().current_module, finfo->local_name, name);
+	if (vinfo == nullptr)
+	{
+		vinfo = add_variable(get_context().current_module, finfo->local_name, name, VariableInfo{});
+		ParseNode implicit_type = gen_implicit_type(name);
+		vinfo->commonblock_index = 0; // set in regen_suite and gen_common
+		vinfo->commonblock_name = ""; // set in regen_suite and gen_common
+		vinfo->desc = VariableDesc(); // set in regen_vardef
+		vinfo->implicit_defined = true; // set in regen_suite and regen_common
+		vinfo->type = implicit_type; // set in regen_vardef
+		vinfo->entity_variable = gen_keyvalue_from_name(name); // set in regen_vardef
+		vinfo->vardef = nullptr; // set in regen_suite and gen_common
+	}
+	return vinfo;
 }

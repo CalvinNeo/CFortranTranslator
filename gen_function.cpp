@@ -147,18 +147,19 @@ void regen_function(FunctionInfo * finfo, ARG_OUT functiondecl_node) {
 	ParseNode & oldsuite = suite;
 	bool is_subroutine = variable_result.fs.CurrentTerm.what == "";
 
-	// get all variables declared in this function
-	// 必须在regen_suite前面调用，这不是重复调用，目的是为了去掉DECARED_VARIABLE
-	vector<ParseNode *> declared_variables = get_all_explicit_declared(finfo, suite);
-	// get all params in paramtable of function declare (var_name, var_type, ParseNode*)
-	vector<tuple<string, ParseNode, ParseNode *>> paramtable_info = get_full_paramtable(kvparamtable, variable_result, declared_variables, is_subroutine);
+	//// get all variables declared in this function
+	//// 必须在regen_suite前面调用，这不是重复调用，目的是为了去掉DECARED_VARIABLE
+	//vector<ParseNode *> declared_variables = get_all_declared(finfo, suite);
+	//// get all params in paramtable of function declare (var_name, var_type, ParseNode*)
+	//vector<tuple<string, ParseNode, ParseNode *>> paramtable_info = get_full_paramtable(kvparamtable, variable_result, declared_variables, is_subroutine);
 	// regen_suite
-	regen_suite(finfo, oldsuite);
+	regen_suite(finfo, oldsuite); 
+	vector<tuple<string, ParseNode, ParseNode *>> paramtable_info = get_full_paramtable(kvparamtable, variable_result, finfo->funcdesc.declared_variables, is_subroutine);
 	// make newnode
 	string newsuitestr = oldsuite.to_string();
 	string paramtblstr = regen_paramtable(paramtable_info);
 
-	std::string return_type_str = get<1>(paramtable_info[paramtable_info.size() - 1]).to_string();
+	std::string return_type_str = get<1>(paramtable_info.back()).to_string();
 	/* generate function code */
 	sprintf(codegen_buf, "%s %s(%s)\n{\n%s\treturn %s;\n}\n"
 		, return_type_str.c_str() // return value type, "void" if subroutine

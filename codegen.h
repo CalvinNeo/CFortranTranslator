@@ -65,10 +65,15 @@ std::string make_str_list(Iterator begin, Iterator end, F handler, std::string d
 }
 
 
+bool is_dimenslice(const ParseNode & elem);
+bool is_argtable(const ParseNode & elem);
+bool is_paramtable(const ParseNode & elem);
+bool is_function_array(const ParseNode & entity_variable);
+
 void regen_read(FunctionInfo * finfo, ARG_OUT stmt);
 void regen_write(FunctionInfo * finfo, ARG_OUT stmt);
 void regen_print(FunctionInfo * finfo, ARG_OUT stmt);
-void regen_vardef(VariableInfo * vinfo, ARG_OUT vardef_node, ARG_OUT type_nospec, VariableDesc & desc, ARG_OUT entity_variable); 
+void regen_vardef(FunctionInfo * finfo, VariableInfo * vinfo, ARG_OUT type_nospec, VariableDesc & desc, ARG_OUT entity_variable);
 void regen_function(FunctionInfo * finfo, ARG_OUT functiondecl_node); // function define
 void regen_select(FunctionInfo * finfo, ARG_OUT select_stmt);
 void regen_if(FunctionInfo * finfo, ARG_OUT if_stmt);
@@ -78,20 +83,24 @@ void regen_do_range(FunctionInfo * finfo, ARG_OUT do_stmt);
 void regen_do_while(FunctionInfo * finfo, ARG_OUT do_stmt);
 void regen_simple_stmt(FunctionInfo * finfo, ARG_OUT stmt);
 void regen_suite(FunctionInfo * finfo, ARG_OUT oldsuite, bool is_partial = false);
-void regen_arraybuilder(ARG_OUT arraybuilder);
+void regen_arraybuilder(FunctionInfo * finfo, ARG_OUT arraybuilder);
 void regen_common(FunctionInfo * finfo, ARG_OUT common_block);
 void promote_type(ARG_OUT type_nospec, VariableDesc & vardesc);
+void regen_exp(FunctionInfo * finfo, ARG_OUT exp);
 
 std::string parse_ioformatter(const std::string &); 
 ParseNode gen_format(ARG_IN format);
 
 ParseNode gen_vardef(ARG_IN type_nospec, ARG_IN variable_desc, ARG_IN paramtable);
 
-std::string get_variable_name(ParseNode & entity_variable);
-std::tuple<std::vector<int>, std::vector<int>> gen_lbound_size(const ParseNode * slice);
+std::string get_variable_name(const ParseNode & entity_variable);
+std::tuple<std::vector<int>, std::vector<int>> get_lbound_size(const ParseNode * slice);
 ParseNode gen_vardef_from_implicit(ARG_IN type, std::string name);
 
-std::vector<ParseNode *> get_all_explicit_declared(FunctionInfo * finfo, ParseNode & suite);
+#define get_all_declared get_all_declared_by_log
+
+std::vector<ParseNode *> get_all_declared_by_log(FunctionInfo * finfo, ParseNode & suite);
+std::vector<ParseNode *> get_all_declared_by_node(FunctionInfo * finfo, ParseNode & suite);
 ParseNode gen_function(ARG_IN variable_function, ARG_IN paramtable, ARG_IN variable_result, ARG_IN suite); // function define
 
 ParseNode gen_hiddendo(ARG_IN argtable, ARG_IN index, ARG_IN from, ARG_IN to, TokenMeta_T return_token = TokenMeta::NT_HIDDENDO);
@@ -113,7 +122,7 @@ ParseNode gen_paramtable(ARG_IN paramtable_elem, ARG_IN paramtable);
 ParseNode gen_dimenslice(ARG_IN dimen_slice);
 ParseNode gen_argtable(ARG_IN argtable);
 
-ParseNode implicit_type_from_name(std::string name);
+ParseNode gen_implicit_type(std::string name);
 ParseNode gen_type(ARG_IN type_nospec, ARG_IN _type_kind);
 ParseNode gen_type(ARG_IN type_nospec);
 ParseNode gen_type(Term typeterm);
@@ -137,7 +146,7 @@ ParseNode gen_header();
 
 ParseNode gen_common_definition(std::string common_name);
 ParseNode gen_common(ARG_IN commonname_node, ARG_IN paramtable);
-void check_implicit_variable(ARG_IN);
+VariableInfo * check_implicit_variable(FunctionInfo * finfo, const std::string & name);
 
 
 void gen_fortran_program(ARG_IN wrappers);

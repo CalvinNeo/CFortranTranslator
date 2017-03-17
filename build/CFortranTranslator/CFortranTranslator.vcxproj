@@ -47,7 +47,7 @@
     <ClCompile Include="..\..\gen_function.cpp" />
     <ClCompile Include="..\..\gen_header.cpp" />
     <ClCompile Include="..\..\gen_if.cpp" />
-    <ClCompile Include="..\..\gen_interface.cpp" />
+    <ClCompile Include="..\..\gen_feature.cpp" />
     <ClCompile Include="..\..\gen_io.cpp" />
     <ClCompile Include="..\..\gen_program_unit.cpp" />
     <ClCompile Include="..\..\gen_paramtable.cpp" />

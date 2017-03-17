@@ -119,22 +119,22 @@ namespace IntentMeta {
 		Return = -116,
 		SetReturnValue = -117,
 
-		PushPointer = -120,
-		PushVar = -121,
-		PushLiteralConst = -122, 
-		PushExtern = -123,
-		SystemFunction = -124, 
-		DynamicVariable = -125, 
+		//PushPointer = -120,
+		//PushVar = -121,
+		//PushLiteralConst = -122, 
+		//PushExtern = -123,
+		//SystemFunction = -124, 
+		//DynamicVariable = -125, 
 		UnknownVariant = -126, 
 
-		New = -131,
-		Delete = -132,
-		Is = -135,
-		Construct = -136,
-		TypeDef = -137,
-		Define = -138,
-		Using = -139,
-		Duplicate = -140,
+		//New = -131,
+		//Delete = -132,
+		//Is = -135,
+		//Construct = -136,
+		//TypeDef = -137,
+		//Define = -138,
+		//Using = -139,
+		//Duplicate = -140,
 
 		
 		Stop = -150, 
@@ -236,14 +236,14 @@ namespace IntentMeta {
 
 		// parsing tags
 		CRLF = -1000,
-		Label = -1003,//标签
-		Sharp = -1004,//#号,表示预处理
-		EndOfScan = -1005, //表示Scanning读取结束
-		End = -1006,//程序结束
+		Label = -1003, //标签
+		Sharp = -1004,
+		EndOfScan = -1005, // EOF
+		End = -1006, //程序结束
 		Error = -1007,
-		Comments = -1008,// /*
-		CommentsEnd = -1009,// */
-		CommentLine = -1010,// //
+		Comments = -1008,
+		CommentsEnd = -1009,
+		CommentLine = -1010,
 		Include = -1011,
 
 
@@ -297,12 +297,13 @@ namespace IntentMeta {
 		NT_WRITE_STMT = -2046,
 		NT_PRINT_STMT = -2047,
 		NT_DORANGE = -2048,
+		NT_CONTROL_STMT = -2049,
 
 		NT_DUMMY = -9999,
 };
 
 bool iselement(TokenMeta_T x);
-
+bool isliteral(TokenMeta_T x);
 }
 
 
