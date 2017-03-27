@@ -847,6 +847,12 @@ using namespace std;
 				$$ = RETURN_NT(gen_promote("nop();", TokenMeta::NT_CONTROL_STMT, YY2ARG($1)));
 				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($1));
 				CLEAN_RIGHT($1);
+			}		
+		| YY_RETURN
+			{
+				$$ = RETURN_NT(gen_promote("nop();", TokenMeta::NT_CONTROL_STMT, YY2ARG($1)));
+				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($1));
+				CLEAN_RIGHT($1);
 			}			
 		| jump_stmt
 			{
@@ -1238,7 +1244,7 @@ using namespace std;
 			{
 				// array decl 
 				ARG_IN paramtable = YY2ARG($2);
-				ParseNode type_spec = gen_token(Term {TokenMeta::Implicit_Def, ""});
+				ParseNode type_spec = gen_token(Term {TokenMeta::Implicit_Decl, ""});
 				ParseNode variable_desc = gen_token(Term{ TokenMeta::NT_VARIABLEDESC, "NT_VARIABLEDESC" });
 				set_variabledesc_attr(variable_desc, boost::none, boost::none, boost::none, boost::none, boost::none, boost::none);
 				$$ = RETURN_NT(gen_vardef(type_spec, variable_desc, paramtable));
@@ -1650,7 +1656,13 @@ using namespace std;
 			{
 				$$ = $1;
 				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($1));
-			}
+			}		
+		| YY_END
+			{
+				$$ = RETURN_NT(gen_dummy());
+				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($1));
+				CLEAN_RIGHT($1);
+			}		
 
 
 	wrappers : wrapper

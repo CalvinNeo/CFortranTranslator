@@ -1,0 +1,10 @@
+a = 10
+end
+
+SUBROUTINE MINTW(M,X,Y,A0,A1)  ! 有大于0限制
+	IF(A1.LT.0) THEN
+	A1=0.
+	A0=0.
+	END IF
+	RETURN
+END

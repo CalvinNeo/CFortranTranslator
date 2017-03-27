@@ -1,3 +1,7 @@
-subroutine sub(A)
-	A + 2
+subroutine add(do_add)
+	interface
+		function do_add() result (a)
+			integer::a
+		end function
+	end interface
 end subroutine

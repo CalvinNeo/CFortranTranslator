@@ -71,6 +71,10 @@ void gen_fortran_program(ARG_IN wrappers) {
 			// handled in the previous loop
 			continue;
 		}
+		else if (wrapper.fs.CurrentTerm.token == TokenMeta::NT_DUMMY)
+		{
+			// YY_END
+		}
 		else {
 			print_error("Unexpected wrappers");
 		}

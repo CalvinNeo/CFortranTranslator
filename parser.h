@@ -86,7 +86,8 @@ void preorder(ParseNode * ptree);
 std::string lazy_gen(ParseNode * ptree);
 FlexState & get_flex_state();
 void print_error(const std::string & error_info, const ParseNode & pn);
-void print_error(const std::string & error_info);
+void print_error(const std::string & error_info); 
+void fatal_error(const std::string & error_info);
 
 // yacc part code
 // implement in for90.y

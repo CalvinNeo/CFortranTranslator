@@ -229,25 +229,23 @@ const vector<KeywordMeta> keywords = {
 		, YY_NEQ
 	}
 	, KeywordMeta{ "real"
-		, TokenMeta::Float_Def
-		// YY_FLOAT 指的是一个float类型的常量
-		// YY_FLOAT_T 是float类型声明符
+		, TokenMeta::Float_Decl
 		, YY_FLOAT_T
 	}
 	, KeywordMeta{ "integer"
-		, TokenMeta::Int_Def
+		, TokenMeta::Int_Decl
 		, YY_INTEGER_T
 	}
 	, KeywordMeta{ "logical"
-		, TokenMeta::Bool_Def
+		, TokenMeta::Bool_Decl
 		, YY_BOOL_T
 	}
 	, KeywordMeta{ "complex"
-		, TokenMeta::Complex_Def
+		, TokenMeta::Complex_Decl
 		, YY_COMPLEX_T
 	}
 	, KeywordMeta{ "character"
-		, TokenMeta::String_Def
+		, TokenMeta::String_Decl
 		, YY_STRING_T
 	}
 	, KeywordMeta{ "print"
@@ -343,6 +341,10 @@ const vector<KeywordMeta> keywords = {
 	, KeywordMeta{ "pause"
 		, TokenMeta::META_ANY
 		, YY_PAUSE
+	}
+	, KeywordMeta{ "return"
+		, TokenMeta::Return
+		, YY_RETURN
 	}
 };
 

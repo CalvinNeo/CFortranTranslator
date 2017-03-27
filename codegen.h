@@ -99,7 +99,7 @@ ParseNode gen_vardef_from_implicit(ARG_IN type, std::string name);
 
 #define get_all_declared get_all_declared_by_log
 
-std::vector<ParseNode *> get_all_declared_by_log(FunctionInfo * finfo, ParseNode & suite);
+std::vector<VariableInfo *> get_all_declared_by_log(FunctionInfo * finfo, ParseNode & suite);
 std::vector<ParseNode *> get_all_declared_by_node(FunctionInfo * finfo, ParseNode & suite);
 ParseNode gen_function(ARG_IN variable_function, ARG_IN paramtable, ARG_IN variable_result, ARG_IN suite); // function define
 

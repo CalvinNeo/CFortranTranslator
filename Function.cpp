@@ -50,7 +50,7 @@ FunctionInfo * add_function(std::string module_name, std::string function_name, 
 	else {
 		std::string fullname = module_name + "::" + function_name;
 		if (get_context().functions.find(fullname) != get_context().functions.end()) {
-			assert("function name conflict");
+			fatal_error("function name conflict");
 			return nullptr;
 		}
 		else {

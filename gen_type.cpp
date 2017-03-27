@@ -42,10 +42,10 @@ ParseNode gen_type(Term typeterm) {
 ParseNode gen_implicit_type(std::string name) {
 	if (name.size() > 0 && name[0] <= 'n' && name[0] >= 'i')
 	{
-		return gen_type(Term{ TokenMeta::Int_Def, "int" });
+		return gen_type(Term{ TokenMeta::Int_Decl, "int" });
 	}
 	else {
-		return gen_type(Term{ TokenMeta::Float_Def, "double" });
+		return gen_type(Term{ TokenMeta::Float_Decl, "double" });
 	}
 }
 
@@ -54,29 +54,29 @@ void promote_type(ARG_OUT type_nospec, VariableDesc & vardesc) {
 	/* merge type_spec and variable_desc attr */
 	vardesc.merge(dynamic_cast<VariableDescAttr *>(type_nospec.attr)->desc);
 	if (vardesc.kind.isdirty()) {
-		if (type_nospec.fs.CurrentTerm.token == TokenMeta::Int_Def) {
+		if (type_nospec.fs.CurrentTerm.token == TokenMeta::Int_Decl) {
 			if (vardesc.kind == 1) {
-				type_nospec.fs.CurrentTerm = Term{ TokenMeta::Int8_Def, "int8_t" };
+				type_nospec.fs.CurrentTerm = Term{ TokenMeta::Int8_Decl, "int8_t" };
 			}
 			else if (vardesc.kind == 2) {
-				type_nospec.fs.CurrentTerm = Term{ TokenMeta::Int16_Def, "int16_t" };
+				type_nospec.fs.CurrentTerm = Term{ TokenMeta::Int16_Decl, "int16_t" };
 			}
 			else if (vardesc.kind == 4) {
-				type_nospec.fs.CurrentTerm = Term{ TokenMeta::Int32_Def, "int32_t" };
+				type_nospec.fs.CurrentTerm = Term{ TokenMeta::Int32_Decl, "int32_t" };
 			}
 			else if (vardesc.kind == 8) {
-				type_nospec.fs.CurrentTerm = Term{ TokenMeta::Int64_Def, "int64_t" };
+				type_nospec.fs.CurrentTerm = Term{ TokenMeta::Int64_Decl, "int64_t" };
 			}
 		}
-		else if (type_nospec.fs.CurrentTerm.token == TokenMeta::Float_Def) {
+		else if (type_nospec.fs.CurrentTerm.token == TokenMeta::Float_Decl) {
 			if (vardesc.kind < 4) {
-				type_nospec.fs.CurrentTerm = Term{ TokenMeta::Float_Def, "float" };
+				type_nospec.fs.CurrentTerm = Term{ TokenMeta::Float_Decl, "float" };
 			}
 			else if (vardesc.kind == 4) {
-				type_nospec.fs.CurrentTerm = Term{ TokenMeta::Double_Def, "double" };
+				type_nospec.fs.CurrentTerm = Term{ TokenMeta::Double_Decl, "double" };
 			}
 			else if (vardesc.kind == 8) {
-				type_nospec.fs.CurrentTerm = Term{ TokenMeta::LongDouble_Def, "long double" };
+				type_nospec.fs.CurrentTerm = Term{ TokenMeta::LongDouble_Decl, "long double" };
 			}
 		}
 	}

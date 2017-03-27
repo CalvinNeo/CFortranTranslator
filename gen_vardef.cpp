@@ -129,7 +129,7 @@ std::string gen_vardef_scalar_str(FunctionInfo * finfo, VariableInfo * vinfo, Pa
 
 ParseNode gen_vardef_from_implicit(ARG_IN type, std::string name) {
 	ParseNode newnode = gen_token(Term{ TokenMeta::NT_VARIABLEDEFINE, name });
-	newnode.addlist(type, gen_token(Term{ TokenMeta::NT_VARIABLEDESC, "NT_VARIABLEDESC" })// variable_desc
+	newnode.addlist(type, gen_token(Term{ TokenMeta::NT_VARIABLEDESC, "NT_VARIABLEDESC" }) // variable_desc
 		, gen_keyvalue_from_name(name) // variable_entity
 	);
 	return newnode;
@@ -152,7 +152,6 @@ void regen_vardef(FunctionInfo * finfo, VariableInfo * vinfo, ARG_OUT type_nospe
 	string var_decl = ""; 
 	bool do_arr = desc.slice.is_initialized();
 	string type_str;
-	ParseNode * vardef_node_ptr = vinfo->vardef;
 	if (type_nospec.fs.CurrentTerm.what == "")
 	{
 		type_nospec.fs.CurrentTerm.what = gen_implicit_type(get_variable_name(entity_variable)).fs.CurrentTerm.what;
@@ -162,13 +161,13 @@ void regen_vardef(FunctionInfo * finfo, VariableInfo * vinfo, ARG_OUT type_nospe
 		// ARRAY
 		type_str = gen_qualified_typestr(type_nospec, desc);
 		var_decl += gen_vardef_array_str(finfo, vinfo, entity_variable, type_str, get_lbound_size(desc.slice.get_ptr()));
-		if (vardef_node_ptr == nullptr)
+		if (vinfo->vardef == nullptr)
 		{
 			vinfo->vardef = new ParseNode(gen_vardef_from_implicit(vinfo->type, vinfo->local_name));
 		}
 		else {
-			vardef_node_ptr->fs.CurrentTerm = Term{ TokenMeta::NT_VARIABLEDEFINE, var_decl };
 		}
+		vinfo->vardef->fs.CurrentTerm = Term{ TokenMeta::NT_VARIABLEDEFINE, var_decl };
 	}
 	else {
 		// SCALAR
@@ -185,13 +184,13 @@ void regen_vardef(FunctionInfo * finfo, VariableInfo * vinfo, ARG_OUT type_nospe
 			type_str = gen_qualified_typestr(type_nospec, desc);
 			var_decl = gen_vardef_scalar_str(finfo, vinfo, entity_variable, type_str);
 		}
-		if (vardef_node_ptr == nullptr)
+		if (vinfo->vardef == nullptr)
 		{
 			vinfo->vardef = new ParseNode(gen_vardef_from_implicit(vinfo->type, vinfo->local_name));
 		}
 		else {
-			vardef_node_ptr->fs.CurrentTerm = Term{ TokenMeta::NT_VARIABLEDEFINE, var_decl };
 		}
+		vinfo->vardef->fs.CurrentTerm = Term{ TokenMeta::NT_VARIABLEDEFINE, var_decl };
 	} // end if
 	vinfo->commonblock_index; // set in regen_suite and gen_common
 	vinfo->commonblock_name; // set in regen_suite and gen_common

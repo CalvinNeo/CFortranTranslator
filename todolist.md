@@ -75,3 +75,4 @@
 - ~~`temporary_variable` to `FunctionInfo` variable~~
 - ~~`regen_if`, `regen_do`, `regen_suite`~~
 - delete all `gen_` functions except `gen_token` with multiple which accepts a list of `YYSTYPE`
+- log all arguments in paramtable to `get_context.variable`

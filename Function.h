@@ -23,7 +23,7 @@
 
 struct FunctionDesc {
 	// all variables passed as paramtable(must also be declared in function) and declared in the function
-	std::vector<struct ParseNode *> declared_variables;
+	std::vector<VariableInfo *> declared_variables;
 	// tuple (name, type node, variable_initial node) of all parameters
 	std::vector<std::tuple<std::string, ParseNode, struct ParseNode *>> paramtable_info;
 	// std::map < std::string, struct FunctionInfo * > function_variables;

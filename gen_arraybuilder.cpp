@@ -81,7 +81,7 @@ bool element_maybe_array(FunctionInfo * finfo, const ParseNode & elem) {
 		}
 		else {
 			print_error("Variable not defined", elem);
-			assert("Variable not defined");
+			fatal_error("Variable not defined");
 			return true;
 		}
 	}

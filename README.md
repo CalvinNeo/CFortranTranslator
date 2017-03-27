@@ -437,14 +437,14 @@ data entity is treated as if it were declared in an explicit type declaration in
 it appears. An explicit type specification in a FUNCTION statement overrides an IMPLICIT statement for the
 name of that function subprogram.
 
-#### implicit common block
-
-#### implicit parammeters table
-Not all data entities need be declared explicitly in a paramtable
+#### implicit parameters table
+Not all parameters in a `paramtable` need to be declared explicitly in the function body, if the parameter
+1. used in both `paramtable` and the function body
+    fortran 90 standard
+2. used only in `paramtable`
+    implicit definition conforming to fortran 77 standard
 
 ### subroutines and functions
-#### parameters table
-
 #### attribute specification statements
 fortran77 programs do not specify intent:
 

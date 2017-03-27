@@ -77,13 +77,14 @@ struct VariableInfo
 	VariableDesc desc;
 	ParseNode entity_variable; // TokenMeta::NT_VARIABLEINITIALDUMMY if no initial
 	ParseNode * vardef;
+	bool declared; // do not need to generate declaration in suite
 
 	std::string commonblock_name; 
 	int commonblock_index = 0;
 	bool implicit_defined = true; // TODO must in constructor to initialize, no use here, why
 
 	VariableInfo()
-		: local_name(""), implicit_defined(true), commonblock_index(0), commonblock_name("") {
+		: local_name(""), implicit_defined(true), commonblock_index(0), commonblock_name(""), declared(false) {
 
 	}
 };

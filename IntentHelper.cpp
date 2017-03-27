@@ -106,7 +106,7 @@ std::map<int, std::string> IntentName = {
 	,{ -110, "OperatorCall" }
 	,{ -111, "CallArgs" }
 	,{ -112, "HyperFuncCall" }
-	,{ -113, "VacantArg" }
+	,{ -113, "OptionalArg" }
 	,{ -114, "Lambda" }
 	,{ -115, "Operator" }
 	,{ -116, "Return" }
@@ -176,26 +176,26 @@ std::map<int, std::string> IntentName = {
 		, { -337, "Int64" }
 		, {-338, "LongDouble"}
 
-	,{ TokenMeta::Void - 100, "Void_Def" }
-	,{ TokenMeta::Obj - 100, "Obj_Def" }
-	,{ TokenMeta::Int - 100, "Int_Def" }
-	,{ TokenMeta::Char - 100, "Char_Def" }
-	,{ TokenMeta::String - 100, "String_Def" }
-	,{ TokenMeta::Double - 100, "Double_Def" }
-	,{ TokenMeta::Dynamic - 100, "Dynamic_Def" }
-	,{ TokenMeta::Bool - 100, "Bool_Def" }
-	,{ TokenMeta::Pointer - 100, "Pointer_Def" }
-	,{ TokenMeta::Float - 100, "Float_Def" }
-	,{ TokenMeta::Long - 100, "Long_Def" }
-	,{ TokenMeta::Complex - 100, "Complex_Def" }
-	,{ TokenMeta::Short - 100, "Short_Def" }
+	,{ TokenMeta::Void - 100, "Void_Decl" }
+	,{ TokenMeta::Obj - 100, "Obj_Decl" }
+	,{ TokenMeta::Int - 100, "Int_Decl" }
+	,{ TokenMeta::Char - 100, "Char_Decl" }
+	,{ TokenMeta::String - 100, "String_Decl" }
+	,{ TokenMeta::Double - 100, "Double_Decl" }
+	//,{ TokenMeta::Dynamic - 100, "Dynamic_Decl" }
+	,{ TokenMeta::Bool - 100, "Bool_Decl" }
+	//,{ TokenMeta::Pointer - 100, "Pointer_Decl" }
+	,{ TokenMeta::Float - 100, "Float_Decl" }
+	//,{ TokenMeta::Long - 100, "Long_Decl" }
+	,{ TokenMeta::Complex - 100, "Complex_Decl" }
+	//,{ TokenMeta::Short - 100, "Short_Decl" }
 	, { TokenMeta::Function - 100, "Function_def" }
-		, { TokenMeta::Int8 - 100, "Int8_Def" }
-		, { TokenMeta::Int16 - 100, "Int16_Def" }
-		, { TokenMeta::Int32 - 100, "Int32_Def" }
-		, { TokenMeta::Int64 - 100, "Int64_Def" }
-		, { TokenMeta::LongDouble - 100, "LongDouble_Def" }
-		, { -599, "Implicit_Def" }
+		, { TokenMeta::Int8 - 100, "Int8_Decl" }
+		, { TokenMeta::Int16 - 100, "Int16_Decl" }
+		, { TokenMeta::Int32 - 100, "Int32_Decl" }
+		, { TokenMeta::Int64 - 100, "Int64_Decl" }
+		, { TokenMeta::LongDouble - 100, "LongDouble_Decl" }
+		, { -599, "Implicit_Decl" }
 
 	,{ -600, "If" }
 	,{ -601, "Else or ElseIf" }

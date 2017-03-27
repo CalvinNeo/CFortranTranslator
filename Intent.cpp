@@ -28,13 +28,22 @@ bool iselement(TokenMeta_T x) {
 	return false;
 }
 bool isliteral(TokenMeta_T x) {
-	if (x == IntentMeta::META_INTEGER) return true;
-	if (x == IntentMeta::META_STRING) return true;
-	if (x == IntentMeta::META_CHARACTER) return true;
-	if (x == IntentMeta::META_REAL) return true;
-	if (x == IntentMeta::META_COMPLEX) return true;
-	if (x == IntentMeta::True) return true;
+	if (x == IntentMeta::Int) return true;
+	if (x == IntentMeta::Char) return true;
+	if (x == IntentMeta::String) return true;
+	if (x == IntentMeta::Double) return true;
+	if (x == IntentMeta::Bool) return true;
+	if (x == IntentMeta::Float) return true;
+	if (x == IntentMeta::Complex) return true;
+	if (x == IntentMeta::Function) return true;
+	if (x == IntentMeta::Int8) return true;
+	if (x == IntentMeta::Int16) return true;
+	if (x == IntentMeta::Int32) return true;
+	if (x == IntentMeta::Int16) return true;
+	if (x == IntentMeta::Int64) return true;
+	if (x == IntentMeta::LongDouble) return true;
 	if (x == IntentMeta::False) return true;
+	if (x == IntentMeta::True) return true;
 	return false;
 }
 }

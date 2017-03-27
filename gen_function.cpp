@@ -26,77 +26,42 @@ std::string regen_paramtable(const vector<tuple<string, ParseNode, ParseNode *>>
 	{
 		if (i != 0)
 			paramtblstr += ", ";
+		const ParseNode & type = get<1>(paramtable_info[i]);
 		ParseNode * vardef = get<2>(paramtable_info[i]);
 		if (vardef == nullptr) {
 			print_error("not find variable/function " + get<0>(paramtable_info[i]));
 			continue;
 		}
 		
-		if (vardef->fs.CurrentTerm.token == TokenMeta::NT_VARIABLEDEFINE ||
-			vardef->fs.CurrentTerm.token == TokenMeta::NT_DECLAREDVARIABLE)
-		{
+		if (type.fs.CurrentTerm.token == TokenMeta::Function_Decl) {
+			paramtblstr += get<1>(paramtable_info[i]).fs.CurrentTerm.what;
+			paramtblstr += " " + get<0>(paramtable_info[i]);
+		}
+		else {
 			VariableDesc desc = get_variabledesc_attr(*vardef);
 			std::string typestr = gen_qualified_typestr(get<1>(paramtable_info[i]), desc);
 			sprintf(codegen_buf, "%s %s", typestr.c_str(), get<0>(paramtable_info[i]).c_str());
 			paramtblstr += string(codegen_buf);
-		}
-		else if (vardef->fs.CurrentTerm.token == TokenMeta::NT_FUNCTIONDECLARE) {
-			paramtblstr += get<1>(paramtable_info[i]).fs.CurrentTerm.what;
-			paramtblstr += " " + get<0>(paramtable_info[i]);
 		}
 
 	}
 	return paramtblstr;
 }
 
-vector<tuple<string, ParseNode, ParseNode *>> get_full_paramtable(ARG_IN paramtable, ARG_IN variable_result, const vector<ParseNode *> & declared_variables, bool is_subroutine) {
-	vector<tuple<string, ParseNode, ParseNode *>> paramtable_info; // (var_name, var_type, ParseNode*)
-	/* add the paramtable */
-	for (auto iter = paramtable.child.begin(); iter < paramtable.child.end(); iter++)
-	{
-		// refer to function suite and determine type of params
-		paramtable_info.push_back(make_tuple((*iter)->fs.CurrentTerm.what
-			, gen_type(Term{ TokenMeta::Void_Def, "void" }), nullptr));
-	}
-	/* result variable must be the last one */
-	paramtable_info.push_back(make_tuple(variable_result.fs.CurrentTerm.what
-		, gen_type(Term{ TokenMeta::Void_Def, "void" }), nullptr));// if subroutine get tuple ("", "void")
-
+vector<tuple<string, ParseNode, ParseNode *>> get_full_paramtable(FunctionInfo * finfo, bool is_subroutine) {
+	// (var_name, var_type, ParseNode*)
+	const vector<VariableInfo *> & declared_variables = finfo->funcdesc.declared_variables;
+	vector<tuple<string, ParseNode, ParseNode *>> & paramtable_info = finfo->funcdesc.paramtable_info;
+	// find by finfo
 	for (int i = 0; i < (int)paramtable_info.size(); i++) // definition in paramtable
 	{
 		string varname = get<0>(paramtable_info[i]);
-		auto declared_variables_iter = find_if(declared_variables.begin(), declared_variables.end(), [&](ParseNode * vardef) {
-			if (vardef->fs.CurrentTerm.token == TokenMeta::NT_VARIABLEDEFINE || vardef->fs.CurrentTerm.token == TokenMeta::NT_DECLAREDVARIABLE)
-			{
-				ParseNode & entity_variable = vardef->get(2);
-				if (entity_variable.get(0).fs.CurrentTerm.what == varname) {
-					return true;
-				}
-			}
-			if (vardef->fs.CurrentTerm.token == TokenMeta::NT_FUNCTIONDECLARE)
-			{
-				if (vardef->get(1).fs.CurrentTerm.what == varname) {
-					return true;
-				}
-			}
-			return false;
-		});
+		VariableInfo * vinfo = get_variable(get_context().current_module, finfo->local_name, varname);
 
-		if(declared_variables_iter != declared_variables.end()) // definition in suite
+		if(vinfo != nullptr) // definition in suite
 		{
-			// variable
-			ParseNode * vardef = *declared_variables_iter;
-			if (vardef->fs.CurrentTerm.token == TokenMeta::NT_VARIABLEDEFINE || vardef->fs.CurrentTerm.token == TokenMeta::NT_DECLAREDVARIABLE){
-				ParseNode & entity_variable = vardef->get(2);
-				ParseNode & initial = entity_variable.get(1);
-				get<1>(paramtable_info[i]) = vardef->get(0); // type_nospec
-				get<2>(paramtable_info[i]) = vardef; // variable ParseNode
-				if (i != paramtable_info.size() - 1) {
-					/* `delete` ParseNode except return value */
-					vardef->fs.CurrentTerm.token = TokenMeta::NT_DECLAREDVARIABLE;
-				}
-			}
-			else if (vardef->fs.CurrentTerm.token == TokenMeta::NT_FUNCTIONDECLARE) {
+			ParseNode * vardef = vinfo->vardef;			
+			if (vinfo->type.fs.CurrentTerm.token == TokenMeta::Function_Decl) {
 				// interface function
 				string interface_paramtable_str = "";
 				FunctionInfo * interface_finfo = add_function("@", "", FunctionInfo{});
@@ -117,11 +82,27 @@ vector<tuple<string, ParseNode, ParseNode *>> get_full_paramtable(ARG_IN paramta
 						interface_paramtable_str += string(codegen_buf);
 					}
 					sprintf(codegen_buf, "std::function<%s(%s)>", get<1>(paramtable_info.back()).to_string().c_str(),interface_paramtable_str.c_str());
-					get<1>(paramtable_info[i]) = gen_type(Term{ TokenMeta::Function_Def, string(codegen_buf) });
+					vinfo->type = gen_type(Term{ TokenMeta::Function_Decl, string(codegen_buf) });
+					get<1>(paramtable_info[i]) = vinfo->type;
 					get<2>(paramtable_info[i]) = vardef;
+					if (i != paramtable_info.size() - 1) {
+						vardef->fs.CurrentTerm.token = TokenMeta::NT_DECLAREDVARIABLE;
+						vinfo->declared = true;
+					}
 				}
 				else {
 					print_error("Invalid interface: " + vardef->fs.CurrentTerm.what);
+				}
+			}else {
+				// variable
+				ParseNode & entity_variable = vardef->get(2);
+				ParseNode & initial = entity_variable.get(1);
+				get<1>(paramtable_info[i]) = vardef->get(0); // type_nospec
+				get<2>(paramtable_info[i]) = vardef; // variable ParseNode
+				if (i != paramtable_info.size() - 1) {
+					/* `delete` ParseNode except return value */
+					vardef->fs.CurrentTerm.token = TokenMeta::NT_DECLAREDVARIABLE;
+					vinfo->declared = true;
 				}
 			}
 		}
@@ -146,15 +127,23 @@ void regen_function(FunctionInfo * finfo, ARG_OUT functiondecl_node) {
 	ParseNode & suite = functiondecl_node.get(4);
 	ParseNode & oldsuite = suite;
 	bool is_subroutine = variable_result.fs.CurrentTerm.what == "";
-
-	//// get all variables declared in this function
-	//// 必须在regen_suite前面调用，这不是重复调用，目的是为了去掉DECARED_VARIABLE
-	//vector<ParseNode *> declared_variables = get_all_declared(finfo, suite);
-	//// get all params in paramtable of function declare (var_name, var_type, ParseNode*)
-	//vector<tuple<string, ParseNode, ParseNode *>> paramtable_info = get_full_paramtable(kvparamtable, variable_result, declared_variables, is_subroutine);
+	
 	// regen_suite
-	regen_suite(finfo, oldsuite); 
-	vector<tuple<string, ParseNode, ParseNode *>> paramtable_info = get_full_paramtable(kvparamtable, variable_result, finfo->funcdesc.declared_variables, is_subroutine);
+	regen_suite(finfo, oldsuite); 	
+	// init paramtable
+	std::vector<std::tuple<std::string, ParseNode, struct ParseNode *>> & paramtable_info = finfo->funcdesc.paramtable_info;
+	/* add the paramtable */
+	for (auto iter = kvparamtable.child.begin(); iter < kvparamtable.child.end(); iter++)
+	{
+		// refer to function suite and determine type of params
+		paramtable_info.push_back(make_tuple((*iter)->to_string()
+			, gen_type(Term{ TokenMeta::Void_Decl, "void" }), nullptr));
+	}
+	/* result variable must be the last one */
+	paramtable_info.push_back(make_tuple(variable_result.to_string()
+		, gen_type(Term{ TokenMeta::Void_Decl, "void" }), nullptr));// if subroutine get tuple ("", "void")
+
+	get_full_paramtable(finfo, is_subroutine);
 	// make newnode
 	string newsuitestr = oldsuite.to_string();
 	string paramtblstr = regen_paramtable(paramtable_info);
@@ -166,12 +155,11 @@ void regen_function(FunctionInfo * finfo, ARG_OUT functiondecl_node) {
 		, variable_function.to_string().c_str() // function name
 		, paramtblstr.c_str() // paramtable
 		, tabber(oldsuite.to_string()).c_str() // code
-		, (is_subroutine ? "" : variable_result/* variable_result is raw for90 return without type*/.fs.CurrentTerm.what.c_str()) // add return stmt if not function
+		, (is_subroutine ? "" : variable_result.to_string().c_str()) // add return stmt if not function
 	);
 	functiondecl_node.fs.CurrentTerm.what = string(codegen_buf);
 
 	// log function and set attr 
-	finfo->funcdesc.paramtable_info = paramtable_info;
 	functiondecl_node.setattr(new FunctionAttr(finfo));
 
 	// cleaning
