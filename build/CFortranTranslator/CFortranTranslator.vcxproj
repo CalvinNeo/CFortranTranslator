@@ -97,6 +97,7 @@
     <ClInclude Include="..\..\tokenizer.h" />
     <ClInclude Include="..\..\utf8.h" />
     <ClInclude Include="..\..\Variable.h" />
+    <ClInclude Include="resource.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\cn.md" />
@@ -109,6 +110,9 @@
   </ItemGroup>
   <ItemGroup>
     <Bison Include="..\..\grammar\for90.y" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="CFortranTranslator.rc" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{EEFFE8C1-37FF-4F41-9113-5996FEA58436}</ProjectGuid>

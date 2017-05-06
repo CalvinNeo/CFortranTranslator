@@ -1091,10 +1091,10 @@ using namespace std;
 			}
 		| _optional_formatter ','
 			{
-				ParseNode newnode = gen_token(Term{ TokenMeta::META_NONTERMINAL, "" });
+				ARG_IN _optional_device = gen_token(Term{TokenMeta::META_INTEGER, "-1"});
 				ARG_IN _optional_formatter = YY2ARG($1);
 				/* target code of io_info depend on context */
-				ParseNode _optional_device = gen_token(Term{ TokenMeta::META_NONTERMINAL, "" }, _optional_device, _optional_formatter);
+				ParseNode newnode = gen_token(Term{ TokenMeta::META_NONTERMINAL, "" }, _optional_device, _optional_formatter);
 				$$ = RETURN_NT(newnode);
 				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($2));
 				CLEAN_RIGHT($1, $2);

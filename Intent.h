@@ -24,6 +24,7 @@
 
 #define TokenMeta IntentMeta
 #define TokenMeta_T int
+
 namespace IntentMeta {
 	//enum class IntentMeta {
 	enum IntentMeta {
@@ -146,14 +147,14 @@ namespace IntentMeta {
 		Public = -204,
 		Private = -205,
 		Protected = -206,
-		Friend = -207,
-		Class = -208,
-		NameSpace = -209,
-		Extern = -211,
-		Partial = -212,
-		Final = -213,
-		Enum = -216,
-		Abstract = -217,
+		//Friend = -207,
+		//Class = -208,
+		//NameSpace = -209,
+		//Extern = -211,
+		//Partial = -212,
+		//Final = -213,
+		//Enum = -216,
+		//Abstract = -217,
 
 		//Build-in Type
 		// META Type(for parse)
@@ -239,7 +240,7 @@ namespace IntentMeta {
 		Label = -1003, //标签
 		Sharp = -1004,
 		EndOfScan = -1005, // EOF
-		End = -1006, //程序结束
+		QuitProgram = -1006, // 程序结束
 		Error = -1007,
 		Comments = -1008,
 		CommentsEnd = -1009,

@@ -213,6 +213,7 @@
       <Filter>parser</Filter>
     </ClInclude>
     <ClInclude Include="..\..\utf8.h" />
+    <ClInclude Include="resource.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\README.md" />
@@ -229,5 +230,8 @@
     <Bison Include="..\..\grammar\for90.y">
       <Filter>grammar</Filter>
     </Bison>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="CFortranTranslator.rc" />
   </ItemGroup>
 </Project>

@@ -41,7 +41,7 @@
 - arithmatic if
 - ~~labeled do,~~ if
 - `exit`, `cycle` outer do-loop
-- detailed type attr(add TokenMeta::Int64, etc.)
+- detailed type attr(add TokenMeta::Int64, etc.), use TokenMeta::Implicit_Decl, clean TokenMeta
 - unicode file
 
 ## todolist(bugfix)

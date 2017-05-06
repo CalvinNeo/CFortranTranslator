@@ -95,7 +95,7 @@ ParseNode gen_vardef(ARG_IN type_nospec, ARG_IN variable_desc, ARG_IN paramtable
 
 std::string get_variable_name(const ParseNode & entity_variable);
 std::tuple<std::vector<int>, std::vector<int>> get_lbound_size(const ParseNode * slice);
-ParseNode gen_vardef_from_implicit(ARG_IN type, std::string name);
+ParseNode gen_vardef_from_default(ARG_IN type, std::string name);
 
 #define get_all_declared get_all_declared_by_log
 

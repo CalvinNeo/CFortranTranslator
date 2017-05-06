@@ -87,6 +87,185 @@ vector<ParseNode *> get_all_commons(FunctionInfo * finfo, ParseNode & suite) {
 	}
 	return declared_commons;
 }
+
+std::string regen_stmt(FunctionInfo * finfo, ARG_OUT stmt) {
+	/*** including:
+	*	exp							NT_STATEMENT
+	*	let_stmt					NT_STATEMENT
+	*	control_stmt				NT_CONTROL_STMT
+	*	format						NT_FORMAT
+	*	var_def						NT_VARIABLEDEFINE
+	*	comment						Comment
+	*	common						NT_COMMONBLOCK
+	*	dummy						NT_DUMMY
+	*	interface(in suite rule)	NT_INTERFACE
+	*	labelin suite rule)			Label
+	*	input_stmt, output_stmt		NT_READ_STMT, NT_WRITE_STMT, NT_PRINT_STMT
+	*	compound_stmt				NT_IF, ...
+	***/
+	std::string newsuitestr;
+	// exp, leet_stmt, control_stmt
+	if (stmt.fs.CurrentTerm.token == TokenMeta::NT_STATEMENT) {
+		regen_simple_stmt(finfo, stmt);
+		newsuitestr += stmt.fs.CurrentTerm.what;
+		newsuitestr += '\n';
+	}
+	else if (stmt.fs.CurrentTerm.token == TokenMeta::NT_CONTROL_STMT) {
+		if (stmt.child.size() > 0 && stmt.get(0).fs.CurrentTerm.token == TokenMeta::Return) {
+			//sprintf(codegen_buf, "return %s;", finfo->funcdesc.declared_variables.back()->fs.CurrentTerm.what.c_str());
+			newsuitestr += stmt.fs.CurrentTerm.what;
+			newsuitestr += '\n';
+		}
+		else {
+			newsuitestr += stmt.fs.CurrentTerm.what;
+			newsuitestr += '\n';
+		}
+	}
+	// format
+	else if (stmt.fs.CurrentTerm.token == TokenMeta::NT_FORMAT) {
+
+	}
+	// var_def
+	else if (stmt.fs.CurrentTerm.token == TokenMeta::NT_VARIABLEDEFINESET)
+	{
+		ParseNode & vardef_set = stmt;
+		// examine all variable define stmt
+		for (int j = 0; j < vardef_set.child.size(); j++)
+		{
+			ParseNode & vardef = vardef_set.get(j);
+			ParseNode & type_nospec = vardef.get(0);
+			ParseNode & vardescattr = vardef.get(1);
+			ParseNode & entity_variable = vardef.get(2);
+			std::string name = get_variable_name(entity_variable);
+			if (get_function("", name) != nullptr) {
+				// declared function
+			}
+			else {
+				if (vardef.fs.CurrentTerm.token == TokenMeta::NT_VARIABLEDEFINE) {
+					// for every variable, generate independent definition
+					VariableInfo * vinfo = get_variable(get_context().current_module, finfo->local_name, name);
+					bool belong_to_common_block = (vinfo != nullptr && vinfo->commonblock_name == "");
+					if (belong_to_common_block)
+					{
+						vinfo->desc.merge(get_variabledesc_attr(vardescattr));
+					}
+					else {
+						// `regen_vardef` will be called in the end
+						vinfo = add_variable(get_context().current_module, finfo->local_name, name, VariableInfo{});
+						vinfo->commonblock_index = 0; // set in regen_suite and gen_common
+						vinfo->commonblock_name = ""; // set in regen_suite and gen_common
+					}
+					vinfo->desc = get_variabledesc_attr(vardescattr); // set in regen_vardef
+					vinfo->implicit_defined = false; // set in regen_suite and regen_common
+					vinfo->type = type_nospec; // set in regen_vardef
+					vinfo->entity_variable = entity_variable; // set in regen_vardef
+					vinfo->vardef = &vardef; // set in regen_vardef
+				}
+				else if (vardef.fs.CurrentTerm.token == TokenMeta::NT_DECLAREDVARIABLE) {
+					// declared variable
+					print_error("invalid NT_DECLAREDVARIABLE node");
+				}
+			}
+		}
+	}
+	// comment
+	else if (stmt.fs.CurrentTerm.token == TokenMeta::Comments) {
+
+	}
+	// common
+	else if (stmt.fs.CurrentTerm.token == TokenMeta::NT_COMMONBLOCK) {
+		regen_common(finfo, stmt);
+		newsuitestr += stmt.fs.CurrentTerm.what;
+	}
+	// dummy
+	else if (stmt.fs.CurrentTerm.token == TokenMeta::NT_DUMMY) {
+
+	}
+	// interface
+	else if (stmt.fs.CurrentTerm.token == TokenMeta::NT_INTERFACE) {
+		ParseNode & wrappers = stmt.get(0);
+		for (int i = 0; i < wrappers.child.size(); i++)
+		{
+			ParseNode & wrapper = wrappers.get(i);
+			if (wrapper.fs.CurrentTerm.token == TokenMeta::NT_PROGRAM) {
+				fatal_error("illegal program struct in interface");
+			}
+			else if (wrapper.fs.CurrentTerm.token == TokenMeta::NT_FUNCTIONDECLARE) {
+				// wrapper.child[1] is function name
+				string name = wrapper.get(1).to_string();
+				VariableInfo * vinfo = get_variable(get_context().current_module, finfo->local_name, name);
+				if (vinfo == nullptr)
+				{
+					ParseNode t = gen_type(Term{ TokenMeta::Function_Decl, "" });
+					vinfo = add_variable(get_context().current_module, finfo->local_name, name, VariableInfo{});
+					vinfo->commonblock_index = 0; // set in regen_suite and gen_common
+					vinfo->commonblock_name = ""; // set in regen_suite and gen_common
+					vinfo->desc = VariableDesc(); // set in regen_vardef
+					vinfo->implicit_defined = false; // set in regen_suite and regen_common
+					vinfo->type = t; // set in regen_vardef
+					vinfo->entity_variable = gen_vardef_from_default(t, ""); // set in regen_vardef
+					vinfo->vardef = &wrapper; // set in regen_vardef
+				}
+				else {
+					print_error("repeated declaration of interface");
+				}
+			}
+		}
+	}
+	// input/output stmt
+	else if (stmt.fs.CurrentTerm.token == TokenMeta::NT_READ_STMT) {
+		regen_read(finfo, stmt);
+		newsuitestr += stmt.fs.CurrentTerm.what;
+	}
+	else if (stmt.fs.CurrentTerm.token == TokenMeta::NT_WRITE_STMT) {
+		regen_write(finfo, stmt);
+		newsuitestr += stmt.fs.CurrentTerm.what;
+	}
+	else if (stmt.fs.CurrentTerm.token == TokenMeta::NT_PRINT_STMT) {
+		regen_print(finfo, stmt);
+		newsuitestr += stmt.fs.CurrentTerm.what;
+	}
+	// compound stmt
+	else if (stmt.fs.CurrentTerm.token == TokenMeta::NT_DO) {
+		newsuitestr += stmt.fs.CurrentTerm.what;
+		newsuitestr += '\n';
+	}
+	else if (stmt.fs.CurrentTerm.token == TokenMeta::NT_IF) {
+		regen_if(finfo, stmt);
+		newsuitestr += stmt.fs.CurrentTerm.what;
+		newsuitestr += '\n';
+	}
+	else if (stmt.fs.CurrentTerm.token == TokenMeta::NT_ELSEIF) {
+		regen_elseif(finfo, stmt);
+		newsuitestr += stmt.fs.CurrentTerm.what;
+		newsuitestr += '\n';
+	}
+	else if (stmt.fs.CurrentTerm.token == TokenMeta::NT_DO) {
+		regen_do(finfo, stmt);
+		newsuitestr += stmt.fs.CurrentTerm.what;
+		newsuitestr += '\n';
+	}
+	else if (stmt.fs.CurrentTerm.token == TokenMeta::NT_DORANGE) {
+		regen_do_range(finfo, stmt);
+		newsuitestr += stmt.fs.CurrentTerm.what;
+		newsuitestr += '\n';
+	}
+	else if (stmt.fs.CurrentTerm.token == TokenMeta::NT_WHILE) {
+		regen_do_while(finfo, stmt);
+		newsuitestr += stmt.fs.CurrentTerm.what;
+		newsuitestr += '\n';
+	}
+	else if (stmt.fs.CurrentTerm.token == TokenMeta::NT_SELECT) {
+		regen_select(finfo, stmt);
+		newsuitestr += stmt.fs.CurrentTerm.what;
+		newsuitestr += '\n';
+	}
+	else {
+		// normal stmt
+		print_error("Unknown Statement", stmt);
+	}
+	return newsuitestr;
+}
 void regen_suite(FunctionInfo * finfo, ARG_OUT oldsuite, bool is_partial) {
 	/**** 
 	 * this function regen code of `suite` node and 
@@ -94,196 +273,37 @@ void regen_suite(FunctionInfo * finfo, ARG_OUT oldsuite, bool is_partial) {
 	 * 2. regen_vardef 
 	 ****/
 	std::string newsuitestr;
-	for (int i = 0; i < oldsuite.child.size(); i++)
+	if (oldsuite.fs.CurrentTerm.token == TokenMeta::NT_SUITE)
 	{
-		ParseNode & stmt = oldsuite.get(i);
-		/*** including:
-		*	exp							NT_STATEMENT
-		*	let_stmt					NT_STATEMENT
-		*	control_stmt				NT_CONTROL_STMT
-		*	format						NT_FORMAT
-		*	var_def						NT_VARIABLEDEFINE
-		*	comment						Comment
-		*	common						NT_COMMONBLOCK
-		*	dummy						NT_DUMMY
-		*	interface(in suite rule)	NT_INTERFACE
-		*	labelin suite rule)			Label
-		*	input_stmt, output_stmt		NT_READ_STMT, NT_WRITE_STMT, NT_PRINT_STMT
-		*	compound_stmt				NT_IF, ...
-		***/
-		// exp, leet_stmt, control_stmt
-		if (stmt.fs.CurrentTerm.token == TokenMeta::NT_STATEMENT) {
-			regen_simple_stmt(finfo, stmt);
-			newsuitestr += stmt.fs.CurrentTerm.what;
-			newsuitestr += '\n';
-		}
-		else if (stmt.fs.CurrentTerm.token == TokenMeta::NT_CONTROL_STMT) {
-			if (stmt.child.size() > 0 && stmt.get(0).fs.CurrentTerm.token == TokenMeta::Return) {
-				//sprintf(codegen_buf, "return %s;", finfo->funcdesc.declared_variables.back()->fs.CurrentTerm.what.c_str());
-				newsuitestr += stmt.fs.CurrentTerm.what;
-				newsuitestr += '\n';
+		for (int i = 0; i < oldsuite.child.size(); i++)
+		{
+			ParseNode & stmt = oldsuite.get(i);
+			if (stmt.fs.CurrentTerm.token == TokenMeta::Label) {
+				int j = i + 1;
+				if (j < oldsuite.child.size())
+				{
+					ARG_IN next_stmt = oldsuite.get(j);
+					if (next_stmt.fs.CurrentTerm.token == TokenMeta::NT_FORMAT)
+					{
+
+					}
+					else {
+						sprintf(codegen_buf, "LABEL_%s:\n", stmt.to_string().c_str());
+						newsuitestr += string(codegen_buf);
+					}
+				}
 			}
 			else {
-				newsuitestr += stmt.fs.CurrentTerm.what;
-				newsuitestr += '\n';
+				newsuitestr += regen_stmt(finfo, stmt);
 			}
-		}
-		// format
-		else if (stmt.fs.CurrentTerm.token == TokenMeta::NT_FORMAT) {
-		
-		}
-		// var_def
-		else if (stmt.fs.CurrentTerm.token == TokenMeta::NT_VARIABLEDEFINESET)
-		{
-			ParseNode & vardef_set = stmt;
-			// examine all variable define stmt
-			for (int j = 0; j < vardef_set.child.size(); j++)
-			{
-				ParseNode & vardef = vardef_set.get(j);
-				ParseNode & type_nospec = vardef.get(0);
-				ParseNode & vardescattr = vardef.get(1);
-				ParseNode & entity_variable = vardef.get(2);
-				std::string name = get_variable_name( entity_variable );
-				if (get_function("", name) != nullptr) {
-					// declared function
-				}
-				else {
-					if (vardef.fs.CurrentTerm.token == TokenMeta::NT_VARIABLEDEFINE) {
-						// for every variable, generate independent definition
-						VariableInfo * vinfo = get_variable(get_context().current_module, finfo->local_name, name);
-						bool belong_to_common_block = (vinfo != nullptr && vinfo->commonblock_name == "");
-						if (belong_to_common_block)
-						{
-							vinfo->desc.merge(get_variabledesc_attr(vardescattr));
-						}
-						else {
-							// `regen_vardef` will be called in the end
-							vinfo = add_variable(get_context().current_module, finfo->local_name, name, VariableInfo{});
-							vinfo->commonblock_index = 0; // set in regen_suite and gen_common
-							vinfo->commonblock_name = ""; // set in regen_suite and gen_common
-						}
-						vinfo->desc = get_variabledesc_attr(vardescattr); // set in regen_vardef
-						vinfo->implicit_defined = false; // set in regen_suite and regen_common
-						vinfo->type = type_nospec; // set in regen_vardef
-						vinfo->entity_variable = entity_variable; // set in regen_vardef
-						vinfo->vardef = &vardef; // set in regen_vardef
-					}
-					else if (vardef.fs.CurrentTerm.token == TokenMeta::NT_DECLAREDVARIABLE) {
-						// declared variable
-					}
-				}
-			}
-		}
-		// comment
-		else if (stmt.fs.CurrentTerm.token == TokenMeta::Comments) {
-			
-		}
-		// common
-		else if (stmt.fs.CurrentTerm.token == TokenMeta::NT_COMMONBLOCK) {
-			regen_common(finfo, stmt);
-			newsuitestr += stmt.fs.CurrentTerm.what;
-		}
-		// dummy
-		else if (stmt.fs.CurrentTerm.token == TokenMeta::NT_DUMMY) {
-
-		}
-		// interface
-		else if (stmt.fs.CurrentTerm.token == TokenMeta::NT_INTERFACE) {
-			ParseNode & wrappers = stmt.get(0);
-			for (int i = 0; i < wrappers.child.size(); i++)
-			{
-				ParseNode & wrapper = wrappers.get(i);
-				if (wrapper.fs.CurrentTerm.token == TokenMeta::NT_PROGRAM) {
-					fatal_error("illegal program struct in interface");
-				}
-				else if (wrapper.fs.CurrentTerm.token == TokenMeta::NT_FUNCTIONDECLARE) {
-					// wrapper.child[1] is function name
-					string name = wrapper.get(1).to_string();
-					VariableInfo * vinfo = get_variable(get_context().current_module, finfo->local_name, name);
-					if (vinfo == nullptr)
-					{
-						ParseNode t = gen_type(Term{ TokenMeta::Function_Decl, "" });
-						vinfo = add_variable(get_context().current_module, finfo->local_name, name, VariableInfo{});
-						vinfo->commonblock_index = 0; // set in regen_suite and gen_common
-						vinfo->commonblock_name = ""; // set in regen_suite and gen_common
-						vinfo->desc = VariableDesc(); // set in regen_vardef
-						vinfo->implicit_defined = false; // set in regen_suite and regen_common
-						vinfo->type = t; // set in regen_vardef
-						vinfo->entity_variable = gen_vardef_from_implicit(t, ""); // set in regen_vardef
-						vinfo->vardef = &wrapper; // set in regen_vardef
-					}
-				}
-			}
-		}
-		else if (stmt.fs.CurrentTerm.token == TokenMeta::Label) {
-			int j = i + 1;
-			if (j < oldsuite.child.size())
-			{
-				ARG_IN next_stmt = oldsuite.get(j);
-				if (next_stmt.fs.CurrentTerm.token == TokenMeta::NT_FORMAT)
-				{
-
-				}
-				else {
-					sprintf(codegen_buf, "LABEL_%s:\n", stmt.to_string().c_str());
-					newsuitestr += string(codegen_buf);
-				}
-			}
-			
-		}
-		// input/output stmt
-		else if (stmt.fs.CurrentTerm.token == TokenMeta::NT_READ_STMT) {
-			regen_read(finfo, stmt);
-			newsuitestr += stmt.fs.CurrentTerm.what;
-		}
-		else if (stmt.fs.CurrentTerm.token == TokenMeta::NT_WRITE_STMT) {
-			regen_write(finfo, stmt);
-			newsuitestr += stmt.fs.CurrentTerm.what;
-		}
-		else if (stmt.fs.CurrentTerm.token == TokenMeta::NT_PRINT_STMT) {
-			regen_print(finfo, stmt);
-			newsuitestr += stmt.fs.CurrentTerm.what;
-		}
-		// compound stmt
-		else if (stmt.fs.CurrentTerm.token == TokenMeta::NT_DO) {
-			newsuitestr += stmt.fs.CurrentTerm.what;
-			newsuitestr += '\n';
-		}
-		else if (stmt.fs.CurrentTerm.token == TokenMeta::NT_IF) {
-			regen_if(finfo, stmt);
-			newsuitestr += stmt.fs.CurrentTerm.what;
-			newsuitestr += '\n';
-		}
-		else if (stmt.fs.CurrentTerm.token == TokenMeta::NT_ELSEIF) {
-			regen_elseif(finfo, stmt);
-			newsuitestr += stmt.fs.CurrentTerm.what;
-			newsuitestr += '\n';
-		}
-		else if (stmt.fs.CurrentTerm.token == TokenMeta::NT_DO) {
-			regen_do(finfo, stmt);
-			newsuitestr += stmt.fs.CurrentTerm.what;
-			newsuitestr += '\n';
-		}
-		else if (stmt.fs.CurrentTerm.token == TokenMeta::NT_DORANGE) {
-			regen_do_range(finfo, stmt);
-			newsuitestr += stmt.fs.CurrentTerm.what;
-			newsuitestr += '\n';
-		}
-		else if (stmt.fs.CurrentTerm.token == TokenMeta::NT_WHILE) {
-			regen_do_while(finfo, stmt);
-			newsuitestr += stmt.fs.CurrentTerm.what;
-			newsuitestr += '\n';
-		}
-		else if (stmt.fs.CurrentTerm.token == TokenMeta::NT_SELECT) {
-			regen_select(finfo, stmt);
-			newsuitestr += stmt.fs.CurrentTerm.what;
-			newsuitestr += '\n';
-		}
-		else {
-			// normal stmt
-			print_error("Unknown Statement", stmt);
 		}
 	}
+	else
+	{
+		// 有些时候是exp，例如if里面的条件语句
+		newsuitestr += regen_stmt(finfo, oldsuite);
+	}
+
 	// 这部分一定要放在commonblock检查之后
 	// call `regen_` 
 	if (!is_partial)
@@ -363,9 +383,12 @@ void regen_suite(FunctionInfo * finfo, ARG_OUT oldsuite, bool is_partial) {
 					// normal definition and implicit definition
 					if (vinfo->type.fs.CurrentTerm.token == TokenMeta::Function_Decl)
 					{
-
+						// interface
+						sprintf(codegen_buf, "");
 					}
-					sprintf(codegen_buf, "%s;\n", vinfo->vardef->to_string().c_str());
+					else {
+						sprintf(codegen_buf, "%s;\n", vinfo->vardef->to_string().c_str());
+					}
 				}
 			}
 			variable_declarations += string(codegen_buf);

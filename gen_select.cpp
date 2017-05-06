@@ -29,53 +29,31 @@ void regen_select(FunctionInfo * finfo, ARG_OUT select_stmt) {
 		ParseNode & dimen_slice = case_stmt_elem.get(0);
 		ParseNode & body = case_stmt_elem.get(1);
 		regen_suite(finfo, body, true);
+		string conditions;
 		if (dimen_slice.fs.CurrentTerm.token == TokenMeta::NT_DIMENSLICE) {
 			// NT_DIMENSLICE
-			string selector;
-			for (int sliceid = 0; sliceid < dimen_slice.child.size(); sliceid++)
-			{
-				ParseNode & from = dimen_slice.get(sliceid).get(0);
-				ParseNode & to = dimen_slice.get(sliceid).get(1);
-				if (sliceid == 0) {
-					sprintf(codegen_buf, "(%s >= %s && %s < %s)", exp.to_string().c_str(), from.to_string().c_str(), exp.to_string().c_str(), to.to_string().c_str());
-				}
-				else {
-					sprintf(codegen_buf, " || (%s >= %s && %s < %s)", exp.to_string().c_str(), from.to_string().c_str(), exp.to_string().c_str(), to.to_string().c_str());
-				}
-				selector += string(codegen_buf);
-			}
-			if (i == 0) {
-				sprintf(codegen_buf, "if(%s){\n%s}\n", selector.c_str(), tabber(body.to_string()).c_str());
-			}
-			else {
-				sprintf(codegen_buf, "else if(%s){\n%s}\n", selector.c_str(), tabber(body.to_string()).c_str());
-			}
+			conditions = make_str_list(dimen_slice.child.begin(), dimen_slice.child.end(), [&](auto px) {
+				ParseNode & x = *px;
+				ParseNode & from = x.get(0);
+				ParseNode & to = x.get(1);
+				sprintf(codegen_buf, "(%s >= %s && %s < %s)", exp.to_string().c_str(), from.to_string().c_str(), exp.to_string().c_str(), to.to_string().c_str());
+				return string(codegen_buf);
+			}, "||");
 		}
 		else {
 			// NT_ARGTABLE_PURE
-			string selector = "";
-			if (i == 0) {
-				selector = "if(";
-				sprintf(codegen_buf, "if(%s == %s){\n%s}\n", exp.to_string().c_str(), dimen_slice.get(0).to_string().c_str(), tabber(body.to_string()).c_str());
-			}
-			else {
-				selector = "else if(";
-				sprintf(codegen_buf, "else if(%s == %s){\n%s}\n", exp.to_string().c_str(), dimen_slice.get(0).to_string().c_str(), tabber(body.to_string()).c_str());
-			}
-			for (int j = 0; j < dimen_slice.child.size(); j++)
-			{
-				if (j == 0) {
-					sprintf(codegen_buf, "%s == %s", exp.to_string().c_str(), dimen_slice.get(j).to_string().c_str());
-				}
-				else {
-					sprintf(codegen_buf, "|| (%s == %s)", exp.to_string().c_str(), dimen_slice.child[j]->to_string().c_str());
-				}
-				selector += codegen_buf;
-			}
-			sprintf(codegen_buf, "){\n%s}\n", tabber(case_stmt_elem.get(1).to_string()).c_str());
-			selector += codegen_buf;
-			sprintf(codegen_buf, "%s", selector.c_str());
+			conditions = make_str_list(dimen_slice.child.begin(), dimen_slice.child.end(), [&](auto px) {
+				ParseNode & x = *px;
+				sprintf(codegen_buf, "%s == %s", exp.to_string().c_str(), x.to_string().c_str());
+				return string(codegen_buf);
+			}, "||");
 		}
-		select_stmt.fs.CurrentTerm.what += codegen_buf;
+		if (i == 0) {
+			sprintf(codegen_buf, "if(%s){\n%s}\n", conditions.c_str(), tabber(body.to_string()).c_str());
+		}
+		else {
+			sprintf(codegen_buf, "else if(%s){\n%s}\n", conditions.c_str(), tabber(body.to_string()).c_str());
+		}
+		select_stmt.fs.CurrentTerm.what += string(codegen_buf);
 	}
 }

@@ -304,19 +304,34 @@ std::string parse_ioformatter(const std::string & src) {
 		case '\\':
 			add_crlf_at_end = false;
 		case '\"':
+			descriptor = "";
 			for (i++; i < src.size() && src[i] != '\"'; i++)
 			{
 				if (src[i] != '\'') {
-					rt += src[i];
+					descriptor += src[i];
 				}
 			}
+			if (!instant_defined)
+			{
+				repeat.push_back(1);
+			}
+			stat = 1;
+			instant_defined = false;
+			break;
 		case '\'':
+			descriptor = "";
 			for (i++; i < src.size() && src[i] != '\''; i++)
 			{
 				if (src[i] != '\"') {
-					rt += src[i];
+					descriptor += src[i];
 				}
 			}
+			if (!instant_defined)
+			{
+				repeat.push_back(1);
+			}
+			stat = 1;
+			instant_defined = false;
 			break;
 		case '\n':
 		{

@@ -220,7 +220,7 @@ std::map<int, std::string> IntentName = {
 	,{ -1003, "Label" }
 	,{ -1004, "Sharp" }
 	,{ -1005, "EndOfScan" }
-	,{ -1006, "End" }
+	,{ -1006, "QuitProgram" }
 	,{ -1007, "Error" }
 	,{ -1008, "Comments" }
 	,{ -1009, "CommentsEnd" }

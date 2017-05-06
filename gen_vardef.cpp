@@ -86,7 +86,7 @@ std::string gen_vardef_array_str(FunctionInfo * finfo, VariableInfo * vinfo, Par
 		arr_decl += string(codegen_buf);
 		ParseNode & arraybuilder = entity_variable.get(1); // NT_ARRAYBUILDER
 		regen_arraybuilder(finfo, arraybuilder);
-		sprintf(codegen_buf, "%s = %s", alias_name.c_str(), arraybuilder.fs.CurrentTerm.what.c_str());
+		sprintf(codegen_buf, "%s = %s", alias_name.c_str(), arraybuilder.to_string().c_str());
 		arr_decl += string(codegen_buf);
 	}
 	entity_variable.setattr(new VariableAttr(vinfo));
@@ -99,15 +99,15 @@ std::string get_variable_name(const ParseNode & entity_variable) {
 	if (is_function_array(entity_variable))
 	{
 		// entity_variable_name->child[0] has subobject designator like `A(0,1,2)`
-		return entity_variable_name.get(0).get(0).fs.CurrentTerm.what;
+		return entity_variable_name.get(0).get(0).to_string();
 	}
 	else if (entity_variable_name.child.size() == 3 && entity_variable_name.get(1).to_string() == "*") {
 		// character a*1
-		return entity_variable_name.get(0).fs.CurrentTerm.what;
+		return entity_variable_name.get(0).to_string();
 	}
 	else {
 		// entity_variable_name->child[0] is like `A`
-		return entity_variable_name.fs.CurrentTerm.what;
+		return entity_variable_name.to_string();
 	}
 }
 
@@ -127,9 +127,10 @@ std::string gen_vardef_scalar_str(FunctionInfo * finfo, VariableInfo * vinfo, Pa
 	return var_decl;
 }
 
-ParseNode gen_vardef_from_implicit(ARG_IN type, std::string name) {
+ParseNode gen_vardef_from_default(ARG_IN type, std::string name) {
 	ParseNode newnode = gen_token(Term{ TokenMeta::NT_VARIABLEDEFINE, name });
-	newnode.addlist(type, gen_token(Term{ TokenMeta::NT_VARIABLEDESC, "NT_VARIABLEDESC" }) // variable_desc
+	newnode.addlist(type // type
+		, gen_token(Term{ TokenMeta::NT_VARIABLEDESC, "NT_VARIABLEDESC" }) // variable_desc with default desc
 		, gen_keyvalue_from_name(name) // variable_entity
 	);
 	return newnode;
@@ -152,9 +153,12 @@ void regen_vardef(FunctionInfo * finfo, VariableInfo * vinfo, ARG_OUT type_nospe
 	string var_decl = ""; 
 	bool do_arr = desc.slice.is_initialized();
 	string type_str;
-	if (type_nospec.fs.CurrentTerm.what == "")
+	// entity_variable is NT_VARIABLEINITIAL
+	if (type_nospec.to_string() == "")
 	{
-		type_nospec.fs.CurrentTerm.what = gen_implicit_type(get_variable_name(entity_variable)).fs.CurrentTerm.what;
+		// if type is implicit
+		// 注意隐式类型和隐式声明含义不一样，隐式类型则类型从变量名推导，隐式声明则与`implicit none`相对应
+		type_nospec.fs.CurrentTerm.what = gen_implicit_type(get_variable_name(entity_variable)).to_string();
 		type_nospec.setattr(new VariableDescAttr());
 	}
 	if(do_arr){
@@ -163,7 +167,8 @@ void regen_vardef(FunctionInfo * finfo, VariableInfo * vinfo, ARG_OUT type_nospe
 		var_decl += gen_vardef_array_str(finfo, vinfo, entity_variable, type_str, get_lbound_size(desc.slice.get_ptr()));
 		if (vinfo->vardef == nullptr)
 		{
-			vinfo->vardef = new ParseNode(gen_vardef_from_implicit(vinfo->type, vinfo->local_name));
+			// considered to be implicit defined
+			vinfo->vardef = new ParseNode(gen_vardef_from_default(vinfo->type, vinfo->local_name));
 		}
 		else {
 		}
@@ -174,9 +179,11 @@ void regen_vardef(FunctionInfo * finfo, VariableInfo * vinfo, ARG_OUT type_nospe
 		if (is_function_array(entity_variable))
 		{
 			ParseNode & entity_variable_name = entity_variable.get(0);
+			// add slice attribute to vardescattr.desc
 			ParseNode & argtable = entity_variable_name.get(1);
+			desc.slice = argtable;
+			// get slice info
 			std::tuple<std::vector<int>, std::vector<int>> ls = get_lbound_size(&argtable);
-			desc.slice = argtable; // add slice attribute to vardescattr.desc
 			type_str = gen_qualified_typestr(type_nospec, desc);
 			var_decl = gen_vardef_array_str(finfo, vinfo, entity_variable, type_str, ls);
 		}
@@ -186,9 +193,9 @@ void regen_vardef(FunctionInfo * finfo, VariableInfo * vinfo, ARG_OUT type_nospe
 		}
 		if (vinfo->vardef == nullptr)
 		{
-			vinfo->vardef = new ParseNode(gen_vardef_from_implicit(vinfo->type, vinfo->local_name));
-		}
-		else {
+			// considered to be implicit defined
+			print_error("variable not defined: "+ vinfo->local_name );
+			//vinfo->vardef = new ParseNode(gen_vardef_from_default(vinfo->type, vinfo->local_name));
 		}
 		vinfo->vardef->fs.CurrentTerm = Term{ TokenMeta::NT_VARIABLEDEFINE, var_decl };
 	} // end if

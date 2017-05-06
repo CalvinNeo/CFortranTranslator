@@ -112,7 +112,8 @@ VariableInfo * check_implicit_variable(FunctionInfo * finfo, const std::string &
 		vinfo->implicit_defined = true; // set in regen_suite and regen_common
 		vinfo->type = implicit_type; // set in regen_vardef
 		vinfo->entity_variable = gen_keyvalue_from_name(name); // set in regen_vardef
-		vinfo->vardef = nullptr; // set in regen_suite and gen_common
+		ParseNode vardef = gen_vardef_from_default(implicit_type, name);
+		vinfo->vardef = new ParseNode(vardef); // set in regen_suite and gen_common
 	}
 	return vinfo;
 }
