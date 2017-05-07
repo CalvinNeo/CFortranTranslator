@@ -1,3 +1,2 @@
-program
-	read *, x
-end program
+a = 4
+read *, vvvv

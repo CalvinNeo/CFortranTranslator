@@ -25,17 +25,17 @@ std::string regen_paramtable(const vector<tuple<string, ParseNode, ParseNode *>>
 	paramtblstr = make_str_list(paramtable_info.begin(), paramtable_info.end() - 1/* exclude return value */, [&](const tuple<string, ParseNode, ParseNode *> & param) -> std::string {
 		string name = get<0>(param);
 		const ParseNode & type = get<1>(param);
-		ParseNode * vardef = get<2>(param);
-		if (vardef == nullptr) {
+		ParseNode * vardef_node = get<2>(param);
+		if (vardef_node == nullptr) {
 			print_error("Error when trying to find variable/function " + name);
 			return string("ERROR");
 		}
 		std::string typestr;
-		if (type.fs.CurrentTerm.token == TokenMeta::Function_Decl) {
+		if (type.get_token() == TokenMeta::Function_Decl) {
 			typestr = type.to_string();
 		}
 		else {
-			VariableDesc desc = get_variabledesc_attr(*vardef);
+			VariableDesc desc = get_variabledesc_attr(*vardef_node);
 			typestr = gen_qualified_typestr(type, desc);
 		}
 		sprintf(codegen_buf, "%s %s", typestr.c_str(), name.c_str());
@@ -59,13 +59,13 @@ void get_full_paramtable(FunctionInfo * finfo, bool is_subroutine) {
 
 		if(vinfo != nullptr) // definition in suite
 		{
-			ParseNode * vardef = vinfo->vardef;
-			if (vinfo->type.fs.CurrentTerm.token == TokenMeta::Function_Decl) {
+			ParseNode * vardef_node = vinfo->vardef_node;
+			if (vinfo->type.get_token() == TokenMeta::Function_Decl) {
 				// function declared in an interface block
 				FunctionInfo * interface_finfo = add_function("@", "", FunctionInfo{});
-				regen_function(interface_finfo, *vardef); // regen interface function
-				if (vardef->attr != nullptr) {
-					FunctionAttr * interface_attr = dynamic_cast<FunctionAttr *>(vardef->attr);
+				regen_function(interface_finfo, *vardef_node); // regen interface function
+				if (vardef_node->attr != nullptr) {
+					FunctionAttr * interface_attr = dynamic_cast<FunctionAttr *>(vardef_node->attr);
 					vector<tuple<string, ParseNode, ParseNode *>> & interface_paramtable_info = interface_attr->finfoptr->funcdesc.paramtable_info;
 					string interface_paramtable_str = regen_paramtable(interface_paramtable_info);
 					sprintf(codegen_buf, "std::function<%s(%s)>", get<1>(interface_paramtable_info.back()).to_string().c_str(), interface_paramtable_str.c_str());
@@ -73,27 +73,27 @@ void get_full_paramtable(FunctionInfo * finfo, bool is_subroutine) {
 					// set param_info for regen_paramtable
 					vinfo->type = gen_type(Term{ TokenMeta::Function_Decl, string(codegen_buf) });
 					param_type = vinfo->type;
-					param_vardef = vardef;
+					param_vardef = vardef_node;
 					if (i != paramtable_info.size() - 1) {
 						/* `delete` ParseNode except return value */
-						vardef->fs.CurrentTerm.token = TokenMeta::NT_DECLAREDVARIABLE;
+						vardef_node->get_token() = TokenMeta::NT_DECLAREDVARIABLE;
 						vinfo->declared = true;
 					}
 				}
 				else {
-					print_error("Invalid interface: " + vardef->fs.CurrentTerm.what);
+					print_error("Invalid interface: " + vardef_node->fs.CurrentTerm.what);
 				}
 			}else {
 				// variable
-				ParseNode & entity_variable = vardef->get(2);
+				ParseNode & entity_variable = vardef_node->get(2);
 				ParseNode & initial = entity_variable.get(1);
 
 				// set param_info for regen_paramtable
-				param_type = vardef->get(0); // type_nospec
-				param_vardef = vardef; // variable ParseNode
+				param_type = vardef_node->get(0); // type_nospec
+				param_vardef = vardef_node; // variable ParseNode
 				if (i != paramtable_info.size() - 1) {
 					/* `delete` ParseNode except return value */
-					vardef->fs.CurrentTerm.token = TokenMeta::NT_DECLAREDVARIABLE;
+					vardef_node->get_token() = TokenMeta::NT_DECLAREDVARIABLE;
 					vinfo->declared = true;
 				}
 			}
@@ -121,7 +121,7 @@ void regen_function(FunctionInfo * finfo, ARG_OUT functiondecl_node) {
 	ParseNode & variable_result = functiondecl_node.get(3);
 	ParseNode & suite = functiondecl_node.get(4);
 	ParseNode & oldsuite = suite;
-	bool is_subroutine = variable_result.fs.CurrentTerm.what == "";
+	bool is_subroutine = variable_result.to_string() == "";
 	
 	// regen_suite
 	regen_suite(finfo, oldsuite); 	
@@ -155,12 +155,12 @@ void regen_function(FunctionInfo * finfo, ARG_OUT functiondecl_node) {
 		, tabber(oldsuite.to_string()).c_str() // code
 		, (is_subroutine ? "" : variable_result.to_string().c_str()) // add return stmt if not function
 	);
-	functiondecl_node.fs.CurrentTerm.what = string(codegen_buf);
+	functiondecl_node.get_what() = string(codegen_buf);
 
 	// log function and set attr 
 	functiondecl_node.setattr(new FunctionAttr(finfo));
 
 	// cleaning
-	insert_temporary_variables("@", variable_function.fs.CurrentTerm.what);
+	insert_temporary_variables("@", variable_function.to_string());
 	return ;
 }

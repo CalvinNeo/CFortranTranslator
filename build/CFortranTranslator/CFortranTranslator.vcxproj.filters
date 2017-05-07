@@ -77,9 +77,6 @@
     <ClCompile Include="..\..\gen_callable.cpp">
       <Filter>target90</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\gen_stmt_suite.cpp">
-      <Filter>target90</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\gen_type.cpp">
       <Filter>target90</Filter>
     </ClCompile>
@@ -139,6 +136,12 @@
       <Filter>grammar</Filter>
     </ClCompile>
     <ClCompile Include="..\..\gen_feature.cpp">
+      <Filter>target90</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\gen_stmt.cpp">
+      <Filter>target90</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\gen_suite.cpp">
       <Filter>target90</Filter>
     </ClCompile>
   </ItemGroup>

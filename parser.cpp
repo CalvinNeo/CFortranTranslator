@@ -52,7 +52,7 @@ const ParseNode & ParseNode::const_get(int child_index) const {
 ParseNode::~ParseNode()
 {
 	delete attr;
-	for (int i = 0; i < child.size(); i++)
+	for (int i = 0; i < length(); i++)
 	{
 		delete child[i];
 	}
@@ -62,7 +62,7 @@ ParseNode::ParseNode(const ParseNode & pn)
 	this->fs = pn.fs;
 	this->father = pn.father;
 	this->attr = (pn.attr == nullptr ? nullptr: pn.attr->clone());
-	for (int i = 0; i < pn.child.size(); i++)
+	for (int i = 0; i < pn.length(); i++)
 	{
 		if (pn.child[i] != nullptr) {
 			this->addchild(pn.get(i));
@@ -79,7 +79,7 @@ ParseNode & ParseNode::operator= (const ParseNode & pn) {
 	}
 	else {
 		delete this->attr;
-		for (int i = 0; i < child.size(); i++)
+		for (int i = 0; i < length(); i++)
 		{
 			delete child[i];
 		}
@@ -88,7 +88,7 @@ ParseNode & ParseNode::operator= (const ParseNode & pn) {
 		this->fs = pn.fs;
 		this->father = pn.father;
 		this->attr = (pn.attr == nullptr ? nullptr : pn.attr->clone());
-		for (int i = 0; i < pn.child.size(); i++)
+		for (int i = 0; i < pn.length(); i++)
 		{
 			this->addchild(pn.get(i));
 		}
@@ -129,12 +129,12 @@ void preorder(ParseNode * ptree) {
 		p = s.top().first;
 		int deep = s.top().second;
 		s.pop();
-		if (p->child.size()==0) {
-			cout << string(deep * 2, ' ') << p->fs.CurrentTerm.token << ", " << "TERMINAL " << p->fs.CurrentTerm.what << endl;
+		if (p->length()==0) {
+			cout << string(deep * 2, ' ') << p->get_token() << ", " << "TERMINAL " << p->fs.CurrentTerm.what << endl;
 		}
 		else {
-			cout << string(deep * 2, ' ') << p->fs.CurrentTerm.token << ", " << p->fs.CurrentTerm.what << endl;
-			for (int/*must be int, not size_t*/ i = p->child.size() - 1; i >= 0; i--)
+			cout << string(deep * 2, ' ') << p->get_token() << ", " << p->fs.CurrentTerm.what << endl;
+			for (int/*must be int, not size_t*/ i = p->length() - 1; i >= 0; i--)
 			{
 				s.push(make_pair(p->child[i], deep + 1));
 			}
@@ -220,7 +220,7 @@ void print_error(const std::string & error_info, const ParseNode & yylval) {
 	printf("\nError : %s\n", error_info.c_str());
 	printf("(line %d:%d, index = %d, len = %d), current token is %s(id = %d) : \"%s\" \n"
 		, get_flex_state().parse_line + 1, get_flex_state().line_pos, get_flex_state().parse_pos, get_flex_state().parse_len
-		, get_intent_name(yylval.fs.CurrentTerm.token).c_str(), yylval.fs.CurrentTerm.token, yylval.fs.CurrentTerm.what.c_str());
+		, get_intent_name(yylval.get_token()).c_str(), yylval.get_token(), yylval.to_string().c_str());
 	char buf[255];
 	const int extend_length = 20; // print `length * 2 + len(parse_len)` context characters if possible
 	int error_start = get_flex_state().parse_pos - get_flex_state().parse_len;
@@ -253,5 +253,6 @@ void print_error(const std::string & error_info) {
 }
 void fatal_error(const std::string & error_info) {
 	using namespace std;
+	printf("\nFatal : %s\n", error_info.c_str());
 }
 

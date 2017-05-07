@@ -54,7 +54,7 @@ void promote_type(ARG_OUT type_nospec, VariableDesc & vardesc) {
 	/* merge type_spec and variable_desc attr */
 	vardesc.merge(dynamic_cast<VariableDescAttr *>(type_nospec.attr)->desc);
 	if (vardesc.kind.isdirty()) {
-		if (type_nospec.fs.CurrentTerm.token == TokenMeta::Int_Decl) {
+		if (type_nospec.get_token() == TokenMeta::Int_Decl) {
 			if (vardesc.kind == 1) {
 				type_nospec.fs.CurrentTerm = Term{ TokenMeta::Int8_Decl, "int8_t" };
 			}
@@ -68,7 +68,7 @@ void promote_type(ARG_OUT type_nospec, VariableDesc & vardesc) {
 				type_nospec.fs.CurrentTerm = Term{ TokenMeta::Int64_Decl, "int64_t" };
 			}
 		}
-		else if (type_nospec.fs.CurrentTerm.token == TokenMeta::Float_Decl) {
+		else if (type_nospec.get_token() == TokenMeta::Float_Decl) {
 			if (vardesc.kind < 4) {
 				type_nospec.fs.CurrentTerm = Term{ TokenMeta::Float_Decl, "float" };
 			}
@@ -116,7 +116,7 @@ std::string gen_qualified_typestr(ARG_IN type_nospec, VariableDesc & vardesc) {
 			}
 		}
 	}
-	string name = type_spec.fs.CurrentTerm.what;
+	string name = type_spec.get_what();
 	if (vardesc.slice.is_initialized())
 	{
 		// if is array
@@ -127,7 +127,7 @@ std::string gen_qualified_typestr(ARG_IN type_nospec, VariableDesc & vardesc) {
 		else {
 			sprintf(codegen_buf, "for1array<%s>", name.c_str());
 			name = string(codegen_buf);
-			for (int sliceid = vardesc.slice.value().child.size() - 2; sliceid >= 0; sliceid--)
+			for (int sliceid = vardesc.slice.value().length() - 2; sliceid >= 0; sliceid--)
 			{
 				sprintf(codegen_buf, "for1array<%s>", name.c_str());
 				name = string(codegen_buf);

@@ -22,7 +22,7 @@
 void regen_do(FunctionInfo * finfo, ARG_OUT do_stmt) {
 	ParseNode & suite = do_stmt.get(0);
 	regen_suite(finfo, suite, true);
-	sprintf(codegen_buf, "do{\n%s}", tabber(suite.to_string()).c_str());
+	sprintf(codegen_buf, "do{\n%s}", tabber(suite.get_what()).c_str());
 	do_stmt.fs.CurrentTerm = Term{ TokenMeta::NT_DO, string(codegen_buf) };
 }
 
@@ -33,9 +33,10 @@ void regen_do_range(FunctionInfo * finfo, ARG_OUT do_stmt){
 	ARG_IN exp3 = do_stmt.get(3);
 	ParseNode & suite = do_stmt.get(4);
 	regen_suite(finfo, suite, true);
-	sprintf(codegen_buf, "for(%s = %s; %s <= %s; %s += %s){\n%s}", loop_variable.to_string().c_str(), exp1.to_string().c_str()
-		, loop_variable.to_string().c_str(), exp2.to_string().c_str()
-		, loop_variable.to_string().c_str(), exp3.to_string().c_str(), tabber(suite.to_string()).c_str());
+	sprintf(codegen_buf, "for(%s = %s; %s <= %s; %s += %s){\n%s}"
+		, loop_variable.get_what().c_str(), exp1.get_what().c_str()
+		, loop_variable.get_what().c_str(), exp2.get_what().c_str()
+		, loop_variable.get_what().c_str(), exp3.get_what().c_str(), tabber(suite.get_what()).c_str());
 	do_stmt.fs.CurrentTerm = Term{ TokenMeta::NT_DORANGE, string(codegen_buf) };
 }
 
@@ -43,17 +44,17 @@ void regen_do_while(FunctionInfo * finfo, ARG_OUT do_stmt) {
 	ARG_IN exp = do_stmt.get(0);
 	ParseNode & suite = do_stmt.get(1);
 	regen_suite(finfo, suite, true);
-	sprintf(codegen_buf, "while(%s){\n%s}", exp.to_string().c_str(), tabber(suite.to_string()).c_str());
+	sprintf(codegen_buf, "while(%s){\n%s}", exp.get_what().c_str(), tabber(suite.get_what()).c_str());
 	do_stmt.fs.CurrentTerm = Term{ TokenMeta::NT_WHILE, string(codegen_buf) };
 }
 
 std::vector<const ParseNode *> gen_nested_hiddendo_layers_from_exp(ARG_IN hiddendo) {
 	std::vector<const ParseNode *> hiddendo_layer;
 	const ParseNode * pn = &hiddendo;
-	while (pn->fs.CurrentTerm.token == TokenMeta::NT_HIDDENDO) {
+	while (pn->get_token() == TokenMeta::NT_HIDDENDO) {
 		hiddendo_layer.push_back(pn);
-		if (pn->child.size() > 0 && pn->get(0).child.size() > 0) {
-			pn = pn->child[0]/*NT_EXPRESSION*/->child[0]/*NT_HIDDENDO*/;
+		if (pn->length() > 0 && pn->get(0).length() > 0) {
+			pn = &pn->get(0)/*NT_HIDDENDO*/;
 		}
 		else {
 			break;
@@ -64,10 +65,10 @@ std::vector<const ParseNode *> gen_nested_hiddendo_layers_from_exp(ARG_IN hidden
 std::vector<const ParseNode *> gen_nested_hiddendo_layers(ARG_IN hiddendo) {
 	std::vector<const ParseNode *> hiddendo_layer;
 	const ParseNode * pn = &hiddendo;
-	while (pn->fs.CurrentTerm.token == TokenMeta::NT_HIDDENDO) {
+	while (pn->get_token() == TokenMeta::NT_HIDDENDO) {
 		hiddendo_layer.push_back(pn);
-		if (pn->child.size() > 0 && pn->get(0).child.size() > 0 && pn->get(0).get(0).child.size() > 0) {
-			pn = &pn->get(0)/*NT_ARGTABLE_PURE*/.get(0)/*NT_EXPRESSION*/.get(0)/*NT_HIDDENDO*/;
+		if (pn->length() > 0 && pn->get(0).length() > 0 && pn->get(0).get(0).length() > 0) {
+			pn = &pn->get(0)/*NT_ARGTABLE_PURE*/.get(0)/*NT_HIDDENDO*/;
 		}
 		else {
 			break;
@@ -77,13 +78,17 @@ std::vector<const ParseNode *> gen_nested_hiddendo_layers(ARG_IN hiddendo) {
 }
 
 std::string gen_hiddendo_expr(ARG_IN hiddendo) {
+	/* translate hidden do to an expression */
 	if (get_context().parse_config.usefarray)
 	{
 		std::vector<const ParseNode *> hiddendo_layer = gen_nested_hiddendo_layers(hiddendo);
-		string lb_str = make_str_list(hiddendo_layer.begin(), hiddendo_layer.end(), [](auto x)->string {return (x)->get(2).to_string(); });
-		string ub_str = make_str_list(hiddendo_layer.begin(), hiddendo_layer.end(), [](auto x)->string {return (x)->get(3).to_string(); });
-		string indexer_str = make_str_list(hiddendo_layer.begin(), hiddendo_layer.end(), [](auto x)->string {return "fsize_t " + (x)->get(1).to_string(); });
-		sprintf(codegen_buf, "[](%s){return %s;}", indexer_str.c_str(), hiddendo_layer[hiddendo_layer.size() - 1]->get(0).to_string().c_str());
+		string lb_str = make_str_list(hiddendo_layer.begin(), hiddendo_layer.end(), [](auto x)->string {return (x)->get(2).get_what(); });
+		string ub_str = make_str_list(hiddendo_layer.begin(), hiddendo_layer.end(), [](auto x)->string {return (x)->get(3).get_what(); });
+		string indexer_str = make_str_list(hiddendo_layer.begin(), hiddendo_layer.end(), [](auto x)->string {return "fsize_t " + (x)->get(1).get_what(); });
+		
+		sprintf(codegen_buf, "return %s;", hiddendo_layer[hiddendo_layer.size() - 1]->get(0).get_what().c_str());
+		string body1 = string(codegen_buf);
+		sprintf(codegen_buf, "[](%s){\n%s\n}", indexer_str.c_str(), tabber(body1).c_str());
 		string lambda = string(codegen_buf);
 		int j = 0;
 		string args = make_str_list(hiddendo_layer.begin(), hiddendo_layer.end(), [&](auto x) {
@@ -92,38 +97,48 @@ std::string gen_hiddendo_expr(ARG_IN hiddendo) {
 		}, ", ");
 
 		// map array to parameter
-		sprintf(codegen_buf, "[](const fsize_t * current){return %s(%s);}", lambda.c_str(), args.c_str());
+		sprintf(codegen_buf, "return %s(%s);", tabber(lambda).c_str(), args.c_str());
+		string body2 = string(codegen_buf);
+		sprintf(codegen_buf, "[](const fsize_t * current){\n%s\n}", tabber(body2).c_str());
 		return string(codegen_buf);
+		/**************************************
+		*	A a; B b; C c;
+		*	auto result = [](const fsize_t * current) {
+		*		return [](A a, B b, C c){
+		*			// ac/data/io-implied-do-control
+		*		}(current[0], current[1], ...);
+		*	}
+		*	({a, b, c}) // call with args
+		****************************************/
 	}
 	else {
 		ARG_IN exp = hiddendo.get(0);
 		ARG_IN index = hiddendo.get(1);
 		ARG_IN from = hiddendo.get(2);
 		ARG_IN to = hiddendo.get(3);
-		sprintf(codegen_buf, "[](int %s){return %s ;}", index.to_string().c_str(), exp.to_string().c_str());
+		sprintf(codegen_buf, "[](int %s){return %s ;}", index.get_what().c_str(), exp.get_what().c_str());
 		string str_lambda_body = string(codegen_buf);
-		sprintf(codegen_buf, "f1a_init_hiddendo(%s, %s, %s)", from.to_string().c_str(), to.to_string().c_str(), str_lambda_body.c_str());
+		sprintf(codegen_buf, "f1a_init_hiddendo(%s, %s, %s)", from.get_what().c_str(), to.get_what().c_str(), str_lambda_body.c_str());
 		return string(codegen_buf);
 	}
 }
 
 ParseNode gen_hiddendo(ARG_IN argtable, ARG_IN index, ARG_IN from, ARG_IN to, TokenMeta_T return_token) {
-	/* give generate stmt */
+	/* expand hidden do to a for construct */
 	ParseNode newnode = gen_token(Term{ TokenMeta::NT_HIDDENDO, "" });
 	newnode.addlist(argtable, index, from, to);
 	std::string stuff;
-	for (auto iter = argtable.child.begin(); iter < argtable.child.end(); iter++)
-	{
-		if ((*iter)->get(0).fs.CurrentTerm.token == TokenMeta::NT_HIDDENDO)
+
+	stuff = make_str_list(argtable.child.begin(), argtable.child.end(), [&](ParseNode * iter) {
+		if (iter->length() > 0 && (iter)->get(0).get_token() == TokenMeta::NT_HIDDENDO)
 		{
-			stuff += (*iter)->to_string();
+			return (iter)->to_string();
 		}
 		else {
-			stuff += (*iter)->to_string();
-			stuff += ";";
+			return (iter)->to_string() + ";";
 		}
-	}
-	sprintf(codegen_buf, "for(int %s = %s; %s <= %s; %s++){\n%s}", index.to_string().c_str(), from.to_string().c_str(), index.to_string().c_str(), to.to_string().c_str(), index.to_string().c_str(), tabber(stuff).c_str());
+	}, "");
+	sprintf(codegen_buf, "for(int %s = %s; %s <= %s; %s++){\n%s}", index.get_what().c_str(), from.get_what().c_str(), index.get_what().c_str(), to.get_what().c_str(), index.get_what().c_str(), tabber(stuff).c_str());
 	newnode.fs.CurrentTerm = Term{ TokenMeta::NT_HIDDENDO, string(codegen_buf) };
 	return newnode;
 }

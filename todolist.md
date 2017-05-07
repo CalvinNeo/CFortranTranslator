@@ -19,7 +19,7 @@
 - ~~enable crlf rule~~(may cause bugs)
 - ~~mixed array_builder~~
 - ~~more specific type(char, int, long long)~~
-- type stmt
+- derived type stmt(4.4.1)
 - ~~comments~~
 - ~~one-line if~~
 - ~~error infomation include Intent name~~
@@ -43,6 +43,8 @@
 - `exit`, `cycle` outer do-loop
 - detailed type attr(add TokenMeta::Int64, etc.), use TokenMeta::Implicit_Decl, clean TokenMeta
 - unicode file
+- underscore kind-param for all type literal(ref 4.3.2.1)
+- display comments
 
 ## todolist(bugfix)
 - ~~if slice can be a scalar x and equal to (1: x + 1), there will be conflict in argtable~~
@@ -63,7 +65,8 @@
 - global attr and node attr
 - ~~add arraybuilder rule to exp rules~~
 - ~~use `make_str_list` function replace some ugly code~~
-- hidden do with a list of variables
+- hidden do(io-implied-do, ac-implied-do, data-implied-do)
+    尝试作为用lambda表达式包起来求值，然后作为farray传给write作为参数
 - ~~pointer problem, including `VariableDesc::slice`, deal with nullptr~~
 - ~~`ParseNode` inteface change to reference, remove pointer in other structures~~
 - implicit paramtable
@@ -76,3 +79,5 @@
 - ~~`regen_if`, `regen_do`, `regen_suite`~~
 - delete all `gen_` functions except `gen_token` with multiple which accepts a list of `YYSTYPE`
 - log all arguments in paramtable to `get_context.variable`
+- use `is_exp` function instead of `NT_EXPRESSION` node. rename `NT_EXPRESSION` to `NT_ARITH_EXP`, which contructed only by in arithmatic
+- declare all implicit variables (ref demos/implicit variable.txt)

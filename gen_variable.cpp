@@ -32,7 +32,7 @@
 ParseNode gen_common(ARG_IN commonname_node, ARG_IN paramtable) {
 	// the unique blank COMMON block must be declared in the main program.
 	ParseNode kvparamtable = promote_argtable_to_paramtable(paramtable);
-	string common_name = commonname_node.fs.CurrentTerm.what;
+	string common_name = commonname_node.get_what();
 	auto common_info = get_context().commonblocks.find(common_name);
 	if (common_info == get_context().commonblocks.end()) {
 		// add common block to context
@@ -47,14 +47,14 @@ ParseNode gen_common(ARG_IN commonname_node, ARG_IN paramtable) {
 void regen_common(FunctionInfo * finfo, ARG_OUT common_block) {
 	ParseNode & commonname_node = common_block.get(0);
 	ParseNode & kvparamtable = common_block.get(1);
-	string common_name = commonname_node.fs.CurrentTerm.what;
+	string common_name = commonname_node.get_what();
 	auto common_info = get_context().commonblocks.find(common_name);
 	if (common_info == get_context().commonblocks.end())
 	{
 		print_error("Error Common Block");
 	}
 	bool new_common = (common_info->second.variables.size() == 0);
-	for (int i = 0; i < (int)kvparamtable.child.size(); i++)
+	for (int i = 0; i < (int)kvparamtable.length(); i++)
 	{
 		ParseNode & entity_variable = kvparamtable.get(i);
 		std::string local_varname = get_variable_name(entity_variable);
@@ -112,8 +112,8 @@ VariableInfo * check_implicit_variable(FunctionInfo * finfo, const std::string &
 		vinfo->implicit_defined = true; // set in regen_suite and regen_common
 		vinfo->type = implicit_type; // set in regen_vardef
 		vinfo->entity_variable = gen_keyvalue_from_name(name); // set in regen_vardef
-		ParseNode vardef = gen_vardef_from_default(implicit_type, name);
-		vinfo->vardef = new ParseNode(vardef); // set in regen_suite and gen_common
+		ParseNode vardef_node = gen_vardef_from_default(implicit_type, name);
+		vinfo->vardef_node = new ParseNode(vardef_node); // set in regen_suite and gen_common
 	}
 	return vinfo;
 }

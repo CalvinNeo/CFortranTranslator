@@ -19,43 +19,46 @@
 #include "gen_common.h"
 
 void regen_exp(FunctionInfo * finfo, ARG_OUT exp) {
-	if (exp.child.size() == 2)
+	if (exp.get_token() == TokenMeta::NT_EXPRESSION)
 	{
-		// unary op
-		regen_exp(finfo, exp.get(0));
-	}
-	else if (exp.child.size() == 3) {
-		// binary op
-		regen_exp(finfo, exp.get(0));
-		regen_exp(finfo, exp.get(1));
-	}
-	else if (exp.child.size() == 1)	{
-		// function_array, array_builder, hidden_do
-		ParseNode & elem = exp.get(0);
-		switch (elem.fs.CurrentTerm.token)
+		if (exp.length() == 2)
 		{
-		case TokenMeta::NT_FUCNTIONARRAY:
-			break;
-		case TokenMeta::NT_HIDDENDO:
-			break;
-		case TokenMeta::NT_ARRAYBUILDER:
-			break;
-		default:
-			print_error("error exp: ", exp);
-			break;
+			// unary op
+			regen_exp(finfo, exp.get(0));
 		}
-	}
-	else if(exp.child.size() == 0){
-		// literal, variable
-		if (TokenMeta::isliteral(exp.fs.CurrentTerm.token))
-		{
+		else if (exp.length() == 3) {
+			// binary op
+			regen_exp(finfo, exp.get(0));
+			regen_exp(finfo, exp.get(1));
+		}
+		else if (exp.length() == 1) {
+			// function_array, array_builder, hidden_do
+			ParseNode & elem = exp.get(0);
+			switch (elem.get_token())
+			{
+			case TokenMeta::NT_FUCNTIONARRAY:
+				break;
+			case TokenMeta::NT_HIDDENDO:
+				break;
+			case TokenMeta::NT_ARRAYBUILDER:
+				break;
+			default:
+				print_error("error exp: ", exp);
+				break;
+			}
+		}
+		else if (exp.length() == 0) {
+			// literal, variable
+			if (TokenMeta::isliteral(exp.get_token()))
+			{
 
+			}
+			else {
+				check_implicit_variable(finfo, exp.to_string());
+			}
 		}
 		else {
-			check_implicit_variable(finfo, exp.to_string());
+			print_error("error exp: ", exp);
 		}
-	}
-	else {
-		print_error("error exp: ", exp);
 	}
 }

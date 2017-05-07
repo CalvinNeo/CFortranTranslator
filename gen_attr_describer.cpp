@@ -38,9 +38,9 @@ VariableDesc & get_variabledesc_attr(ParseNode & vardescattr_node) {
 
 ParseNode gen_variabledesc_from_dimenslice(ARG_IN dimen_slice) {
 	ParseNode dimen = dimen_slice;
-	for (int sliceid = 0; sliceid < dimen.child.size(); sliceid++)
+	for (int sliceid = 0; sliceid < dimen.length(); sliceid++)
 	{
-		if (dimen.get(sliceid).fs.CurrentTerm.token == TokenMeta::NT_SLICE) {
+		if (dimen.get(sliceid).get_token() == TokenMeta::NT_SLICE) {
 
 		}
 		else {
@@ -48,8 +48,8 @@ ParseNode gen_variabledesc_from_dimenslice(ARG_IN dimen_slice) {
 		}
 		sprintf(codegen_buf, "(%s, %s)"
 			/* from, to */
-			, dimen.get(sliceid).get(0).to_string().c_str()
-			, dimen.get(sliceid).get(1).to_string().c_str());
+			, dimen.get(sliceid).get(0).get_what().c_str()
+			, dimen.get(sliceid).get(1).get_what().c_str());
 		dimen.get(sliceid).fs.CurrentTerm = Term{ TokenMeta::NT_VARIABLEDESC, string(codegen_buf) };
 	}
 	return dimen;

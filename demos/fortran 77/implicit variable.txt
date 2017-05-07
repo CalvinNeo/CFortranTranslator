@@ -4,3 +4,5 @@ end subroutine
 function sum(x) result (sum_result)
 	dimension a(10), i(10), j, c
 end function
+a = 4
+read *, vvvv

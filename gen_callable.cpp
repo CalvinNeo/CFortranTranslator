@@ -29,55 +29,55 @@ ParseNode gen_function_array(ARG_IN callable_head, ARG_IN argtable) {
 	string name;
 	string func_header;
 	newnode.addlist(callable_head, argtable);
-	if (funcname_map.find(callable_head.fs.CurrentTerm.what) != funcname_map.end()) {
+	if (funcname_map.find(callable_head.to_string()) != funcname_map.end()) {
 		// some fortran intrinsic function NAME must be replaced with its c++ implementation function NAME in for90std.h
-		name = funcname_map.at(callable_head.fs.CurrentTerm.what);
+		name = funcname_map.at(callable_head.to_string());
 	}
 	else {
-		name = callable_head.fs.CurrentTerm.what;
+		name = callable_head.to_string();
 	}
-	if (argtable.fs.CurrentTerm.token == TokenMeta::NT_DIMENSLICE) {
+	if (argtable.get_token() == TokenMeta::NT_DIMENSLICE) {
 		// array
 		string arr;
 		bool is_slice = false;
-		for (auto i = 0; i < argtable.child.size(); i++)
+		for (auto i = 0; i < argtable.length(); i++)
 		{
-			if (argtable.get(i).fs.CurrentTerm.token == TokenMeta::NT_SLICE) {
+			if (argtable.get(i).get_token() == TokenMeta::NT_SLICE) {
 				is_slice = true;
 				break;
 			}
 		}
 		if (is_slice) {
 			string slice_info_str;
-			for (auto i = 0; i < argtable.child.size(); i++)
+			for (auto i = 0; i < argtable.length(); i++)
 			{
 				if (i != 0) {
 					slice_info_str += ",";
 				}
 				slice_info_str += "{";
-				if (argtable.get(i).fs.CurrentTerm.token == TokenMeta::NT_SLICE) {
+				if (argtable.get(i).get_token() == TokenMeta::NT_SLICE) {
 					ARG_IN slice = argtable.get(i);
 					bool empty_slice = false;
 					int slice_info_arr[] = {1, 1, 1};
-					for (auto j = 0; j < slice.child.size(); j++)
+					for (auto j = 0; j < slice.length(); j++)
 					{
-						if (slice.get(j).fs.CurrentTerm.token == TokenMeta::NT_VARIABLEINITIALDUMMY) {
+						if (slice.get(j).get_token() == TokenMeta::NT_VARIABLEINITIALDUMMY) {
 							// a(:)
 							empty_slice = true;
 							sprintf(codegen_buf, "");
 						}
 						else {
-							sscanf(slice.get(j).fs.CurrentTerm.what.c_str(), "%d", slice_info_arr + j);
+							sscanf(slice.get(j).to_string().c_str(), "%d", slice_info_arr + j);
 						}
 					}
-					if (empty_slice || slice.child.size() == 0) {
+					if (empty_slice || slice.length() == 0) {
 						print_error("Slice can not be empty");
 					}
-					else if (slice.child.size() == 1) {
+					else if (slice.length() == 1) {
 						// a single element, not size
 						sprintf(codegen_buf, "%d", slice_info_arr[0]);
 					}
-					else if (slice.child.size() == 2) {
+					else if (slice.length() == 2) {
 						// forslice accepts lowerbound, size
 						sprintf(codegen_buf, "%d, %d", slice_info_arr[0], slice_info_arr[1]  ); 
 					}
@@ -89,7 +89,7 @@ ParseNode gen_function_array(ARG_IN callable_head, ARG_IN argtable) {
 				}
 				else {
 					// slice like a(1:2, 3, 4)
-					slice_info_str += argtable.get(i).fs.CurrentTerm.what;
+					slice_info_str += argtable.get(i).to_string();
 				}
 				slice_info_str += "}";
 			}
@@ -103,8 +103,8 @@ ParseNode gen_function_array(ARG_IN callable_head, ARG_IN argtable) {
 		}
 		newnode.fs.CurrentTerm = Term{ TokenMeta::NT_FUCNTIONARRAY,  arr };
 	}
-	else if(argtable.fs.CurrentTerm.token == TokenMeta::NT_ARGTABLE_PURE 
-		|| argtable.fs.CurrentTerm.token == TokenMeta::NT_PARAMTABLE_PURE){
+	else if(argtable.get_token() == TokenMeta::NT_ARGTABLE_PURE 
+		|| argtable.get_token() == TokenMeta::NT_PARAMTABLE_PURE){
 		// function call or function call with kwargs
 		func_header += name;
 		auto map_func = get_context().func_kwargs.find(name); // function_name -> args
@@ -112,25 +112,25 @@ ParseNode gen_function_array(ARG_IN callable_head, ARG_IN argtable) {
 		bool kwargs = false;
 		int normal_count = 0; // non kwarg count
 		map<string, string> kws;
-		for (int i = 0; i < argtable.child.size(); i++)
+		for (int i = 0; i < argtable.length(); i++)
 		{
-			if (argtable.get(i).fs.CurrentTerm.token == TokenMeta::NT_KEYVALUE) {
+			if (argtable.get(i).get_token() == TokenMeta::NT_KEYVALUE) {
 				// keyword/named argument
 				//kwargs = true;
 				if (map_func == get_context().func_kwargs.end()) {
 					print_error("invalid kwarg of function " + name, argtable);
 				}
 				else {
-					string argname = argtable.get(i).get(0).fs.CurrentTerm.what;
-					string argvalue = argtable.get(i).get(1).fs.CurrentTerm.what;
+					string argname = argtable.get(i).get(0).to_string();
+					string argvalue = argtable.get(i).get(1).to_string();
 					kws[argname] = argvalue;
 				}
 			}
 			else {
 				// normal argument
 				vector<ParseNode *> args;
-				if (argtable.get(i).fs.CurrentTerm.token == TokenMeta::NT_ARRAYBUILDER) {
-					for (auto j = 0; j < argtable.get(i).child.size(); j++)
+				if (argtable.get(i).get_token() == TokenMeta::NT_ARRAYBUILDER) {
+					for (auto j = 0; j < argtable.get(i).length(); j++)
 					{
 						args.push_back(argtable.get(i).child[j]);
 					}
@@ -149,8 +149,8 @@ ParseNode gen_function_array(ARG_IN callable_head, ARG_IN argtable) {
 						if (i != 0 || j != 0) {
 							func_header += ", ";
 						}
-						if (args[j]->fs.CurrentTerm.token == TokenMeta::NT_ARRAYBUILDER_LAMBDA) {
-							func_header += "{" + args[j]->get(0).fs.CurrentTerm.what + "}";
+						if (args[j]->get_token() == TokenMeta::NT_ARRAYBUILDER_LAMBDA) {
+							func_header += "{" + args[j]->get(0).get_what() + "}";
 						}
 						else {
 							func_header += args[j]->fs.CurrentTerm.what;

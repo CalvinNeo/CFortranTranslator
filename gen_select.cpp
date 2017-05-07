@@ -23,14 +23,14 @@ void regen_select(FunctionInfo * finfo, ARG_OUT select_stmt) {
 	ParseNode & exp = select_stmt.get(0);
 	ParseNode & case_stmt = select_stmt.get(1); 
 	select_stmt.fs.CurrentTerm = Term{ TokenMeta::NT_SELECT, "" };
-	for (size_t i = 0; i < case_stmt.child.size(); i++)
+	for (size_t i = 0; i < case_stmt.length(); i++)
 	{
 		ParseNode & case_stmt_elem = case_stmt.get(i);
 		ParseNode & dimen_slice = case_stmt_elem.get(0);
 		ParseNode & body = case_stmt_elem.get(1);
 		regen_suite(finfo, body, true);
 		string conditions;
-		if (dimen_slice.fs.CurrentTerm.token == TokenMeta::NT_DIMENSLICE) {
+		if (dimen_slice.get_token() == TokenMeta::NT_DIMENSLICE) {
 			// NT_DIMENSLICE
 			conditions = make_str_list(dimen_slice.child.begin(), dimen_slice.child.end(), [&](auto px) {
 				ParseNode & x = *px;
@@ -54,6 +54,6 @@ void regen_select(FunctionInfo * finfo, ARG_OUT select_stmt) {
 		else {
 			sprintf(codegen_buf, "else if(%s){\n%s}\n", conditions.c_str(), tabber(body.to_string()).c_str());
 		}
-		select_stmt.fs.CurrentTerm.what += string(codegen_buf);
+		select_stmt.get_what() += string(codegen_buf);
 	}
 }

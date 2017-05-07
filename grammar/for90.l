@@ -315,8 +315,8 @@ string ({string1}|{string2})
 	DORET(p)
 }
 
-"(/" { int p = operator_parse(yytext, TokenMeta::META_ANY, YY_ARRAYINITIAL_START);  update_flex(); DORET(p) }
-"/)" { int p = operator_parse(yytext, TokenMeta::META_ANY, YY_ARRAYINITIAL_END); update_flex(); DORET(p)  }
+"(/" { int p = operator_parse(yytext, TokenMeta::META_ANY, YY_ARRAYBUILDER_START);  update_flex(); DORET(p) }
+"/)" { int p = operator_parse(yytext, TokenMeta::META_ANY, YY_ARRAYBUILDER_END); update_flex(); DORET(p)  }
 "::" { int p = operator_parse(yytext, TokenMeta::DoubleColon, YY_DOUBLECOLON); update_flex(); DORET(p) }
 "**" { int p = operator_parse(yytext, TokenMeta::Power, YY_POWER);  update_flex(); DORET(p) }
 ">" { int p = operator_parse(yytext, TokenMeta::GT, YY_GT);  update_flex(); DORET(p)  }

@@ -112,10 +112,10 @@ namespace IntentMeta {
 		False = -103,
 
 		OperatorCall = -110, 
-		CallArgs = -111,
-		HyperFuncCall = -112, 
-		OptionalArg = -113, 
-		Lambda = -114,
+		//CallArgs = -111,
+		//HyperFuncCall = -112, 
+		//OptionalArg = -113, 
+		//Lambda = -114,
 		Operator = -115,
 		Return = -116,
 		SetReturnValue = -117,
@@ -239,8 +239,8 @@ namespace IntentMeta {
 		CRLF = -1000,
 		Label = -1003, //标签
 		Sharp = -1004,
-		EndOfScan = -1005, // EOF
-		QuitProgram = -1006, // 程序结束
+		EndOfScan = -1005,  // the end of the code
+		QuitProgram = -1006, // quit the program
 		Error = -1007,
 		Comments = -1008,
 		CommentsEnd = -1009,
@@ -259,26 +259,61 @@ namespace IntentMeta {
 		NT_IF = -2009,
 		NT_ELSEIF = -2010,
 		NT_DO = -2011,
-		NT_VARIABLEINITIAL = -2012, /* is a variable define info, such as (varname, initial_value), or namely KEYVALUE */
-		NT_DECLAREDVARIABLE = -2013, /* in programming languages such as fortran, function's paramtable declares the name but the type of parameters, the definition of parameters is placed in main structure of function */
-		/* 在fortran类语言中, 函数的参数表不包含变量的类型, 参数的实际定义在函数体内, 所以翻译成C时, 需要将这部分定义外提到参数表中, 此时置源语句的函数定义不是NT_VARIABLEINITIAL而是NT_DECLAREDVARIABLE */	
+		/***************************************
+		*	NT_VARIABLE_ENTITY is a pair (name, initial_value)
+		*	, means the name of the variable and it's initial(default) value representively
+		****************************************/
+		NT_VARIABLE_ENTITY = -2012,
+		NT_KEYVALUE = NT_VARIABLE_ENTITY,
+		/***************************************
+		*	in fortran, function's paramtable declarations don't include type of parameters
+		*	, definition of parameters is placed in main body of function
+		*	ParseNode token of variables in paramtable is NT_DECLAREDVARIABLE rather than NT_VARIABLE_ENTITY
+		*	, because it's actual declaration is in the function's body
+		*========================================
+		*	UPDATE:
+		*	NT_DECLAREDVARIABLE is now DEPRECATED
+		*	use `vinfo->declared = true` instead of `vardefnode->get_token() = NT_VARIABLE_ENTITY`
+		****************************************/
+		NT_DECLAREDVARIABLE = -2013, 
 		NT_SUITE = -2014,
 		NT_FUCNTIONARRAY = -2015,
 		NT_ARRAYBUILDER_LAMBDA = -2016, /*  */
 		NT_ARRAYBUILDER_LIST = -2017, /*  */
-		NT_DIMENSLICE = -2018, /* 1:2, 3:4 in `dimen_slice` level */
-		NT_PARAMTABLE_DIMENSLICE = -2019, /* 1:2, 3:4 in `paramtable` level*/
+		/***************************************
+		*	NT_DEIEMSLICE is a section-subscript-list in fortran
+		*	, which is a list of section-subscript concated by ','
+		*=======================================
+		*	EX:
+		*	`1:2, 3:4`
+		*	`1`
+		*	`1, 2`
+		****************************************/
+		NT_DIMENSLICE = -2018, 
+		NT_PARAMTABLE_DIMENSLICE = -2019,
+		/***************************************
+		*	NT_SLICE is a section-subscript in fortran
+		*	, which any of a subscript-triplet or a scalar-int-expr or a vector-subscript
+		****************************************/
 		NT_SLICE = -2020,
 		NT_VARIABLEDESC = -2021,
-		NT_VARIABLEINITIALDUMMY = -2022, /* dummy initial_value of (varname, initial_value) ref NT_VARIABLEINITIAL */
-		NT_VOID = -2023, /* this ParseNode do not exist but ParseNode * can not be nullptr so this is placeholder */
-		NT_ARRAYBUILDER = -2024, /* mixed array builder */
+		/***************************************
+		*	NT_VARIABLEINITIALDUMMY is used when a NT_VARIABLE_ENTITY has no initial value
+		****************************************/
+		NT_VARIABLEINITIALDUMMY = -2022,
+		/***************************************
+		*	this ParseNode do not exist but ParseNode * can not be nullptr so this is placeholder
+		*========================================
+		* UPDATE
+		* use NT_DUMMY instead
+		****************************************/
+		NT_VOID = -2023, 
+		NT_ARRAYBUILDER = -2024, 
 		NT_ARGTABLE_PURE = -2025,
 		NT_WRAPPER = -2026,
 		NT_SELECT = -2027,
 		NT_CASE = -2028,
 		NT_CASES = -2029,
-		NT_KEYVALUE = NT_VARIABLEINITIAL,
 		NT_HIDDENDO = -2030,
 		NT_WHILE = -2031,
 		NT_OPEN = -2032,

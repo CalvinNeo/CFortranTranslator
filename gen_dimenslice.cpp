@@ -22,7 +22,7 @@
 
 ParseNode promote_exp_to_slice(ARG_IN exp) {
 	ParseNode lit = gen_token(Term{ TokenMeta::META_INTEGER, "1" });
-	ParseNode exp0 = gen_token(Term{ TokenMeta::NT_EXPRESSION , lit.to_string() }, lit);
+	ParseNode exp0 = gen_token(Term{ TokenMeta::NT_EXPRESSION , lit.get_what() }, lit);
 	ParseNode newnode = gen_token(Term{ TokenMeta::NT_SLICE, "" }, exp0, exp);
 	return newnode;
 }
@@ -32,17 +32,17 @@ ParseNode promote_argtable_to_dimenslice(ARG_IN argtable) {
 	ParseNode newnode = gen_token(Term{ TokenMeta::NT_DIMENSLICE, "" });
 	do {
 		// for all non-flatterned paramtable
-		for (int i = 0; i < pn->child.size(); i++)
+		for (int i = 0; i < pn->length(); i++)
 		{
 			newnode.addchild(promote_exp_to_keyvalue(*pn->child[i]));
 		}
-		if (pn->child.size() >= 2)
+		if (pn->length() >= 2)
 		{
-			/* if pn->child.size() == 0, this is an empty paramtable(this function takes no arguments) */
+			/* if pn->length() == 0, this is an empty paramtable(this function takes no arguments) */
 			/* if the paramtable is not flatterned pn->child[1] is a right-recursive paramtable node */
 			pn = pn->child[1];
 		}
-	} while (pn->child.size() == 2 && pn->get(1).fs.CurrentTerm.token == TokenMeta::NT_ARGTABLE_PURE);
+	} while (pn->length() == 2 && pn->get(1).get_token() == TokenMeta::NT_ARGTABLE_PURE);
 	return newnode;
 }
 
@@ -50,29 +50,6 @@ ParseNode promote_argtable_to_dimenslice(ARG_IN argtable) {
 ParseNode gen_dimenslice(ARG_IN dimen_slice) {
 	// all promoted to dimen_slice
 	ParseNode newnode = dimen_slice;
-	int sliceid = 0;
-	for (sliceid = 0; sliceid < newnode.child.size(); sliceid++)
-	{
-		if (sliceid != 0) {
-			newnode.fs.CurrentTerm.what += ", ";
-		}
-		if (newnode.get(sliceid).fs.CurrentTerm.token == TokenMeta::NT_SLICE) {
-			// slice
-			if (newnode.get(sliceid).child.size() == 2) {
-				/* from, to */
-				sprintf(codegen_buf, "%s, %s", newnode.get(sliceid).get(0).fs.CurrentTerm.what.c_str()
-					, newnode.get(sliceid).get(1).fs.CurrentTerm.what.c_str());
-			}
-			else {
-				// size
-				sprintf(codegen_buf, "%s", newnode.get(sliceid).get(0).fs.CurrentTerm.what.c_str());
-			}
-		}
-		else {
-			// exp
-			sprintf(codegen_buf, "%s", newnode.get(sliceid).fs.CurrentTerm.what.c_str());
-		}
-	}
 	newnode.fs.CurrentTerm = Term{ TokenMeta::NT_DIMENSLICE, "LAZY GEN DIMENSLICE" };
 	return newnode;
 }

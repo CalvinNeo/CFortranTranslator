@@ -38,7 +38,7 @@ void do_trans(const std::string & src) {
 	get_context().global_code = src;
 	parse(get_context().global_code);
 	//program_tree.addchild(gen_header(), false);
-	get_context().program_tree.fs.CurrentTerm.what = gen_header().fs.CurrentTerm.what + get_context().program_tree.fs.CurrentTerm.what;
+	get_context().program_tree.get_what() = gen_header().to_string() + get_context().program_tree.to_string();
 }
 
 ParseNode gen_token(Term term) {
@@ -72,7 +72,7 @@ std::string tabber(const std::string & src) {
 ParseNode flattern_bin(ARG_IN pn, bool recursion_direction_right) {
 	/* it cant work well because it create a whole new tree copy too much */
 	/* THIS ALGORITHM FLATTERNS A LEFT/RIGHT-RECURSIVE BINARY TREE */
-	if (pn.child.size() == 2) {
+	if (pn.length() == 2) {
 		ParseNode newp = ParseNode();
 		/* child[0] is the only data node */
 		if (recursion_direction_right)
@@ -81,7 +81,7 @@ ParseNode flattern_bin(ARG_IN pn, bool recursion_direction_right) {
 			// child[0] is 1 
 			// child[1] is [2, 3, 4, 5]
 			newp.addchild(pn.get(0));
-			for (int i = 0; i < pn.get(1).child.size(); i++)
+			for (int i = 0; i < pn.get(1).length(); i++)
 			{
 				newp.addchild(pn.get(1).get(i));
 			}
@@ -90,7 +90,7 @@ ParseNode flattern_bin(ARG_IN pn, bool recursion_direction_right) {
 			/* pn.child[0] is a **list** of ALREADY flatterned elements */
 			// child[0] is [2, 3, 4, 5]
 			// child[1] is 1 
-			for (int i = 0; i < pn.get(0).child.size(); i++)
+			for (int i = 0; i < pn.get(0).length(); i++)
 			{
 				newp.addchild(pn.get(0).get(i));
 			}
@@ -109,7 +109,7 @@ ParseNode flattern_bin(ARG_IN pn, bool recursion_direction_right) {
 }
 
 void flattern_bin_inplace(ParseNode & pn, bool recursion_direction_right) {
-	if (pn.child.size() == 2) {
+	if (pn.length() == 2) {
 		ParseNode * list, *item;
 		if (recursion_direction_right)
 		{
@@ -125,7 +125,7 @@ void flattern_bin_inplace(ParseNode & pn, bool recursion_direction_right) {
 		{
 			pn.child.push_back(item);
 		}
-		for (int i = 0; i < list->child.size(); i++)
+		for (int i = 0; i < list->length(); i++)
 		{
 			pn.child.push_back(list->child[i]);
 		}
@@ -150,13 +150,13 @@ ParseNode gen_flattern(ARG_IN item, ARG_IN list, std::string merge_rule, int mer
 	ParseNode nn = ParseNode();
 	if (left_recursion)
 	{
-		sprintf(codegen_buf, merge_rule.c_str(), list.fs.CurrentTerm.what.c_str(), item.fs.CurrentTerm.what.c_str());
+		sprintf(codegen_buf, merge_rule.c_str(), list.to_string().c_str(), item.to_string().c_str());
 	}
 	else {
-		sprintf(codegen_buf, merge_rule.c_str(), item.fs.CurrentTerm.what.c_str(), list.fs.CurrentTerm.what.c_str());
+		sprintf(codegen_buf, merge_rule.c_str(), item.to_string().c_str(), list.to_string().c_str());
 	}
 	if (merged_token_meta == -1) {
-		merged_token_meta = list.fs.CurrentTerm.token;
+		merged_token_meta = list.get_token();
 	}
 	nn.fs.CurrentTerm = Term{ merged_token_meta, string(codegen_buf) };
 	if (left_recursion)
@@ -173,13 +173,13 @@ ParseNode gen_flattern(ARG_IN item, ARG_IN list, std::string merge_rule, int mer
 
 
 ParseNode gen_merge(ARG_IN list1, ARG_IN list2, std::string merge_rule, int merged_token_meta) {
-	sprintf(codegen_buf, merge_rule.c_str(), list1.fs.CurrentTerm.what.c_str(), list2.fs.CurrentTerm.what.c_str());
+	sprintf(codegen_buf, merge_rule.c_str(), list1.to_string().c_str(), list2.to_string().c_str());
 	ParseNode nn = gen_token(Term{ merged_token_meta, string(codegen_buf) });
-	for (auto i = 0; i < list1.child.size(); i++)
+	for (auto i = 0; i < list1.length(); i++)
 	{
 		nn.addchild(list1.get(i));
 	}
-	for (auto i = 0; i < list2.child.size(); i++)
+	for (auto i = 0; i < list2.length(); i++)
 	{
 		nn.addchild(list2.get(i));
 	}

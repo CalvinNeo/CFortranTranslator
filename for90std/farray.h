@@ -218,10 +218,6 @@ namespace for90std {
 				{
 					fsize_t oldt = 1;
 					oldt = delta[j];
-					//for (int j = 0; j <= i - 1; j++)
-					//{
-					//	oldt *= sz[j];
-					//}
 					oldindex += (cur[i] - lb[i]) * oldt;
 
 					fsize_t newt = 1;

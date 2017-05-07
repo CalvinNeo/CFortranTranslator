@@ -120,8 +120,8 @@ extern int yydebug;
      YY_PARAMETER = 329,
      YY_ENTRY = 330,
      YY_DIMENSION = 331,
-     YY_ARRAYINITIAL_START = 332,
-     YY_ARRAYINITIAL_END = 333,
+     YY_ARRAYBUILDER_START = 332,
+     YY_ARRAYBUILDER_END = 333,
      YY_INTENT = 334,
      YY_IN = 335,
      YY_OUT = 336,
@@ -136,13 +136,14 @@ extern int yydebug;
      YY_COMPLEX_T = 345,
      YY_BOOL_T = 346,
      YY_CHARACTER_T = 347,
-     YY_WRITE = 348,
-     YY_READ = 349,
-     YY_PRINT = 350,
-     YY_CALL = 351,
-     YY_STOP = 352,
-     YY_PAUSE = 353,
-     YY_RETURN = 354
+     YY_DOUBLE_T = 348,
+     YY_WRITE = 349,
+     YY_READ = 350,
+     YY_PRINT = 351,
+     YY_CALL = 352,
+     YY_STOP = 353,
+     YY_PAUSE = 354,
+     YY_RETURN = 355
    };
 #endif
 

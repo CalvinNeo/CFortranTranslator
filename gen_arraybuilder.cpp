@@ -30,27 +30,24 @@ ParseNode gen_array_from_paramtable(ARG_IN argtable) {
 	/* give initial value */
 	/* `B(1:2:3)` can be either a single-element argtable or a exp, this can probably lead to reduction conflicts, so merge rules */
 	ParseNode newnode = ParseNode();
-	for (int i = 0; i < argtable.child.size(); i++)
+	for (int i = 0; i < argtable.length(); i++)
 	{
 		ARG_IN array_builder = argtable.get(i);
-		if (array_builder.fs.CurrentTerm.token == TokenMeta::NT_FUCNTIONARRAY) {
+		if (array_builder.get_token() == TokenMeta::NT_FUCNTIONARRAY) {
 			// slice
 			newnode = gen_token(Term{ TokenMeta::NT_ARRAYBUILDER_LIST, argtable.to_string() }, array_builder);
 		}
-		else if (array_builder.fs.CurrentTerm.token == TokenMeta::NT_HIDDENDO) {
-			// hidden_do, handled in gen_array_from_hiddendo
-			// 现在统一把NT_ARRAYBUILDER_LAMBDA放到NT_ARRAYBUILDER_LIST的list里面了
+		else if (array_builder.get_token() == TokenMeta::NT_HIDDENDO) {
 			newnode = gen_token(Term{ TokenMeta::NT_ARRAYBUILDER_LIST, argtable.to_string() }, array_builder);
-			//newnode = gen_token(Term{ TokenMeta::NT_ARRAYBUILDER_LAMBDA, argtable.to_string() }, array_builder);
 		}
-		else if (array_builder.fs.CurrentTerm.token == TokenMeta::NT_EXPRESSION) {
+		else if (array_builder.get_token() == TokenMeta::NT_EXPRESSION) {
 			// just A(1)(2)(3) or A(1, 2, 3)
 			newnode = gen_token(Term{ TokenMeta::NT_ARRAYBUILDER_LIST, argtable.to_string() }, array_builder);
 		}
 		else {
 			// set in gen_vardef.cpp
 			// use 1d list to initialize the array
-			sprintf(codegen_buf, "{%s}", argtable.fs.CurrentTerm.what.c_str());
+			sprintf(codegen_buf, "{%s}", argtable.get_what().c_str());
 			goto CAN_ONLY_GEN_ONE;
 		}
 	}
@@ -65,11 +62,11 @@ bool element_maybe_array(FunctionInfo * finfo, const ParseNode & elem) {
 	 *  return true: have a possiblity to be array
 	 *	return false: not array
 	**/
-	if (elem.fs.CurrentTerm.token == TokenMeta::NT_HIDDENDO) {
+	if (elem.get_token() == TokenMeta::NT_HIDDENDO) {
 		return true;
 	}
-	else if (elem.fs.CurrentTerm.token == TokenMeta::UnknownVariant) {
-		VariableInfo * vinfo = get_variable(get_context().current_module, finfo->local_name, get_variable_name(elem));
+	else if (elem.get_token() == TokenMeta::UnknownVariant) {
+		VariableInfo * vinfo = get_variable(get_context().current_module, finfo->local_name, elem.to_string());
 		if (vinfo != nullptr)
 		{
 			if (vinfo->is_array()) {
@@ -80,12 +77,11 @@ bool element_maybe_array(FunctionInfo * finfo, const ParseNode & elem) {
 			}
 		}
 		else {
-			print_error("Variable not defined", elem);
 			fatal_error("Variable not defined");
 			return true;
 		}
 	}
-	else if (elem.fs.CurrentTerm.token == TokenMeta::NT_FUCNTIONARRAY){
+	else if (elem.get_token() == TokenMeta::NT_FUCNTIONARRAY){
 		// hard to determine, so return true
 		return true;
 	}
@@ -100,36 +96,36 @@ void regen_arraybuilder(FunctionInfo * finfo, ARG_OUT array_builder) {
 	string arr_decl;
 	bool concat_array = false;
 	// if any of NT_ARRAYBUILDER_LIST's child is an array, then concat_array = true
-	ParseNode & arguments = array_builder.fs.CurrentTerm.token == TokenMeta::NT_ARRAYBUILDER_LAMBDA ? array_builder : array_builder.get(0);
-	for (int i = 0; i < arguments.child.size(); i++)
+	ParseNode & arguments = array_builder;
+	for (int i = 0; i < arguments.length(); i++)
 	{
 		ParseNode & elem = arguments.get(i);
 		if (element_maybe_array(finfo, elem)) {
 			concat_array = true;
 		}
 	}
-
+	
 	if (!concat_array)
 	{
 		// can init array from initializer_list of initial value
-		sprintf(codegen_buf, "make_init_list(%s)", array_builder.fs.CurrentTerm.what.c_str());
+		sprintf(codegen_buf, "make_init_list(%s)", array_builder.get_what().c_str());
 		arr_decl += string(codegen_buf);
 	}
 	else {
 		// must init array from another farray/for1array
 		arr_decl += "forconcat({";
-		for (auto i = 0; i < arguments.child.size(); i++)
+		for (auto i = 0; i < arguments.length(); i++)
 		{
-			ARG_IN elem = arguments.get(i);
-			if (elem.fs.CurrentTerm.token == TokenMeta::NT_HIDDENDO) {
+			ParseNode & elem = arguments.get(i);
+			if (elem.get_token() == TokenMeta::NT_HIDDENDO) {
 				vector<const ParseNode *> hiddendo_layer = gen_nested_hiddendo_layers(elem);
 				std::string vec_from = make_str_list(hiddendo_layer.begin(), hiddendo_layer.end(), [](auto x)->string {
-					return x->get(2).fs.CurrentTerm.what; 
+					return x->get(2).get_what(); 
 				});
 				std::string vec_to = make_str_list(hiddendo_layer.begin(), hiddendo_layer.end(), [](auto x)->string {
 					int from, to;
-					sscanf(x->get(2).fs.CurrentTerm.what.c_str(), "%d", &from);
-					sscanf(x->get(3).fs.CurrentTerm.what.c_str(), "%d", &to);
+					sscanf(x->get(2).get_what().c_str(), "%d", &from);
+					sscanf(x->get(3).get_what().c_str(), "%d", &to);
 					sprintf(codegen_buf, "%d", to - from + 1);
 					return string(codegen_buf); 
 				});
@@ -137,20 +133,20 @@ void regen_arraybuilder(FunctionInfo * finfo, ARG_OUT array_builder) {
 				std::string stuff = gen_hiddendo_expr(arguments.get(0));
 				sprintf(codegen_buf, "make_init_list({%s}, {%s}, %s)", vec_from.c_str(), vec_to.c_str(), stuff.c_str());
 			}
-			else if (arguments.get(i).fs.CurrentTerm.token == TokenMeta::UnknownVariant 
-				|| arguments.get(i).fs.CurrentTerm.token == TokenMeta::NT_FUCNTIONARRAY) {
-				VariableInfo * vinfo = get_variable(get_context().current_module, finfo->local_name, elem.fs.CurrentTerm.what);
+			else if (elem.get_token() == TokenMeta::UnknownVariant
+				|| elem.get_token() == TokenMeta::NT_FUCNTIONARRAY) {
+				VariableInfo * vinfo = get_variable(get_context().current_module, finfo->local_name, elem.get_what());
 				if (element_maybe_array(finfo, elem))
 				{
-					sprintf(codegen_buf, "make_init_list(%s)", elem.fs.CurrentTerm.what.c_str());
+					sprintf(codegen_buf, "make_init_list(%s)", elem.get_what().c_str());
 				}
 				else {
-					sprintf(codegen_buf, "make_init_list(%s)", elem.fs.CurrentTerm.what.c_str());
+					sprintf(codegen_buf, "make_init_list(%s)", elem.get_what().c_str());
 				}
 			}
 			else {
 				// literal
-				sprintf(codegen_buf, "make_init_list(%s)", elem.fs.CurrentTerm.what.c_str());
+				sprintf(codegen_buf, "make_init_list(%s)", elem.get_what().c_str());
 			}
 			if (i > 0) {
 				arr_decl += ", ";
@@ -159,6 +155,6 @@ void regen_arraybuilder(FunctionInfo * finfo, ARG_OUT array_builder) {
 		}
 		arr_decl += "})";
 	}
-	array_builder.fs.CurrentTerm.what = arr_decl;
+	array_builder.get_what() = arr_decl;
 	return;
 }

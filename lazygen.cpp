@@ -36,12 +36,12 @@ std::string lazy_gen(ParseNode * ptree) {
 		p = s.top().first;
 		int deep = s.top().second;
 		s.pop();
-		if (p->child.size() == 0) {
+		if (p->length() == 0) {
 			// terminal
 		}
 		else {
 			// non-terminal
-			switch (p->fs.CurrentTerm.token)
+			switch (p->get_token())
 			{
 			case TokenMeta::NT_PARAMTABLE:
 				break;
@@ -65,7 +65,7 @@ std::string lazy_gen(ParseNode * ptree) {
 				break;
 			case TokenMeta::NT_DO:
 				break;
-			case TokenMeta::NT_VARIABLEINITIAL:
+			case TokenMeta::NT_VARIABLE_ENTITY:
 				break;
 			case TokenMeta::NT_DECLAREDVARIABLE:
 				break;

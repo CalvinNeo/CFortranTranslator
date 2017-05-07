@@ -34,13 +34,13 @@ void gen_fortran_program(ARG_IN wrappers) {
 	get_context().program_tree = wrappers;
 	FunctionInfo * program_info = add_function("", "program", FunctionInfo());
 	ParseNode script_program = gen_token(Term{ TokenMeta::NT_SUITE , "" });
-	for (size_t i = 0; i < wrappers.child.size(); i++)
+	for (int i = 0; i < wrappers.length(); i++)
 	{
 		// gather all TokenMeta::SUITE
 		const ParseNode & wrapper = wrappers.get(i);
-		if (wrapper.fs.CurrentTerm.token == TokenMeta::NT_SUITE)
+		if (wrapper.get_token() == TokenMeta::NT_SUITE)
 		{
-			for (size_t j = 0; j < wrapper.child.size(); j++)
+			for (int j = 0; j < wrapper.length(); j++)
 			{
 				script_program.addchild(wrapper.get(j));
 			}
@@ -48,30 +48,30 @@ void gen_fortran_program(ARG_IN wrappers) {
 	}
 	get_context().current_module = "";
 	regen_suite(program_info, script_program, true);
-	main_code += tabber(script_program.to_string());
-	for (size_t i = 0; i < wrappers.child.size(); i++)
+	main_code += tabber(script_program.get_what());
+	for (int i = 0; i < wrappers.length(); i++)
 	{
 		ParseNode & wrapper = get_context().program_tree.get(i);
-		if (wrapper.fs.CurrentTerm.token == TokenMeta::NT_PROGRAM_EXPLICIT)
+		if (wrapper.get_token() == TokenMeta::NT_PROGRAM_EXPLICIT)
 		{
 			get_context().current_module = "";
 			regen_suite(program_info, wrapper.get(0));
-			main_code += tabber(wrapper.get(0).to_string());
+			main_code += tabber(wrapper.get(0).get_what());
 		}
-		else if (wrapper.fs.CurrentTerm.token == TokenMeta::NT_FUNCTIONDECLARE) {
+		else if (wrapper.get_token() == TokenMeta::NT_FUNCTIONDECLARE) {
 			get_context().current_module = "";
 			ParseNode & variable_function = wrapper.get(1);
-			FunctionInfo * finfo = add_function(get_context().current_module, variable_function.fs.CurrentTerm.what, FunctionInfo{});
+			FunctionInfo * finfo = add_function(get_context().current_module, variable_function.get_what(), FunctionInfo{});
 			regen_function(finfo, wrapper);
-			codes += wrapper.fs.CurrentTerm.what;
+			codes += wrapper.get_what();
 			codes += "\n";
 		}
-		else if (wrapper.fs.CurrentTerm.token == TokenMeta::NT_SUITE)
+		else if (wrapper.get_token() == TokenMeta::NT_SUITE)
 		{
 			// handled in the previous loop
 			continue;
 		}
-		else if (wrapper.fs.CurrentTerm.token == TokenMeta::NT_DUMMY)
+		else if (wrapper.get_token() == TokenMeta::NT_DUMMY)
 		{
 			// YY_END
 		}
@@ -84,8 +84,8 @@ void gen_fortran_program(ARG_IN wrappers) {
 	// common definition
 	for (std::map<std::string, CommonBlockInfo>::iterator iter = get_context().commonblocks.begin(); iter != get_context().commonblocks.end(); iter++)
 	{
-		string s = gen_common_definition(iter->first).fs.CurrentTerm.what;
+		string s = gen_common_definition(iter->first).get_what();
 		codes = s + codes;
 	}
-	get_context().program_tree.fs.CurrentTerm.what = codes;
+	get_context().program_tree.get_what() = codes;
 }

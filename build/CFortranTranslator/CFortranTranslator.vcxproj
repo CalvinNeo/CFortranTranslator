@@ -53,8 +53,9 @@
     <ClCompile Include="..\..\gen_paramtable.cpp" />
     <ClCompile Include="..\..\gen_select.cpp" />
     <ClCompile Include="..\..\gen_dimenslice.cpp" />
-    <ClCompile Include="..\..\gen_stmt_suite.cpp" />
+    <ClCompile Include="..\..\gen_stmt.cpp" />
     <ClCompile Include="..\..\gen_label.cpp" />
+    <ClCompile Include="..\..\gen_suite.cpp" />
     <ClCompile Include="..\..\gen_type.cpp" />
     <ClCompile Include="..\..\gen_vardef.cpp" />
     <ClCompile Include="..\..\gen_variable.cpp" />

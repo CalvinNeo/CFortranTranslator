@@ -76,7 +76,7 @@ struct VariableInfo
 	ParseNode type;
 	VariableDesc desc;
 	ParseNode entity_variable; // TokenMeta::NT_VARIABLEINITIALDUMMY if no initial
-	ParseNode * vardef;
+	ParseNode * vardef_node;
 	bool declared; // do not need to generate declaration in suite
 
 	std::string commonblock_name; 

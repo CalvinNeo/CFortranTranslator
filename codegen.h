@@ -38,7 +38,7 @@ ParseNode gen_dummy();
 
 template<typename ... Args>
 void sprintf_wrapper(std::string format, Args&& ... args) {
-	sprintf(codegen_buf, format.c_str(), [&](const ParseNode & x) {return x.fs.CurrentTerm.what.c_str(); }(args)...);
+	sprintf(codegen_buf, format.c_str(), [&](const ParseNode & x) {return x.get_what().c_str(); }(args)...);
 }
 template <typename ... Args>
 ParseNode gen_promote(std::string rule, int merged_token_meta, Args&& ... items) {
@@ -83,6 +83,7 @@ void regen_do_range(FunctionInfo * finfo, ARG_OUT do_stmt);
 void regen_do_while(FunctionInfo * finfo, ARG_OUT do_stmt);
 void regen_simple_stmt(FunctionInfo * finfo, ARG_OUT stmt);
 void regen_suite(FunctionInfo * finfo, ARG_OUT oldsuite, bool is_partial = false);
+std::string regen_stmt(FunctionInfo * finfo, ARG_OUT stmt);
 void regen_arraybuilder(FunctionInfo * finfo, ARG_OUT arraybuilder);
 void regen_common(FunctionInfo * finfo, ARG_OUT common_block);
 void promote_type(ARG_OUT type_nospec, VariableDesc & vardesc);

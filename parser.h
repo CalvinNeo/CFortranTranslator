@@ -71,6 +71,11 @@ struct ParseNode {
 	const ParseNode & const_get(int child_index) const;
 	void setattr(ParseAttr * pa);
 	const std::string & to_string() const { return fs.CurrentTerm.what; }
+	int length() const { return (int)child.size(); }
+	int & get_token() { return this->fs.CurrentTerm.token; }
+	const int & get_token() const { return this->fs.CurrentTerm.token; }
+	std::string & get_what() { return this->fs.CurrentTerm.what; }
+	const std::string & get_what() const { return this->fs.CurrentTerm.what; }
 
 	ParseNode(const ParseNode &);
 	ParseNode & operator= (const ParseNode &) ;

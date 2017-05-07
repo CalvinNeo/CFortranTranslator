@@ -23,30 +23,30 @@ void regen_read(FunctionInfo * finfo, ARG_OUT stmt) {
 	const ParseNode & io_info = stmt.get(0);
 	const ParseNode & argtable = stmt.get(1);
 	string device = io_info.get(0).to_string();
-	if (io_info.get(1).fs.CurrentTerm.token == TokenMeta::NT_AUTOFORMATTER) {
+	if (io_info.get(1).get_token() == TokenMeta::NT_AUTOFORMATTER) {
 		if (device == "-1" || device == "") {
 			//device = "5"; // stdin
-			sprintf(codegen_buf, "forreadfree(stdin, %s);\n", argtable.fs.CurrentTerm.what.c_str());
+			sprintf(codegen_buf, "forreadfree(stdin, %s);\n", argtable.to_string().c_str());
 		}
 		else {
-			sprintf(codegen_buf, "forreadfree(get_file(%s), %s);\n", device.c_str(), argtable.fs.CurrentTerm.what.c_str());
+			sprintf(codegen_buf, "forreadfree(get_file(%s), %s);\n", device.c_str(), argtable.to_string().c_str());
 		}
 	}
 	else {
 		string fmt;
-		if (io_info.get(1).fs.CurrentTerm.token == TokenMeta::NT_FORMATTER_LOCATION)
+		if (io_info.get(1).get_token() == TokenMeta::NT_FORMATTER_LOCATION)
 		{
 			fmt = get_context().labels[io_info.get(1).to_string()].to_string();
 		}
 		else {
-			fmt = io_info.get(1).fs.CurrentTerm.what.substr(1, io_info.get(1).fs.CurrentTerm.what.size() - 1); // strip " 
+			fmt = io_info.get(1).to_string().substr(1, io_info.get(1).to_string().size() - 1); // strip " 
 		}
 		if (device == "-1" || device == "") {
 			//device = "5"; // stdin
-			sprintf(codegen_buf, "forread(stdin, \"%s\", %s);\n", parse_ioformatter(fmt).c_str(), argtable.fs.CurrentTerm.what.c_str());
+			sprintf(codegen_buf, "forread(stdin, \"%s\", %s);\n", parse_ioformatter(fmt).c_str(), argtable.to_string().c_str());
 		}
 		else {
-			sprintf(codegen_buf, "forread(get_file(%s), \"%s\", %s);\n", device.c_str(), parse_ioformatter(fmt).c_str(), argtable.fs.CurrentTerm.what.c_str());
+			sprintf(codegen_buf, "forread(get_file(%s), \"%s\", %s);\n", device.c_str(), parse_ioformatter(fmt).c_str(), argtable.to_string().c_str());
 		}
 	}
 	stmt.fs.CurrentTerm = Term{ TokenMeta::NT_READ_STMT, string(codegen_buf) };
@@ -59,29 +59,29 @@ void regen_write(FunctionInfo * finfo, ARG_OUT stmt) {
 	const ParseNode & io_info = stmt.get(0);
 	const ParseNode & argtable = stmt.get(1);
 	string device = io_info.get(0).to_string();
-	if (io_info.get(1).fs.CurrentTerm.token == TokenMeta::NT_AUTOFORMATTER) {
+	if (io_info.get(1).get_token() == TokenMeta::NT_AUTOFORMATTER) {
 		if (device == "-1") {
 			// device = "6"; // stdout
-			sprintf(codegen_buf, "forwritefree(stdout, %s);\n", argtable.fs.CurrentTerm.what.c_str());
+			sprintf(codegen_buf, "forwritefree(stdout, %s);\n", argtable.to_string().c_str());
 		}
 		else {
-			sprintf(codegen_buf, "forwritefree(get_file(%s), %s);\n", device.c_str(), argtable.fs.CurrentTerm.what.c_str());
+			sprintf(codegen_buf, "forwritefree(get_file(%s), %s);\n", device.c_str(), argtable.to_string().c_str());
 		}
 	}
 	else {
 		string fmt;
-		if (io_info.get(1).fs.CurrentTerm.token == TokenMeta::NT_FORMATTER_LOCATION)
+		if (io_info.get(1).get_token() == TokenMeta::NT_FORMATTER_LOCATION)
 		{
 			fmt = get_context().labels[io_info.get(1).to_string()].to_string();
 		} else{
-			fmt = io_info.get(1).fs.CurrentTerm.what.substr(1, io_info.get(1).fs.CurrentTerm.what.size() - 1); // strip " 
+			fmt = io_info.get(1).to_string().substr(1, io_info.get(1).to_string().size() - 1); // strip " 
 		}
 		if (device == "-1") {
 			// device = "6"; // stdout
-			sprintf(codegen_buf, "forwrite(stdout, \"%s\", %s);\n", parse_ioformatter(fmt).c_str(), argtable.fs.CurrentTerm.what.c_str());
+			sprintf(codegen_buf, "forwrite(stdout, \"%s\", %s);\n", parse_ioformatter(fmt).c_str(), argtable.to_string().c_str());
 		}
 		else {
-			sprintf(codegen_buf, "forwrite(get_file(%s), \"%s\", %s);\n", device.c_str(), parse_ioformatter(fmt).c_str(), argtable.fs.CurrentTerm.what.c_str());
+			sprintf(codegen_buf, "forwrite(get_file(%s), \"%s\", %s);\n", device.c_str(), parse_ioformatter(fmt).c_str(), argtable.to_string().c_str());
 		}
 	}
 	stmt.fs.CurrentTerm = Term{ TokenMeta::NT_WRITE_STMT, string(codegen_buf) };
@@ -90,19 +90,19 @@ void regen_write(FunctionInfo * finfo, ARG_OUT stmt) {
 void regen_print(FunctionInfo * finfo, ARG_OUT stmt) {
 	const ParseNode & io_info = stmt.get(0);
 	const ParseNode & argtable = stmt.get(1);
-	if (io_info.get(1).fs.CurrentTerm.token == TokenMeta::NT_AUTOFORMATTER) {
-		sprintf(codegen_buf, "forprintfree(%s);\n", argtable.fs.CurrentTerm.what.c_str());
+	if (io_info.get(1).get_token() == TokenMeta::NT_AUTOFORMATTER) {
+		sprintf(codegen_buf, "forprintfree(%s);\n", argtable.to_string().c_str());
 	}
 	else {
 		string fmt;
-		if (io_info.get(1).fs.CurrentTerm.token == TokenMeta::NT_FORMATTER_LOCATION)
+		if (io_info.get(1).get_token() == TokenMeta::NT_FORMATTER_LOCATION)
 		{
 			fmt = get_context().labels[io_info.get(1).to_string()].to_string();
 		}
 		else {
-			fmt = io_info.get(1).fs.CurrentTerm.what.substr(1, io_info.get(1).fs.CurrentTerm.what.size() - 1); // strip " 
+			fmt = io_info.get(1).to_string().substr(1, io_info.get(1).to_string().size() - 1); // strip " 
 		}
-		sprintf(codegen_buf, "forprint(\"%s\", %s);\n", parse_ioformatter(fmt).c_str(), argtable.fs.CurrentTerm.what.c_str());
+		sprintf(codegen_buf, "forprint(\"%s\", %s);\n", parse_ioformatter(fmt).c_str(), argtable.to_string().c_str());
 	}
 	stmt.fs.CurrentTerm = Term{ TokenMeta::NT_PRINT_STMT, string(codegen_buf) };
 	return;

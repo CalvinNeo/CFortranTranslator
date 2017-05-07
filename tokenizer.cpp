@@ -248,6 +248,10 @@ const vector<KeywordMeta> keywords = {
 		, TokenMeta::String_Decl
 		, YY_STRING_T
 	}
+	, KeywordMeta{ "doubleprecision"
+		, TokenMeta::Double_Decl
+		, YY_DOUBLE_T
+	}
 	, KeywordMeta{ "print"
 		, TokenMeta::META_ANY
 		, YY_PRINT
@@ -354,6 +358,7 @@ const std::map<std::string, std::vector<std::string> > forward1 = {
 	, {"do", { "while" }}
 	, { "go", { "to" } }
 	,{ "end",{ "if", "do", "function", "subroutine", "program", "select", "interface" } }
+	,{ "double",{ "precision" } }
 
 };
 

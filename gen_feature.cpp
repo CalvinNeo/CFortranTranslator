@@ -21,23 +21,23 @@
 
 
 bool is_dimenslice(const ParseNode & elem) {
-	return elem.fs.CurrentTerm.token == TokenMeta::NT_DIMENSLICE || elem.fs.CurrentTerm.token == TokenMeta::NT_SLICE;
+	return elem.get_token() == TokenMeta::NT_DIMENSLICE || elem.get_token() == TokenMeta::NT_SLICE;
 }
 bool is_argtable(const ParseNode & elem) {
-	return elem.fs.CurrentTerm.token == TokenMeta::NT_ARGTABLE_PURE ||
-		(TokenMeta::iselement(elem.fs.CurrentTerm.token)
-			|| elem.fs.CurrentTerm.token == TokenMeta::NT_EXPRESSION
-			|| elem.fs.CurrentTerm.token == TokenMeta::NT_ARRAYBUILDER
-			|| elem.fs.CurrentTerm.token == TokenMeta::NT_FUCNTIONARRAY
-			|| elem.fs.CurrentTerm.token == TokenMeta::NT_HIDDENDO);
+	return elem.get_token() == TokenMeta::NT_ARGTABLE_PURE ||
+		(TokenMeta::iselement(elem.get_token())
+			|| elem.get_token() == TokenMeta::NT_EXPRESSION
+			|| elem.get_token() == TokenMeta::NT_ARRAYBUILDER
+			|| elem.get_token() == TokenMeta::NT_FUCNTIONARRAY
+			|| elem.get_token() == TokenMeta::NT_HIDDENDO);
 }
 bool is_paramtable(const ParseNode & elem) {
-	return elem.fs.CurrentTerm.token == TokenMeta::NT_PARAMTABLE_PURE || elem.fs.CurrentTerm.token == TokenMeta::NT_KEYVALUE;
+	return elem.get_token() == TokenMeta::NT_PARAMTABLE_PURE || elem.get_token() == TokenMeta::NT_KEYVALUE;
 }
 
 bool is_function_array(const ParseNode & entity_variable) {
 	const ParseNode & entity_variable_name = entity_variable.get(0);
-	if (entity_variable_name.fs.CurrentTerm.token == TokenMeta::NT_FUCNTIONARRAY)
+	if (entity_variable_name.get_token() == TokenMeta::NT_FUCNTIONARRAY)
 	{
 		return true;
 	}

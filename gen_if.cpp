@@ -28,32 +28,32 @@ void regen_if(FunctionInfo * finfo, ARG_OUT if_stmt) {
 	regen_suite(finfo, suite_else, true);
 
 	string true_str, else_str;
-	if (suite_else.fs.CurrentTerm.token != TokenMeta::NT_DUMMY) {
-		else_str = tabber(suite_else.fs.CurrentTerm.what);
+	if (suite_else.get_token() != TokenMeta::NT_DUMMY) {
+		else_str = tabber(suite_else.get_what());
 	}
-	true_str = tabber(suite_true.fs.CurrentTerm.what);
+	true_str = tabber(suite_true.get_what());
 
-	if (elseif.fs.CurrentTerm.token == TokenMeta::NT_DUMMY) {
-		if (suite_else.fs.CurrentTerm.token == TokenMeta::NT_DUMMY) {
+	if (elseif.get_token() == TokenMeta::NT_DUMMY) {
+		if (suite_else.get_token() == TokenMeta::NT_DUMMY) {
 			// neither elseif or suite_else
-			sprintf(codegen_buf, "if (%s) {\n%s}", exp.fs.CurrentTerm.what.c_str(), true_str.c_str());
+			sprintf(codegen_buf, "if (%s) {\n%s}", exp.get_what().c_str(), true_str.c_str());
 		}
 		else {
 			// bare suite_else
 
-			sprintf(codegen_buf, "if (%s) {\n%s}\nelse {\n %s}", exp.fs.CurrentTerm.what.c_str(), true_str.c_str(), else_str.c_str());
+			sprintf(codegen_buf, "if (%s) {\n%s}\nelse {\n %s}", exp.get_what().c_str(), true_str.c_str(), else_str.c_str());
 		}
 	}
 	else {
 		regen_elseif(finfo, elseif);
-		if (suite_else.fs.CurrentTerm.token == TokenMeta::NT_DUMMY) {
+		if (suite_else.get_token() == TokenMeta::NT_DUMMY) {
 			// bare elseif
 
-			sprintf(codegen_buf, "if (%s) {\n%s}\n%s", exp.fs.CurrentTerm.what.c_str(), true_str.c_str(), elseif.fs.CurrentTerm.what.c_str());
+			sprintf(codegen_buf, "if (%s) {\n%s}\n%s", exp.get_what().c_str(), true_str.c_str(), elseif.get_what().c_str());
 		}
 		else {
 			// elseif + else
-			sprintf(codegen_buf, "if (%s) {\n%s}\n%selse {\n%s}", exp.fs.CurrentTerm.what.c_str(), true_str.c_str(), elseif.fs.CurrentTerm.what.c_str(), else_str.c_str());
+			sprintf(codegen_buf, "if (%s) {\n%s}\n%selse {\n%s}", exp.get_what().c_str(), true_str.c_str(), elseif.get_what().c_str(), else_str.c_str());
 		}
 	}
 	if_stmt.fs.CurrentTerm = Term{ TokenMeta::NT_IF, string(codegen_buf) };
@@ -66,14 +66,14 @@ void regen_elseif(FunctionInfo * finfo, ARG_OUT elseif_stmt) {
 
 	regen_suite(finfo, suite_true, true);
 
-	string true_str = tabber(suite_true.fs.CurrentTerm.what);
+	string true_str = tabber(suite_true.get_what());
 
-	if (elseif.fs.CurrentTerm.token == TokenMeta::NT_DUMMY) {
-		sprintf(codegen_buf, "else if(%s) {\n%s}", exp.fs.CurrentTerm.what.c_str(), true_str.c_str());
+	if (elseif.get_token() == TokenMeta::NT_DUMMY) {
+		sprintf(codegen_buf, "else if(%s) {\n%s}", exp.get_what().c_str(), true_str.c_str());
 	}
 	else {
 		regen_elseif(finfo, elseif);
-		sprintf(codegen_buf, "else if(%s){\n%s}\n%s", exp.fs.CurrentTerm.what.c_str(), true_str.c_str(), elseif.fs.CurrentTerm.what.c_str());
+		sprintf(codegen_buf, "else if(%s){\n%s}\n%s", exp.get_what().c_str(), true_str.c_str(), elseif.get_what().c_str());
 	}
 	elseif_stmt.fs.CurrentTerm = Term{ TokenMeta::NT_ELSEIF, string(codegen_buf) };
 }

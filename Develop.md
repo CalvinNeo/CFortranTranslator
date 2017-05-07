@@ -84,7 +84,7 @@ all parse tree nodes are defined in [/Intent.h](/Intent.h) with an `NT_` prefix
 
 child ParseNode may also be referred when generating upper level ParseNode, so do not change child index of:
 
-1. `NT_VARIABLEINITIAL`: referred in `function_decl`
+1. `NT_VARIABLE_ENTITY`: referred in `function_decl`
 2. `NT_FUNCTIONDECLARE`: can represent interface, referred in `paramtable` and `function_decl`
 
 ### rules explanation
@@ -92,7 +92,7 @@ child ParseNode may also be referred when generating upper level ParseNode, so d
 ##### constitution
 - `argtable` is a list of `exp`(`NT_EXPRESSION`)
 - `dimen_slice` is a list of `slice`(`NT_SLICE`)
-- `pure_paramtable` is a list of `keyvalue`(`NT_KEYVALUE`/`NT_VARIABLEINITIAL`)
+- `pure_paramtable` is a list of `keyvalue`(`NT_KEYVALUE`/`NT_VARIABLE_ENTITY`)
     - `NT_KEYVALUE.fs.CurrentTerm.what` will be regenerated in `gen_function_array` in [/gen_callable.cpp](/gen_callable.cpp)
 - `paramtable` is `argtable` or `dimen_slice` or `pure_paramtable`
 ##### promotion
@@ -112,13 +112,7 @@ you can use `REAL(x)` to get the float copy of x, however, you can also use `REA
 To specify, `type_name` is like `INTEGER` and a `type_spec` is like `INTEGER(kind = 4)`, `type_nospec` can be head of `callable`, `type_spec` is not.
 
 #### array builder
-- `hidden_do` wrapped by `(/ /)` is `NT_ARRAYBUILDER_LAMBDA`
-- `array_builder` can be composed of several kind of `array_builder_elem`:
-    - `NT_ARRAYBUILDER_LAMBDA`
-    - `NT_ARRAYBUILDER_LIST`
-
-    a `array_builder` will be translated into a array object in c++ code
-- `NT_FUCNTIONARRAY` and `NT_HIDDENDO` will all be promote to `NT_EXPRESSION`
+- `NT_FUCNTIONARRAY` and `NT_HIDDENDO` will **NOT** be promote to `NT_EXPRESSION`
 - `NT_HIDDENDO` has 4 child elements: lambda, indexer, from, to. refer `gen_hiddendo` in [/gen_do.cpp](/gen_do.cpp)
 
 #### stmt, suite
@@ -135,8 +129,8 @@ To specify, `type_name` is like `INTEGER` and a `type_spec` is like `INTEGER(kin
 | wrapper | / | function_decl / program |
 | function_decl | NT_FUNCTIONDECLARE |  |
 | var_def | NT_VARIABLEDEFINE/NT_DECLAREDVARIABLE |   |
-| keyvalue | NT_VARIABLEINITIAL(namely NT_KEYVALUE) | variable, NT_EXPRESSION / NT_VARIABLEINITIALDUMMY |
-| | NT_VARIABLEINITIAL | variable, exp |
+| keyvalue | NT_VARIABLE_ENTITY(namely NT_KEYVALUE) | variable, NT_EXPRESSION / NT_VARIABLEINITIALDUMMY |
+| | NT_VARIABLE_ENTITY | variable, exp |
 | suite | NT_SUITE | stmt |
 | stmt |  | exp / var_def / compound_stmt / output_stmt / input_stmt / dummy_stmt / let_stmt / jump_stmt / interface_decl |
 | | NT_ARRAYBUILDER_LIST | (NT_HIDDENDO / NT_FUNCTIONARRAY / exp)  |

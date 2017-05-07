@@ -64,7 +64,7 @@ int main(int argc, char* argv[], char* env[])
 	}
 	else if(get_context().parse_config.hasfile){
 		 do_trans(code);
-		cout << get_context().program_tree.fs.CurrentTerm.what << endl;
+		cout << get_context().program_tree.get_what() << endl;
 		// preorder(&program_tree);
 	}
 	else {

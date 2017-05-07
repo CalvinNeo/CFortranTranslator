@@ -392,8 +392,8 @@ characters is processor dependent.
 Except in a character context, blanks are insignificant and may be used freely throughout the program.
 
 > 3.3.2.1 Fixed form commentary
-The character "!" initiates a comment except when it appears within a character context or in character position
-6. The comment extends to the end of the line. If the first nonblank character on a line is an "!" in any character
+The character "!" initiates a comment except when it appears within a character context or in character position 6. 
+The comment extends to the end of the line. If the first nonblank character on a line is an "!" in any character
 position other than character position 6, the line is a comment line. Lines beginning with a "C" or "*" in
 character position 1 and lines containing only blanks are also comments. Comments may appear anywhere within
 a program unit and may precede the first statement of the program unit. Comments have no effect on the
@@ -413,7 +413,6 @@ position 6 contains any character other than blank or zero, character positions 
 continuation of the preceding noncomment line. Note that an "!" or ";" in character position 6 indicates a
 continuation of the preceding noncomment line. Comment lines cannot be continued. Comment lines may occur
 within a continued statement.
-
 In order to support some old fortran codes, a tab `'\t'` at the beginning of one line is also treated as the 5 characters indent
 
 ### implicit 
