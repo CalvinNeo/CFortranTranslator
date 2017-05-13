@@ -146,7 +146,8 @@ void flattern_bin_inplace(ParseNode & pn, bool recursion_direction_right) {
 	}
 }
 
-ParseNode gen_flattern(ARG_IN item, ARG_IN list, std::string merge_rule, int merged_token_meta, bool left_recursion) {
+
+ParseNode gen_flattern(ARG_IN item, ARG_IN list, std::string merge_rule, TokenMeta_T merged_token_meta, bool left_recursion) {
 	ParseNode nn = ParseNode();
 	if (left_recursion)
 	{
@@ -155,7 +156,7 @@ ParseNode gen_flattern(ARG_IN item, ARG_IN list, std::string merge_rule, int mer
 	else {
 		sprintf(codegen_buf, merge_rule.c_str(), item.to_string().c_str(), list.to_string().c_str());
 	}
-	if (merged_token_meta == -1) {
+	if (merged_token_meta == TokenMeta::USE_DEFAULT_VALUE) {
 		merged_token_meta = list.get_token();
 	}
 	nn.fs.CurrentTerm = Term{ merged_token_meta, string(codegen_buf) };
@@ -172,7 +173,7 @@ ParseNode gen_flattern(ARG_IN item, ARG_IN list, std::string merge_rule, int mer
 }
 
 
-ParseNode gen_merge(ARG_IN list1, ARG_IN list2, std::string merge_rule, int merged_token_meta) {
+ParseNode gen_merge(ARG_IN list1, ARG_IN list2, std::string merge_rule, TokenMeta_T merged_token_meta) {
 	sprintf(codegen_buf, merge_rule.c_str(), list1.to_string().c_str(), list2.to_string().c_str());
 	ParseNode nn = gen_token(Term{ merged_token_meta, string(codegen_buf) });
 	for (auto i = 0; i < list1.length(); i++)

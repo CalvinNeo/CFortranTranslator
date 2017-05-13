@@ -78,7 +78,7 @@ all parse tree nodes are defined in [/Intent.h](/Intent.h) with an `NT_` prefix
 	attrs including
 	* FunctionAttr
 	* VariableDescAttr
-4. father: parent node
+4. father: pointer to parent node
 
 ### nodes
 
@@ -89,15 +89,17 @@ child ParseNode may also be referred when generating upper level ParseNode, so d
 
 ### rules explanation
 #### argtable, dimen_slice, pure_paramtable
+`argtable`, `dimen_slice`, `pure_paramtable` are special lists seprated by `,`.
 ##### constitution
-- `argtable` is a list of `exp`(`NT_EXPRESSION`)
-- `dimen_slice` is a list of `slice`(`NT_SLICE`)
-- `pure_paramtable` is a list of `keyvalue`(`NT_KEYVALUE`/`NT_VARIABLE_ENTITY`)
-    - `NT_KEYVALUE.fs.CurrentTerm.what` will be regenerated in `gen_function_array` in [/gen_callable.cpp](/gen_callable.cpp)
+- `argtable` is a list of `exp`(ref `is_exp()`)
+- `dimen_slice` is a list of `slice`(`NT_SLICE`) or `exp`
+- `pure_paramtable` is a list of `keyvalue`(`NT_KEYVALUE`/`NT_VARIABLE_ENTITY`) or `slice` or `exp`
+    - `NT_KEYVALUE.get_what()` will be regenerated in `gen_function_array` in [/gen_callable.cpp](/gen_callable.cpp)
 - `paramtable` is `argtable` or `dimen_slice` or `pure_paramtable`
 ##### promotion
 - `argtable` + `slice` = `dimen_slice`, all elements in `argtable` will be promote to `slice`(with one child)
 - `argtable` + `keyvalue` = `pure_paramtable`, all elements in `argtable` will be promote to `keyvalue`
+- `dimen_slice` + `keyvalue` or `pure_paramtable` + `slice` is illegal
 	
 #### type_spec, type_name, type_selector
 

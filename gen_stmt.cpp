@@ -20,9 +20,12 @@
 #include "gen_common.h"
 
 void regen_simple_stmt(FunctionInfo * finfo, ARG_OUT stmt) {
-	// exp and let_stmt
 	if (stmt.length() > 0)
 	{
+		/************
+		*	NT_EXPRESSION, NT_FUNCTIONARRAY, NT_HIDDENDO, etc
+		*	are all types of exp. refer `is_exp`
+		*************/
 		ParseNode & exp = stmt.get(0);
 		regen_exp(finfo, exp);
 	}
@@ -74,7 +77,8 @@ vector<ParseNode *> get_all_declared_by_node(FunctionInfo * finfo, ParseNode & s
 
 
 std::string regen_stmt(FunctionInfo * finfo, ARG_OUT stmt) {
-	/*** including:
+	/***************
+	*	including:
 	*	exp							NT_STATEMENT
 	*	let_stmt					NT_STATEMENT
 	*	control_stmt				NT_CONTROL_STMT
@@ -87,7 +91,7 @@ std::string regen_stmt(FunctionInfo * finfo, ARG_OUT stmt) {
 	*	labelin suite rule)			Label
 	*	input_stmt, output_stmt		NT_READ_STMT, NT_WRITE_STMT, NT_PRINT_STMT
 	*	compound_stmt				NT_IF, ...
-	***/
+	***************/
 	std::string newsuitestr;
 	// exp, leet_stmt, control_stmt
 	if (stmt.get_token() == TokenMeta::NT_STATEMENT) {
@@ -97,7 +101,7 @@ std::string regen_stmt(FunctionInfo * finfo, ARG_OUT stmt) {
 	}
 	else if (stmt.get_token() == TokenMeta::NT_CONTROL_STMT) {
 		if (stmt.length() > 0 && stmt.get(0).get_token() == TokenMeta::Return) {
-			//sprintf(codegen_buf, "return %s;", finfo->funcdesc.declared_variables.back()->fs.CurrentTerm.what.c_str());
+			//sprintf(codegen_buf, "return %s;", finfo->funcdesc.declared_variables.back()->get_what().c_str());
 			newsuitestr += stmt.get_what();
 			newsuitestr += '\n';
 		}

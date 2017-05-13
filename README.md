@@ -306,7 +306,9 @@ refer to [/grammar/for90.y](/grammar/for90.y) for all accepted grammar
 2. variable names that conflicts with C++ keywords and std functions will be renamed with a `R_` surffix
 
 #### common block
+
 common blocks, can be accessed by any of the scoping units in an executable program
+
 
 |common statement|C++ code|
 |:-:|:-:|:-:|

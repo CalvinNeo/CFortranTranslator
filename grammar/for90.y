@@ -461,9 +461,11 @@ using namespace std;
 
 	dimen_slice : slice 
 			{
-				/* 1d array */
-				/* arr[from : to] */
-				/* target code of slice depend on context */
+				/******************
+				*	1d array
+				*	arr[from : to]
+				*	target code of slice depend on context
+				******************/ 
 				ARG_IN slice = YY2ARG($1);
 				// only 1 slice
 				$$ = RETURN_NT(gen_promote("", TokenMeta::NT_DIMENSLICE, slice));
@@ -472,9 +474,11 @@ using namespace std;
 			}
 		| dimen_slice ',' slice
 			{
-				/* multi dimension array */
-				/* arr[from:to, from:to, ...] */
-				/* target code of slice depend on context */
+				/******************
+				*	multi dimension array
+				*	arr[from:to, from:to, ...]
+				*	target code of slice depend on context
+				******************/
 				ARG_IN slice = YY2ARG($3);
 				ARG_IN dimen_slice = YY2ARG($1);
 				$$ = RETURN_NT(gen_flattern(slice, dimen_slice, "%s, %s", TokenMeta::NT_DIMENSLICE, true));
@@ -483,9 +487,11 @@ using namespace std;
 			}
 		| dimen_slice ',' exp
 			{
-				/* multi dimension array */
-				/* arr[from:to, from:to, ...] */
-				/* target code of slice depend on context */
+				/******************
+				*	multi dimension array
+				*	arr[from:to, index, ...]
+				*	target code of slice depend on context
+				******************/
 				ARG_IN exp = YY2ARG($3);
 				ARG_IN dimen_slice = YY2ARG($1);
 				$$ = RETURN_NT(gen_flattern(exp, dimen_slice, "%s, %s", TokenMeta::NT_DIMENSLICE, true));
@@ -760,11 +766,11 @@ using namespace std;
 
 	stmt : exp 
 			{
-				/*
+				/******************
 					一般来说, 可以不单独建立stmt的ParseNode, 再添加唯一的child(exp, var_def, compound_stmt等).
 					但是考虑到在cpp等语言中可能出现使用,分隔多个语句的情况(这种情况是有作用的, 表明编译器可以按照自己的顺序求值)
 					所以单独建立stmt节点兵添加YY2ARG($1)位stmt节点的唯一的儿子
-				*/
+				******************/
 				$$ = RETURN_NT(gen_promote("%s;", TokenMeta::NT_STATEMENT, YY2ARG($1)));
 				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($1));
 				CLEAN_RIGHT($1);
@@ -1021,8 +1027,12 @@ using namespace std;
 			}
 
 	_optional_device : '*'
-			{
-				$$ = RETURN_NT(gen_token(Term{ TokenMeta::META_NONTERMINAL, "-1" })); // -1 stands for stdin/stdout, and will be translated at read/write stmt
+			{	/******************
+				* An asterisk identifies particular processor-dependent external units that are preconnected for formatted sequential access (9.4.4.2).
+				*==================
+				* -1 stands for stdin/stdout, depending it's in whether a read or a write stmt, ref gen_io.cpp
+				******************/
+				$$ = RETURN_NT(gen_token(Term{ TokenMeta::META_NONTERMINAL, "-1" })); // 
 				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($1));
 				CLEAN_RIGHT($1);
 			}
@@ -1035,6 +1045,9 @@ using namespace std;
 			}
 	_optional_formatter : '*'
 			{
+				/******************
+				* an asterisk (*) which indicates list-directed formatting (10.8).
+				******************/
 				$$ = RETURN_NT(gen_token(Term{ TokenMeta::NT_AUTOFORMATTER, "" }));
 				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($1));
 				CLEAN_RIGHT($1);
@@ -1050,14 +1063,17 @@ using namespace std;
 			}
 		| YY_STRING
 			{
-				// replace `'` with `"`
+				/******************
+				* C++ only allows strings wrapped by `"`,
+				*	replace `'` string with `"`
+				******************/
 				ARG_IN s = YY2ARG($1);
 				string modified = "\"" + s.get_what().substr(1, s.get_what().size() - 2) + "\"";
 				$$ = RETURN_NT(gen_token(Term{ TokenMeta::NT_FORMATTER, modified }));
 				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($1));
 				CLEAN_RIGHT($1);
 			}
-	/**
+	/******************
 	*	9.4.1 Control information list
 	*	The io-control-spec-list is a control information list that includes:
 	*	(1) A reference to the source or destination of the data to be transferred
@@ -1078,22 +1094,28 @@ using namespace std;
 	*	or ADVANCE = scalar-default-char-expr
 	*	or SIZE = scalar-default-int-variable
 	*	or EOR = label
-	**/
+	******************/
 	io_info : '(' _optional_device ',' _optional_formatter ')'
 			{
+				/******************
+				* target code of io_info depend on context
+				*	can be either iostream/cstdio
+				******************/
 				ARG_IN _optional_device = YY2ARG($2);
 				ARG_IN _optional_formatter = YY2ARG($4);
-				/* target code of io_info depend on context, can be either iostream/cstdio */
 				ParseNode newnode = gen_token(Term{ TokenMeta::META_NONTERMINAL, "" }, _optional_device, _optional_formatter);
 				$$ = RETURN_NT(newnode);
 				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($5));
 				CLEAN_RIGHT($1, $2, $3, $4, $5);
 			}
 		| _optional_formatter ','
-			{
+			{				
+				/******************
+				* target code of io_info depend on context
+				*	can be either iostream/cstdio
+				******************/
 				ARG_IN _optional_device = gen_token(Term{TokenMeta::META_INTEGER, "-1"});
 				ARG_IN _optional_formatter = YY2ARG($1);
-				/* target code of io_info depend on context */
 				ParseNode newnode = gen_token(Term{ TokenMeta::META_NONTERMINAL, "" }, _optional_device, _optional_formatter);
 				$$ = RETURN_NT(newnode);
 				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($2));
@@ -1225,7 +1247,6 @@ using namespace std;
 
     var_def : type_spec variable_desc YY_DOUBLECOLON paramtable
 			{
-				/* array decl */
 				ARG_IN type_spec = YY2ARG($1);
 				ARG_IN variable_desc = YY2ARG($2);
 				ARG_IN paramtable = YY2ARG($4);
@@ -1236,7 +1257,6 @@ using namespace std;
 			}
 		| type_spec variable_desc paramtable
 			{
-				/* array decl */
 				ARG_IN type_spec = YY2ARG($1);
 				ARG_IN variable_desc = YY2ARG($2);
 				ARG_IN paramtable = YY2ARG($3);
@@ -1320,11 +1340,13 @@ using namespace std;
 	hidden_do : '(' argtable ',' variable '=' exp ',' exp ')'
 			{
 				/* something like `abs(i), i=1,4` */
-				/*
-				R433 ac - implied - do is(ac - value - list, ac - implied - do - control)
-				R434 ac - implied - do - control is ac - do - variable = scalar - int - expr, ■
-				■ scalar - int - expr[, scalar - int - expr]
-				*/
+				/******************
+				*==================
+				* Standard
+					R433 ac - implied - do is(ac - value - list, ac - implied - do - control)
+					R434 ac - implied - do - control is ac - do - variable = scalar - int - expr, ■
+					■ scalar - int - expr[, scalar - int - expr]
+				******************/
 				ARG_IN argtable = YY2ARG($2);
 				ARG_IN index = YY2ARG($4);
 				ARG_IN from = YY2ARG($6);
@@ -1470,7 +1492,7 @@ using namespace std;
 				ARG_IN loop_variable = YY2ARG($4);
 				ARG_IN exp_from = YY2ARG($6);
 				ARG_IN exp_to = YY2ARG($8);
-				ParseNode from = gen_token(Term{ TokenMeta::META_INTEGER , "1" });
+				ParseNode from = gen_token(Term{ TokenMeta::META_INTEGER , UBOUND_DELTA_STR });
 				ARG_IN step = gen_token(Term{ TokenMeta::NT_EXPRESSION , from.get_what()}, from);
 				ARG_IN suite = YY2ARG($10);
 				ParseNode newnode = gen_token(Term{ TokenMeta::NT_DORANGE, "DO-RANGE GENERATED IN REGEN_SUITE" }, loop_variable, exp_from, exp_to, step, suite);

@@ -6,3 +6,4 @@ function sum(x) result (sum_result)
 end function
 a = 4
 read *, vvvv
+b(1) = a(1)

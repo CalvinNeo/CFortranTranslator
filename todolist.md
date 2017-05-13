@@ -41,7 +41,7 @@
 - arithmatic if
 - ~~labeled do,~~ if
 - `exit`, `cycle` outer do-loop
-- detailed type attr(add TokenMeta::Int64, etc.), use TokenMeta::Implicit_Decl, clean TokenMeta
+- detailed type attr(add `TokenMeta::Int64`, etc.), use `TokenMeta::Implicit_Decl`, clean `TokenMeta` enum
 - unicode file
 - underscore kind-param for all type literal(ref 4.3.2.1)
 - display comments
@@ -77,7 +77,7 @@
     ```
 - ~~`temporary_variable` to `FunctionInfo` variable~~
 - ~~`regen_if`, `regen_do`, `regen_suite`~~
-- delete all `gen_` functions except `gen_token` with multiple which accepts a list of `YYSTYPE`
-- log all arguments in paramtable to `get_context.variable`
+- delete all `gen_` functions except `gen_token` with multiple which accepts a list of `YYSTYPE`. `regen_paramtable`, `regen_function_array`
+- log all arguments in paramtable to `get_context().variable`
 - use `is_exp` function instead of `NT_EXPRESSION` node. rename `NT_EXPRESSION` to `NT_ARITH_EXP`, which contructed only by in arithmatic
 - declare all implicit variables (ref demos/implicit variable.txt)

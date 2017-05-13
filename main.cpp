@@ -54,7 +54,7 @@ int main(int argc, char* argv[], char* env[])
 			get_context().parse_config.isdebug = true;
 		}
 		else if (opt == 'C') {
-			// usec
+			// use c style
 			get_context().parse_config.usefor = false;
 		}
 	}
@@ -63,7 +63,7 @@ int main(int argc, char* argv[], char* env[])
 		debug();
 	}
 	else if(get_context().parse_config.hasfile){
-		 do_trans(code);
+		do_trans(code);
 		cout << get_context().program_tree.get_what() << endl;
 		// preorder(&program_tree);
 	}

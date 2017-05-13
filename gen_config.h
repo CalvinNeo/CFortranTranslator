@@ -25,7 +25,8 @@
 #include <vector>
 #include "context.h"
 
-#define UBOUND_DELTA "1"
+#define UBOUND_DELTA 1
+#define UBOUND_DELTA_STR "1"
 
 // const map has no operator[]
 const std::map<std::string, std::string> pre_map{

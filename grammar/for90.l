@@ -58,6 +58,7 @@ struct FlexContext{
 	char * iter_buff = nullptr;
 	YY_BUFFER_STATE yy_buffer = nullptr;
 	std::vector<std::tuple<int, Term>> terminal_cache;
+	std::vector<std::string> comments;
 };
 FlexContext & get_flex_context() {
 	static FlexContext fc;
@@ -350,6 +351,7 @@ int else_parse(const char * origin_yytext) {
 }
 int comment_parse(const char * origin_yytext) {
 	/* do not update yylval */  
+	get_flex_context().comments.push_back(std::string(yytext));
 	return YY_IGNORE_THIS; /* do not return */
 }
 int label_parse(const char * origin_yytext) {
@@ -401,12 +403,12 @@ FIND_CONCAT:
 			// label-do-stmt is [ do-construct-name : ] DO label [ loop-control ]
 			get_context().end_labels[next].push_back("do");
 			enter_condition(new FlexLabelEndContext("do", label_end_scanner));
-			update_yylval(Term{ YY_DO, "do" });
+			update_yylval(Term{ TokenMeta::Do, "do" });
 			return YY_DO;
 		}
 	}
 NORMAL_CONDITION:
-	int tok = TokenMeta::META_WORD;
+	TokenMeta_T tok = TokenMeta::META_WORD;
 	int yytok = YY_WORD;
 	auto keyword_iter = find_if(keywords.begin(), keywords.end(), [&](const auto & x) {return x.what == lowercase_name; });
 	if (keyword_iter != keywords.end()) {
@@ -446,7 +448,7 @@ void set_buff(const std::string & code) {
 		free(get_flex_context().iter_buff); get_flex_context().iter_buff = nullptr;
 	}
 	get_flex_context().iter_buff = (char *)malloc(slen + 2);
-	// 要以两个'\0'结束
+	// must have 2 '\0's at the end of the string
 	memset(get_flex_context().iter_buff, 0, slen + 2);
 	strcpy(get_flex_context().iter_buff, code.c_str());
 	get_flex_context().yy_buffer = yy_scan_buffer(get_flex_context().iter_buff, slen + 2);

@@ -21,7 +21,7 @@
 
 
 ParseNode promote_exp_to_slice(ARG_IN exp) {
-	ParseNode lit = gen_token(Term{ TokenMeta::META_INTEGER, "1" });
+	ParseNode lit = gen_token(Term{ TokenMeta::META_INTEGER, UBOUND_DELTA_STR });
 	ParseNode exp0 = gen_token(Term{ TokenMeta::NT_EXPRESSION , lit.get_what() }, lit);
 	ParseNode newnode = gen_token(Term{ TokenMeta::NT_SLICE, "" }, exp0, exp);
 	return newnode;
@@ -30,22 +30,12 @@ ParseNode promote_exp_to_slice(ARG_IN exp) {
 ParseNode promote_argtable_to_dimenslice(ARG_IN argtable) {
 	const ParseNode * pn = &argtable;
 	ParseNode newnode = gen_token(Term{ TokenMeta::NT_DIMENSLICE, "" });
-	do {
-		// for all non-flatterned paramtable
-		for (int i = 0; i < pn->length(); i++)
-		{
-			newnode.addchild(promote_exp_to_keyvalue(*pn->child[i]));
-		}
-		if (pn->length() >= 2)
-		{
-			/* if pn->length() == 0, this is an empty paramtable(this function takes no arguments) */
-			/* if the paramtable is not flatterned pn->child[1] is a right-recursive paramtable node */
-			pn = pn->child[1];
-		}
-	} while (pn->length() == 2 && pn->get(1).get_token() == TokenMeta::NT_ARGTABLE_PURE);
+	for (int i = 0; i < pn->length(); i++)
+	{
+		newnode.addchild(promote_exp_to_keyvalue(*pn->child[i]));
+	}
 	return newnode;
 }
-
 
 ParseNode gen_dimenslice(ARG_IN dimen_slice) {
 	// all promoted to dimen_slice

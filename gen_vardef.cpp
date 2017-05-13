@@ -40,7 +40,7 @@ std::tuple<std::vector<int>, std::vector<int>> get_lbound_size(const ParseNode *
 			return 1;
 		});
 		transform(slice->child.begin(), slice->child.end(), sz.begin(), [](const ParseNode * x) {
-			int l; sscanf(x->fs.CurrentTerm.what.c_str(), "%d", &l);
+			int l; sscanf(x->get_what().c_str(), "%d", &l);
 			return l;
 		});
 	}
@@ -139,7 +139,7 @@ ParseNode gen_vardef_from_default(ARG_IN type, std::string name) {
 ParseNode gen_vardef(ARG_IN type_nospec, ARG_IN variable_desc, ARG_IN paramtable) {
 	ParseNode kvparamtable = promote_argtable_to_paramtable(paramtable); // a flatterned paramtable with all keyvalue elements
 	ParseNode newnode = gen_token(Term{ TokenMeta::NT_VARIABLEDEFINESET, "VARDEFSET GENERATED IN REGEN_SUITE" });
-	for (int i = 0; i < (int)kvparamtable.length(); i++)
+	for (int i = 0; i < kvparamtable.length(); i++)
 	{
 		ParseNode newvardef = gen_token(Term{ TokenMeta::NT_VARIABLEDEFINE, "VARDEF GENERATED IN REGEN_SUITE" });
 		newvardef.addlist(type_nospec, variable_desc, kvparamtable.get(i)/*variable_entity*/);
@@ -169,8 +169,6 @@ void regen_vardef(FunctionInfo * finfo, VariableInfo * vinfo, ARG_OUT type_nospe
 		{
 			// considered to be implicit defined
 			vinfo->vardef_node = new ParseNode(gen_vardef_from_default(vinfo->type, vinfo->local_name));
-		}
-		else {
 		}
 		vinfo->vardef_node->fs.CurrentTerm = Term{ TokenMeta::NT_VARIABLEDEFINE, var_decl };
 	}

@@ -21,9 +21,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\grammar\for90.flex.cpp">
-      <Filter>grammar</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\parser.cpp">
       <Filter>parser</Filter>
     </ClCompile>
@@ -41,9 +38,6 @@
     </ClCompile>
     <ClCompile Include="..\..\develop.cpp" />
     <ClCompile Include="..\..\getopt.cpp" />
-    <ClCompile Include="..\..\IntentHelper.cpp">
-      <Filter>NuclearLang</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\Function.cpp">
       <Filter>NuclearLang</Filter>
     </ClCompile>
@@ -126,14 +120,8 @@
     <ClCompile Include="..\..\for90std\farray.cpp">
       <Filter>for90std</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\gen_program_unit.cpp">
-      <Filter>target90</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\gen_forwarddecl.cpp">
       <Filter>target90</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\grammar\for90.tab.cpp">
-      <Filter>grammar</Filter>
     </ClCompile>
     <ClCompile Include="..\..\gen_feature.cpp">
       <Filter>target90</Filter>
@@ -143,6 +131,15 @@
     </ClCompile>
     <ClCompile Include="..\..\gen_suite.cpp">
       <Filter>target90</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\gen_program.cpp">
+      <Filter>target90</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\grammar\for90.flex.cpp">
+      <Filter>grammar</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\grammar\for90.tab.cpp">
+      <Filter>grammar</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -169,9 +166,6 @@
     </ClInclude>
     <ClInclude Include="..\..\develop.h" />
     <ClInclude Include="..\..\getopt.h" />
-    <ClInclude Include="..\..\IntentHelper.h">
-      <Filter>NuclearLang</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\Function.h">
       <Filter>NuclearLang</Filter>
     </ClInclude>
@@ -217,6 +211,9 @@
     </ClInclude>
     <ClInclude Include="..\..\utf8.h" />
     <ClInclude Include="resource.h" />
+    <ClInclude Include="..\..\enum_reflect.h">
+      <Filter>NuclearLang</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\README.md" />

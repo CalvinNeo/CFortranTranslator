@@ -72,16 +72,44 @@ struct VariableInfo
 	bool is_array() {
 		return desc.slice.is_initialized();
 	}
+	/******************
+	*	name of this variable
+	*******************/
 	std::string local_name;
+	/******************
+	*	type of this variable
+	*******************/
 	ParseNode type;
+	/******************
+	*	VariableDesc
+	*	describer, ref definition of VariableDesc
+	*******************/
 	VariableDesc desc;
-	ParseNode entity_variable; // TokenMeta::NT_VARIABLEINITIALDUMMY if no initial
+	/******************
+	*	a ParseNode of NT_VARIABLE_ENTITY
+	*	restore initial value of this variable, NT_VARIABLEINITIALDUMMY if the variable has default initial value
+	*******************/
+	ParseNode entity_variable; 
+	/******************
+	*	pointer to a ParseNode of NT_VARIABLEDEFINE 
+	*	vardef_node is nullptr iif this is neither examined as implicit variable by calling `check_implicit_variable`,
+	*		nor declared explicitly by any statement. An Error May Occurrd under this circumstance
+	*	WARNING:
+	*	DO NOT USE `vardef_node == nullptr` to check if this variable is implicit or not, use `implicit_defined` instead
+	*******************/
 	ParseNode * vardef_node;
 	bool declared; // do not need to generate declaration in suite
 
+	/******************
+	*	commonblock_name == "" if this variable is not in any `COMMON` block
+	*******************/
 	std::string commonblock_name; 
 	int commonblock_index = 0;
-	bool implicit_defined = true; // TODO must in constructor to initialize, no use here, why
+
+	/******************
+	*	this variable has no explicit declaration
+	*******************/
+	bool implicit_defined = true; 
 
 	VariableInfo()
 		: local_name(""), implicit_defined(true), commonblock_index(0), commonblock_name(""), declared(false) {

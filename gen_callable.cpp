@@ -25,12 +25,16 @@ ParseNode gen_function_array(ARG_IN callable_head, ARG_IN argtable) {
 
 	/* function call OR array index */
 	/* NOTE that array index can be A(1:2, 3:4) */
-	ParseNode newnode = ParseNode();
+	ParseNode newnode;
 	string name;
 	string func_header;
 	newnode.addlist(callable_head, argtable);
 	if (funcname_map.find(callable_head.to_string()) != funcname_map.end()) {
-		// some fortran intrinsic function NAME must be replaced with its c++ implementation function NAME in for90std.h
+		/***********
+		* some fortran intrinsic function NAME is different from
+		*	its C++ implementation function NAME in for90std.h, 
+		*	in order to avoid possible name conflicts
+		***********/
 		name = funcname_map.at(callable_head.to_string());
 	}
 	else {
@@ -153,7 +157,7 @@ ParseNode gen_function_array(ARG_IN callable_head, ARG_IN argtable) {
 							func_header += "{" + args[j]->get(0).get_what() + "}";
 						}
 						else {
-							func_header += args[j]->fs.CurrentTerm.what;
+							func_header += args[j]->get_what();
 						}
 						normal_count++;
 					}

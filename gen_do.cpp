@@ -78,7 +78,24 @@ std::vector<const ParseNode *> gen_nested_hiddendo_layers(ARG_IN hiddendo) {
 }
 
 std::string gen_hiddendo_expr(ARG_IN hiddendo) {
-	/* translate hidden do to an expression */
+	/**************************************
+	* this function flattern a n-layer nested hidden do into an lambda function, 
+	*	this function use a 1-dimension size-n array of `fsize_t`, 
+	*	which stands for index of every n-dimensions.
+	* this function is used to deal with io-implied-do, ac-implied-do, data-implied-do.
+	* Usage:
+	* 1) io-implied-do
+	* 2) ac-implied-do
+	*	passed to `make_init_list` its 3rd argument
+	*======================================
+	*	A a; B b; C c;
+	*	auto result = [](const fsize_t * current) {
+	*		return [](A a, B b, C c){
+	*			// ac/data/io-implied-do-control
+	*		}(current[0], current[1], ...);
+	*	}
+	*	({a, b, c}) // call with args
+	****************************************/
 	if (get_context().parse_config.usefarray)
 	{
 		std::vector<const ParseNode *> hiddendo_layer = gen_nested_hiddendo_layers(hiddendo);
@@ -101,15 +118,6 @@ std::string gen_hiddendo_expr(ARG_IN hiddendo) {
 		string body2 = string(codegen_buf);
 		sprintf(codegen_buf, "[](const fsize_t * current){\n%s\n}", tabber(body2).c_str());
 		return string(codegen_buf);
-		/**************************************
-		*	A a; B b; C c;
-		*	auto result = [](const fsize_t * current) {
-		*		return [](A a, B b, C c){
-		*			// ac/data/io-implied-do-control
-		*		}(current[0], current[1], ...);
-		*	}
-		*	({a, b, c}) // call with args
-		****************************************/
 	}
 	else {
 		ARG_IN exp = hiddendo.get(0);
@@ -124,7 +132,12 @@ std::string gen_hiddendo_expr(ARG_IN hiddendo) {
 }
 
 ParseNode gen_hiddendo(ARG_IN argtable, ARG_IN index, ARG_IN from, ARG_IN to, TokenMeta_T return_token) {
-	/* expand hidden do to a for construct */
+	/**************************************
+	* this function handles 1 layer at 1 time,
+	*	it simply expands the hidden do into a `for` statement
+	* though this function generates simpler code,
+	*	it can not deal with io-implied-do, ac-implied-do, data-implied-do
+	****************************************/
 	ParseNode newnode = gen_token(Term{ TokenMeta::NT_HIDDENDO, "" });
 	newnode.addlist(argtable, index, from, to);
 	std::string stuff;

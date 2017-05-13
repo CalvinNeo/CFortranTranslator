@@ -81,7 +81,7 @@ void get_full_paramtable(FunctionInfo * finfo, bool is_subroutine) {
 					}
 				}
 				else {
-					print_error("Invalid interface: " + vardef_node->fs.CurrentTerm.what);
+					print_error("Invalid interface: " + vardef_node->get_what());
 				}
 			}else {
 				// variable

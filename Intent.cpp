@@ -19,31 +19,6 @@
 
 #include "Intent.h"
 
-namespace IntentMeta {
-bool iselement(TokenMeta_T x) {
-	if (x == IntentMeta::META_WORD) return true;
-	if (isliteral(x)) return true;
-	if (x == IntentMeta::Bool) return true;
-	if (x == IntentMeta::UnknownVariant) return true;
-	return false;
-}
-bool isliteral(TokenMeta_T x) {
-	if (x == IntentMeta::Int) return true;
-	if (x == IntentMeta::Char) return true;
-	if (x == IntentMeta::String) return true;
-	if (x == IntentMeta::Double) return true;
-	if (x == IntentMeta::Bool) return true;
-	if (x == IntentMeta::Float) return true;
-	if (x == IntentMeta::Complex) return true;
-	if (x == IntentMeta::Function) return true;
-	if (x == IntentMeta::Int8) return true;
-	if (x == IntentMeta::Int16) return true;
-	if (x == IntentMeta::Int32) return true;
-	if (x == IntentMeta::Int16) return true;
-	if (x == IntentMeta::Int64) return true;
-	if (x == IntentMeta::LongDouble) return true;
-	if (x == IntentMeta::False) return true;
-	if (x == IntentMeta::True) return true;
-	return false;
-}
+std::string get_intent_name(TokenMeta_T intent_id) {
+	return TokenMeta::get_enum_table().from_value(intent_id);
 }

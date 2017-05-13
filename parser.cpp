@@ -130,11 +130,12 @@ void preorder(ParseNode * ptree) {
 		int deep = s.top().second;
 		s.pop();
 		if (p->length()==0) {
-			cout << string(deep * 2, ' ') << p->get_token() << ", " << "TERMINAL " << p->fs.CurrentTerm.what << endl;
+			cout << string(deep * 2, ' ') << (int)p->get_token() << ", " << "TERMINAL " << p->get_what() << endl;
 		}
 		else {
-			cout << string(deep * 2, ' ') << p->get_token() << ", " << p->fs.CurrentTerm.what << endl;
-			for (int/*must be int, not size_t*/ i = p->length() - 1; i >= 0; i--)
+			cout << string(deep * 2, ' ') << (int)p->get_token() << ", " << p->get_what() << endl;
+			// i must be int, not size_t
+			for (int i = p->length() - 1; i >= 0; i--)
 			{
 				s.push(make_pair(p->child[i], deep + 1));
 			}

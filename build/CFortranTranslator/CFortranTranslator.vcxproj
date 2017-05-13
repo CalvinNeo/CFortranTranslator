@@ -49,7 +49,7 @@
     <ClCompile Include="..\..\gen_if.cpp" />
     <ClCompile Include="..\..\gen_feature.cpp" />
     <ClCompile Include="..\..\gen_io.cpp" />
-    <ClCompile Include="..\..\gen_program_unit.cpp" />
+    <ClCompile Include="..\..\gen_program.cpp" />
     <ClCompile Include="..\..\gen_paramtable.cpp" />
     <ClCompile Include="..\..\gen_select.cpp" />
     <ClCompile Include="..\..\gen_dimenslice.cpp" />
@@ -63,7 +63,6 @@
     <ClCompile Include="..\..\grammar\for90.flex.cpp" />
     <ClCompile Include="..\..\grammar\for90.tab.cpp" />
     <ClCompile Include="..\..\Intent.cpp" />
-    <ClCompile Include="..\..\IntentHelper.cpp" />
     <ClCompile Include="..\..\lazygen.cpp" />
     <ClCompile Include="..\..\main.cpp" />
     <ClCompile Include="..\..\parser.cpp" />
@@ -74,6 +73,7 @@
   <ItemGroup>
     <ClInclude Include="..\..\attribute.h" />
     <ClInclude Include="..\..\context.h" />
+    <ClInclude Include="..\..\enum_reflect.h" />
     <ClInclude Include="..\..\for90std\farray.h" />
     <ClInclude Include="..\..\for90std\for1array.h" />
     <ClInclude Include="..\..\for90std\for90std.h" />
@@ -93,7 +93,6 @@
     <ClInclude Include="..\..\grammar\for90.flex.h" />
     <ClInclude Include="..\..\grammar\for90.tab.h" />
     <ClInclude Include="..\..\Intent.h" />
-    <ClInclude Include="..\..\IntentHelper.h" />
     <ClInclude Include="..\..\parser.h" />
     <ClInclude Include="..\..\tokenizer.h" />
     <ClInclude Include="..\..\utf8.h" />

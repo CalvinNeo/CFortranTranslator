@@ -24,8 +24,7 @@
 
 
 struct Term {
-	//TokenMeta token;
-	int token;
+	TokenMeta_T token;
 	std::string what;
 };
 
@@ -46,7 +45,7 @@ FlexState & get_flex_state();
 extern const std::vector<KeywordMeta> keywords;
 extern const std::map<std::string, std::vector<std::string> > forward1;
 
-// because use yacc, so this is not necessary
+// because we use yacc, so this is not necessary
 //FlexState next_token(const std::string & in_str, int start = 0); 
 //FlexState iter_token(const std::string & in_str, int start);
 std::string CutString(std::string::iterator & b, std::string::iterator e, bool save, char jmp = ' ');

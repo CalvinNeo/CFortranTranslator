@@ -100,7 +100,11 @@ ParseNode gen_common_definition(std::string common_name) {
 
 
 VariableInfo * check_implicit_variable(FunctionInfo * finfo, const std::string & name) {
-	// log this variable if it's not defined before
+	/******************
+	*	this function must be called AFTER the AST is finished construct, by `regen_exp` function
+	*	for all variables that not appear in `finfo->desc->declared_variables`, 
+	*	mark them as implicit variables and generate its definition
+	*******************/
 	VariableInfo * vinfo = get_variable(get_context().current_module, finfo->local_name, name);
 	if (vinfo == nullptr)
 	{

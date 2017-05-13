@@ -36,8 +36,6 @@ void regen_exp(FunctionInfo * finfo, ARG_OUT exp) {
 			ParseNode & elem = exp.get(0);
 			switch (elem.get_token())
 			{
-			case TokenMeta::NT_FUCNTIONARRAY:
-				break;
 			case TokenMeta::NT_HIDDENDO:
 				break;
 			case TokenMeta::NT_ARRAYBUILDER:
@@ -48,17 +46,25 @@ void regen_exp(FunctionInfo * finfo, ARG_OUT exp) {
 			}
 		}
 		else if (exp.length() == 0) {
-			// literal, variable
-			if (TokenMeta::isliteral(exp.get_token()))
-			{
-
-			}
-			else {
-				check_implicit_variable(finfo, exp.to_string());
-			}
+			print_error("error empty exp: ", exp);
 		}
 		else {
 			print_error("error exp: ", exp);
 		}
+	}
+	else if(is_literal(exp))
+	{
+
+	}
+	else if (exp.get_token() == TokenMeta::UnknownVariant)
+	{
+		check_implicit_variable(finfo, exp.to_string());
+	}
+	else if (exp.get_token() == TokenMeta::NT_FUCNTIONARRAY)
+	{
+		
+	}
+	else {
+		print_error("error exp: ", exp);
 	}
 }

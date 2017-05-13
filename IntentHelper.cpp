@@ -17,6 +17,10 @@
 *   51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
+/*****************************************************************************
+*	THIS FILE IS DEPRECATED
+*****************************************************************************/
+
 #include "IntentHelper.h"
 #include "Intent.h"
 #include "tokenizer.h"
@@ -25,7 +29,7 @@
 , {$2, "$1"}
 */
 
-std::map<int, std::string> IntentName = {
+std::map<TokenMeta_T, std::string> IntentName = {
 	{ 260, "Dereference" }
 	,{ 261, "Reference" }
 
@@ -190,12 +194,12 @@ std::map<int, std::string> IntentName = {
 	,{ TokenMeta::Complex - 100, "Complex_Decl" }
 	//,{ TokenMeta::Short - 100, "Short_Decl" }
 	, { TokenMeta::Function - 100, "Function_def" }
-		, { TokenMeta::Int8 - 100, "Int8_Decl" }
-		, { TokenMeta::Int16 - 100, "Int16_Decl" }
-		, { TokenMeta::Int32 - 100, "Int32_Decl" }
-		, { TokenMeta::Int64 - 100, "Int64_Decl" }
-		, { TokenMeta::LongDouble - 100, "LongDouble_Decl" }
-		, { -599, "Implicit_Decl" }
+	, { TokenMeta::Int8 - 100, "Int8_Decl" }
+	, { TokenMeta::Int16 - 100, "Int16_Decl" }
+	, { TokenMeta::Int32 - 100, "Int32_Decl" }
+	, { TokenMeta::Int64 - 100, "Int64_Decl" }
+	, { TokenMeta::LongDouble - 100, "LongDouble_Decl" }
+	, { -599, "Implicit_Decl" }
 
 	,{ -600, "If" }
 	,{ -601, "Else or ElseIf" }
@@ -282,7 +286,7 @@ std::map<int, std::string> IntentName = {
 };
 
 
-std::string get_intent_name(int intent_id) {
+std::string get_intent_name(TokenMeta_T intent_id) {
 	if (IntentName.find(intent_id) != IntentName.end()) {
 		return IntentName[intent_id];
 	}

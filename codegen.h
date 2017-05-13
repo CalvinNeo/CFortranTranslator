@@ -41,15 +41,15 @@ void sprintf_wrapper(std::string format, Args&& ... args) {
 	sprintf(codegen_buf, format.c_str(), [&](const ParseNode & x) {return x.get_what().c_str(); }(args)...);
 }
 template <typename ... Args>
-ParseNode gen_promote(std::string rule, int merged_token_meta, Args&& ... items) {
+ParseNode gen_promote(std::string rule, TokenMeta_T merged_token_meta, Args&& ... items) {
 	sprintf_wrapper(rule, std::forward<Args>(items)...);
 	ParseNode newnode = gen_token(Term{ merged_token_meta, string(codegen_buf) });
 	newnode.addlist(std::forward<Args>(items)...);
 	return newnode;
 }
 FlexState gen_flex(Term term);
-ParseNode gen_flattern(ARG_IN item, ARG_IN list, std::string merge_rule, int merged_token_meta = -1, bool left_recursion = false);
-ParseNode gen_merge(ARG_IN list1, ARG_IN list2, std::string merge_rule, int merged_token_meta = -1);
+ParseNode gen_flattern(ARG_IN item, ARG_IN list, std::string merge_rule, TokenMeta_T merged_token_meta = TokenMeta::USE_DEFAULT_VALUE, bool left_recursion = false);
+ParseNode gen_merge(ARG_IN list1, ARG_IN list2, std::string merge_rule, TokenMeta_T merged_token_meta);
 
 template <typename Iterator, typename F>
 std::string make_str_list(Iterator begin, Iterator end, F handler, std::string delim = ", ") {
@@ -69,12 +69,15 @@ bool is_dimenslice(const ParseNode & elem);
 bool is_argtable(const ParseNode & elem);
 bool is_paramtable(const ParseNode & elem);
 bool is_function_array(const ParseNode & entity_variable);
+bool is_exp(const ParseNode & exp); 
+bool is_element(const ParseNode & x);
+bool is_literal(const ParseNode & x);
 
 void regen_read(FunctionInfo * finfo, ARG_OUT stmt);
 void regen_write(FunctionInfo * finfo, ARG_OUT stmt);
 void regen_print(FunctionInfo * finfo, ARG_OUT stmt);
 void regen_vardef(FunctionInfo * finfo, VariableInfo * vinfo, ARG_OUT type_nospec, VariableDesc & desc, ARG_OUT entity_variable);
-void regen_function(FunctionInfo * finfo, ARG_OUT functiondecl_node); // function define
+void regen_function(FunctionInfo * finfo, ARG_OUT functiondecl_node);
 void regen_select(FunctionInfo * finfo, ARG_OUT select_stmt);
 void regen_if(FunctionInfo * finfo, ARG_OUT if_stmt);
 void regen_elseif(FunctionInfo * finfo, ARG_OUT elseif_stmt);
@@ -82,12 +85,14 @@ void regen_do(FunctionInfo * finfo, ARG_OUT do_stmt);
 void regen_do_range(FunctionInfo * finfo, ARG_OUT do_stmt);
 void regen_do_while(FunctionInfo * finfo, ARG_OUT do_stmt);
 void regen_simple_stmt(FunctionInfo * finfo, ARG_OUT stmt);
+std::string gen_joined_declarations(FunctionInfo * finfo, ARG_OUT oldsuite);
 void regen_suite(FunctionInfo * finfo, ARG_OUT oldsuite, bool is_partial = false);
 std::string regen_stmt(FunctionInfo * finfo, ARG_OUT stmt);
 void regen_arraybuilder(FunctionInfo * finfo, ARG_OUT arraybuilder);
 void regen_common(FunctionInfo * finfo, ARG_OUT common_block);
 void promote_type(ARG_OUT type_nospec, VariableDesc & vardesc);
 void regen_exp(FunctionInfo * finfo, ARG_OUT exp);
+void regen_paramtable(FunctionInfo * finfo, ARG_OUT paramtable);
 
 std::string parse_ioformatter(const std::string &); 
 ParseNode gen_format(ARG_IN format);
@@ -122,6 +127,7 @@ ParseNode gen_paramtable(ARG_IN paramtable_elem);
 ParseNode gen_paramtable(ARG_IN paramtable_elem, ARG_IN paramtable);
 ParseNode gen_dimenslice(ARG_IN dimen_slice);
 ParseNode gen_argtable(ARG_IN argtable);
+void foreach_paramtable(const ParseNode & pn, std::function<void(const ParseNode &)> f, bool recursion_direction_right);
 
 ParseNode gen_implicit_type(std::string name);
 ParseNode gen_type(ARG_IN type_nospec, ARG_IN _type_kind);

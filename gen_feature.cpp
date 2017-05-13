@@ -21,15 +21,11 @@
 
 
 bool is_dimenslice(const ParseNode & elem) {
-	return elem.get_token() == TokenMeta::NT_DIMENSLICE || elem.get_token() == TokenMeta::NT_SLICE;
+	return elem.get_token() == TokenMeta::NT_DIMENSLICE || elem.get_token() == TokenMeta::NT_SLICE; 
 }
 bool is_argtable(const ParseNode & elem) {
 	return elem.get_token() == TokenMeta::NT_ARGTABLE_PURE ||
-		(TokenMeta::iselement(elem.get_token())
-			|| elem.get_token() == TokenMeta::NT_EXPRESSION
-			|| elem.get_token() == TokenMeta::NT_ARRAYBUILDER
-			|| elem.get_token() == TokenMeta::NT_FUCNTIONARRAY
-			|| elem.get_token() == TokenMeta::NT_HIDDENDO);
+		(is_element(elem) || is_exp(elem) );
 }
 bool is_paramtable(const ParseNode & elem) {
 	return elem.get_token() == TokenMeta::NT_PARAMTABLE_PURE || elem.get_token() == TokenMeta::NT_KEYVALUE;
@@ -41,5 +37,50 @@ bool is_function_array(const ParseNode & entity_variable) {
 	{
 		return true;
 	}
+	return false;
+}
+
+bool is_exp(const ParseNode & exp) {
+	TokenMeta_T tok = exp.get_token();
+	bool res;
+	switch (tok)
+	{
+	case TokenMeta::NT_EXPRESSION:
+	case TokenMeta::NT_ARRAYBUILDER:
+	case TokenMeta::NT_FUCNTIONARRAY:
+	case TokenMeta::NT_HIDDENDO:
+		res = true;
+	default:
+		res = false;
+	}
+	return res;
+}
+
+bool is_element(const ParseNode & elem) {
+	TokenMeta_T tok = elem.get_token();
+	if (is_literal(elem)) return true;
+	if (tok == TokenMeta::META_WORD) return true;
+	if (tok == TokenMeta::Bool) return true;
+	if (tok == TokenMeta::UnknownVariant) return true;
+	return false;
+}
+bool is_literal(const ParseNode & lit) {
+	TokenMeta_T tok = lit.get_token();
+	if (tok == TokenMeta::Int) return true;
+	if (tok == TokenMeta::Char) return true;
+	if (tok == TokenMeta::String) return true;
+	if (tok == TokenMeta::Double) return true;
+	if (tok == TokenMeta::Bool) return true;
+	if (tok == TokenMeta::Float) return true;
+	if (tok == TokenMeta::Complex) return true;
+	if (tok == TokenMeta::Function) return true;
+	if (tok == TokenMeta::Int8) return true;
+	if (tok == TokenMeta::Int16) return true;
+	if (tok == TokenMeta::Int32) return true;
+	if (tok == TokenMeta::Int16) return true;
+	if (tok == TokenMeta::Int64) return true;
+	if (tok == TokenMeta::LongDouble) return true;
+	if (tok == TokenMeta::False) return true;
+	if (tok == TokenMeta::True) return true;
 	return false;
 }

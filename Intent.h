@@ -18,253 +18,267 @@
 */
 
 #pragma once
-#include "IntentHelper.h"
 #include <string>
+#include "enum_reflect.h"
 
 
-#define TokenMeta IntentMeta
-#define TokenMeta_T int
+namespace TokenMeta {
 
-namespace IntentMeta {
-	//enum class IntentMeta {
-	enum IntentMeta {
-
+	//enum IntentMeta {
+	//enum class IntentMeta_T : int {
+	MAKE_ENUM(IntentMeta,  
 		// Operator
 		// in priority order
-		Dereference = 260,
-		Reference = 261,
+		//Dereference = 260,
+		ADD_ENUM(Dereference, 260),
+		ADD_ENUM(Reference, 261),
 
-		TypeCast = 262,
+		ADD_ENUM(TypeCast, 262),
 
-		PostInc = 240, //++ i
-		PostDec = 241, //-- i
-		Inc = 242,
-		Dec = 243,
+		ADD_ENUM(PostInc, 240), //++ i
+		ADD_ENUM(PostDec, 241), //-- i
+		ADD_ENUM(Inc, 242),
+		ADD_ENUM(Dec, 243),
 
-		Not = 230,
-		Neg = 231,
-		PreInc = 232, //i++
-		PreDec = 233, //i--
-		ShortWave = 234, //~
+		ADD_ENUM(Not, 230),
+		ADD_ENUM(Neg, 231),
+		ADD_ENUM(PreInc, 232), //i++
+		ADD_ENUM(PreDec, 233), //i--
+		ADD_ENUM(ShortWave, 234), //~
 
-		Power = 200,
+		ADD_ENUM(Power, 200),
 
-		Multiply = 190,
-		MultiplyVirtual = 192,
-		Divide = 191,
-		Mod = 193,
+		ADD_ENUM(Multiply, 190),
+		ADD_ENUM(MultiplyVirtual, 192),
+		ADD_ENUM(Divide, 191),
+		ADD_ENUM(Mod, 193),
 
-		Add = 180,
-		Minus = 181,
-		MinusVirtual = 182,
+		ADD_ENUM(Add, 180),
+		ADD_ENUM(Minus, 181),
+		ADD_ENUM(MinusVirtual, 182),
 
-		Shl = 170,
-		Shr = 171,
+		ADD_ENUM(Shl, 170),
+		ADD_ENUM(Shr, 171),
 
-		GT = 160,
-		GE = 161,
-		EQ = 162,
-		LE = 163,
-		LT = 164,
-		NEQ = 165,
-		Compare = 166,
-		In = 167,
-		EQV = 168,
-		NEQV = 169,
+		ADD_ENUM(GT, 160),
+		ADD_ENUM(GE, 161),
+		ADD_ENUM(EQ, 162),
+		ADD_ENUM(LE, 163),
+		ADD_ENUM(LT, 164),
+		ADD_ENUM(NEQ, 165),
+		ADD_ENUM(Compare, 166),
+		ADD_ENUM(In, 167),
+		ADD_ENUM(EQV, 168),
+		ADD_ENUM(NEQV, 169),
 
-		And = 150,
-		AndVirtual = 151,
+		ADD_ENUM(And, 150),
+		ADD_ENUM(AndVirtual, 151),
 
-		Or = 140,
+		ADD_ENUM(Or, 140),
 
-		AndAnd = 130,
-		OrOr = 120,
+		ADD_ENUM(AndAnd, 130),
+		ADD_ENUM(OrOr, 120),
 
-		Let = 101,
-		LetAdd = 102,
-		LetMinus = 103,
-		LetMultiply = 104,
-		LetDivide = 105,
-		LetShl = 106,
-		LetShr = 107,
-		LetAnd = 108,
-		LetOr = 109,
+		ADD_ENUM(Let, 101),
+		ADD_ENUM(LetAdd, 102),
+		ADD_ENUM(LetMinus, 103),
+		ADD_ENUM(LetMultiply, 104),
+		ADD_ENUM(LetDivide, 105),
+		ADD_ENUM(LetShl, 106),
+		ADD_ENUM(LetShr, 107),
+		ADD_ENUM(LetAnd, 108),
+		ADD_ENUM(LetOr, 109),
 
-		Nop = 0, 
+		ADD_ENUM(Nop, 0), 
 
-		// non/special priority operators
-		LB = -1, //(
-		RB = -2, //)
-		SLB = -3, //[
-		SRB = -4, //]
-		Dot = -5, //.
-		DoubleColon = -6, //::
-		Comma = -7, //,
-		Colon = -8, //:
-		LBrace = -9, //{
-		RBrace = -10, //}
-		Semicolon = -11,//;
+		ADD_ENUM(LB, -1), //(
+		ADD_ENUM(RB, -2), //)
+		ADD_ENUM(SLB, -3), //[
+		ADD_ENUM(SRB, -4), //]
+		ADD_ENUM(Dot, -5), //.
+		ADD_ENUM(DoubleColon, -6), //::
+		ADD_ENUM(Comma, -7), //,
+		ADD_ENUM(Colon, -8), //:
+		ADD_ENUM(LBrace, -9), //{
+		ADD_ENUM(RBrace, -10), //}
+		ADD_ENUM(Semicolon, -11),//;
 
 		// VM Commands and constants -100~-200
 
-		Null = -101,
-		True = -102,
-		False = -103,
+		ADD_ENUM(Null, -101),
+		ADD_ENUM(True, -102),
+		ADD_ENUM(False, -103),
 
-		OperatorCall = -110, 
-		//CallArgs = -111,
-		//HyperFuncCall = -112, 
-		//OptionalArg = -113, 
-		//Lambda = -114,
-		Operator = -115,
-		Return = -116,
-		SetReturnValue = -117,
+		ADD_ENUM(OperatorCall, -110), 
+		//ADD_ENUM(CallArgs, -111),
+		//ADD_ENUM(HyperFuncCall, -112), 
+		//ADD_ENUM(OptionalArg, -113), 
+		//ADD_ENUM(Lambda, -114),
+		ADD_ENUM(Operator, -115),
+		ADD_ENUM(Return, -116),
+		ADD_ENUM(SetReturnValue, -117),
 
-		//PushPointer = -120,
-		//PushVar = -121,
-		//PushLiteralConst = -122, 
-		//PushExtern = -123,
-		//SystemFunction = -124, 
-		//DynamicVariable = -125, 
-		UnknownVariant = -126, 
+		//ADD_ENUM(PushPointer, -120),
+		//ADD_ENUM(PushVar, -121),
+		//ADD_ENUM(PushLiteralConst, -122), 
+		//ADD_ENUM(PushExtern, -123),
+		//ADD_ENUM(SystemFunction, -124), 
+		//ADD_ENUM(DynamicVariable, -125), 
+		ADD_ENUM(UnknownVariant, -126), 
 
-		//New = -131,
-		//Delete = -132,
-		//Is = -135,
-		//Construct = -136,
-		//TypeDef = -137,
-		//Define = -138,
-		//Using = -139,
-		//Duplicate = -140,
+		//ADD_ENUM(New, -131),
+		//ADD_ENUM(Delete, -132),
+		//ADD_ENUM(Is, -135),
+		//ADD_ENUM(Construct, -136),
+		//ADD_ENUM(TypeDef, -137),
+		//ADD_ENUM(Define, -138),
+		//ADD_ENUM(Using, -139),
+		//ADD_ENUM(Duplicate, -140),
 
 		
-		Stop = -150, 
-		Format = -151, // fortran77 format commandd
+		ADD_ENUM(Stop, -150), 
+		ADD_ENUM(Format, -151), // fortran77 format commandd
 
 		// Describer
-		Const = -202,
-		Static = -203,
-		Public = -204,
-		Private = -205,
-		Protected = -206,
-		//Friend = -207,
-		//Class = -208,
-		//NameSpace = -209,
-		//Extern = -211,
-		//Partial = -212,
-		//Final = -213,
-		//Enum = -216,
-		//Abstract = -217,
+		ADD_ENUM(Const, -202),
+		ADD_ENUM(Static, -203),
+		ADD_ENUM(Public, -204),
+		ADD_ENUM(Private, -205),
+		ADD_ENUM(Protected, -206),
+		//ADD_ENUM(Friend, -207),
+		//ADD_ENUM(Class, -208),
+		//ADD_ENUM(NameSpace, -209),
+		//ADD_ENUM(Extern, -211),
+		//ADD_ENUM(Partial, -212),
+		//ADD_ENUM(Final, -213),
+		//ADD_ENUM(Enum, -216),
+		//ADD_ENUM(Abstract, -217),
 
 		//Build-in Type
 		// META Type(for parse)
-		META_WORD = -301,
-		META_INTEGER = -302,
-		META_STRING = -303,
-		META_CHARACTER = -304,
-		META_REAL = -305,
-		META_OPERATOR = -306,
-		META_ILLEGAL = -307,
-		META_ANY = -308, // 尚未解析的Intent
-		META_REQ_MORE = -309, // 词法分析器需要更多信息(Look Ahead)
-		META_NONTERMINAL = -310, // 非终结符, 由NT_细化
-		META_COMPLEX = -311,
-		META_VOID = -312,
+		ADD_ENUM(META_WORD, -301),
+		ADD_ENUM(META_INTEGER, -302),
+		ADD_ENUM(META_STRING, -303),
+		ADD_ENUM(META_CHARACTER, -304),
+		ADD_ENUM(META_REAL, -305),
+		ADD_ENUM(META_OPERATOR, -306),
+		ADD_ENUM(META_ILLEGAL, -307),
+		ADD_ENUM(META_ANY, -308), // 尚未解析的Intent
+		ADD_ENUM(META_REQ_MORE, -309), // 词法分析器需要更多信息(Look Ahead)
+		ADD_ENUM(META_NONTERMINAL, -310), // 非终结符, 由NT_细化
+		ADD_ENUM(META_COMPLEX, -311),
+		ADD_ENUM(META_VOID, -312),
 
 		// 标注变量类型(变量表)
-		Void = META_VOID,
-		Obj = -321,
-		Int = META_INTEGER,
-		Char = META_CHARACTER, 
-		String = META_STRING,
-		Double = META_REAL,
-		//Dynamic = -326,
-		Bool = -327, // no use because Bool is true + false
-		//Pointer = -328, 
-		Float = -329,
-		//Long = -330,
-		Complex = -331,
-		//Short = -332,
-		Function = -333,
-		Int8 = -334,
-		Int16 = -335,
-		Int32 = -336,
-		Int64 = -337,
-		LongDouble = -338,
+		ADD_ENUM(Void, META_VOID),
+		ADD_ENUM(Obj, -321),
+		ADD_ENUM(Int, META_INTEGER),
+		ADD_ENUM(Char, META_CHARACTER), 
+		ADD_ENUM(String, META_STRING),
+		ADD_ENUM(Double, META_REAL),
+		//ADD_ENUM(Dynamic, -326),
+		ADD_ENUM(Bool, -327), // no use because Bool is true + false
+		//ADD_ENUM(Pointer, -328), 
+		ADD_ENUM(Float, -329),
+		//ADD_ENUM(Long, -330),
+		ADD_ENUM(Complex, -331),
+		//ADD_ENUM(Short, -332),
+		ADD_ENUM(Function, -333),
+		ADD_ENUM(Int8, -334),
+		ADD_ENUM(Int16, -335),
+		ADD_ENUM(Int32, -336),
+		ADD_ENUM(Int64, -337),
+		ADD_ENUM(LongDouble, -338),
 
 		// 变量声明 -400~-500
-		Void_Decl = Void - 100,
-		Obj_Decl = Obj - 100,
-		Int_Decl =  Int - 100,
-		Char_Decl = Char - 100,
-		String_Decl = String - 100,
-		Double_Decl = Double - 100,
-		//Dynamic_Decl = Dynamic - 100,
-		Bool_Decl = Bool - 100,
-		//Pointer_Decl = Pointer - 100,
-		Float_Decl = Float - 100,
-		//Long_Decl = Long - 100,
-		Complex_Decl = Complex - 100,
-		//Short_Decl = Short - 100,
-		Implicit_Decl = -599,
-		Int8_Decl = Int8 - 100,
-		Int16_Decl = Int16 - 100,
-		Int32_Decl = Int32 - 100,
-		Int64_Decl = Int64 - 100,
-		Function_Decl = Function -100,
-		LongDouble_Decl = LongDouble - 100,
+		ADD_ENUM(Void_Decl, Void - 100),
+		ADD_ENUM(Obj_Decl, Obj - 100),
+		ADD_ENUM(Int_Decl, Int - 100),
+		ADD_ENUM(Char_Decl, Char - 100),
+		ADD_ENUM(String_Decl, String - 100),
+		ADD_ENUM(Double_Decl, Double - 100),
+		//ADD_ENUM(Dynamic_Decl, Dynamic - 100),
+		ADD_ENUM(Bool_Decl, Bool - 100),
+		//ADD_ENUM(Pointer_Decl, Pointer - 100),
+		ADD_ENUM(Float_Decl, Float - 100),
+		//ADD_ENUM(Long_Decl, Long - 100),
+		ADD_ENUM(Complex_Decl, Complex - 100),
+		//ADD_ENUM(Short_Decl, Short - 100),
+		ADD_ENUM(Implicit_Decl, -599),
+		ADD_ENUM(Int8_Decl, Int8 - 100),
+		ADD_ENUM(Int16_Decl, Int16 - 100),
+		ADD_ENUM(Int32_Decl, Int32 - 100),
+		ADD_ENUM(Int64_Decl, Int64 - 100),
+		ADD_ENUM(Function_Decl, Function -100),
+		ADD_ENUM(LongDouble_Decl, LongDouble - 100),
 
 		// Flow-Control
-		If = -600,
-		Else = -601,
-		ElseIf = Else,
-		ElseLast = -602,
-		While = -603,
-		For = -604,
-		Goto = -605,
-		Continue = -606,
-		Break = -607,
-		JumpTrue = -608,
-		JumpFalse = -609,
-		JumpNoJudge = -610,
-		Try = -611,
-		Catch = -612,
-		Finally = -613,
-		Do = -614,
-		Switch = -615,
-		Case = -616,
-		Default = -617,
+		ADD_ENUM(If, -600),
+		ADD_ENUM(Else, -601),
+		ADD_ENUM(ElseIf, Else),
+		ADD_ENUM(ElseLast, -602),
+		ADD_ENUM(While, -603),
+		ADD_ENUM(For, -604),
+		ADD_ENUM(Goto, -605),
+		ADD_ENUM(Continue, -606),
+		ADD_ENUM(Break, -607),
+		ADD_ENUM(JumpTrue, -608),
+		ADD_ENUM(JumpFalse, -609),
+		ADD_ENUM(JumpNoJudge, -610),
+		ADD_ENUM(Try, -611),
+		ADD_ENUM(Catch, -612),
+		ADD_ENUM(Finally, -613),
+		ADD_ENUM(Do, -614),
+		ADD_ENUM(Switch, -615),
+		ADD_ENUM(Case, -616),
+		ADD_ENUM(Default, -617),
 
 		// parsing tags
-		CRLF = -1000,
-		Label = -1003, //标签
-		Sharp = -1004,
-		EndOfScan = -1005,  // the end of the code
-		QuitProgram = -1006, // quit the program
-		Error = -1007,
-		Comments = -1008,
-		CommentsEnd = -1009,
-		CommentLine = -1010,
-		Include = -1011,
+		ADD_ENUM(CRLF, -1000),
+		ADD_ENUM(Label, -1003), //标签
+		ADD_ENUM(Sharp, -1004),
+		ADD_ENUM(EndOfScan, -1005),  // the end of the code
+		ADD_ENUM(QuitProgram, -1006), // quit the program
+		ADD_ENUM(Error, -1007),
+		ADD_ENUM(Comments, -1008),
+		ADD_ENUM(CommentsEnd, -1009),
+		ADD_ENUM(CommentLine, -1010),
+		ADD_ENUM(Include, -1011),
 
-
-		NT_PARAMTABLE = -2001,
-		NT_FORMATTER = -2002,
-		NT_AUTOFORMATTER = -2003, /* the second `*` sign of write (*,*), xxx */
-		NT_ARGTABLE = -2004,
-		NT_FUNCTIONDECLARE = -2005,
-		NT_VARIABLEDEFINE = -2006,  /* is a statement that can define a list of variables , such as int a = 2, b, c */
-		NT_STATEMENT = -2007,
-		NT_EXPRESSION = -2008,
-		NT_IF = -2009,
-		NT_ELSEIF = -2010,
-		NT_DO = -2011,
+		/***************************************
+		*	NT_PARAMTABLE is a deprecated
+		*	currently, paramtable must be of the following TokenMeta:
+		*	1) NT_ARGTABLE_PURE
+		*	2) NT_DIMENSLICE
+		*	3) NT_PARAMTABLE_PURE
+		****************************************/
+		ADD_ENUM(NT_PARAMTABLE, -2001),
+		ADD_ENUM(NT_FORMATTER, -2002),
+		/***************************************
+		*	ref. 9.4.1.1 list-directed input/output statement
+		****************************************/
+		ADD_ENUM(NT_AUTOFORMATTER, -2003), /* the second `*` sign of write (*,*), xxx */
+		/***************************************
+		*	NT_ARGTABLE is a deprecated, ref NT_PARAMTABLE
+		****************************************/
+		ADD_ENUM(NT_ARGTABLE, -2004),
+		ADD_ENUM(NT_FUNCTIONDECLARE, -2005),
+		/***************************************
+		* a statement that defines a list of variables , such as `int a = 2, b, c` ,
+		*	will create 3 NT_VARIABLEDEFINE node , which are all sons to a NT_VARIABLEDEFINESET node
+		****************************************/
+		ADD_ENUM(NT_VARIABLEDEFINE, -2006),  /* is  */
+		ADD_ENUM(NT_STATEMENT, -2007),
+		ADD_ENUM(NT_EXPRESSION, -2008),
+		ADD_ENUM(NT_IF, -2009),
+		ADD_ENUM(NT_ELSEIF, -2010),
+		ADD_ENUM(NT_DO, -2011),
 		/***************************************
 		*	NT_VARIABLE_ENTITY is a pair (name, initial_value)
 		*	, means the name of the variable and it's initial(default) value representively
 		****************************************/
-		NT_VARIABLE_ENTITY = -2012,
-		NT_KEYVALUE = NT_VARIABLE_ENTITY,
+		ADD_ENUM(NT_VARIABLE_ENTITY, -2012),
+		ADD_ENUM(NT_KEYVALUE, NT_VARIABLE_ENTITY),
 		/***************************************
 		*	in fortran, function's paramtable declarations don't include type of parameters
 		*	, definition of parameters is placed in main body of function
@@ -275,11 +289,14 @@ namespace IntentMeta {
 		*	NT_DECLAREDVARIABLE is now DEPRECATED
 		*	use `vinfo->declared = true` instead of `vardefnode->get_token() = NT_VARIABLE_ENTITY`
 		****************************************/
-		NT_DECLAREDVARIABLE = -2013, 
-		NT_SUITE = -2014,
-		NT_FUCNTIONARRAY = -2015,
-		NT_ARRAYBUILDER_LAMBDA = -2016, /*  */
-		NT_ARRAYBUILDER_LIST = -2017, /*  */
+		ADD_ENUM(NT_DECLAREDVARIABLE, -2013), 
+		ADD_ENUM(NT_SUITE, -2014),
+		ADD_ENUM(NT_FUCNTIONARRAY, -2015),
+		/***************************************
+		*	NT_ARRAYBUILDER_LAMBDA is a deprecated
+		****************************************/
+		ADD_ENUM(NT_ARRAYBUILDER_LAMBDA, -2016), 
+		ADD_ENUM(NT_ARRAYBUILDER_LIST, -2017), /*  */
 		/***************************************
 		*	NT_DEIEMSLICE is a section-subscript-list in fortran
 		*	, which is a list of section-subscript concated by ','
@@ -289,59 +306,65 @@ namespace IntentMeta {
 		*	`1`
 		*	`1, 2`
 		****************************************/
-		NT_DIMENSLICE = -2018, 
-		NT_PARAMTABLE_DIMENSLICE = -2019,
+		ADD_ENUM(NT_DIMENSLICE, -2018),
+		/***************************************
+		*	NT_PARAMTABLE_DIMENSLICE is a deprecated, ref NT_PARAMTABLE
+		****************************************/
+		ADD_ENUM(NT_PARAMTABLE_DIMENSLICE, -2019),
 		/***************************************
 		*	NT_SLICE is a section-subscript in fortran
 		*	, which any of a subscript-triplet or a scalar-int-expr or a vector-subscript
 		****************************************/
-		NT_SLICE = -2020,
-		NT_VARIABLEDESC = -2021,
+		ADD_ENUM(NT_SLICE, -2020),
+		ADD_ENUM(NT_VARIABLEDESC, -2021),
 		/***************************************
 		*	NT_VARIABLEINITIALDUMMY is used when a NT_VARIABLE_ENTITY has no initial value
 		****************************************/
-		NT_VARIABLEINITIALDUMMY = -2022,
+		ADD_ENUM(NT_VARIABLEINITIALDUMMY, -2022),
 		/***************************************
 		*	this ParseNode do not exist but ParseNode * can not be nullptr so this is placeholder
 		*========================================
 		* UPDATE
 		* use NT_DUMMY instead
 		****************************************/
-		NT_VOID = -2023, 
-		NT_ARRAYBUILDER = -2024, 
-		NT_ARGTABLE_PURE = -2025,
-		NT_WRAPPER = -2026,
-		NT_SELECT = -2027,
-		NT_CASE = -2028,
-		NT_CASES = -2029,
-		NT_HIDDENDO = -2030,
-		NT_WHILE = -2031,
-		NT_OPEN = -2032,
-		NT_CLOSE = -2033,
-		NT_PROGRAM = -2034,
-		NT_INTERFACE = -2035,
-		NT_WRAPPERS = -2036,
-		NT_PARAMTABLE_PURE = -2037,
-		NT_FORMAT = -2038,
-		NT_LABEL_STMT = -2039,
-		NT_PROGRAM_EXPLICIT = -2040,
-		NT_COMMONBLOCK = -2041,
-		NT_COMMONBLOCKDEFINE = -2042,
-		NT_VARIABLEDEFINESET = -2043,
-		NT_FORMATTER_LOCATION = -2044,
-		NT_READ_STMT = -2045,
-		NT_WRITE_STMT = -2046,
-		NT_PRINT_STMT = -2047,
-		NT_DORANGE = -2048,
-		NT_CONTROL_STMT = -2049,
+		ADD_ENUM(NT_VOID, -2023), 
+		ADD_ENUM(NT_ARRAYBUILDER, -2024), 
+		ADD_ENUM(NT_ARGTABLE_PURE, -2025),
+		ADD_ENUM(NT_WRAPPER, -2026),
+		ADD_ENUM(NT_SELECT, -2027),
+		ADD_ENUM(NT_CASE, -2028),
+		ADD_ENUM(NT_CASES, -2029),
+		ADD_ENUM(NT_HIDDENDO, -2030),
+		ADD_ENUM(NT_WHILE, -2031),
+		ADD_ENUM(NT_OPEN, -2032),
+		ADD_ENUM(NT_CLOSE, -2033),
+		ADD_ENUM(NT_PROGRAM, -2034),
+		ADD_ENUM(NT_INTERFACE, -2035),
+		ADD_ENUM(NT_WRAPPERS, -2036),
+		ADD_ENUM(NT_PARAMTABLE_PURE, -2037),
+		ADD_ENUM(NT_FORMAT, -2038),
+		ADD_ENUM(NT_LABEL_STMT, -2039),
+		ADD_ENUM(NT_PROGRAM_EXPLICIT, -2040),
+		ADD_ENUM(NT_COMMONBLOCK, -2041),
+		ADD_ENUM(NT_COMMONBLOCKDEFINE, -2042),
+		ADD_ENUM(NT_VARIABLEDEFINESET, -2043),
+		ADD_ENUM(NT_FORMATTER_LOCATION, -2044),
+		ADD_ENUM(NT_READ_STMT, -2045),
+		ADD_ENUM(NT_WRITE_STMT, -2046),
+		ADD_ENUM(NT_PRINT_STMT, -2047),
+		ADD_ENUM(NT_DORANGE, -2048),
+		ADD_ENUM(NT_CONTROL_STMT, -2049),
 
-		NT_DUMMY = -9999,
-};
+		ADD_ENUM(NT_DUMMY, -9999),
+		/***************************************
+		*	use given default value when passed as argument
+		****************************************/
+		ADD_ENUM(USE_DEFAULT_VALUE, -10000)
+	)
 
-bool iselement(TokenMeta_T x);
-bool isliteral(TokenMeta_T x);
 }
 
+std::string get_intent_name(TokenMeta_T intent_id);
 
 struct KeywordMeta {
 	std::string what;
