@@ -25,7 +25,11 @@
 #include "context.h"
 #include <boost/lexical_cast.hpp>
 
-// generate token from several or none childs by given Term
+/****************
+* `gen_token` generate token from several or none childs by given **Term**
+* Usage:
+* if the node generate a invariant string, use `gen_token`, otherwise, `gen_promote`
+*****************/
 ParseNode gen_token(Term term);
 template <typename ... Args>
 ParseNode gen_token(Term term, Args&& ... args) {
@@ -34,8 +38,12 @@ ParseNode gen_token(Term term, Args&& ... args) {
 	return newnode;
 }
 ParseNode gen_dummy();
-// generate token from several or none childs by given pattern
 
+/****************
+* `gen_promote` generate token from several or none childs by given **pattern**
+* Usage:
+* if the node generate a string depend on its child by given rule, use `gen_promote`, otherwise, `gen_token`
+*****************/
 template<typename ... Args>
 void sprintf_wrapper(std::string format, Args&& ... args) {
 	sprintf(codegen_buf, format.c_str(), [&](const ParseNode & x) {return x.get_what().c_str(); }(args)...);
@@ -48,7 +56,13 @@ ParseNode gen_promote(std::string rule, TokenMeta_T merged_token_meta, Args&& ..
 	return newnode;
 }
 FlexState gen_flex(Term term);
+/****************
+* `gen_flattern` append an item to a list
+*****************/
 ParseNode gen_flattern(ARG_IN item, ARG_IN list, std::string merge_rule, TokenMeta_T merged_token_meta = TokenMeta::USE_DEFAULT_VALUE, bool left_recursion = false);
+/****************
+* `gen_merge` merge two lists
+*****************/
 ParseNode gen_merge(ARG_IN list1, ARG_IN list2, std::string merge_rule, TokenMeta_T merged_token_meta);
 
 template <typename Iterator, typename F>
@@ -93,6 +107,8 @@ void regen_common(FunctionInfo * finfo, ARG_OUT common_block);
 void promote_type(ARG_OUT type_nospec, VariableDesc & vardesc);
 void regen_exp(FunctionInfo * finfo, ARG_OUT exp);
 void regen_paramtable(FunctionInfo * finfo, ARG_OUT paramtable);
+void regen_function_array(FunctionInfo * finfo, ARG_OUT newnode);
+void regen_slice(FunctionInfo * finfo, ARG_OUT slice);
 
 std::string parse_ioformatter(const std::string &); 
 ParseNode gen_format(ARG_IN format);
@@ -123,8 +139,8 @@ ParseNode gen_keyvalue_from_name(std::string name);
 ParseNode gen_keyvalue_from_exp(ARG_IN variable, ARG_IN initial);
 ParseNode promote_exp_to_keyvalue(ARG_IN paramtable_elem);
 ParseNode promote_argtable_to_paramtable(ARG_IN paramtable);
-ParseNode gen_paramtable(ARG_IN paramtable_elem);
-ParseNode gen_paramtable(ARG_IN paramtable_elem, ARG_IN paramtable);
+ParseNode gen_pure_paramtable(ARG_IN paramtable_elem);
+ParseNode gen_pure_paramtable(ARG_IN paramtable_elem, ARG_IN paramtable);
 ParseNode gen_dimenslice(ARG_IN dimen_slice);
 ParseNode gen_argtable(ARG_IN argtable);
 void foreach_paramtable(const ParseNode & pn, std::function<void(const ParseNode &)> f, bool recursion_direction_right);
@@ -154,6 +170,9 @@ ParseNode gen_header();
 ParseNode gen_common_definition(std::string common_name);
 ParseNode gen_common(ARG_IN commonname_node, ARG_IN paramtable);
 VariableInfo * check_implicit_variable(FunctionInfo * finfo, const std::string & name);
+
+ParseNode gen_suite(ARG_IN item, ARG_IN list);
+void insert_comments(ParseNode & newnode);
 
 
 void gen_fortran_program(ARG_IN wrappers);

@@ -41,7 +41,7 @@ ParseNode gen_keyvalue_from_exp(ARG_IN variable, ARG_IN initial) {
 }
 
 
-ParseNode gen_paramtable(ARG_IN paramtable_elem) {
+ParseNode gen_pure_paramtable(ARG_IN paramtable_elem) {
 	if (paramtable_elem.get_token() == TokenMeta::NT_DIMENSLICE) {
 		print_error("Can't generate paramtable from dimen_slice", paramtable_elem);
 		return gen_dimenslice(paramtable_elem);
@@ -60,20 +60,20 @@ ParseNode gen_paramtable(ARG_IN paramtable_elem) {
 		return paramtable_elem;
 	}
 	else {
-		print_error("Illegal gen_paramtable arg", paramtable_elem);
+		print_error("bad param table", paramtable_elem);
 		return paramtable_elem;
 	}
 }
 
 
-ParseNode gen_paramtable(ARG_IN paramtable_elem, ARG_IN paramtable) {
+ParseNode gen_pure_paramtable(ARG_IN paramtable_elem, ARG_IN paramtable) {
 	ParseNode newnode = gen_token(Term{ TokenMeta::NT_PARAMTABLE_PURE, "" });
 	bool to_param = is_paramtable(paramtable_elem) || is_paramtable(paramtable);
 	bool all_param = is_paramtable(paramtable_elem) && is_paramtable(paramtable);
 	bool to_dimen = is_dimenslice(paramtable_elem) || is_dimenslice(paramtable);
 	bool all_dimen = is_dimenslice(paramtable_elem) && is_dimenslice(paramtable);
 	bool to_arg = is_argtable(paramtable_elem) || is_argtable(paramtable);
-	bool all_arg = is_dimenslice(paramtable_elem) && is_dimenslice(paramtable);
+	bool all_arg = is_argtable(paramtable_elem) && is_argtable(paramtable);
 
 	if (all_param) {
 		// all keyvalue pair 
@@ -87,11 +87,12 @@ ParseNode gen_paramtable(ARG_IN paramtable_elem, ARG_IN paramtable) {
 		newnode.get_what() = string(codegen_buf);
 	}
 	else if (to_dimen) {
-		print_error("invalid paramtable, dimension is not allowed");
+		print_error("Can't generate dimen_slice from paramtable");
 		newnode = gen_token(Term{ TokenMeta::NT_DIMENSLICE, "" });
 	}
 	else if (all_arg) {
-		// all dimen_slice or argument_pure or variable
+		// all argument_pure or variable
+		print_error("Can't generate all arguments from paramtable");
 		newnode = gen_flattern(paramtable_elem, paramtable, "%s, %s", TokenMeta::NT_ARGTABLE_PURE);
 	}
 	else {
@@ -101,6 +102,9 @@ ParseNode gen_paramtable(ARG_IN paramtable_elem, ARG_IN paramtable) {
 }
 
 ParseNode promote_exp_to_keyvalue(ARG_IN paramtable_elem) {
+	/************************
+	*	this function promote a `exp` to a new ParseNode of NT_KEYVALUE `(x, initial)`,
+	*************************/
 	if (paramtable_elem.get_token() == TokenMeta::NT_KEYVALUE) {
 		// keyvalue pair
 		return paramtable_elem;
@@ -112,14 +116,13 @@ ParseNode promote_exp_to_keyvalue(ARG_IN paramtable_elem) {
 
 ParseNode promote_argtable_to_paramtable(ARG_IN paramtable) {
 	/************************
-	*	this function map every element `x` in a argtable to a new ParseNode of NT_KEYVALUE `(x, initial)`, 
+	*	this function map every element `x` in a argtable to a keyvalue by `promote_exp_to_keyvalue`, 
 	*	and return a flat paramtable
 	*************************/
-	const ParseNode * pn = &paramtable;
 	ParseNode newnode = gen_token(Term{ TokenMeta::NT_PARAMTABLE_PURE, "" });
-	for (int i = 0; i < pn->length(); i++)
+	for (int i = 0; i < paramtable.length(); i++)
 	{
-		newnode.addchild(promote_exp_to_keyvalue(pn->get(i)));
+		newnode.addchild(promote_exp_to_keyvalue(paramtable.get(i)));
 	}
 	return newnode;
 }
@@ -137,11 +140,76 @@ void regen_paramtable(FunctionInfo * finfo, ARG_OUT paramtable) {
 	for (int i = 0; i < paramtable.length(); i++)
 	{
 		const ParseNode & elem = paramtable.get(i);
-		if (true)
+		if (elem.get_token() == TokenMeta::NT_SLICE)
 		{
+			if (paramtable_type == TokenMeta::NT_ARGTABLE_PURE)
+			{
+				paramtable_type = TokenMeta::NT_DIMENSLICE;
+			}
+			else if (paramtable_type == TokenMeta::NT_PARAMTABLE_PURE)
+			{
+				print_error("NT_DIMENSLICE and NT_PARAMTABLE_PURE", paramtable);
+			}
+			else if (paramtable_type = TokenMeta::NT_DIMENSLICE) {
+				// don't need changing
+			}
+		}
+		else if (elem.get_token() == TokenMeta::NT_KEYVALUE)
+		{
+			if (paramtable_type == TokenMeta::NT_ARGTABLE_PURE)
+			{
+				paramtable_type = TokenMeta::NT_PARAMTABLE_PURE;
+			}
+			else if (paramtable_type == TokenMeta::NT_PARAMTABLE_PURE)
+			{
+				// don't need changing
+			}
+			else if (paramtable_type = TokenMeta::NT_DIMENSLICE) {
+				print_error("NT_KEYVALUE and NT_DIMENSLICE", paramtable);
+			}
+		}
+		else {
 
 		}
 	}
+	for (int i = 0; i < paramtable.length(); i++)
+	{
+		if (paramtable_type == TokenMeta::NT_PARAMTABLE_PURE) {
+			ParseNode & x = paramtable.get(i);
+			if (x.get_token() == TokenMeta::NT_KEYVALUE)
+			{
+				regen_exp(finfo, x.get(0));
+				if (x.get(1).get_token() == TokenMeta::NT_VARIABLEINITIALDUMMY)
+				{
+
+				}
+				else
+				{
+					regen_exp(finfo, x.get(1));
+				}
+				paramtable.replace(i, x);
+			}
+			else {
+				ParseNode y = gen_promote("%s = %s", TokenMeta::NT_KEYVALUE, x, gen_token(Term{ TokenMeta::NT_VARIABLEINITIALDUMMY, "" }));
+				regen_exp(finfo, y);
+				paramtable.replace(i, y);
+			}
+		}
+		else if (paramtable_type == TokenMeta::NT_DIMENSLICE) {
+			ParseNode & x = paramtable.get(i);
+			regen_exp(finfo, x);
+			paramtable.replace(i, x);
+		}
+		else {
+			ParseNode & x = paramtable.get(i);
+			regen_exp(finfo, x);
+			paramtable.replace(i, x);
+		}
+	}
+	string paramtable_str = make_str_list(paramtable.begin(), paramtable.end(), [&](ParseNode * pn) {
+		return pn->get_what();
+	});
+	paramtable.get_what() = paramtable_str;
 }
 
 

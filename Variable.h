@@ -126,4 +126,3 @@ VariableInfo * get_variable(std::string module_name, std::string function_name, 
 VariableInfo * add_variable(std::string module_name, std::string function_name, std::string variable_name, const VariableInfo & variable);
 void forall_variable_in_function(std::string module_name, std::string function_name, std::function<void(const std::pair<std::string, VariableInfo *> &)> func);
 void clear_variables();
-void insert_temporary_variables(std::string module_name, std::string function_name);

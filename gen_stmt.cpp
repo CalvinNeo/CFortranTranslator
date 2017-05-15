@@ -28,6 +28,7 @@ void regen_simple_stmt(FunctionInfo * finfo, ARG_OUT stmt) {
 		*************/
 		ParseNode & exp = stmt.get(0);
 		regen_exp(finfo, exp);
+		stmt.get_what() = exp.get_what() + ";";
 	}
 	else {
 		// dummy
@@ -54,7 +55,7 @@ vector<ParseNode *> get_all_declared_by_node(FunctionInfo * finfo, ParseNode & s
 		ParseNode & stmti = suite.get(i);
 		if (stmti.get_token() == TokenMeta::NT_VARIABLEDEFINESET) {
 			ParseNode & vardef_set = stmti;
-			declared_variables.insert(declared_variables.end(), vardef_set.child.begin(), vardef_set.child.end());
+			declared_variables.insert(declared_variables.end(), vardef_set.begin(), vardef_set.end());
 		}
 		else if (stmti.get_token() == TokenMeta::NT_INTERFACE && stmti.length() > 0) {
 			// interface function
@@ -159,7 +160,7 @@ std::string regen_stmt(FunctionInfo * finfo, ARG_OUT stmt) {
 	}
 	// comment
 	else if (stmt.get_token() == TokenMeta::Comments) {
-
+		newsuitestr += stmt.get_what();
 	}
 	// common
 	else if (stmt.get_token() == TokenMeta::NT_COMMONBLOCK) {

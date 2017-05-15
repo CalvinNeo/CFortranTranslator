@@ -181,3 +181,58 @@ std::string gen_joined_declarations(FunctionInfo * finfo, ARG_OUT oldsuite) {
 	});
 	return variable_declarations;
 }
+
+void insert_comments(ParseNode & newnode) {
+	for (size_t i = 0; i < get_flex_context().comments.size(); i++)
+	{
+		std::string c = get_flex_context().comments[i];
+		newnode.addchild(gen_token(Term{ TokenMeta::Comments, "/*" + c + "*/" }));
+	}
+	get_flex_context().comments.clear();
+}
+
+ParseNode gen_suite(ARG_IN item, ARG_IN list) {
+	/*******************
+	*	item can be of the following 3 cases:
+	*	1) labeled_stmts
+	*		including NT_SUITE node
+	*	2) stmt
+	*		including normal stmt node
+	*	3) interface_decl
+	*		including NT_INTERFACE node
+	********************/
+	ParseNode newnode;
+	if (list.get_token() == TokenMeta::NT_DUMMY)
+	{
+		if (item.get_token() == TokenMeta::NT_INTERFACE)
+		{
+			// case 3, interface_decl
+			newnode = gen_promote("", TokenMeta::NT_SUITE, item);
+		}
+		else if (item.get_token() == TokenMeta::NT_SUITE){
+			// case 1, labeled_stmts
+			newnode = item;
+		}
+		else {
+			// case 2, stmt
+			newnode = gen_promote("%s\n", TokenMeta::NT_SUITE, item);
+		}
+	}
+	else
+	{
+		if (item.get_token() == TokenMeta::NT_INTERFACE)
+		{
+			// case 3, interface_decl
+			newnode = gen_flattern(item, list, "%s%s", TokenMeta::NT_SUITE);
+		}
+		else if (item.get_token() == TokenMeta::NT_SUITE) {
+			// case 1, labeled_stmts
+			newnode = gen_merge(item, list, "%s\n%s", TokenMeta::NT_SUITE) ;
+		}
+		else {
+			// case 2, stmt
+			newnode = gen_flattern(item, list, "%s\n%s", TokenMeta::NT_SUITE);
+		}
+	}
+	return newnode;
+}

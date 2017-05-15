@@ -21,8 +21,9 @@
 
 void regen_read(FunctionInfo * finfo, ARG_OUT stmt) {
 	const ParseNode & io_info = stmt.get(0);
-	const ParseNode & argtable = stmt.get(1);
+	ParseNode & argtable = stmt.get(1);
 	string device = io_info.get(0).to_string();
+	regen_paramtable(finfo, argtable);
 	if (io_info.get(1).get_token() == TokenMeta::NT_AUTOFORMATTER) {
 		if (device == "-1" || device == "") {
 			//device = "5"; // stdin
@@ -57,8 +58,9 @@ void regen_read(FunctionInfo * finfo, ARG_OUT stmt) {
 void regen_write(FunctionInfo * finfo, ARG_OUT stmt) {
 	// brace is forced
 	const ParseNode & io_info = stmt.get(0);
-	const ParseNode & argtable = stmt.get(1);
+	ParseNode & argtable = stmt.get(1);
 	string device = io_info.get(0).to_string();
+	regen_paramtable(finfo, argtable);
 	if (io_info.get(1).get_token() == TokenMeta::NT_AUTOFORMATTER) {
 		if (device == "-1") {
 			// device = "6"; // stdout
@@ -89,7 +91,8 @@ void regen_write(FunctionInfo * finfo, ARG_OUT stmt) {
 }
 void regen_print(FunctionInfo * finfo, ARG_OUT stmt) {
 	const ParseNode & io_info = stmt.get(0);
-	const ParseNode & argtable = stmt.get(1);
+	ParseNode & argtable = stmt.get(1);
+	regen_paramtable(finfo, argtable);
 	if (io_info.get(1).get_token() == TokenMeta::NT_AUTOFORMATTER) {
 		sprintf(codegen_buf, "forprintfree(%s);\n", argtable.to_string().c_str());
 	}
@@ -143,6 +146,10 @@ std::string parse_ioformatter(const std::string & src) {
 	int stat = 0; /* stat == 0 repeat */
 	std::vector<int> repeat;
 	std::vector<int> repeat_from;
+	/********************
+	*	`instant_defined = true` means this repeat counter is attached to a edit descriptor, e.g. `2I`,
+	*	not a parenthesis, e.g. `2(I, F)`
+	********************/
 	bool instant_defined = false;
 	bool add_crlf_at_end = true;
 	for (int i = 0; i < src.size(); i++)
@@ -351,10 +358,6 @@ std::string parse_ioformatter(const std::string & src) {
 	}
 	memset(buf, 0, sizeof(buf));
 	sprintf(buf, descriptor.c_str(), prec.c_str());
-	//for (int j = 0; j < repeat[repeat.size() - 1]; j++)
-	//{
-	//	rt += buf;
-	//}
 	if (add_crlf_at_end)
 	{
 		rt += "\\n";

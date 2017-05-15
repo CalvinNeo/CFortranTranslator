@@ -40,8 +40,14 @@ struct FlexState {
 	int line_pos = 0;
 	bool isnull = false;
 };
-
 FlexState & get_flex_state();
+
+struct FlexContext {
+	std::vector<std::tuple<int, Term>> terminal_cache;
+	std::vector<std::string> comments;
+};
+FlexContext & get_flex_context();
+
 extern const std::vector<KeywordMeta> keywords;
 extern const std::map<std::string, std::vector<std::string> > forward1;
 

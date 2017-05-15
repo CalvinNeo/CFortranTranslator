@@ -128,18 +128,32 @@ void regen_function(FunctionInfo * finfo, ARG_OUT functiondecl_node) {
 	// init paramtable
 	std::vector<std::tuple<std::string, ParseNode, struct ParseNode *>> & paramtable_info = finfo->funcdesc.paramtable_info;
 	/* add the paramtable */
-	for (auto iter = kvparamtable.child.begin(); iter < kvparamtable.child.end(); iter++)
+	for (auto iter = kvparamtable.begin(); iter < kvparamtable.end(); iter++)
 	{
-		// 这里也需要check，以防参数表中参数在函数体中没有被使用
+		/****************
+		* `check_implicit_variable` is IMPORTANT here, 
+		*	to prevent situation that
+		*	a variable is only used in paramtable, 
+		*	and not appear in function body(so it will not checked by `regen_exp`)
+		*================
+		* (name, type, entity node)
+		*****************/
 		check_implicit_variable(finfo, (*iter)->to_string());
 		// refer to function suite and determine type of params
 		paramtable_info.push_back(make_tuple((*iter)->to_string()
 			, gen_type(Term{ TokenMeta::Void_Decl, "void" }), nullptr));
 	}
-	/* result variable must be the last one */
+	/****************
+	* `check_implicit_variable` is IMPORTANT here too
+	*================
+	* push result variable to the back of the paramtable_info stack
+	* type of result variable is set by default `void`, 
+	*	so if this subprogram is a subroutine with no result variable,
+	*	it'll set by default `void`
+	*****************/
 	check_implicit_variable(finfo, variable_result.to_string());
 	paramtable_info.push_back(make_tuple(variable_result.to_string()
-		, gen_type(Term{ TokenMeta::Void_Decl, "void" }), nullptr));// if subroutine get tuple ("", "void")
+		, gen_type(Term{ TokenMeta::Void_Decl, "void" }), nullptr)); 
 
 	get_full_paramtable(finfo, is_subroutine);
 	// make newnode
@@ -161,6 +175,5 @@ void regen_function(FunctionInfo * finfo, ARG_OUT functiondecl_node) {
 	functiondecl_node.setattr(new FunctionAttr(finfo));
 
 	// cleaning
-	insert_temporary_variables("@", variable_function.to_string());
 	return ;
 }

@@ -309,8 +309,7 @@ refer to [/grammar/for90.y](/grammar/for90.y) for all accepted grammar
 
 common blocks, can be accessed by any of the scoping units in an executable program
 
-
-|common statement|C++ code|
+| common statement | CPP code |
 |:-:|:-:|:-:|
 |`INTEGER::A; COMMON A`| `int & a = G.a` |
 |`INTEGER::B; COMMON /COMMON_NAME/ B`| `int & b = COMMON_NAME.b` |

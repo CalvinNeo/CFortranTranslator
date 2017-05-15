@@ -114,8 +114,11 @@ void ParseNode::addchild(const ParseNode & n, bool add_back ) {
 }
 
 void ParseNode::replace(int childid, const ParseNode & pn) {
-	delete this->child[childid];
-	this->child[childid] = new ParseNode(pn);
+	if (&pn != this->child[childid])
+	{
+		delete this->child[childid];
+		this->child[childid] = new ParseNode(pn);
+	}
 }
 
 void preorder(ParseNode * ptree) {
@@ -133,7 +136,7 @@ void preorder(ParseNode * ptree) {
 			cout << string(deep * 2, ' ') << (int)p->get_token() << ", " << "TERMINAL " << p->get_what() << endl;
 		}
 		else {
-			cout << string(deep * 2, ' ') << (int)p->get_token() << ", " << p->get_what() << endl;
+			cout << string(deep * 2, ' ') << (int)p->get_token() << ", " << "NON-TERMINAL" << p->get_what() << endl;
 			// i must be int, not size_t
 			for (int i = p->length() - 1; i >= 0; i--)
 			{
@@ -216,21 +219,17 @@ std::string compose_marker(std::string cont, int place, int end) {
 	return ret;
 }
 
-void print_error(const std::string & error_info, const ParseNode & yylval) {
+std::string compose_error_piece() {
 	using namespace std;
-	printf("\nError : %s\n", error_info.c_str());
-	printf("(line %d:%d, index = %d, len = %d), current token is %s(id = %d) : \"%s\" \n"
-		, get_flex_state().parse_line + 1, get_flex_state().line_pos, get_flex_state().parse_pos, get_flex_state().parse_len
-		, get_intent_name(yylval.get_token()).c_str(), yylval.get_token(), yylval.to_string().c_str());
 	char buf[255];
 	const int extend_length = 20; // print `length * 2 + len(parse_len)` context characters if possible
 	int error_start = get_flex_state().parse_pos - get_flex_state().parse_len;
 	int error_end = get_flex_state().parse_pos;
 	int error_len = get_flex_state().parse_len;
 	int left = max(0, error_start - extend_length); // left-most character index
-	int left_length = error_start - left; 
+	int left_length = error_start - left;
 	int right = min((int)get_context().global_code.size(), error_end + extend_length); // right-most character index
-	int right_length = right - error_end; 
+	int right_length = right - error_end;
 	/********************************************************
 	*...................XXXXXXXXXXXXXXXXXX....................
 	*|l|				|err|
@@ -245,6 +244,16 @@ void print_error(const std::string & error_info, const ParseNode & yylval) {
 	string marker = compose_marker(cont, left_length, left_length + error_len);
 	replace_all_distinct(cont, "\n", "\\n");
 	cont += marker;
+	return cont;
+}
+
+void print_error(const std::string & error_info, const ParseNode & node) {
+	using namespace std;
+	printf("\nError : %s\n", error_info.c_str());
+	printf("(line %d:%d, index = %d, len = %d), current token is %s(id = %d) : \"%s\" \n"
+		, get_flex_state().parse_line + 1, get_flex_state().line_pos, get_flex_state().parse_pos, get_flex_state().parse_len
+		, get_intent_name(node.get_token()).c_str(), node.get_token(), node.to_string().c_str());
+	string cont = compose_error_piece();
 	printf("%s", cont.c_str());
 }
 
@@ -255,5 +264,16 @@ void print_error(const std::string & error_info) {
 void fatal_error(const std::string & error_info) {
 	using namespace std;
 	printf("\nFatal : %s\n", error_info.c_str());
+	abort();
+}
+void fatal_error(const std::string & error_info, const ParseNode & node) {
+	using namespace std;
+	printf("\nFatal : %s\n", error_info.c_str());
+	printf("(line %d:%d, index = %d, len = %d), current token is %s(id = %d) : \"%s\" \n"
+		, get_flex_state().parse_line + 1, get_flex_state().line_pos, get_flex_state().parse_pos, get_flex_state().parse_len
+		, get_intent_name(node.get_token()).c_str(), node.get_token(), node.to_string().c_str());
+	string cont = compose_error_piece();
+	printf("%s", cont.c_str());
+	abort();
 }
 

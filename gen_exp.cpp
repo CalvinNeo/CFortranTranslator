@@ -25,11 +25,17 @@ void regen_exp(FunctionInfo * finfo, ARG_OUT exp) {
 		{
 			// unary op
 			regen_exp(finfo, exp.get(0));
+			ParseNode & op = exp.get(1);
+			sprintf(codegen_buf, op.get_what().c_str(), exp.get(0).get_what().c_str());
+			exp.get_what() = string(codegen_buf);
 		}
 		else if (exp.length() == 3) {
 			// binary op
 			regen_exp(finfo, exp.get(0));
 			regen_exp(finfo, exp.get(1));
+			ParseNode & op = exp.get(2);
+			sprintf(codegen_buf, op.get_what().c_str(), exp.get(0).get_what().c_str(), exp.get(1).get_what().c_str());
+			exp.get_what() = string(codegen_buf);
 		}
 		else if (exp.length() == 1) {
 			// function_array, array_builder, hidden_do
@@ -62,7 +68,7 @@ void regen_exp(FunctionInfo * finfo, ARG_OUT exp) {
 	}
 	else if (exp.get_token() == TokenMeta::NT_FUCNTIONARRAY)
 	{
-		
+		regen_function_array(finfo, exp);
 	}
 	else {
 		print_error("error exp: ", exp);

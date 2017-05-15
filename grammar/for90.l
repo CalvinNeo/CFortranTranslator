@@ -33,6 +33,10 @@
 #include <tuple>
 #define YY_DECL int pure_yylex(void)
 
+
+static char * iter_buff = nullptr;
+static YY_BUFFER_STATE yy_buffer = nullptr;
+
 void update_flex(int len) {
 	// do not update CurrentTerm
 	bool newline = std::string(yytext) == "\n";
@@ -54,16 +58,7 @@ void update_yylval(Term & current_term) {
 	newnode.fs.CurrentTerm = current_term;
 	yylval = RETURN_NT(newnode);
 }
-struct FlexContext{
-	char * iter_buff = nullptr;
-	YY_BUFFER_STATE yy_buffer = nullptr;
-	std::vector<std::tuple<int, Term>> terminal_cache;
-	std::vector<std::string> comments;
-};
-FlexContext & get_flex_context() {
-	static FlexContext fc;
-	return fc;
-}
+
 int yylex(void) {
 	if (!get_flex_context().terminal_cache.empty())
 	{
@@ -91,18 +86,18 @@ struct FlexScannerContext {
 	};
 };
 
-std::vector<FlexScannerContext *> & get_flex_context_stack() {
+std::vector<FlexScannerContext *> & get_flex_scanner_context_stack() {
 	static std::vector<FlexScannerContext *> st;
 	return st;
 }
 FlexScannerContext * get_current_scanner() {
-	return get_flex_context_stack().back();
+	return get_flex_scanner_context_stack().back();
 }
 void reset_condition() {
 
 }
 void enter_condition(FlexScannerContext * fsc) {
-	get_flex_context_stack().push_back(fsc);
+	get_flex_scanner_context_stack().push_back(fsc);
 	BEGIN(fsc->condition);
 }
 int yield_condition(int yy_token, Term term) {
@@ -110,14 +105,14 @@ int yield_condition(int yy_token, Term term) {
 	return yy_token;
 }
 void abort_condition() {
-	delete get_flex_context_stack().back();
-	get_flex_context_stack().pop_back();
-	if (get_flex_context_stack().empty())
+	delete get_flex_scanner_context_stack().back();
+	get_flex_scanner_context_stack().pop_back();
+	if (get_flex_scanner_context_stack().empty())
 	{
 		BEGIN(0);
 	}
 	else {
-		BEGIN(get_flex_context_stack().back()->condition);
+		BEGIN(get_flex_scanner_context_stack().back()->condition);
 	}
 }
 int quit_condition(int yy_token, Term term) {
@@ -444,18 +439,18 @@ void set_buff(const std::string & code) {
 	get_flex_state().parse_pos = 0;
 	get_flex_state().parse_len = 0;
 	get_flex_state().line_pos = 0; 
-	if (get_flex_context().iter_buff != nullptr) {
-		free(get_flex_context().iter_buff); get_flex_context().iter_buff = nullptr;
+	if (iter_buff != nullptr) {
+		free(iter_buff); iter_buff = nullptr;
 	}
-	get_flex_context().iter_buff = (char *)malloc(slen + 2);
+	iter_buff = (char *)malloc(slen + 2);
 	// must have 2 '\0's at the end of the string
-	memset(get_flex_context().iter_buff, 0, slen + 2);
-	strcpy(get_flex_context().iter_buff, code.c_str());
-	get_flex_context().yy_buffer = yy_scan_buffer(get_flex_context().iter_buff, slen + 2);
+	memset(iter_buff, 0, slen + 2);
+	strcpy(iter_buff, code.c_str());
+	yy_buffer = yy_scan_buffer(iter_buff, slen + 2);
 }
 void release_buff() {
-	yy_delete_buffer(get_flex_context().yy_buffer);
-	free(get_flex_context().iter_buff); get_flex_context().iter_buff = nullptr;
+	yy_delete_buffer(yy_buffer);
+	free(iter_buff); iter_buff = nullptr;
 }
 
 int yywrap()

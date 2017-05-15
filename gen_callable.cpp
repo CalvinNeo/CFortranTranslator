@@ -21,14 +21,14 @@
 
 // both function and array is callable
 
-ParseNode gen_function_array(ARG_IN callable_head, ARG_IN argtable) {
+void regen_function_array(FunctionInfo * finfo, ARG_OUT newnode) {
 
 	/* function call OR array index */
 	/* NOTE that array index can be A(1:2, 3:4) */
-	ParseNode newnode;
+	ParseNode & callable_head = newnode.get(0);
+	ParseNode & argtable = newnode.get(1);
 	string name;
 	string func_header;
-	newnode.addlist(callable_head, argtable);
 	if (funcname_map.find(callable_head.to_string()) != funcname_map.end()) {
 		/***********
 		* some fortran intrinsic function NAME is different from
@@ -53,50 +53,14 @@ ParseNode gen_function_array(ARG_IN callable_head, ARG_IN argtable) {
 		}
 		if (is_slice) {
 			string slice_info_str;
-			for (auto i = 0; i < argtable.length(); i++)
-			{
-				if (i != 0) {
-					slice_info_str += ",";
-				}
-				slice_info_str += "{";
-				if (argtable.get(i).get_token() == TokenMeta::NT_SLICE) {
-					ARG_IN slice = argtable.get(i);
-					bool empty_slice = false;
-					int slice_info_arr[] = {1, 1, 1};
-					for (auto j = 0; j < slice.length(); j++)
-					{
-						if (slice.get(j).get_token() == TokenMeta::NT_VARIABLEINITIALDUMMY) {
-							// a(:)
-							empty_slice = true;
-							sprintf(codegen_buf, "");
-						}
-						else {
-							sscanf(slice.get(j).to_string().c_str(), "%d", slice_info_arr + j);
-						}
-					}
-					if (empty_slice || slice.length() == 0) {
-						print_error("Slice can not be empty");
-					}
-					else if (slice.length() == 1) {
-						// a single element, not size
-						sprintf(codegen_buf, "%d", slice_info_arr[0]);
-					}
-					else if (slice.length() == 2) {
-						// forslice accepts lowerbound, size
-						sprintf(codegen_buf, "%d, %d", slice_info_arr[0], slice_info_arr[1]  ); 
-					}
-					else {
-						sprintf(codegen_buf, "%d, %d, %d", slice_info_arr[0], slice_info_arr[1], slice_info_arr[2]);
-					}
-
-					slice_info_str += string(codegen_buf);
-				}
-				else {
-					// slice like a(1:2, 3, 4)
-					slice_info_str += argtable.get(i).to_string();
-				}
-				slice_info_str += "}";
-			}
+			slice_info_str = make_str_list(argtable.begin(), argtable.end(), [&](ParseNode * pslice) {
+				ParseNode & slice = *pslice;
+				string res = "{";
+				regen_slice(finfo, slice);
+				res += slice.get_what();
+				res += "}";
+				return res;
+			});
 			sprintf(codegen_buf, "forslice(%s, {%s})", name.c_str(), slice_info_str.c_str());
 			arr = string(codegen_buf);
 		}
@@ -169,7 +133,7 @@ ParseNode gen_function_array(ARG_IN callable_head, ARG_IN argtable) {
 			std::vector<KeywordParamInfo> & params = map_func->second;
 			for (int i = normal_count; i < params.size(); i++)
 			{
-				string this_param_name = std::get<0> (params[i]);
+				string this_param_name = std::get<0>(params[i]);
 				string this_param_type = std::get<1>(params[i]);
 				string this_param_intial_default = std::get<2>(params[i]);
 				auto this_arg = kws.find(this_param_name);
@@ -204,6 +168,6 @@ ParseNode gen_function_array(ARG_IN callable_head, ARG_IN argtable) {
 	else {
 		print_error("callable generate fail", newnode);
 	}
-	return newnode;
+	return;
 }
 

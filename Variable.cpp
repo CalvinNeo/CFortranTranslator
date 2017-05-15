@@ -24,7 +24,7 @@
 
 VariableInfo * get_variable(std::string module_name, std::string function_name, std::string variable_name) {
 	if (function_name == "@") {
-		fatal_error("@ function name is removed");
+		fatal_error("@ function name is removed: " + variable_name);
 		return nullptr;
 	}
 	else {
@@ -40,7 +40,7 @@ VariableInfo * get_variable(std::string module_name, std::string function_name, 
 
 VariableInfo * add_variable(std::string module_name, std::string function_name, std::string variable_name, const VariableInfo & variable) {
 	if (function_name == "@") {
-		fatal_error("@ function name is removed");
+		fatal_error("@ function name is removed: " + variable_name);
 		return nullptr;
 	}
 	else {
@@ -57,16 +57,13 @@ VariableInfo * add_variable(std::string module_name, std::string function_name, 
 	}
 }
 
-void insert_temporary_variables(std::string module_name, std::string function_name) {
-	fatal_error("@ function name is removed");
-}
 void clear_variables() {
 
 }
 
 void forall_variable_in_function(std::string module_name, std::string function_name, std::function<void(const std::pair<std::string, VariableInfo *> &)> func) {
 	if (function_name == "@") {
-		fatal_error("@ function name is removed");
+		fatal_error("@ function name is removed: " + function_name);
 	}
 	else {
 		for (std::map < std::string, VariableInfo* >::iterator iter = get_context().variables.begin(); iter != get_context().variables.end(); iter++)

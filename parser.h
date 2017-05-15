@@ -76,6 +76,10 @@ struct ParseNode {
 	const TokenMeta_T & get_token() const { return this->fs.CurrentTerm.token; }
 	std::string & get_what() { return this->fs.CurrentTerm.what; }
 	const std::string & get_what() const { return this->fs.CurrentTerm.what; }
+	std::vector<ParseNode *>::iterator begin() { return child.begin(); }
+	std::vector<ParseNode *>::iterator end() { return child.end(); }
+	std::vector<ParseNode *>::const_iterator begin() const { return child.begin(); }
+	std::vector<ParseNode *>::const_iterator end() const  { return child.end(); }
 
 	ParseNode(const ParseNode &);
 	ParseNode & operator= (const ParseNode &) ;
@@ -90,8 +94,9 @@ void preorder(ParseNode * ptree);
 /* generate codes instead of in .y files */
 std::string lazy_gen(ParseNode * ptree);
 FlexState & get_flex_state();
-void print_error(const std::string & error_info, const ParseNode & pn);
-void print_error(const std::string & error_info); 
+void print_error(const std::string & error_info, const ParseNode & node);
+void print_error(const std::string & error_info);
+void fatal_error(const std::string & error_info, const ParseNode & node);
 void fatal_error(const std::string & error_info);
 
 // yacc part code

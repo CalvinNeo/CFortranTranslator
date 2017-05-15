@@ -32,7 +32,7 @@ void regen_select(FunctionInfo * finfo, ARG_OUT select_stmt) {
 		string conditions;
 		if (dimen_slice.get_token() == TokenMeta::NT_DIMENSLICE) {
 			// NT_DIMENSLICE
-			conditions = make_str_list(dimen_slice.child.begin(), dimen_slice.child.end(), [&](auto px) {
+			conditions = make_str_list(dimen_slice.begin(), dimen_slice.end(), [&](ParseNode * px) {
 				ParseNode & x = *px;
 				ParseNode & from = x.get(0);
 				ParseNode & to = x.get(1);
@@ -42,7 +42,7 @@ void regen_select(FunctionInfo * finfo, ARG_OUT select_stmt) {
 		}
 		else {
 			// NT_ARGTABLE_PURE
-			conditions = make_str_list(dimen_slice.child.begin(), dimen_slice.child.end(), [&](auto px) {
+			conditions = make_str_list(dimen_slice.begin(), dimen_slice.end(), [&](ParseNode * px) {
 				ParseNode & x = *px;
 				sprintf(codegen_buf, "%s == %s", exp.to_string().c_str(), x.to_string().c_str());
 				return string(codegen_buf);

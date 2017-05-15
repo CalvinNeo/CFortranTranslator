@@ -118,7 +118,11 @@ using namespace std;
 %right YY_NEG YY_POS
 %left '+' '-' 
 %left '*' '/' 
-%right YY_POWER /* x**y**z -> x**(y**z) */
+/******************* 
+*	YY_POWER is right associative
+*	x**y**z -> x**(y**z) 
+*******************/
+%right YY_POWER 
 
 %start fortran_program
 
@@ -218,9 +222,9 @@ using namespace std;
 			}
 		| YY_DIMENSION '(' dimen_slice ')'
 			{
-				/* if write `',' YY_DIMENSION` in `var_def` will cause conflict at ',' */
-				/* if is array reduce immediately and goto `var_def` */
-				/* do not parse array slices here because it can be dificult */
+				// if write `',' YY_DIMENSION` in `var_def` will cause conflict at ',' 
+				// if is array reduce immediately and goto `var_def` 
+				// do not parse array slices here because this is difficult 
 				ARG_IN dimen_slice = YY2ARG($3);
 				ParseNode attr = gen_variabledesc_from_dimenslice(dimen_slice);
 				ParseNode newnode = gen_token(Term{ TokenMeta::NT_VARIABLEDESC, "NT_VARIABLEDESC" }, attr);
@@ -302,7 +306,7 @@ using namespace std;
 	type_selector : YY_KIND '=' YY_INTEGER
 			{
 				int kind;
-				ARG_IN integer = YY2ARG($1);
+				ARG_IN integer = YY2ARG($3);
 				sscanf(integer.get_what().c_str(), "%d", &kind);
 
 				/* type size */
@@ -317,7 +321,7 @@ using namespace std;
 				// though use std::string
 				// still need to initialize the string to YY_LEN
 				int len;
-				ARG_IN integer = YY2ARG($1);
+				ARG_IN integer = YY2ARG($3);
 				sscanf(integer.get_what().c_str(), "%d", &len);
 
 				/* string length */
@@ -521,7 +525,7 @@ using namespace std;
 				/* NOTE that array index can be A(1:2, 3:4) */
 				ARG_IN callable_head = YY2ARG($1);
 				ARG_IN argtable = YY2ARG($3);
-				ParseNode newnode = gen_function_array(callable_head, argtable);
+				ParseNode newnode = gen_token(Term{TokenMeta::NT_FUCNTIONARRAY, "FUNCTIONARRAY GENERATED IN REGEN_SUITE"}, callable_head, argtable);
 				$$ = RETURN_NT(newnode);
 				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($4));
 				CLEAN_RIGHT($1, $2, $3, $4);
@@ -532,7 +536,7 @@ using namespace std;
 				/* NOTE that array index can be A(1:2, 3:4) */
 				ARG_IN callable_head = YY2ARG($1);
 				ARG_IN argtable = YY2ARG($3);
-				ParseNode newnode = gen_function_array(callable_head, argtable);
+				ParseNode newnode = gen_token(Term{ TokenMeta::NT_FUCNTIONARRAY, "FUNCTIONARRAY GENERATED IN REGEN_SUITE" }, callable_head, argtable);
 				$$ = RETURN_NT(newnode);
 				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($4));
 				CLEAN_RIGHT($1, $2, $3, $4);
@@ -552,7 +556,9 @@ using namespace std;
 
 	exp : function_array 
 			{
-				/* function call OR array index */
+				/******************
+				* this is sth callable, maybe array section(NT_DIMENSLICE) or function
+				******************/
 				ARG_IN function_array = YY2ARG($1);
 				$$ = $1;
 				//$$ = RETURN_NT(gen_token(Term{ TokenMeta::NT_EXPRESSION, function_array.get_what()}, function_array));
@@ -566,23 +572,12 @@ using namespace std;
 				$$ = $1;
 				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($1));
 			}
-			
-		| exp '(' exp ')'
-			{
-				/* hyper-function or multi-dimension array like A(2)(3)  */
-				ARG_IN exp1 = YY2ARG($1);
-				ARG_IN op = YY2ARG($2);
-				ARG_IN exp2 = YY2ARG($3);
-				$$ = RETURN_NT(gen_promote("%s(%s)", TokenMeta::NT_EXPRESSION, exp1, exp2, gen_token(Term{TokenMeta::OperatorCall, ""})));
-				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($4));
-				CLEAN_RIGHT($1, $2, $3, $4);
-			}
 		| '(' exp ')' 
 			{
 				/* `function_array` rule has priority over this rule  */
 				ARG_IN exp = YY2ARG($2);
-				ParseNode op = gen_token(Term{ TokenMeta::LB, "(" });
-				$$ = RETURN_NT(gen_promote("( %s )", TokenMeta::NT_EXPRESSION, exp, gen_token(Term{ TokenMeta::LB, "" })));
+				ParseNode opnew = gen_token(Term{ TokenMeta::LB, "( %s )" });
+				$$ = RETURN_NT(gen_promote("( %s )", TokenMeta::NT_EXPRESSION, exp, opnew));
 				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($3));
 				CLEAN_RIGHT($1, $2, $3);
 			}
@@ -591,7 +586,8 @@ using namespace std;
 				ARG_IN exp1 = YY2ARG($1);
 				ARG_IN op = YY2ARG($2);
 				ARG_IN exp2 = YY2ARG($3);
-				$$ = RETURN_NT(gen_promote("%s + %s", TokenMeta::NT_EXPRESSION, exp1, exp2, op));
+				ParseNode opnew = gen_token(Term{ TokenMeta::Add, "%s + %s" });
+				$$ = RETURN_NT(gen_promote(opnew.get_what(), TokenMeta::NT_EXPRESSION, exp1, exp2, opnew));
 				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($3));
 				CLEAN_RIGHT($1, $2, $3);
 			}
@@ -600,7 +596,8 @@ using namespace std;
 				ARG_IN exp1 = YY2ARG($1);
 				ARG_IN op = YY2ARG($2);
 				ARG_IN exp2 = YY2ARG($3);
-				$$ = RETURN_NT(gen_promote("%s - %s", TokenMeta::NT_EXPRESSION, exp1, exp2, op));
+				ParseNode opnew = gen_token(Term{ TokenMeta::Minus, "%s - %s" });
+				$$ = RETURN_NT(gen_promote(opnew.get_what(), TokenMeta::NT_EXPRESSION, exp1, exp2, opnew));
 				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($3));
 				CLEAN_RIGHT($1, $2, $3);
 			}
@@ -609,7 +606,8 @@ using namespace std;
 				ARG_IN exp1 = YY2ARG($1);
 				ARG_IN op = YY2ARG($2);
 				ARG_IN exp2 = YY2ARG($3);
-				$$ = RETURN_NT(gen_promote("%s * %s", TokenMeta::NT_EXPRESSION, exp1, exp2, op));
+				ParseNode opnew = gen_token(Term{ TokenMeta::Multiply, "%s * %s" });
+				$$ = RETURN_NT(gen_promote(opnew.get_what(), TokenMeta::NT_EXPRESSION, exp1, exp2, opnew));
 				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($3));
 				CLEAN_RIGHT($1, $2, $3);
 			}
@@ -618,7 +616,8 @@ using namespace std;
 				ARG_IN exp1 = YY2ARG($1);
 				ARG_IN op = YY2ARG($2);
 				ARG_IN exp2 = YY2ARG($3);
-				$$ = RETURN_NT(gen_promote("%s / %s", TokenMeta::NT_EXPRESSION, exp1, exp2, op));
+				ParseNode opnew = gen_token(Term{ TokenMeta::Divide, "%s / %s" });
+				$$ = RETURN_NT(gen_promote(opnew.get_what(), TokenMeta::NT_EXPRESSION, exp1, exp2, opnew));
 				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($3));
 				CLEAN_RIGHT($1, $2, $3);
 			}
@@ -627,7 +626,8 @@ using namespace std;
 				ARG_IN exp1 = YY2ARG($1);
 				ARG_IN op = YY2ARG($2);
 				ARG_IN exp2 = YY2ARG($3);
-				$$ = RETURN_NT(gen_promote("power(%s, %s)", TokenMeta::NT_EXPRESSION, exp1, exp2, op));
+				ParseNode opnew = gen_token(Term{ TokenMeta::Power, "power(%s, %s)" });
+				$$ = RETURN_NT(gen_promote(opnew.get_what(), TokenMeta::NT_EXPRESSION, exp1, exp2, opnew));
 				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($3));
 				CLEAN_RIGHT($1, $2, $3);
 			}
@@ -635,15 +635,17 @@ using namespace std;
 			{
 				ARG_IN exp1 = YY2ARG($2);
 				ARG_IN op = YY2ARG($1);
-				$$ = RETURN_NT(gen_promote("(-%s)", TokenMeta::NT_EXPRESSION, exp1, op));
+				ParseNode opnew = gen_token(Term{ TokenMeta::Neg, "(-%s)" });
+				$$ = RETURN_NT(gen_promote(opnew.get_what(), TokenMeta::NT_EXPRESSION, exp1, opnew));
 				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($2));
 				CLEAN_RIGHT($1, $2);
 			}
-        | '+' %prec YY_NEG exp 
+        | '+' %prec YY_POS exp 
 			{
 				ARG_IN exp1 = YY2ARG($2);
 				ARG_IN op = YY2ARG($1);
-				$$ = RETURN_NT(gen_promote("%s", TokenMeta::NT_EXPRESSION, exp1, op));
+				ParseNode opnew = gen_token(Term{ TokenMeta::Pos, "%s" });
+				$$ = RETURN_NT(gen_promote(opnew.get_what(), TokenMeta::NT_EXPRESSION, exp1, opnew));
 				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($2));
 				CLEAN_RIGHT($1, $2);
 			}
@@ -652,7 +654,8 @@ using namespace std;
 				ARG_IN exp1 = YY2ARG($1);
 				ARG_IN op = YY2ARG($2);
 				ARG_IN exp2 = YY2ARG($3);
-				$$ = RETURN_NT(gen_promote("%s != %s", TokenMeta::NT_EXPRESSION, exp1, exp2, op));
+				ParseNode opnew = gen_token(Term{ TokenMeta::NEQ, "%s != %s" });
+				$$ = RETURN_NT(gen_promote(opnew.get_what(), TokenMeta::NT_EXPRESSION, exp1, exp2, opnew));
 				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($3));
 				CLEAN_RIGHT($1, $2, $3);
 			}
@@ -662,7 +665,8 @@ using namespace std;
 				ARG_IN exp1 = YY2ARG($1);
 				ARG_IN op = YY2ARG($2);
 				ARG_IN exp2 = YY2ARG($3);
-				$$ = RETURN_NT(gen_promote("%s ^ %s", TokenMeta::NT_EXPRESSION, exp1, exp2, op));
+				ParseNode opnew = gen_token(Term{ TokenMeta::NEQV, "%s ^ %s" });
+				$$ = RETURN_NT(gen_promote(opnew.get_what(), TokenMeta::NT_EXPRESSION, exp1, exp2, opnew));
 				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($3));
 				CLEAN_RIGHT($1, $2, $3);
 			}
@@ -671,7 +675,8 @@ using namespace std;
 				ARG_IN exp1 = YY2ARG($1);
 				ARG_IN op = YY2ARG($2);
 				ARG_IN exp2 = YY2ARG($3);
-				$$ = RETURN_NT(gen_promote("%s == %s", TokenMeta::NT_EXPRESSION, exp1, exp2, op));
+				ParseNode opnew = gen_token(Term{ TokenMeta::EQ, "%s == %s" });
+				$$ = RETURN_NT(gen_promote(opnew.get_what(), TokenMeta::NT_EXPRESSION, exp1, exp2, opnew));
 				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($3));
 				CLEAN_RIGHT($1, $2, $3);
 			}
@@ -681,7 +686,8 @@ using namespace std;
 				ARG_IN exp1 = YY2ARG($1);
 				ARG_IN op = YY2ARG($2);
 				ARG_IN exp2 = YY2ARG($3);
-				$$ = RETURN_NT(gen_promote("!(%s ^ %s)", TokenMeta::NT_EXPRESSION, exp1, exp2, op));
+				ParseNode opnew = gen_token(Term{ TokenMeta::EQV, "!(%s ^ %s)" });
+				$$ = RETURN_NT(gen_promote(opnew.get_what(), TokenMeta::NT_EXPRESSION, exp1, exp2, opnew));
 				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($3));
 				CLEAN_RIGHT($1, $2, $3);
 			}
@@ -690,7 +696,8 @@ using namespace std;
 				ARG_IN exp1 = YY2ARG($1);
 				ARG_IN op = YY2ARG($2);
 				ARG_IN exp2 = YY2ARG($3);
-				$$ = RETURN_NT(gen_promote("%s && %s", TokenMeta::NT_EXPRESSION, exp1, exp2, op));
+				ParseNode opnew = gen_token(Term{ TokenMeta::AndAnd, "%s && %s" });
+				$$ = RETURN_NT(gen_promote(opnew.get_what(), TokenMeta::NT_EXPRESSION, exp1, exp2, opnew));
 				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($3));
 				CLEAN_RIGHT($1, $2, $3);
 			}
@@ -699,7 +706,8 @@ using namespace std;
 				ARG_IN exp1 = YY2ARG($1);
 				ARG_IN op = YY2ARG($2);
 				ARG_IN exp2 = YY2ARG($3);
-				$$ = RETURN_NT(gen_promote("%s || %s", TokenMeta::NT_EXPRESSION, exp1, exp2, op));
+				ParseNode opnew = gen_token(Term{ TokenMeta::OrOr, "%s || %s" });
+				$$ = RETURN_NT(gen_promote(opnew.get_what(), TokenMeta::NT_EXPRESSION, exp1, exp2, opnew));
 				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($3));
 				CLEAN_RIGHT($1, $2, $3);
 			}
@@ -707,7 +715,8 @@ using namespace std;
 			{
 				ARG_IN exp1 = YY2ARG($2);
 				ARG_IN op = YY2ARG($1);
-				$$ = RETURN_NT(gen_promote("!(%s)", TokenMeta::NT_EXPRESSION, exp1, op));
+				ParseNode opnew = gen_token(Term{ TokenMeta::OrOr, "!(%s)" });
+				$$ = RETURN_NT(gen_promote(opnew.get_what(), TokenMeta::NT_EXPRESSION, exp1, opnew));
 				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($2));
 				CLEAN_RIGHT($1, $2);
 			}
@@ -716,7 +725,8 @@ using namespace std;
 				ARG_IN exp1 = YY2ARG($1);
 				ARG_IN op = YY2ARG($2);
 				ARG_IN exp2 = YY2ARG($3);
-				$$ = RETURN_NT(gen_promote("%s > %s", TokenMeta::NT_EXPRESSION, exp1, exp2, op));
+				ParseNode opnew = gen_token(Term{ TokenMeta::GT, "%s > %s" });
+				$$ = RETURN_NT(gen_promote(opnew.get_what(), TokenMeta::NT_EXPRESSION, exp1, exp2, opnew));
 				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($3));
 				CLEAN_RIGHT($1, $2, $3);
 			}
@@ -725,7 +735,8 @@ using namespace std;
 				ARG_IN exp1 = YY2ARG($1);
 				ARG_IN op = YY2ARG($2);
 				ARG_IN exp2 = YY2ARG($3);
-				$$ = RETURN_NT(gen_promote("%s >= %s", TokenMeta::NT_EXPRESSION, exp1, exp2, op));
+				ParseNode opnew = gen_token(Term{ TokenMeta::GE, "%s >= %s" });
+				$$ = RETURN_NT(gen_promote(opnew.get_what(), TokenMeta::NT_EXPRESSION, exp1, exp2, opnew));
 				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($3));
 				CLEAN_RIGHT($1, $2, $3);
 			}
@@ -734,7 +745,8 @@ using namespace std;
 				ARG_IN exp1 = YY2ARG($1);
 				ARG_IN op = YY2ARG($2);
 				ARG_IN exp2 = YY2ARG($3);
-				$$ = RETURN_NT(gen_promote("%s <= %s", TokenMeta::NT_EXPRESSION, exp1, exp2, op));
+				ParseNode opnew = gen_token(Term{ TokenMeta::LE, "%s <= %s" });
+				$$ = RETURN_NT(gen_promote(opnew.get_what(), TokenMeta::NT_EXPRESSION, exp1, exp2, opnew));
 				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($3));
 			}
 		| exp YY_LT exp 
@@ -742,7 +754,8 @@ using namespace std;
 				ARG_IN exp1 = YY2ARG($1);
 				ARG_IN op = YY2ARG($2);
 				ARG_IN exp2 = YY2ARG($3);
-				$$ = RETURN_NT(gen_promote("%s < %s", TokenMeta::NT_EXPRESSION, exp1, exp2, op));
+				ParseNode opnew = gen_token(Term{ TokenMeta::LT, "%s < %s" });
+				$$ = RETURN_NT(gen_promote(opnew.get_what(), TokenMeta::NT_EXPRESSION, exp1, exp2, opnew));
 				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($3));
 				CLEAN_RIGHT($1, $2, $3);
 			}
@@ -754,7 +767,17 @@ using namespace std;
 				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($1));
 			}
 		| literal 
-            { 
+            {
+				/******************
+				* shouldn't promote literals to NT_EXPRESSION, 
+				*	because it can bring trouble to hardcoded dealt values
+				* e.g.
+				* when generating NT_SLICE, we can set a default lower bound UBOUND_DELTA_STR = `1`, 
+				*	and we hard code the UBOUND_DELTA_STR
+				*	if we promote  literals to NT_EXPRESSION, we should write
+				*	`gen_token(Term{TokenMeta::NT_EXPRESSION, UBOUND_DELTA_STR}, gen_token(Term{TokenMeta::Int, UBOUND_DELTA_STR}))`
+				*	it's not elegant
+				******************/
 				$$ = $1;
 				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($1));
 			}
@@ -952,7 +975,8 @@ using namespace std;
 				ARG_IN exp1 = YY2ARG($1);
 				ARG_IN op = YY2ARG($2);
 				ARG_IN exp2 = YY2ARG($3);
-				$$ = RETURN_NT(gen_promote("%s = %s", TokenMeta::NT_EXPRESSION, exp1, exp2, op));
+				ParseNode opnew = gen_token(Term{ TokenMeta::Let, "%s = %s" });
+				$$ = RETURN_NT(gen_promote(opnew.get_what(), TokenMeta::NT_EXPRESSION, exp1, exp2, opnew));
 				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($3));
 				CLEAN_RIGHT($1, $2, $3);
 			}
@@ -965,7 +989,7 @@ using namespace std;
 				CLEAN_RIGHT($1, $2);
 			}
 
-	labeled_stmt : YY_LABEL stmt
+	labeled_stmts : YY_LABEL stmt
 			{
 				ARG_IN label = YY2ARG($1); // TokenMeta::Label
 				ARG_IN stmt = YY2ARG($2);
@@ -983,45 +1007,52 @@ using namespace std;
 				CLEAN_RIGHT($1, $2);
 			}
 
-	suite : labeled_stmt
+	suite : labeled_stmts
 			{
-				$$ = $1;
+				// NT_FORMAT or other stmt node
+				ARG_IN labeled_stmts = YY2ARG($1);
+				$$ = RETURN_NT(gen_suite(labeled_stmts, gen_dummy()));
 				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($1));
+				CLEAN_RIGHT($1);
 			}
-		| labeled_stmt end_of_stmt suite
+		| labeled_stmts end_of_stmt suite
 			{
-				ARG_IN labeled_stmt = YY2ARG($1);
+				ARG_IN labeled_stmts = YY2ARG($1);
 				ARG_IN suite = YY2ARG($3);				
-				$$ = RETURN_NT(gen_merge(labeled_stmt, suite, "%s\n%s", TokenMeta::NT_SUITE));
+				$$ = RETURN_NT(gen_suite(labeled_stmts, suite));
 				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($3));
 				CLEAN_RIGHT($1, $2, $3);
 			}
 				
+		| stmt
+			{
+				ARG_IN stmt = YY2ARG($1);
+				$$ = RETURN_NT(gen_suite(stmt, gen_dummy()));
+				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($1));
+				CLEAN_RIGHT($1);
+			}
 		| stmt end_of_stmt suite
 			{
 				ARG_IN stmt = YY2ARG($1); 
 				ARG_IN suite = YY2ARG($3);
-				$$ = RETURN_NT(gen_flattern(stmt, suite, "%s\n%s", TokenMeta::NT_SUITE));
+				$$ = RETURN_NT(gen_suite(stmt, suite));
 				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($3));
 				CLEAN_RIGHT($1, $2, $3);
-			}
-		| stmt
-			{
-				ARG_IN stmt = YY2ARG($1); 
-				$$ = RETURN_NT(gen_promote("%s\n", TokenMeta::NT_SUITE, stmt));
-				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($1));
-				CLEAN_RIGHT($1);
 			}
 				
 		| interface_decl
 			{
-				$$ = RETURN_NT(gen_promote("", TokenMeta::NT_SUITE, YY2ARG($1)));
+				// NT_INTERFACE
+				ARG_IN interf = YY2ARG($1);
+				$$ = RETURN_NT(gen_suite(interf, gen_dummy()));
 				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($1));
 				CLEAN_RIGHT($1);
 			}
 		| interface_decl end_of_stmt suite
 			{
-				$$ = RETURN_NT(gen_flattern(YY2ARG($1), YY2ARG($3), "%s%s", TokenMeta::NT_SUITE));
+				ARG_IN interf = YY2ARG($1);
+				ARG_IN suite = YY2ARG($3);
+				$$ = RETURN_NT(gen_suite(interf, suite));
 				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($3));
 				CLEAN_RIGHT($1, $2, $3);
 			}
@@ -1282,7 +1313,7 @@ using namespace std;
 	pure_paramtable : keyvalue
 			{
 				ARG_IN paramtable_elem = YY2ARG($1);
-				ParseNode newnode = gen_paramtable(paramtable_elem);
+				ParseNode newnode = gen_pure_paramtable(paramtable_elem);
 				$$ = RETURN_NT(newnode);
 				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($1));
 				CLEAN_RIGHT($1);
@@ -1291,7 +1322,7 @@ using namespace std;
 			{
 				ARG_IN paramtable_elem = YY2ARG($3);
 				ARG_IN paramtable = YY2ARG($1);
-				ParseNode newnode = gen_paramtable(paramtable_elem, paramtable);
+				ParseNode newnode = gen_pure_paramtable(paramtable_elem, paramtable);
 				$$ = RETURN_NT(newnode);
 				CLEAN_RIGHT($1, $2, $3);
 			}				
@@ -1299,7 +1330,7 @@ using namespace std;
 			{
 				ARG_IN paramtable_elem = YY2ARG($3);
 				ARG_IN paramtable = YY2ARG($1);
-				ParseNode newnode = gen_paramtable(promote_exp_to_keyvalue(paramtable_elem), paramtable);
+				ParseNode newnode = gen_pure_paramtable(promote_exp_to_keyvalue(paramtable_elem), paramtable);
 				$$ = RETURN_NT(newnode);
 				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($3));
 				CLEAN_RIGHT($1, $2, $3);
@@ -1308,7 +1339,7 @@ using namespace std;
 			{
 				ARG_IN paramtable_elem = YY2ARG($3);
 				ARG_IN paramtable = YY2ARG($1);
-				ParseNode newnode = gen_paramtable(paramtable_elem, paramtable);
+				ParseNode newnode = gen_pure_paramtable(paramtable_elem, paramtable);
 				$$ = RETURN_NT(newnode);
 				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($3));
 				CLEAN_RIGHT($1, $2, $3);
@@ -1670,7 +1701,7 @@ using namespace std;
 				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($1));
 				CLEAN_RIGHT($1);
 			}
-		| labeled_stmt
+		| labeled_stmts
 			{
 				$$ = $1;
 				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($1));
@@ -1686,8 +1717,7 @@ using namespace std;
 	wrappers : wrapper
 			{
 				ARG_IN wrapper = YY2ARG($1);
-				sprintf(codegen_buf, "%s", wrapper.get_what().c_str());
-				ParseNode newnode = gen_token(Term{ TokenMeta::NT_WRAPPERS, string(codegen_buf) }, wrapper);
+				ParseNode newnode = gen_promote("%s", TokenMeta::NT_WRAPPERS, wrapper);
 				$$ = RETURN_NT(newnode);
 				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($1));
 				CLEAN_RIGHT($1);
@@ -1696,9 +1726,7 @@ using namespace std;
 			{
 				ARG_IN wrapper = YY2ARG($1);
 				ARG_IN wrappers = YY2ARG($3);
-				sprintf(codegen_buf, "%s\n%s", wrapper.get_what().c_str(), wrappers.get_what().c_str());
-				ParseNode newnode = gen_token(Term{ TokenMeta::NT_WRAPPERS, string(codegen_buf) }, wrapper, wrappers);
-				flattern_bin_inplace(newnode, true);
+				ParseNode newnode = gen_flattern(wrapper, wrappers, "%s\n%s", TokenMeta::NT_WRAPPERS);
 				$$ = RETURN_NT(newnode);
 				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($3));
 				CLEAN_RIGHT($1, $2, $3);
@@ -1706,7 +1734,8 @@ using namespace std;
 
 	interface_decl : YY_INTERFACE _optional_name at_least_one_end_line wrappers crlf_or_not YY_ENDINTERFACE _optional_name
 			{
-				$$ = RETURN_NT(gen_token(Term{ TokenMeta::NT_INTERFACE, YY2ARG($4).get_what()}, YY2ARG($4)));
+				ARG_IN wrappers = YY2ARG($4);
+				$$ = RETURN_NT(gen_token(Term{ TokenMeta::NT_INTERFACE, wrappers.get_what()}, wrappers));
 				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($7));
 				CLEAN_RIGHT($1, $2, $3, $4, $5, $6, $7);
 			}

@@ -142,7 +142,7 @@ ParseNode gen_hiddendo(ARG_IN argtable, ARG_IN index, ARG_IN from, ARG_IN to, To
 	newnode.addlist(argtable, index, from, to);
 	std::string stuff;
 
-	stuff = make_str_list(argtable.child.begin(), argtable.child.end(), [&](ParseNode * iter) {
+	stuff = make_str_list(argtable.begin(), argtable.end(), [&](ParseNode * iter) {
 		if (iter->length() > 0 && (iter)->get(0).get_token() == TokenMeta::NT_HIDDENDO)
 		{
 			return (iter)->to_string();

@@ -231,7 +231,4 @@
       <Filter>grammar</Filter>
     </Bison>
   </ItemGroup>
-  <ItemGroup>
-    <ResourceCompile Include="CFortranTranslator.rc" />
-  </ItemGroup>
 </Project>

@@ -23,6 +23,15 @@
 
 using namespace std;
 
+FlexState & get_flex_state() {
+	static FlexState flex_state;
+	return flex_state;
+}
+
+FlexContext & get_flex_context() {
+	static FlexContext fc;
+	return fc;
+}
 const vector<KeywordMeta> keywords = {
 	// .what keyword
 	// .token keyword as intent
@@ -361,10 +370,4 @@ const std::map<std::string, std::vector<std::string> > forward1 = {
 	,{ "double",{ "precision" } }
 
 };
-
-
-FlexState & get_flex_state() {
-	static FlexState flex_state;
-	return flex_state;
-}
 

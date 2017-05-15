@@ -69,7 +69,7 @@
     尝试作为用lambda表达式包起来求值，然后作为farray传给write作为参数
 - ~~pointer problem, including `VariableDesc::slice`, deal with nullptr~~
 - ~~`ParseNode` inteface change to reference, remove pointer in other structures~~
-- implicit paramtable
+- won't generate repeated definitions in implicit paramtable
     ```
     subroutine sub(A)
 	    A = 2
@@ -77,7 +77,7 @@
     ```
 - ~~`temporary_variable` to `FunctionInfo` variable~~
 - ~~`regen_if`, `regen_do`, `regen_suite`~~
-- delete all `gen_` functions except `gen_token` with multiple which accepts a list of `YYSTYPE`. `regen_paramtable`, `regen_function_array`
+- delete all `gen_` functions except `gen_token` with multiple which accepts a list of `YYSTYPE`. ~~`regen_paramtable`~~, ~~`regen_function_array`~~
 - log all arguments in paramtable to `get_context().variable`
-- use `is_exp` function instead of `NT_EXPRESSION` node. rename `NT_EXPRESSION` to `NT_ARITH_EXP`, which contructed only by in arithmatic
+- ~~use `is_exp` function instead of `NT_EXPRESSION` node~~. rename `NT_EXPRESSION` to `NT_ARITH_EXP`, which constructed only by arithmatic rules
 - declare all implicit variables (ref demos/implicit variable.txt)

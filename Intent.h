@@ -44,7 +44,8 @@ namespace TokenMeta {
 		ADD_ENUM(Neg, 231),
 		ADD_ENUM(PreInc, 232), //i++
 		ADD_ENUM(PreDec, 233), //i--
-		ADD_ENUM(ShortWave, 234), //~
+		ADD_ENUM(Inv, 234), //~
+		ADD_ENUM(Pos, 235),
 
 		ADD_ENUM(Power, 200),
 
