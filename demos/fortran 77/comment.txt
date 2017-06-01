@@ -1,3 +1,5 @@
+character ch ! this is comment because of the beginning `c`
+      character ch2 ! this is not comment
 	do i=1,m
 	do j=1,n(i)
 301	continue

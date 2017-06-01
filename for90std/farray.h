@@ -239,11 +239,11 @@ namespace for90std {
 
 		template <typename F>
 		void map(F f) const {
-			_map_impl<const farray<T>&, F>(*this, f, cbegin());
+			_map_impl<F>(f, cbegin(), this->dimension, this->LBound(), this->size());
 		}
 		template <typename F>
 		void map(F f) {
-			_map_impl<farray<T>&, F>(*this, f, begin());
+			_map_impl<F>(f, begin(), this->dimension, this->LBound(), this->size());
 		}
 
 		template<int X>
@@ -318,14 +318,14 @@ namespace for90std {
 			fsize_t flatsize = 0;
 			for (int i = 0; i < X; i++)
 			{
-				flatsize += (farrs + i)->flatsize();
+				flatsize += farrs[i].flatsize();
 			}
-			parr = new T[flatsize];
-			auto parr1 = parr;
+			this->parr = new T[flatsize];
+			auto parr_iter = parr;
 			for (int i = 0; i < X; i++)
 			{
-				std::copy_n((farrs + i)->cbegin(), X, parr1);
-				parr1 += (farrs + i)->flatsize();
+				std::copy_n(farrs[i].cbegin(), farrs[i].flatsize(), parr_iter);
+				parr_iter += farrs[i].flatsize();
 			}
 		}
 		template <typename Iterator>
@@ -431,38 +431,39 @@ namespace for90std {
 	protected:
 		size_type * lb = nullptr, * sz = nullptr, * delta = nullptr;
 
-		template <typename THIS, typename F, typename Iterator>
-		static void _map_impl(THIS me, F f, Iterator iter) {
-			size_type * cur = new size_type[me.dimension];
-			std::copy_n(me.LBound(), me.dimension, cur);
-#ifdef USE_FORARRAY
-			int dim = 0; // current dimension
-			while (true) {
-				while (cur[dim] < me.LBound(dim) + me.size(dim)) {
-					f(*iter, cur);
-					iter++;
-					cur[dim] ++;
-				}
-				while (cur[dim] + 1>= me.LBound(dim) + me.size(dim)) {
-					// find innermost dimension which isn't to end
-					dim++;
-					if (dim == me.dimension) {
-						break; // all finished
-					}
-				}
-				if (dim < me.dimension) {
-					cur[dim]++;
-				}
-				else {
-					break; // all finished
-				}
-				std::copy_n(me.LBound(), dim, cur); // reset cur
-				dim = 0;
-			}
-#endif
-			delete[] cur;
-		}
 	};
+
+template <typename F, typename Iterator, typename size_type>
+static void _map_impl(F f, Iterator iter, int dimension, const size_type * LBound, const size_type * size) {
+	size_type * cur = new size_type[dimension];
+	std::copy_n(LBound, dimension, cur);
+#ifdef USE_FORARRAY
+	int dim = 0; // current dimension
+	while (true) {
+		while (cur[dim] < LBound[dim] + size[dim]) {
+			f(*iter, cur);
+			iter++;
+			cur[dim] ++;
+		}
+		while (cur[dim] + 1 >= LBound[dim] + size[dim]) {
+			// find innermost dimension which isn't to end
+			dim++;
+			if (dim == dimension) {
+				break; // all finished
+			}
+		}
+		if (dim < dimension) {
+			cur[dim]++;
+		}
+		else {
+			break; // all finished
+		}
+		std::copy_n(LBound, dim, cur); // reset cur
+		dim = 0;
+	}
+#endif
+	delete[] cur;
+}
 
 template <typename T1, typename T2> 
 auto power(const farray<T1> & x, const farray<T2> & y) { 
@@ -559,7 +560,7 @@ auto power(const farray<T1> & x, const T2 & y) {
 		fsize_t flatsize = 0;
 		for (int i = 0; i < X; i++)
 		{
-			flatsize += (farrs + i)->flatsize();
+			flatsize += farrs[i].flatsize();
 		}
 		farray<T> narr({ 1 }, { flatsize });
 		// concat several farrays
@@ -595,11 +596,11 @@ auto power(const farray<T1> & x, const T2 & y) {
 	}
 	template <typename T>
 	farray<T> make_init_list(const T & scalar)  {
-		/***
+		/***************
 		ISO/IEC 1539:1991 1.5.2
 		A scalar is conformable with any array
 		A rank-one array may be constructed from scalars and other arrays and may be reshaped into any allowable array shape
-		***/
+		****************/
 		// implicitly use a scalr to initialize an array, so shape of array is undetermined
 		return farray<T>(scalar);
 	}

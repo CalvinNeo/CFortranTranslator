@@ -25,12 +25,18 @@
 #include "context.h"
 #include <boost/lexical_cast.hpp>
 
+#define WHENDEBUG_OREMPTYSTR(STR) WHENDEBUG(STR, "")
+
+FlexState gen_flex(Term term);
 /****************
 * `gen_token` generate token from several or none childs by given **Term**
 * Usage:
 * if the node generate a invariant string, use `gen_token`, otherwise, `gen_promote`
 *****************/
-ParseNode gen_token(Term term);
+inline ParseNode gen_token(Term term) {
+	// four `_pos` is set by update_pos in for90.y
+	return ParseNode(gen_flex(term), nullptr);
+}
 template <typename ... Args>
 ParseNode gen_token(Term term, Args&& ... args) {
 	ParseNode newnode = gen_token(term);
@@ -55,7 +61,6 @@ ParseNode gen_promote(std::string rule, TokenMeta_T merged_token_meta, Args&& ..
 	newnode.addlist(std::forward<Args>(items)...);
 	return newnode;
 }
-FlexState gen_flex(Term term);
 /****************
 * `gen_flattern` append an item to a list
 *****************/
@@ -109,6 +114,7 @@ void regen_exp(FunctionInfo * finfo, ARG_OUT exp);
 void regen_paramtable(FunctionInfo * finfo, ARG_OUT paramtable);
 void regen_function_array(FunctionInfo * finfo, ARG_OUT newnode);
 void regen_slice(FunctionInfo * finfo, ARG_OUT slice);
+void insert_comments(ARG_OUT newnode);
 
 std::string parse_ioformatter(const std::string &); 
 ParseNode gen_format(ARG_IN format);
@@ -116,20 +122,19 @@ ParseNode gen_format(ARG_IN format);
 ParseNode gen_vardef(ARG_IN type_nospec, ARG_IN variable_desc, ARG_IN paramtable);
 
 std::string get_variable_name(const ParseNode & entity_variable);
-std::tuple<std::vector<int>, std::vector<int>> get_lbound_size(const ParseNode * slice);
+std::tuple<std::vector<int>, std::vector<int>> get_lbound_size(const ParseNode & slice);
 ParseNode gen_vardef_from_default(ARG_IN type, std::string name);
 
 #define get_all_declared get_all_declared_by_log
 
-std::vector<VariableInfo *> get_all_declared_by_log(FunctionInfo * finfo, ParseNode & suite);
+std::vector<VariableInfo *> get_all_declared_by_log(FunctionInfo * finfo, ARG_IN suite);
 std::vector<ParseNode *> get_all_declared_by_node(FunctionInfo * finfo, ParseNode & suite);
-ParseNode gen_function(ARG_IN variable_function, ARG_IN paramtable, ARG_IN variable_result, ARG_IN suite); // function define
-
+ParseNode gen_function(ARG_IN variable_function, ARG_IN paramtable, ARG_IN variable_result, ARG_IN suite); 
 ParseNode gen_hiddendo(ARG_IN argtable, ARG_IN index, ARG_IN from, ARG_IN to, TokenMeta_T return_token = TokenMeta::NT_HIDDENDO);
 std::vector<const ParseNode *> gen_nested_hiddendo_layers(ARG_IN hiddendo);
 std::string gen_hiddendo_expr(ARG_IN hiddendo);
 
-ParseNode gen_function_array(ARG_IN callable_head, ARG_IN argtable); // callable, function call or array
+ParseNode gen_function_array(ARG_IN callable_head, ARG_IN argtable); 
 
 
 ParseNode promote_exp_to_slice(ARG_IN exp);
@@ -170,10 +175,10 @@ ParseNode gen_header();
 ParseNode gen_common_definition(std::string common_name);
 ParseNode gen_common(ARG_IN commonname_node, ARG_IN paramtable);
 VariableInfo * check_implicit_variable(FunctionInfo * finfo, const std::string & name);
+ParseNode gen_comment(std::string comment, bool line_comment = true);
 
 ParseNode gen_suite(ARG_IN item, ARG_IN list);
-void insert_comments(ParseNode & newnode);
-
+void get_full_paramtable(FunctionInfo * finfo);
 
 void gen_fortran_program(ARG_IN wrappers);
 

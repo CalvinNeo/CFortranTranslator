@@ -29,27 +29,34 @@ std::string gen_lbound_size_str(const std::tuple<std::vector<int>, std::vector<i
 	return lbound_str + ", " + size_str;
 }
 
-std::tuple<std::vector<int>, std::vector<int>> get_lbound_size(const ParseNode * slice) {
-	if (slice == nullptr) {
-		return make_tuple(std::vector<int>(), std::vector<int>());
-	}
-	std::vector<int> lb(slice->length()), sz(slice->length());
-	if (slice->get_token() == TokenMeta::NT_ARGTABLE_PURE)
+std::tuple<std::vector<int>, std::vector<int>> get_lbound_size(const ParseNode & slice) {
+
+	/*****************
+	* because the usage of `boost::optional<ParseNode> desc.slice`
+	* below if-stmt is useless
+	* ================
+	//if (slice == nullptr) {
+	//	return make_tuple(std::vector<int>(), std::vector<int>());
+	//}
+	*****************/
+
+	std::vector<int> lb(slice.length()), sz(slice.length());
+	if (slice.get_token() == TokenMeta::NT_ARGTABLE_PURE)
 	{
-		transform(slice->child.begin(), slice->child.end(), lb.begin(), [](const ParseNode * x) {
+		transform(slice.begin(), slice.end(), lb.begin(), [](const ParseNode * x) {
 			return 1;
 		});
-		transform(slice->child.begin(), slice->child.end(), sz.begin(), [](const ParseNode * x) {
+		transform(slice.begin(), slice.end(), sz.begin(), [](const ParseNode * x) {
 			int l; sscanf(x->get_what().c_str(), "%d", &l);
 			return l;
 		});
 	}
 	else {
-		transform(slice->child.begin(), slice->child.end(), lb.begin(), [](const ParseNode * x) {
+		transform(slice.begin(), slice.end(), lb.begin(), [](const ParseNode * x) {
 			int l; sscanf(x->get(0).get_what().c_str(), "%d", &l);
 			return l;
 		});
-		transform(slice->child.begin(), slice->child.end(), sz.begin(), [](const ParseNode * x) {
+		transform(slice.begin(), slice.end(), sz.begin(), [](const ParseNode * x) {
 			int u; sscanf(x->get(1).get_what().c_str(), "%d", &u);
 			int l; sscanf(x->get(0).get_what().c_str(), "%d", &l);
 			return u - l + 1;
@@ -72,11 +79,11 @@ std::string gen_vardef_array_str(FunctionInfo * finfo, VariableInfo * vinfo, Par
 	if (entity_variable.get(1).get_token() == TokenMeta::NT_VARIABLEINITIALDUMMY) {
 		// default initialize
 		if (get_context().parse_config.usefarray) {
-			sprintf(codegen_buf, "{%s}", gen_lbound_size_str(shape).c_str()); // compile reckon "T a();" as function decl, so use `{}` 
+			sprintf(codegen_buf, "{%s}", gen_lbound_size_str(shape).c_str()); // C++ reckon "T a();" as function decl, so use `{}` 
 			arr_decl += string(codegen_buf);
 		}
 		else {
-			sprintf(codegen_buf, "(%d, %d)", get<0>(shape)[0], get<0>(shape)[0] + get<1>(shape)[0] + 1 /* slice from to */);
+			sprintf(codegen_buf, "(%d, %d)", get<0>(shape)[0], get<0>(shape)[0] + get<1>(shape)[0] + 1 ); // slice from to
 			arr_decl += string(codegen_buf);
 		}
 	}
@@ -95,36 +102,41 @@ std::string gen_vardef_array_str(FunctionInfo * finfo, VariableInfo * vinfo, Par
 
 
 std::string get_variable_name(const ParseNode & entity_variable) {
-	const ParseNode & entity_variable_name = entity_variable;
-	if (is_function_array(entity_variable))
+	if (entity_variable.get_token() == TokenMeta::NT_VARIABLE_ENTITY)
 	{
-		// entity_variable_name->child[0] has subobject designator like `A(0,1,2)`
-		return entity_variable_name.get(0).get(0).get_what();
-	}
-	else if (entity_variable_name.length() == 3 && entity_variable_name.get(1).get_what() == "*") {
-		// character a*1
-		return entity_variable_name.get(0).get_what();
+		const ParseNode & entity_variable_name = entity_variable.get(0);
+		if (is_function_array(entity_variable))
+		{
+			// entity_variable_name.get(0) has subobject designator like `A(0,1,2)`
+			// NT_VARIABLE_ENTITY(entity_variable) -> NT_FUCNTIONARRAY(entity_variable_name) -> (UnknownVariant, NT_ARGTABLE_PURE)
+			return entity_variable_name.get(0).get_what();
+		}
+		else if (entity_variable_name.length() == 3 && entity_variable_name.get(2).get_token() == TokenMeta::Multiply) {
+			// character a*1
+			return entity_variable_name.get(0).get_what();
+		}
+		else {
+			// variable with initial value
+			return entity_variable_name.get_what();
+		}
 	}
 	else {
-		// variable with initial value
-		return entity_variable_name.get_what();
+		return entity_variable.get_what();
 	}
 }
 
 std::string gen_vardef_scalar_str(FunctionInfo * finfo, VariableInfo * vinfo, ParseNode & entity_variable, std::string type_str) {
-	string var_decl; 
 	ParseNode & entity_variable_name = entity_variable.get(0);
 	// from entity_variable
-	// NT_VARIABLE_ENTITY(entity_variable) -> NT_FUCNTIONARRAY(entity_variable_name) -> (UnknownVariant, NT_ARGTABLE_PURE)
-	sprintf(codegen_buf, "%s %s", type_str.c_str(), get_variable_name(entity_variable).c_str());
-	var_decl = string(codegen_buf);
-	if (entity_variable.get(1).get_token() != TokenMeta::NT_VARIABLEINITIALDUMMY) {
-		/* if initial value is not dummy but `exp` */
-		var_decl += " = ";
-		var_decl += entity_variable.get(1).get_what(); // initial value
+	if (entity_variable.get(1).get_token() == TokenMeta::NT_VARIABLEINITIALDUMMY) {
+		// if initial value is not dummy but `exp` 
+		sprintf(codegen_buf, "%s %s", type_str.c_str(), get_variable_name(entity_variable).c_str());
+	}
+	else {
+		sprintf(codegen_buf, "%s %s = %s", type_str.c_str(), get_variable_name(entity_variable).c_str(), entity_variable.get(1).get_what().c_str());
 	}
 	entity_variable.setattr(new VariableAttr(vinfo));
-	return var_decl;
+	return string(codegen_buf);
 }
 
 ParseNode gen_vardef_from_default(ARG_IN type, std::string name) {
@@ -154,17 +166,23 @@ void regen_vardef(FunctionInfo * finfo, VariableInfo * vinfo, ARG_OUT type_nospe
 	bool do_arr = desc.slice.is_initialized();
 	string type_str;
 	// entity_variable is NT_VARIABLE_ENTITY
-	if (type_nospec.get_what() == "")
+	if (type_nospec.get_token() == TokenMeta::Implicit_Decl)
 	{
-		// if type is implicit
-		// 注意隐式类型和隐式声明含义不一样，隐式类型则类型从变量名推导，隐式声明则与`implicit none`相对应
+		/*****************
+		* type is implicit
+		* if an variable is implicit defined, its type will be induced from its first letter
+		* if an variable's type is deduced, it can be explicitly declared, e.g. `dimension a(10)`
+		*=================
+		* though `check_implicit_variable` will deduce all implicit variable's type and all Implicit_Decl type,
+		*	it can't handle vardef nodes
+		*****************/
 		type_nospec.get_what() = gen_implicit_type(get_variable_name(entity_variable)).get_what();
 		type_nospec.setattr(new VariableDescAttr());
 	}
 	if(do_arr){
 		// ARRAY
 		type_str = gen_qualified_typestr(type_nospec, desc);
-		var_decl += gen_vardef_array_str(finfo, vinfo, entity_variable, type_str, get_lbound_size(desc.slice.get_ptr()));
+		var_decl += gen_vardef_array_str(finfo, vinfo, entity_variable, type_str, get_lbound_size(desc.slice.value()));
 		if (vinfo->vardef_node == nullptr)
 		{
 			// considered to be implicit defined
@@ -172,27 +190,26 @@ void regen_vardef(FunctionInfo * finfo, VariableInfo * vinfo, ARG_OUT type_nospe
 		}
 		vinfo->vardef_node->fs.CurrentTerm = Term{ TokenMeta::NT_VARIABLEDEFINE, var_decl };
 	}
+	else if (is_function_array(entity_variable)) {
+		// FOR70 ARRAY
+		ParseNode & entity_variable_name = entity_variable.get(0);
+		// add slice attribute to vardescattr.desc
+		ParseNode & argtable = entity_variable_name.get(1);
+		desc.slice = argtable;
+		// get slice info
+		std::tuple<std::vector<int>, std::vector<int>> ls = get_lbound_size(argtable);
+		type_str = gen_qualified_typestr(type_nospec, desc);
+		var_decl = gen_vardef_array_str(finfo, vinfo, entity_variable, type_str, ls);
+		vinfo->vardef_node->fs.CurrentTerm = Term{ TokenMeta::NT_VARIABLEDEFINE, var_decl };
+	}
 	else {
 		// SCALAR
-		if (is_function_array(entity_variable))
-		{
-			ParseNode & entity_variable_name = entity_variable.get(0);
-			// add slice attribute to vardescattr.desc
-			ParseNode & argtable = entity_variable_name.get(1);
-			desc.slice = argtable;
-			// get slice info
-			std::tuple<std::vector<int>, std::vector<int>> ls = get_lbound_size(&argtable);
-			type_str = gen_qualified_typestr(type_nospec, desc);
-			var_decl = gen_vardef_array_str(finfo, vinfo, entity_variable, type_str, ls);
-		}
-		else {
-			type_str = gen_qualified_typestr(type_nospec, desc);
-			var_decl = gen_vardef_scalar_str(finfo, vinfo, entity_variable, type_str);
-		}
+		type_str = gen_qualified_typestr(type_nospec, desc);
+		var_decl = gen_vardef_scalar_str(finfo, vinfo, entity_variable, type_str);
 		if (vinfo->vardef_node == nullptr)
 		{
-			// considered to be implicit defined
-			print_error("variable not defined: "+ vinfo->local_name );
+			// considered to be implicitly defined
+			fatal_error("variable not defined: "+ vinfo->local_name );
 		}
 		vinfo->vardef_node->fs.CurrentTerm = Term{ TokenMeta::NT_VARIABLEDEFINE, var_decl };
 	} // end if

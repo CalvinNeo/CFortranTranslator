@@ -42,20 +42,18 @@ void regen_exp(FunctionInfo * finfo, ARG_OUT exp) {
 			ParseNode & elem = exp.get(0);
 			switch (elem.get_token())
 			{
-			case TokenMeta::NT_HIDDENDO:
-				break;
 			case TokenMeta::NT_ARRAYBUILDER:
 				break;
 			default:
-				print_error("error exp: ", exp);
+				print_error("error expression: ", exp);
 				break;
 			}
 		}
 		else if (exp.length() == 0) {
-			print_error("error empty exp: ", exp);
+			print_error("error empty expression: ", exp);
 		}
 		else {
-			print_error("error exp: ", exp);
+			print_error("error expression: ", exp);
 		}
 	}
 	else if(is_literal(exp))
@@ -69,6 +67,14 @@ void regen_exp(FunctionInfo * finfo, ARG_OUT exp) {
 	else if (exp.get_token() == TokenMeta::NT_FUCNTIONARRAY)
 	{
 		regen_function_array(finfo, exp);
+	}
+	else if (exp.get_token() == TokenMeta::NT_HIDDENDO)
+	{
+
+	}
+	else if (exp.get_token() == TokenMeta::Comments)
+	{
+		
 	}
 	else {
 		print_error("error exp: ", exp);

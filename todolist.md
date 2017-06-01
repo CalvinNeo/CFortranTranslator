@@ -44,7 +44,8 @@
 - detailed type attr(add `TokenMeta::Int64`, etc.), use `TokenMeta::Implicit_Decl`, clean `TokenMeta` enum
 - unicode file
 - underscore kind-param for all type literal(ref 4.3.2.1)
-- display comments
+- ~~display comments~~
+- support other compilers
 
 ## todolist(bugfix)
 - ~~if slice can be a scalar x and equal to (1: x + 1), there will be conflict in argtable~~

@@ -45,7 +45,7 @@
     <ClCompile Include="..\..\gen_exp.cpp" />
     <ClCompile Include="..\..\gen_forwarddecl.cpp" />
     <ClCompile Include="..\..\gen_function.cpp" />
-    <ClCompile Include="..\..\gen_header.cpp" />
+    <ClCompile Include="..\..\gen_doc.cpp" />
     <ClCompile Include="..\..\gen_if.cpp" />
     <ClCompile Include="..\..\gen_feature.cpp" />
     <ClCompile Include="..\..\gen_io.cpp" />
@@ -97,7 +97,6 @@
     <ClInclude Include="..\..\tokenizer.h" />
     <ClInclude Include="..\..\utf8.h" />
     <ClInclude Include="..\..\Variable.h" />
-    <ClInclude Include="resource.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\cn.md" />
@@ -205,7 +204,7 @@
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;_CRT_SECURE_NO_WARNINGS;_SCL_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -271,7 +270,7 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;_CRT_SECURE_NO_WARNINGS;_SCL_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>

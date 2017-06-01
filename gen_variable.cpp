@@ -54,7 +54,7 @@ void regen_common(FunctionInfo * finfo, ARG_OUT common_block) {
 		print_error("Error Common Block");
 	}
 	bool new_common = (common_info->second.variables.size() == 0);
-	for (int i = 0; i < (int)kvparamtable.length(); i++)
+	for (int i = 0; i < kvparamtable.length(); i++)
 	{
 		ParseNode & entity_variable = kvparamtable.get(i);
 		std::string local_varname = get_variable_name(entity_variable);
@@ -102,8 +102,10 @@ ParseNode gen_common_definition(std::string common_name) {
 VariableInfo * check_implicit_variable(FunctionInfo * finfo, const std::string & name) {
 	/******************
 	*	this function must be called AFTER the AST is finished construct, by `regen_exp` function
-	*	for all variables that not appear in `finfo->desc->declared_variables`, 
+	*	for all variables in function body that not appear in `finfo->desc->declared_variables`, 
 	*	mark them as implicit variables and generate its definition
+	* NOTICE:
+	* this function only works on `exp` nodes, not including variable declaration(`vardef` nodes), etc.
 	*******************/
 	VariableInfo * vinfo = get_variable(get_context().current_module, finfo->local_name, name);
 	if (vinfo == nullptr)
@@ -118,6 +120,10 @@ VariableInfo * check_implicit_variable(FunctionInfo * finfo, const std::string &
 		vinfo->entity_variable = gen_keyvalue_from_name(name); // set in regen_vardef
 		ParseNode vardef_node = gen_vardef_from_default(implicit_type, name);
 		vinfo->vardef_node = new ParseNode(vardef_node); // set in regen_suite and gen_common
+	}
+	else if (vinfo->type.get_token() == TokenMeta::Implicit_Decl)
+	{
+		vinfo->type = gen_implicit_type(name); // set in regen_vardef
 	}
 	return vinfo;
 }

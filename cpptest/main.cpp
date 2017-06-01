@@ -7,6 +7,7 @@ int main()
 	//int a = 0, b = 0, c = 0;
 	//test_pack_clvalue(a, b, c);
 	farray<int> aa = forconcat({ make_init_list({1,2,3}) });
+	forprintfree(aa);
 	//int a;
 	//int b;
 	//forreadfree(get_file(-1), a, b);

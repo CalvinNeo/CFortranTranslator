@@ -47,9 +47,8 @@ ParseNode gen_variabledesc_from_dimenslice(ARG_IN dimen_slice) {
 			dimen.replace(sliceid, promote_exp_to_slice(dimen.get(sliceid)));
 		}
 		sprintf(codegen_buf, "(%s, %s)"
-			/* from, to */
-			, dimen.get(sliceid).get(0).get_what().c_str()
-			, dimen.get(sliceid).get(1).get_what().c_str());
+			, dimen.get(sliceid).get(0).get_what().c_str() // from
+			, dimen.get(sliceid).get(1).get_what().c_str()); // to
 		dimen.get(sliceid).fs.CurrentTerm = Term{ TokenMeta::NT_VARIABLEDESC, string(codegen_buf) };
 	}
 	return dimen;

@@ -140,7 +140,7 @@ void preorder(ParseNode * ptree) {
 			// i must be int, not size_t
 			for (int i = p->length() - 1; i >= 0; i--)
 			{
-				s.push(make_pair(p->child[i], deep + 1));
+				s.push(make_pair(&p->get(i), deep + 1));
 			}
 		}
 	}
@@ -191,7 +191,7 @@ std::string compose_marker(std::string cont, int place, int end) {
 			ret += "\t";
 		}
 		else if (cont[i] == '\n') {
-			ret += "  ";
+			ret += "  "; // 2 space for "\\n"
 		}
 		else {
 			ret += " ";
@@ -251,7 +251,7 @@ void print_error(const std::string & error_info, const ParseNode & node) {
 	using namespace std;
 	printf("\nError : %s\n", error_info.c_str());
 	printf("(line %d:%d, index = %d, len = %d), current token is %s(id = %d) : \"%s\" \n"
-		, get_flex_state().parse_line + 1, get_flex_state().line_pos, get_flex_state().parse_pos, get_flex_state().parse_len
+		, node.fs.parse_line + 1, node.fs.line_pos, node.fs.parse_pos, node.fs.parse_len
 		, get_intent_name(node.get_token()).c_str(), node.get_token(), node.to_string().c_str());
 	string cont = compose_error_piece();
 	printf("%s", cont.c_str());
@@ -270,7 +270,7 @@ void fatal_error(const std::string & error_info, const ParseNode & node) {
 	using namespace std;
 	printf("\nFatal : %s\n", error_info.c_str());
 	printf("(line %d:%d, index = %d, len = %d), current token is %s(id = %d) : \"%s\" \n"
-		, get_flex_state().parse_line + 1, get_flex_state().line_pos, get_flex_state().parse_pos, get_flex_state().parse_len
+		, node.fs.parse_line + 1, node.fs.line_pos, node.fs.parse_pos, node.fs.parse_len
 		, get_intent_name(node.get_token()).c_str(), node.get_token(), node.to_string().c_str());
 	string cont = compose_error_piece();
 	printf("%s", cont.c_str());

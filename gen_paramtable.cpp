@@ -256,7 +256,7 @@ void foreach_paramtable(const ParseNode & pn, std::function<void(const ParseNode
 		}
 		if (possible_length)
 		{
-			pp = (recursion_direction_right ? pp->child[1] : pp->child[0]);
+			pp = (recursion_direction_right ? &pp->get(1) : &pp->get(0));
 		}
 	} while (pp->get_token() == TokenMeta::NT_PARAMTABLE_PURE);
 }

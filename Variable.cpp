@@ -46,6 +46,7 @@ VariableInfo * add_variable(std::string module_name, std::string function_name, 
 	else {
 		std::string fullname = module_name + "::" + function_name + "::" + variable_name;
 		if (get_context().variables.find(fullname) != get_context().variables.end()) {
+			print_error("Variable already exists");
 			return nullptr;
 		}
 		else {

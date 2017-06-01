@@ -77,8 +77,11 @@ void regen_function_array(FunctionInfo * finfo, ARG_OUT newnode) {
 		func_header += name;
 		auto map_func = get_context().func_kwargs.find(name); // function_name -> args
 		func_header += "(";
-		bool kwargs = false;
-		int normal_count = 0; // non kwarg count
+		bool valid_kwargs = false;
+		/**************
+		*	number of non-kwarg parameters
+		***************/
+		int normal_count = 0; 
 		map<string, string> kws;
 		for (int i = 0; i < argtable.length(); i++)
 		{
@@ -100,15 +103,15 @@ void regen_function_array(FunctionInfo * finfo, ARG_OUT newnode) {
 				if (argtable.get(i).get_token() == TokenMeta::NT_ARRAYBUILDER) {
 					for (auto j = 0; j < argtable.get(i).length(); j++)
 					{
-						args.push_back(argtable.get(i).child[j]);
+						args.push_back(&argtable.get(i).get(j));
 					}
 				}
 				else {
-					args.push_back(argtable.child[i]);
+					args.push_back(&argtable.get(i));
 				}
 
 				// generated code from vector<ParseNode *> args
-				if (kwargs) {
+				if (valid_kwargs) {
 					print_error("keyword arguments must come after normal arguments", argtable);
 				}
 				else {
@@ -131,36 +134,34 @@ void regen_function_array(FunctionInfo * finfo, ARG_OUT newnode) {
 		// generated code of kwargs
 		if (map_func != get_context().func_kwargs.end()) {
 			std::vector<KeywordParamInfo> & params = map_func->second;
-			for (int i = normal_count; i < params.size(); i++)
-			{
-				string this_param_name = std::get<0>(params[i]);
-				string this_param_type = std::get<1>(params[i]);
-				string this_param_intial_default = std::get<2>(params[i]);
+			std::string kwargs_str = make_str_list(params.begin() + normal_count, params.end(), [&](KeywordParamInfo & param) {
+				string this_param_name = std::get<0>(param);
+				string this_param_type = std::get<1>(param);
+				string this_param_intial_default = std::get<2>(param);
 				auto this_arg = kws.find(this_param_name);
-				if (normal_count != 0) {
-					func_header += ", ";
-				}
+				std::string s;
 				if (this_arg == kws.end()) {
 					// if this argument is not given
 					if (this_param_intial_default == "") {
-						func_header += "None";
+						s = "None";
 					}
 					else {
 						// use initial defined in gen_config.h
-						func_header += this_param_intial_default;
+						s = this_param_intial_default;
 					}
 				}
 				else {
 					// if this argument is given
 					if (this_param_type == "mask_wrapper_t") {
-						func_header += this_arg->second;
+						s = this_arg->second;
 					}
 					else {
-						func_header += this_arg->second;
+						s = this_arg->second;
 					}
 				}
-				normal_count++;
-			}
+				return s;
+			});
+			func_header += kwargs_str;
 		}
 		func_header += ")";
 		newnode.fs.CurrentTerm = Term{ TokenMeta::NT_FUCNTIONARRAY, func_header };

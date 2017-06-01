@@ -23,7 +23,7 @@ void regen_select(FunctionInfo * finfo, ARG_OUT select_stmt) {
 	ParseNode & exp = select_stmt.get(0);
 	ParseNode & case_stmt = select_stmt.get(1); 
 	select_stmt.fs.CurrentTerm = Term{ TokenMeta::NT_SELECT, "" };
-	for (size_t i = 0; i < case_stmt.length(); i++)
+	for (int i = 0; i < case_stmt.length(); i++)
 	{
 		ParseNode & case_stmt_elem = case_stmt.get(i);
 		ParseNode & dimen_slice = case_stmt_elem.get(0);

@@ -164,9 +164,23 @@ namespace TokenMeta {
 		ADD_ENUM(META_REAL, -305),
 		ADD_ENUM(META_OPERATOR, -306),
 		ADD_ENUM(META_ILLEGAL, -307),
-		ADD_ENUM(META_ANY, -308), // 尚未解析的Intent
-		ADD_ENUM(META_REQ_MORE, -309), // 词法分析器需要更多信息(Look Ahead)
-		ADD_ENUM(META_NONTERMINAL, -310), // 非终结符, 由NT_细化
+		/***************************************
+		* META_ANY means this Intent has no token yet,
+		*	it's often used for keyword like `where`, `program`, etc
+		*	because they won't be used in AST, so there's no need to create a particular token for them,
+		*	or they can be in AST, but we only use their literal meaning(but they are not sematiclly literals)
+		****************************************/
+		ADD_ENUM(META_ANY, -308), 
+		/***************************************
+		*	META_REQ_MORE ask the tokenizer to look ahead for one more token
+		****************************************/
+		ADD_ENUM(META_REQ_MORE, -309),
+		/***************************************
+		* META_NONTERMINAL is non-terminal version for `META_ANY`
+		*	Intent with META_NONTERMINAL token can be in AST,
+		* META_NONTERMINAL token means we only use their literal meaning of this token 
+		****************************************/
+		ADD_ENUM(META_NONTERMINAL, -310), 
 		ADD_ENUM(META_COMPLEX, -311),
 		ADD_ENUM(META_VOID, -312),
 

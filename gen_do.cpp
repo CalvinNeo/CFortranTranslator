@@ -27,11 +27,14 @@ void regen_do(FunctionInfo * finfo, ARG_OUT do_stmt) {
 }
 
 void regen_do_range(FunctionInfo * finfo, ARG_OUT do_stmt){
-	ARG_IN loop_variable = do_stmt.get(0);
-	ARG_IN exp1 = do_stmt.get(1);
-	ARG_IN exp2 = do_stmt.get(2);
-	ARG_IN exp3 = do_stmt.get(3);
+	ParseNode & loop_variable = do_stmt.get(0);
+	ParseNode & exp1 = do_stmt.get(1);
+	ParseNode & exp2 = do_stmt.get(2);
+	ParseNode & exp3 = do_stmt.get(3);
 	ParseNode & suite = do_stmt.get(4);
+	regen_exp(finfo, exp1);
+	regen_exp(finfo, exp2);
+	regen_exp(finfo, exp3);
 	regen_suite(finfo, suite, true);
 	sprintf(codegen_buf, "for(%s = %s; %s <= %s; %s += %s){\n%s}"
 		, loop_variable.get_what().c_str(), exp1.get_what().c_str()
@@ -41,8 +44,9 @@ void regen_do_range(FunctionInfo * finfo, ARG_OUT do_stmt){
 }
 
 void regen_do_while(FunctionInfo * finfo, ARG_OUT do_stmt) {
-	ARG_IN exp = do_stmt.get(0);
+	ParseNode & exp = do_stmt.get(0);
 	ParseNode & suite = do_stmt.get(1);
+	regen_exp(finfo, exp);
 	regen_suite(finfo, suite, true);
 	sprintf(codegen_buf, "while(%s){\n%s}", exp.get_what().c_str(), tabber(suite.get_what()).c_str());
 	do_stmt.fs.CurrentTerm = Term{ TokenMeta::NT_WHILE, string(codegen_buf) };

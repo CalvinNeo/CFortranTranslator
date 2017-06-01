@@ -41,11 +41,6 @@ void do_trans(const std::string & src) {
 	get_context().program_tree.get_what() = gen_header().to_string() + get_context().program_tree.to_string();
 }
 
-ParseNode gen_token(Term term) {
-	// four `_pos` is set by update_pos in for90.y
-	return ParseNode(gen_flex(term), nullptr);
-}
-
 ParseNode gen_dummy() {
 	return gen_token(Term{ TokenMeta::NT_DUMMY, "" });
 }
@@ -113,12 +108,12 @@ void flattern_bin_inplace(ParseNode & pn, bool recursion_direction_right) {
 		ParseNode * list, *item;
 		if (recursion_direction_right)
 		{
-			list = pn.child[1];
-			item = pn.child[0];
+			list = &pn.get(1);
+			item = &pn.get(0);
 		}
 		else {
-			list = pn.child[0];
-			item = pn.child[1];
+			list = &pn.get(0);
+			item = &pn.get(1);
 		}
 		pn.child.clear();
 		if (recursion_direction_right)
@@ -127,7 +122,7 @@ void flattern_bin_inplace(ParseNode & pn, bool recursion_direction_right) {
 		}
 		for (int i = 0; i < list->length(); i++)
 		{
-			pn.child.push_back(list->child[i]);
+			pn.child.push_back(&list->get(i));
 		}
 		list->child.clear(); // must clear child vector or list will delete it's child recursively in its dtor
 		delete list; // all list's child is now pn's child, so list is useless

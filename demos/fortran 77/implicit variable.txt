@@ -2,7 +2,9 @@ subroutine sub(A)
 	A = 2
 end subroutine
 function sum(x) result (sum_result)
-	dimension a(10), j
+	dimension a(10), j	
+	character s1*3
+	character*3 s1
 	integer(kind=2)::int2
 	integer ii
 end function

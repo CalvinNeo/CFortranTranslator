@@ -89,9 +89,6 @@
     <ClCompile Include="..\..\for90std\forfilesys.h">
       <Filter>for90std</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\gen_header.cpp">
-      <Filter>target90</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\gen_attr_describer.cpp">
       <Filter>target90</Filter>
     </ClCompile>
@@ -133,6 +130,9 @@
       <Filter>target90</Filter>
     </ClCompile>
     <ClCompile Include="..\..\gen_program.cpp">
+      <Filter>target90</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\gen_doc.cpp">
       <Filter>target90</Filter>
     </ClCompile>
     <ClCompile Include="..\..\grammar\for90.flex.cpp">
@@ -210,7 +210,6 @@
       <Filter>parser</Filter>
     </ClInclude>
     <ClInclude Include="..\..\utf8.h" />
-    <ClInclude Include="resource.h" />
     <ClInclude Include="..\..\enum_reflect.h">
       <Filter>NuclearLang</Filter>
     </ClInclude>

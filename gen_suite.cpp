@@ -145,6 +145,11 @@ std::string gen_joined_declarations(FunctionInfo * finfo, ARG_OUT oldsuite) {
 	});
 
 	/**********************************
+	* if a variable is in the paramtable, 
+	*	it should not have declaration in function body(which is different from fortran)	
+	***********************************/
+	get_full_paramtable(finfo);
+	/**********************************
 	*	join declarations of all variables together
 	***********************************/
 	string variable_declarations;
@@ -156,7 +161,7 @@ std::string gen_joined_declarations(FunctionInfo * finfo, ARG_OUT oldsuite) {
 		ParseNode & local_type = vinfo->type;
 		if (p.second->declared)
 		{
-			fatal_error("Pre-declared variable encountered");
+			// this variable is in paramtable, do not need to generate declaration for it in function body
 		}
 		else {
 			if (p.second->commonblock_name != "") {
@@ -176,20 +181,12 @@ std::string gen_joined_declarations(FunctionInfo * finfo, ARG_OUT oldsuite) {
 					sprintf(codegen_buf, "%s;\n", vinfo->vardef_node->to_string().c_str());
 				}
 			}
+			variable_declarations += string(codegen_buf);
 		}
-		variable_declarations += string(codegen_buf);
 	});
 	return variable_declarations;
 }
 
-void insert_comments(ParseNode & newnode) {
-	for (size_t i = 0; i < get_flex_context().comments.size(); i++)
-	{
-		std::string c = get_flex_context().comments[i];
-		newnode.addchild(gen_token(Term{ TokenMeta::Comments, "/*" + c + "*/" }));
-	}
-	get_flex_context().comments.clear();
-}
 
 ParseNode gen_suite(ARG_IN item, ARG_IN list) {
 	/*******************

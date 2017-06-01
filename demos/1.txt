@@ -1,3 +1,1 @@
-subroutine sub(A)
-	A = 2
-end subroutine
+READ(1,*) (S3(I),I=1,M)  !S3(I)Ã¿×éÎ§Ñ¹

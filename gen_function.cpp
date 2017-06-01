@@ -44,7 +44,7 @@ std::string regen_paramtable(const vector<tuple<string, ParseNode, ParseNode *>>
 	return paramtblstr;
 }
 
-void get_full_paramtable(FunctionInfo * finfo, bool is_subroutine) {
+void get_full_paramtable(FunctionInfo * finfo) {
 	// (var_name, var_type, ParseNode*)
 	const vector<VariableInfo *> & declared_variables = finfo->funcdesc.declared_variables;
 	vector<tuple<string, ParseNode, ParseNode *>> & paramtable_info = finfo->funcdesc.paramtable_info;
@@ -53,6 +53,15 @@ void get_full_paramtable(FunctionInfo * finfo, bool is_subroutine) {
 	{
 		tuple<string, ParseNode, ParseNode *> & param = paramtable_info[i];
 		string param_name = get<0>(param);
+		if (param_name == "")
+		{
+			/****************
+			* refer `regen_function`
+			* if param_name == "", this param is a return variable placeholder of subroutine,
+			* so do not generate
+			*****************/
+			continue;
+		}
 		ParseNode & param_type = get<1>(param);
 		ParseNode *& param_vardef = get<2>(param);
 		VariableInfo * vinfo = get_variable(get_context().current_module, finfo->local_name, param_name);
@@ -123,11 +132,10 @@ void regen_function(FunctionInfo * finfo, ARG_OUT functiondecl_node) {
 	ParseNode & oldsuite = suite;
 	bool is_subroutine = variable_result.to_string() == "";
 	
-	// regen_suite
-	regen_suite(finfo, oldsuite); 	
-	// init paramtable
+	/****************
+	* compose the paramtable
+	*****************/
 	std::vector<std::tuple<std::string, ParseNode, struct ParseNode *>> & paramtable_info = finfo->funcdesc.paramtable_info;
-	/* add the paramtable */
 	for (auto iter = kvparamtable.begin(); iter < kvparamtable.end(); iter++)
 	{
 		/****************
@@ -144,20 +152,27 @@ void regen_function(FunctionInfo * finfo, ARG_OUT functiondecl_node) {
 			, gen_type(Term{ TokenMeta::Void_Decl, "void" }), nullptr));
 	}
 	/****************
+	* create a placeholder for return variable
+	*================
 	* `check_implicit_variable` is IMPORTANT here too
+	* if variable_result is "", symbol table will have a varialbe whose name is "",
+	*	then error will occurred, code like `double ;` will be generated
 	*================
 	* push result variable to the back of the paramtable_info stack
 	* type of result variable is set by default `void`, 
 	*	so if this subprogram is a subroutine with no result variable,
 	*	it'll set by default `void`
 	*****************/
-	check_implicit_variable(finfo, variable_result.to_string());
+	if (variable_result.get_what() != "")
+	{
+		check_implicit_variable(finfo, variable_result.to_string());
+	}
 	paramtable_info.push_back(make_tuple(variable_result.to_string()
 		, gen_type(Term{ TokenMeta::Void_Decl, "void" }), nullptr)); 
 
-	get_full_paramtable(finfo, is_subroutine);
+	// regen_suite
+	regen_suite(finfo, oldsuite);
 	// make newnode
-	string newsuitestr = oldsuite.to_string();
 	string paramtblstr = regen_paramtable(paramtable_info);
 
 	std::string return_type_str = get<1>(paramtable_info.back()).to_string();

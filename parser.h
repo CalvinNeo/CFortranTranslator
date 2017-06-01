@@ -33,7 +33,10 @@ struct dirty {
 	bool isdirty() const {
 		return changed;
 	}
-	T get() {
+	T & get() {
+		return value;
+	}
+	const T & get() const {
 		return value;
 	}
 	const T & const_get() const {
@@ -46,7 +49,6 @@ private:
 
 
 
-// ·ÖÎöÊ÷
 struct ParseNode {
 	FlexState fs;
 	std::vector<ParseNode *> child;
@@ -91,8 +93,6 @@ struct ParseNode {
 
 int parse(std::string code);
 void preorder(ParseNode * ptree);
-/* generate codes instead of in .y files */
-std::string lazy_gen(ParseNode * ptree);
 FlexState & get_flex_state();
 void print_error(const std::string & error_info, const ParseNode & node);
 void print_error(const std::string & error_info);
@@ -101,30 +101,59 @@ void fatal_error(const std::string & error_info);
 
 // yacc part code
 // implement in for90.y
+#define USE_TRIVIAL
+#ifdef USE_TRIVIAL
+
 #define YYSTYPE ParseNode*
 #define RETURN_NT(X) new ParseNode(X)
-#define YY2ARG(X) (X == nullptr? ParseNode(): *X)
+inline ParseNode & YY2ARG(YYSTYPE X) {
+	if (X == nullptr)
+	{
+		abort();
+	}
+	else {
+		return *X;
+	}
+}
+/***************
+* this macro is error
+// #define (X == nullptr? ParseNode(): *X)
+***************/
+#define ARG_IN const ParseNode &
+#define ARG_OUT ParseNode &
+template <typename ... Args>
+void CLEAN_RIGHT(YYSTYPE & x, Args&& ... args) {
+	delete x;
+	x = nullptr;
+	CLEAN_RIGHT(std::forward<Args>(args)...);
+}
+template <typename ... Args>
+void CLEAN_RIGHT(YYSTYPE & x) {
+	delete x;
+	x = nullptr;
+}
+
+#else
+
+#define YYSTYPE ParseNode
+#define RETURN_NT(X) X
+#define YY2ARG(X) X
 #define ARG_IN const ParseNode &
 #define ARG_OUT ParseNode &
 template <typename ... Args>
 void CLEAN_RIGHT(YYSTYPE x, Args&& ... args) {
-	delete x;
-	//x = nullptr;
-	CLEAN_RIGHT(std::forward<Args>(args)...);
+	// do nothing
 }
 template <typename ... Args>
 void CLEAN_RIGHT(YYSTYPE x) {
-	delete x;
-	//x = nullptr;
+	// do nothing
 }
-//#define RETURN_NT(X) X
-//#define YY2ARG(X) X
+#endif
 
 std::string tabber(const std::string &); // add tab(`\t`) into the front of each line
 ParseNode flattern_bin(ARG_IN pn, bool recursion_direction_right);// eliminate left/right recursion of an binary tree
 void flattern_bin_inplace(ParseNode & pn, bool recursion_direction_right); // eliminate left/right recursion of an binary tree in place
 
-/* lazygen */
 
 #define MAX_CODE_LENGTH 32767
 
@@ -135,3 +164,10 @@ struct ParseConfig {
 	bool usefor = true;
 	bool usefarray = true;
 };
+
+
+#ifdef _DEBUG
+#define WHENDEBUG(THEN, ELSE) THEN
+#else
+#define WHENDEBUG(THEN, ELSE) ELSE
+#endif // _DEBUG
