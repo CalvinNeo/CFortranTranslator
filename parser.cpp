@@ -28,6 +28,7 @@
 #include <map>
 #include <boost/algorithm/string.hpp>
 #include <cmath>
+#include <cstdio>
 
 void reset_parser() {
 	get_context().func_kwargs = func_kwargs_preset;
@@ -277,3 +278,19 @@ void fatal_error(const std::string & error_info, const ParseNode & node) {
 	abort();
 }
 
+
+std::string tabber(const std::string & src, bool tail_crlf) {
+	std::string newline;
+	std::string ans = "";
+	std::istringstream f(src);
+	while (std::getline(f, newline)) {
+		ans += '\t';
+		ans += newline;
+		ans += '\n';
+	}
+	if (!tail_crlf && ans.back() == '\n')
+	{
+		return ans.substr(0, ans.size() - 1);
+	}
+	return ans;
+}

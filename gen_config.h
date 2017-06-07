@@ -39,7 +39,7 @@ const std::map<std::string, std::string> pre_map{
 	, { "exit", "break" }
 };
 
-/* NOTICE: `pre_map` has already do previous job for `funcname_map` */
+// NOTICE: `pre_map` has already do previous job for `funcname_map`
 const std::map<std::string, std::string> funcname_map{
 	// math
 	{ "min", "min_n" }
@@ -77,10 +77,14 @@ const std::map<std::string, std::string> funcname_map{
 	,{ "present", "forpresent" }
 };
 
+
 const std::map<std::string, std::vector<KeywordParamInfo>> func_kwargs_preset{
-	{ "foropenfile",{ { "unit", "int", "" },{ "file", "string", "" },{ "access", "string", "" },{ "action", "string" , "" },{ "status", "string", "" },{ "iostat", "int", "" }, {"form", "string", ""} } }
-	,{ "forclosefile",{ { "unit", "int", "" },{ "status", "string", "" },{ "iostat", "int", "" } } }
+	{ "foropenfile",{ { "unit", "int", "" },{ "iostat", "int", "" },{ "err", "forlabel", "" },{ "file", "string", "" },{ "status", "string", "" },{ "access", "string" , "" },{ "form", "string", "" }
+		,{ "recl", "int", "" },{ "blank", "string", "" },{ "position", "string", "" },{ "action", "string" , "" },{ "delim", "string" , "" },{ "pad", "string" , "" } } }
+	,{ "forclosefile",{ { "unit", "int", "" },{ "iostat", "int", "" },{ "err", "forlabel", "" } } }
 	,{ "forread",{ { "unit", "int" , "" },{ "fmt", "string", "" },{ "iostat", "int", "" } } }
+	,{ "forwrite",{ { "unit", "int" , "" },{ "fmt", "string", "" },{ "iostat", "int", "" } } }
+	,{ "forprint",{ { "unit", "int" , "" },{ "fmt", "string", "" },{ "iostat", "int", "" } } }
 
 	,{ "forsum",{ { "dim", "int", "" },{ "mask", "mask_wrapper_t", "" } } }
 	,{ "forproduct",{ { "dim", "int", "" },{ "mask", "mask_wrapper_t", "" } } }
@@ -88,9 +92,10 @@ const std::map<std::string, std::vector<KeywordParamInfo>> func_kwargs_preset{
 	,{ "forminval",{ { "dim", "int", "" },{ "mask", "mask_wrapper_t", "" } } }
 	,{ "formaxloc",{ { "dim", "int", "" },{ "mask", "mask_wrapper_t", "" } } }
 	,{ "forminloc",{ { "dim", "int", "" },{ "mask", "mask_wrapper_t", "" } } }
-	//,{ "forsize", { { "dim", "int", "" } } }
-	//,{ "forlbound",{ { "dim", "int", "" } } }
-	//,{ "forubound",{ { "dim", "int", "" } } }
+
+	,{ "forsize",{ { "dim", "int", "" } } }
+	,{ "forlbound",{ { "dim", "int", "" } } }
+	,{ "forubound",{ { "dim", "int", "" } } }
 };
 
 

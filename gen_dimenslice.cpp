@@ -43,16 +43,27 @@ void regen_slice(FunctionInfo * finfo, ARG_OUT slice) {
 		string slice_info_arr[] = { UBOUND_DELTA_STR, UBOUND_DELTA_STR, UBOUND_DELTA_STR };
 		for (auto j = 0; j < slice.length(); j++)
 		{
-			regen_exp(finfo, slice.get(j));
 			if (slice.get(j).get_token() == TokenMeta::NT_VARIABLEINITIALDUMMY) {
 				// a(:)
 				empty_slice = true;
 			}
 			else {
+				regen_exp(finfo, slice.get(j));
 				slice_info_arr[j] = slice.get(j).to_string();
 			}
 		}
-		if (empty_slice || slice.length() == 0) {
+		if (empty_slice) {
+			/***********
+			* select the whole slice
+			* e.g.
+			* FROTRAN Code
+			*	c = a(:)
+			* C++ Code:
+			*	c = forslice(a, { {} });
+			***********/
+		}
+		else if (slice.length() == 0)
+		{
 			print_error("Slice can not be empty");
 		}
 		else if (slice.length() == 1) {

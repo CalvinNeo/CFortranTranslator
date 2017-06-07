@@ -84,8 +84,7 @@ void get_full_paramtable(FunctionInfo * finfo) {
 					param_type = vinfo->type;
 					param_vardef = vardef_node;
 					if (i != paramtable_info.size() - 1) {
-						/* `delete` ParseNode except return value */
-						vardef_node->get_token() = TokenMeta::NT_DECLAREDVARIABLE;
+						// `delete` ParseNode except return value 
 						vinfo->declared = true;
 					}
 				}
@@ -101,14 +100,13 @@ void get_full_paramtable(FunctionInfo * finfo) {
 				param_type = vardef_node->get(0); // type_nospec
 				param_vardef = vardef_node; // variable ParseNode
 				if (i != paramtable_info.size() - 1) {
-					/* `delete` ParseNode except return value */
-					vardef_node->get_token() = TokenMeta::NT_DECLAREDVARIABLE;
+					// `delete` ParseNode except return value 
 					vinfo->declared = true;
 				}
 			}
 		}
 		else {
-			print_error("Implicit parameter: " + param_name);
+			print_error("parameter is not defined: " + param_name);
 		}
 	}
 	return;
@@ -146,9 +144,9 @@ void regen_function(FunctionInfo * finfo, ARG_OUT functiondecl_node) {
 		*================
 		* (name, type, entity node)
 		*****************/
-		check_implicit_variable(finfo, (*iter)->to_string());
+		check_implicit_variable(finfo, (*iter)->get_what());
 		// refer to function suite and determine type of params
-		paramtable_info.push_back(make_tuple((*iter)->to_string()
+		paramtable_info.push_back(make_tuple((*iter)->get_what()
 			, gen_type(Term{ TokenMeta::Void_Decl, "void" }), nullptr));
 	}
 	/****************
@@ -165,9 +163,9 @@ void regen_function(FunctionInfo * finfo, ARG_OUT functiondecl_node) {
 	*****************/
 	if (variable_result.get_what() != "")
 	{
-		check_implicit_variable(finfo, variable_result.to_string());
+		check_implicit_variable(finfo, variable_result.get_what());
 	}
-	paramtable_info.push_back(make_tuple(variable_result.to_string()
+	paramtable_info.push_back(make_tuple(variable_result.get_what()
 		, gen_type(Term{ TokenMeta::Void_Decl, "void" }), nullptr)); 
 
 	// regen_suite
@@ -175,14 +173,14 @@ void regen_function(FunctionInfo * finfo, ARG_OUT functiondecl_node) {
 	// make newnode
 	string paramtblstr = regen_paramtable(paramtable_info);
 
-	std::string return_type_str = get<1>(paramtable_info.back()).to_string();
+	std::string return_type_str = get<1>(paramtable_info.back()).get_what();
 	/* generate function code */
 	sprintf(codegen_buf, "%s %s(%s)\n{\n%s\treturn %s;\n}\n"
 		, return_type_str.c_str() // return value type, "void" if subroutine
 		, variable_function.to_string().c_str() // function name
 		, paramtblstr.c_str() // paramtable
 		, tabber(oldsuite.to_string()).c_str() // code
-		, (is_subroutine ? "" : variable_result.to_string().c_str()) // add return stmt if not function
+		, (is_subroutine ? "" : variable_result.get_what().c_str()) // add return stmt if not function
 	);
 	functiondecl_node.get_what() = string(codegen_buf);
 

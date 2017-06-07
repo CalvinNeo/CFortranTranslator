@@ -38,7 +38,24 @@ namespace for90std {
 		filenos[6] = stdout;
 		forfilesys_inited = true;
 	}
-	void foropenfile(int unit, std::string file, foroptional<std::string> access, foroptional<std::string> action, foroptional<std::string> status, foroptional<int> iostat, foroptional<std::string> form) {
+	void foropenfile(int unit, foroptional<int> iostat, foroptional<forlabel> err, foroptional<std::string> file, foroptional<std::string> status, foroptional<std::string> access
+		, foroptional<std::string> form, foroptional<int> recl, foroptional<std::string> blank, foroptional<std::string> position, foroptional<std::string> action
+		, foroptional<std::string> delim, foroptional<std::string> pad) {
+
+		/***************
+		*	UNIT = 
+		*	IOSTAT = 
+		*	FILE = 
+		*	STATUS = OLD, NEW, SCRATCH, REPLACE, UNKNOWN
+		*	ACCESS = SEQUENTIAL, DIRECT
+		*	FORM = FORMATTED, UNFORMATTED
+		*	RECL =
+		*	BLANK = NULL or ZERO
+		*	POSITION =
+		*	ACTION= = READ, WRITE, READWRITE
+		*	DELIM = APOSTROPHE, QUOTE, NONE
+		*	PAD =
+		****************/
 		if (!forfilesys_inited) flush_fileno();
 		using namespace std;
 		bool docreate;
@@ -120,9 +137,9 @@ namespace for90std {
 				mode = "w";
 			}
 		}
-		filenos[unit] = fopen(file.c_str(), mode.c_str());
+		filenos[unit] = fopen(file.get().c_str(), mode.c_str());
 	}
-	void forclosefile(foroptional<int> unit, foroptional<std::string> status, foroptional<int> iostat) {
+	void forclosefile(foroptional<int> unit, foroptional<int> iostat, foroptional<forlabel> err, foroptional<std::string> status) {
 		if (!forfilesys_inited) flush_fileno();
 		auto iter = filenos.find(unit.get());
 		if (iter != filenos.end()) {

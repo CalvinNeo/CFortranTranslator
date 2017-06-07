@@ -239,11 +239,21 @@ namespace for90std {
 
 		template <typename F>
 		void map(F f) const {
-			_map_impl<F>(f, cbegin(), this->dimension, this->LBound(), this->size());
+			auto iter = cbegin();
+			auto newf = [&](fsize_t * cur) {			
+				f(*iter, cur);
+				iter++;
+			};
+			_map_impl<decltype(newf)>(newf, this->dimension, this->LBound(), this->size());
 		}
 		template <typename F>
 		void map(F f) {
-			_map_impl<F>(f, begin(), this->dimension, this->LBound(), this->size());
+			auto iter = begin();
+			auto newf = [&](fsize_t * cur) {
+				f(*iter, cur);
+				iter++;
+			};
+			_map_impl<decltype(newf)>(newf, this->dimension, this->LBound(), this->size());
 		}
 
 		template<int X>
@@ -381,11 +391,11 @@ namespace for90std {
 			reset_value(m.cbegin(), m.cend());
 		}
 		farray(const T & scalar) noexcept : is_view(false) {
-			/***
-			ISO/IEC 1539:1991 1.5.2
-			A scalar is conformable with any array
-			A rank-one array may be constructed from scalars and other arrays and may be reshaped into any allowable array shape
-			***/
+			/***************
+			*	ISO/IEC 1539:1991 1.5.2
+			*	A scalar is conformable with any array
+			*	A rank-one array may be constructed from scalars and other arrays and may be reshaped into any allowable array shape
+			***************/
 			// implicitly use a scalr to initialize an array, so shape of array is undetermined
 			reset_array({ 1 }, { 1 });
 			narr.reset_value(scalar);
@@ -433,33 +443,53 @@ namespace for90std {
 
 	};
 
-template <typename F, typename Iterator, typename size_type>
-static void _map_impl(F f, Iterator iter, int dimension, const size_type * LBound, const size_type * size) {
-	size_type * cur = new size_type[dimension];
+template <typename size_type>
+static void _map_impl_reset(size_type * cur, int dimension, int & curdim, const size_type * LBound, const size_type * size) {
 	std::copy_n(LBound, dimension, cur);
-#ifdef USE_FORARRAY
-	int dim = 0; // current dimension
-	while (true) {
-		while (cur[dim] < LBound[dim] + size[dim]) {
-			f(*iter, cur);
-			iter++;
-			cur[dim] ++;
-		}
-		while (cur[dim] + 1 >= LBound[dim] + size[dim]) {
+	curdim = 0;
+}
+template <typename F, typename size_type>
+static bool _map_impl_next(F f, size_type * cur, int dimension, int & cur_dim, const size_type * LBound, const size_type * size) {
+	/***************
+	*	return false:	the end of iteration
+	*	return true:	continue iteration
+	***************/
+	if (cur[cur_dim] < LBound[cur_dim] + size[cur_dim])
+	{
+		// if index of this deiension haven't touch its upper bound
+		// do not need to carry-over
+	}
+	else
+	{
+		while (cur[cur_dim] + 1 >= LBound[cur_dim] + size[cur_dim]) {
 			// find innermost dimension which isn't to end
-			dim++;
-			if (dim == dimension) {
-				break; // all finished
+			cur_dim++;
+			if (cur_dim == dimension) {
+				return false; // all finished
 			}
 		}
-		if (dim < dimension) {
-			cur[dim]++;
+		if (cur_dim < dimension) {
+			cur[cur_dim]++;
 		}
 		else {
-			break; // all finished
+			return false; // all finished
 		}
-		std::copy_n(LBound, dim, cur); // reset cur
-		dim = 0;
+		std::copy_n(LBound, cur_dim, cur); // reset cur before dim
+		cur_dim = 0;
+	}
+	// perform `f` once
+	f(cur);
+	cur[cur_dim] ++;
+	return true;
+}
+template <typename F, typename size_type>
+static void _map_impl(F f, int dimension, const size_type * LBound, const size_type * size) {
+	size_type * cur = new size_type[dimension];
+	int dim = 0; // current dimension
+	_map_impl_reset(cur, dimension, dim, LBound, size);
+#ifdef USE_FORARRAY
+	while (_map_impl_next(f, cur, dimension, dim, LBound, size)) {
+
 	}
 #endif
 	delete[] cur;
@@ -597,9 +627,9 @@ auto power(const farray<T1> & x, const T2 & y) {
 	template <typename T>
 	farray<T> make_init_list(const T & scalar)  {
 		/***************
-		ISO/IEC 1539:1991 1.5.2
-		A scalar is conformable with any array
-		A rank-one array may be constructed from scalars and other arrays and may be reshaped into any allowable array shape
+		*	ISO/IEC 1539:1991 1.5.2
+		*	A scalar is conformable with any array
+		*	A rank-one array may be constructed from scalars and other arrays and may be reshaped into any allowable array shape
 		****************/
 		// implicitly use a scalr to initialize an array, so shape of array is undetermined
 		return farray<T>(scalar);
@@ -670,7 +700,7 @@ auto power(const farray<T1> & x, const T2 & y) {
 		// return a rank D - 1 sub array of farr equals to farr(dim = index)
 		farray<T> narr;
 		slice_info<fsize_t> sl[farr.dimension];
-		for (auto i = 0; i < farr.dimension; i++)
+		for (int i = 0; i < farr.dimension; i++)
 		{
 			sl[i] = slice_info<fsize_t>(); // select all elements
 		}
@@ -943,11 +973,11 @@ auto power(const farray<T1> & x, const T2 & y) {
 
 	template <typename T>
 	farray<T> formaxloc(const farray<T> & farr, foroptional<int> fordim, foroptional<mask_wrapper_t> mask = None) {
-		/***
-		ISO/IEC 1539:1991 1.5.2
-		has not specify actions for this overload version
-		conform to gfortran(fortran 95 standard)
-		***/
+		/*****************
+		*	ISO/IEC 1539:1991 1.5.2
+		*	has not specify actions for this overload version
+		*	conform to gfortran(fortran 95 standard)
+		*****************/
 		// 返回的是`[lb[dim], sz[dim]]`构成的`dim-1`维数组，令剩下来的维数取遍所有组合，对于每一种取组合，给出取得最大值时候对应原数组第dim维的下标
 		return _forloc_impl(std::greater<T>(), farr, fordim, mask);
 	}
@@ -984,12 +1014,12 @@ auto power(const farray<T1> & x, const T2 & y) {
 
 	template <typename T1, typename T2>
 	auto formerge(const farray<T1> & tarr, const farray<T2> & farr, const farray<bool> & mask) {
-		/***
-			a = reshape((/ 1, 2, 3, 4, 5, 6 /), (/ 2, 3 /))
-			a2 = reshape((/ 8, 9, 0, 1, 2, 3 /), (/ 2, 3 /))
-			logi = reshape((/ .FALSE., .TRUE., .TRUE., .TRUE., .TRUE., .FALSE. /), (/ 2, 3 /))
-			return  8 2 3 4 5 3
-		***/
+		/*****************
+		*	a = reshape((/ 1, 2, 3, 4, 5, 6 /), (/ 2, 3 /))
+		*	a2 = reshape((/ 8, 9, 0, 1, 2, 3 /), (/ 2, 3 /))
+		*	logi = reshape((/ .FALSE., .TRUE., .TRUE., .TRUE., .TRUE., .FALSE. /), (/ 2, 3 /))
+		*	return  8 2 3 4 5 3
+		*****************/
 		typedef decltype(std::declval<T1>() + std::declval<T2>()) TR;
 		farray<TR> narr(tarr);
 		fsize_t fs = mask.flatsize();

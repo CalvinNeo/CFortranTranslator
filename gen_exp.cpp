@@ -40,14 +40,6 @@ void regen_exp(FunctionInfo * finfo, ARG_OUT exp) {
 		else if (exp.length() == 1) {
 			// function_array, array_builder, hidden_do
 			ParseNode & elem = exp.get(0);
-			switch (elem.get_token())
-			{
-			case TokenMeta::NT_ARRAYBUILDER:
-				break;
-			default:
-				print_error("error expression: ", exp);
-				break;
-			}
 		}
 		else if (exp.length() == 0) {
 			print_error("error empty expression: ", exp);
@@ -70,11 +62,15 @@ void regen_exp(FunctionInfo * finfo, ARG_OUT exp) {
 	}
 	else if (exp.get_token() == TokenMeta::NT_HIDDENDO)
 	{
-
+		regen_hiddendo_expr(finfo, exp);
 	}
 	else if (exp.get_token() == TokenMeta::Comments)
 	{
 		
+	}
+	else if (exp.get_token() == TokenMeta::NT_ARRAYBUILDER_LIST)
+	{
+		regen_arraybuilder(finfo, exp);
 	}
 	else {
 		print_error("error exp: ", exp);

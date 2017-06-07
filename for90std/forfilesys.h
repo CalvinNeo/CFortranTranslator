@@ -22,8 +22,13 @@
 #include "forlang.h"
 
 namespace for90std {
-	void foropenfile(int unit, std::string file, foroptional<std::string> access, foroptional<std::string> action, foroptional<std::string> status, foroptional<int> iostat, foroptional<std::string> form);
-	void forclosefile(foroptional<int> unit, foroptional<std::string> status, foroptional<int> iostat);
+	struct forlabel {
+
+	};
+	void foropenfile(int unit, foroptional<int> iostat, foroptional<forlabel> err, foroptional<std::string> file, foroptional<std::string> status = None, foroptional<std::string> access = None
+		, foroptional<std::string> form = None, foroptional<int> recl = None, foroptional<std::string> blank = None, foroptional<std::string> position = None, foroptional<std::string> action = None
+		, foroptional<std::string> delim = None, foroptional<std::string> pad = None);
+	void forclosefile(foroptional<int> unit, foroptional<int> iostat, foroptional<forlabel> err = None, foroptional<std::string> status = None);
 	FILE * get_file(int unit);
 	void flush_fileno();
 }

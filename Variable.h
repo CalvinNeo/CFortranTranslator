@@ -98,7 +98,13 @@ struct VariableInfo
 	*	DO NOT USE `vardef_node == nullptr` to check if this variable is implicit or not, use `implicit_defined` instead
 	*******************/
 	ParseNode * vardef_node;
-	bool declared; // do not need to generate declaration in suite
+	/******************
+	*	this flag is intended to replace the `NT_DECLAREDVARIABLE` token
+	*	if `flag` is true, this variable is declared in paramtable
+	*	so don't need to generate repeated code in function body
+	*******************/
+	bool declared; 
+	bool generated;
 
 	/******************
 	*	commonblock_name == "" if this variable is not in any `COMMON` block
@@ -112,7 +118,7 @@ struct VariableInfo
 	bool implicit_defined = true; 
 
 	VariableInfo()
-		: local_name(""), implicit_defined(true), commonblock_index(0), commonblock_name(""), declared(false) {
+		: local_name(""), implicit_defined(true), commonblock_index(0), commonblock_name(""), declared(false), generated(false) {
 
 	}
 };

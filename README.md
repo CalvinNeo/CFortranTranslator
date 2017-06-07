@@ -263,7 +263,7 @@ refer to [/grammar/for90.y](/grammar/for90.y) for all accepted grammar
 
 ##### fortran intrinsic functions
 
-|fortran|C++| |
+|fortran|C++| explaination |
 |:-:|:-:|:-:|
 |get|`a(1, 2, 3, 4)` or `a({1, 2, 3, 4})` or `a[{1, 2, 3, 4}]` or `forslice(a, {1, 2, 3, 4})`| |
 |forslice|`a[{{1, 3, 1}, {1, 4}, {5}, {}}]` or `forslice(a, {{1, 3, 1}, {1, 4}, {5}}, {})`| |
@@ -310,7 +310,7 @@ refer to [/grammar/for90.y](/grammar/for90.y) for all accepted grammar
 common blocks, can be accessed by any of the scoping units in an executable program
 
 | common statement | CPP code |
-|:-:|:-:|:-:|
+|:-:|:-:|
 |`INTEGER::A; COMMON A`| `int & a = G.a` |
 |`INTEGER::B; COMMON /COMMON_NAME/ B`| `int & b = COMMON_NAME.b` |
 |`COMMON C`| `T & c = G.c` |

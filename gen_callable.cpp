@@ -21,138 +21,137 @@
 
 // both function and array is callable
 
-void regen_function_array(FunctionInfo * finfo, ARG_OUT newnode) {
+std::string get_mapped_function_name(std::string origin_name) {
+	if (funcname_map.find(origin_name) != funcname_map.end()) {
+		/***********
+		* some fortran intrinsic function NAME is different from
+		*	its C++ implementation function NAME in for90std.h,
+		*	in order to avoid possible head_name conflicts
+		***********/
+		return funcname_map.at(origin_name);
+	}
+	else {
+		return origin_name;
+	}
+}
+
+void regen_function_array(FunctionInfo * finfo, ARG_OUT callable) {
 
 	/* function call OR array index */
 	/* NOTE that array index can be A(1:2, 3:4) */
-	ParseNode & callable_head = newnode.get(0);
-	ParseNode & argtable = newnode.get(1);
-	string name;
-	string func_header;
-	if (funcname_map.find(callable_head.to_string()) != funcname_map.end()) {
-		/***********
-		* some fortran intrinsic function NAME is different from
-		*	its C++ implementation function NAME in for90std.h, 
-		*	in order to avoid possible name conflicts
-		***********/
-		name = funcname_map.at(callable_head.to_string());
-	}
-	else {
-		name = callable_head.to_string();
-	}
-	if (argtable.get_token() == TokenMeta::NT_DIMENSLICE) {
-		// array
-		string arr;
-		bool is_slice = false;
-		for (auto i = 0; i < argtable.length(); i++)
-		{
-			if (argtable.get(i).get_token() == TokenMeta::NT_SLICE) {
-				is_slice = true;
-				break;
-			}
-		}
+	ParseNode & callable_head = callable.get(0);
+	ParseNode & argtable = callable.get(1);
+	string head_name;
+	head_name = get_mapped_function_name(callable_head.to_string());
+	if (argtable.get_token() == TokenMeta::NT_DIMENSLICE ) {
+		// array section
+		string array_str;
+		bool is_slice = std::accumulate(argtable.begin(), argtable.end(), false, [](bool x, ParseNode * y) {
+			return (y->get_token() == TokenMeta::NT_SLICE) || x;
+		});
+
 		if (is_slice) {
-			string slice_info_str;
-			slice_info_str = make_str_list(argtable.begin(), argtable.end(), [&](ParseNode * pslice) {
+			check_implicit_variable(finfo, head_name);
+			string slice_info_str = make_str_list(argtable.begin(), argtable.end(), [&](ParseNode * pslice) {
 				ParseNode & slice = *pslice;
-				string res = "{";
 				regen_slice(finfo, slice);
-				res += slice.get_what();
-				res += "}";
+				string res = "{" + slice.get_what() + "}";
 				return res;
 			});
-			sprintf(codegen_buf, "forslice(%s, {%s})", name.c_str(), slice_info_str.c_str());
-			arr = string(codegen_buf);
+			sprintf(codegen_buf, "forslice(%s, {%s})", head_name.c_str(), slice_info_str.c_str());
+			array_str = string(codegen_buf);
 		}
 		else {
-			// dead code
-			// a dimen_slice with no slice, now all promote to slice
-			print_error("bad slice", argtable);
+			print_error("a dimen_slice with no slice(all scalar) is invalid", argtable);
 		}
-		newnode.fs.CurrentTerm = Term{ TokenMeta::NT_FUCNTIONARRAY,  arr };
+		callable.fs.CurrentTerm = Term{ TokenMeta::NT_FUCNTIONARRAY,  array_str };
 	}
 	else if(argtable.get_token() == TokenMeta::NT_ARGTABLE_PURE 
 		|| argtable.get_token() == TokenMeta::NT_PARAMTABLE_PURE){
-		// function call or function call with kwargs
-		func_header += name;
-		auto map_func = get_context().func_kwargs.find(name); // function_name -> args
-		func_header += "(";
+		// function call(with or without kwargs) OR array section
+		if (is_fortran_function(finfo, callable))
+		{
+
+		}
+		else {
+			// variable
+			check_implicit_variable(finfo, head_name);
+		}
+		string argtable_str;
+		/**************
+		*	If a function have keyword parameters, it should logged in `get_context().func_kwargs`NT_ARRAYBUILDER
+		*	`get_context().func_kwargs` records every keyword paramters' information
+		***************/
+		auto map_func = get_context().func_kwargs.find(head_name); 
+
+		/**************
+		*	valid_kwargs is true iif any keyword arguments 
+		*	come before normal arguments
+		***************/
 		bool valid_kwargs = false;
 		/**************
 		*	number of non-kwarg parameters
 		***************/
 		int normal_count = 0; 
-		map<string, string> kws;
+		map<string, string> kw_args;
+		vector<ParseNode *> normal_args;
 		for (int i = 0; i < argtable.length(); i++)
 		{
-			if (argtable.get(i).get_token() == TokenMeta::NT_KEYVALUE) {
+			ParseNode & elem = argtable.get(i);
+			if (elem.get_token() == TokenMeta::NT_KEYVALUE) {
 				// keyword/named argument
-				//kwargs = true;
+				regen_exp(finfo, elem.get(1));
+				valid_kwargs = true;
 				if (map_func == get_context().func_kwargs.end()) {
-					print_error("invalid kwarg of function " + name, argtable);
+					print_error("this function don't have keyword paramters" + head_name, argtable);
 				}
 				else {
-					string argname = argtable.get(i).get(0).to_string();
-					string argvalue = argtable.get(i).get(1).to_string();
-					kws[argname] = argvalue;
+					string argname = elem.get(0).to_string();
+					string argvalue = elem.get(1).to_string();
+					kw_args[argname] = argvalue;
 				}
 			}
 			else {
 				// normal argument
-				vector<ParseNode *> args;
-				if (argtable.get(i).get_token() == TokenMeta::NT_ARRAYBUILDER) {
-					for (auto j = 0; j < argtable.get(i).length(); j++)
-					{
-						args.push_back(&argtable.get(i).get(j));
-					}
-				}
-				else {
-					args.push_back(&argtable.get(i));
-				}
+				regen_exp(finfo, elem);
+				normal_args.push_back(&elem);
 
-				// generated code from vector<ParseNode *> args
+				// generated code from normal_args
 				if (valid_kwargs) {
-					print_error("keyword arguments must come after normal arguments", argtable);
+					fatal_error("keyword arguments must come after normal arguments", argtable);
 				}
 				else {
-					for (auto j = 0; j < args.size(); j++)
-					{
-						if (i != 0 || j != 0) {
-							func_header += ", ";
-						}
-						if (args[j]->get_token() == TokenMeta::NT_ARRAYBUILDER_LAMBDA) {
-							func_header += "{" + args[j]->get(0).get_what() + "}";
-						}
-						else {
-							func_header += args[j]->get_what();
-						}
-						normal_count++;
-					}
+					normal_count++;
 				}
 			}
 		}
+
+		argtable_str += make_str_list(normal_args.begin(), normal_args.end(), [&](ParseNode * p) {
+			return p->get_what();
+		});
 		// generated code of kwargs
 		if (map_func != get_context().func_kwargs.end()) {
 			std::vector<KeywordParamInfo> & params = map_func->second;
-			std::string kwargs_str = make_str_list(params.begin() + normal_count, params.end(), [&](KeywordParamInfo & param) {
-				string this_param_name = std::get<0>(param);
-				string this_param_type = std::get<1>(param);
-				string this_param_intial_default = std::get<2>(param);
-				auto this_arg = kws.find(this_param_name);
+			std::string kwargs_str = make_str_list(params.begin() + normal_count, params.end(), [&](KeywordParamInfo & kwparam_info) {
+				string this_param_name = std::get<0>(kwparam_info);
+				string this_param_type = std::get<1>(kwparam_info);
+				string this_param_initial_default = std::get<2>(kwparam_info);
+				map<string, string>::iterator this_arg = kw_args.find(this_param_name);
 				std::string s;
-				if (this_arg == kws.end()) {
-					// if this argument is not given
-					if (this_param_intial_default == "") {
+				if (this_arg == kw_args.end()) {
+					// if value of this keyword argument is not present
+					if (this_param_initial_default == "") {
 						s = "None";
 					}
 					else {
-						// use initial defined in gen_config.h
-						s = this_param_intial_default;
+						// use initial defined in get_context().func_kwargs
+						s = this_param_initial_default;
 					}
 				}
 				else {
-					// if this argument is given
+					// if value of this keyword argument is present
 					if (this_param_type == "mask_wrapper_t") {
+						// fortran's mask is now implemented by boolean array, not lambda functions
 						s = this_arg->second;
 					}
 					else {
@@ -161,13 +160,13 @@ void regen_function_array(FunctionInfo * finfo, ARG_OUT newnode) {
 				}
 				return s;
 			});
-			func_header += kwargs_str;
+			argtable_str += kwargs_str;
 		}
-		func_header += ")";
-		newnode.fs.CurrentTerm = Term{ TokenMeta::NT_FUCNTIONARRAY, func_header };
+		sprintf(codegen_buf, "%s(%s)", head_name.c_str(), argtable_str.c_str());
+		callable.fs.CurrentTerm = Term{ TokenMeta::NT_FUCNTIONARRAY, string(codegen_buf) };
 	}
 	else {
-		print_error("callable generate fail", newnode);
+		print_error("callable generate fail", callable);
 	}
 	return;
 }

@@ -45,7 +45,7 @@
 - unicode file
 - underscore kind-param for all type literal(ref 4.3.2.1)
 - ~~display comments~~
-- support other compilers
+- support other C++ compilers
 
 ## todolist(bugfix)
 - ~~if slice can be a scalar x and equal to (1: x + 1), there will be conflict in argtable~~
@@ -66,8 +66,7 @@
 - global attr and node attr
 - ~~add arraybuilder rule to exp rules~~
 - ~~use `make_str_list` function replace some ugly code~~
-- hidden do(io-implied-do, ac-implied-do, data-implied-do)
-    尝试作为用lambda表达式包起来求值，然后作为farray传给write作为参数
+- hidden do(~~io-implied-do~~, ac-implied-do, data-implied-do)
 - ~~pointer problem, including `VariableDesc::slice`, deal with nullptr~~
 - ~~`ParseNode` inteface change to reference, remove pointer in other structures~~
 - won't generate repeated definitions in implicit paramtable
@@ -79,6 +78,10 @@
 - ~~`temporary_variable` to `FunctionInfo` variable~~
 - ~~`regen_if`, `regen_do`, `regen_suite`~~
 - delete all `gen_` functions except `gen_token` with multiple which accepts a list of `YYSTYPE`. ~~`regen_paramtable`~~, ~~`regen_function_array`~~
-- log all arguments in paramtable to `get_context().variable`
+- ~~log all arguments in paramtable to `get_context().variable`~~
 - ~~use `is_exp` function instead of `NT_EXPRESSION` node~~. rename `NT_EXPRESSION` to `NT_ARITH_EXP`, which constructed only by arithmatic rules
 - declare all implicit variables (ref demos/implicit variable.txt)
+- ~~implicit variable in variable declaration like:~~
+    ```
+    integer a = c
+    ```

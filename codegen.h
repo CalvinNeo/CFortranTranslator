@@ -91,6 +91,7 @@ bool is_function_array(const ParseNode & entity_variable);
 bool is_exp(const ParseNode & exp); 
 bool is_element(const ParseNode & x);
 bool is_literal(const ParseNode & x);
+bool is_fortran_function(FunctionInfo * finfo, const ParseNode & callable);
 
 void regen_read(FunctionInfo * finfo, ARG_OUT stmt);
 void regen_write(FunctionInfo * finfo, ARG_OUT stmt);
@@ -112,7 +113,7 @@ void regen_common(FunctionInfo * finfo, ARG_OUT common_block);
 void promote_type(ARG_OUT type_nospec, VariableDesc & vardesc);
 void regen_exp(FunctionInfo * finfo, ARG_OUT exp);
 void regen_paramtable(FunctionInfo * finfo, ARG_OUT paramtable);
-void regen_function_array(FunctionInfo * finfo, ARG_OUT newnode);
+void regen_function_array(FunctionInfo * finfo, ARG_OUT callable);
 void regen_slice(FunctionInfo * finfo, ARG_OUT slice);
 void insert_comments(ARG_OUT newnode);
 
@@ -122,7 +123,7 @@ ParseNode gen_format(ARG_IN format);
 ParseNode gen_vardef(ARG_IN type_nospec, ARG_IN variable_desc, ARG_IN paramtable);
 
 std::string get_variable_name(const ParseNode & entity_variable);
-std::tuple<std::vector<int>, std::vector<int>> get_lbound_size(const ParseNode & slice);
+std::tuple<std::vector<int>, std::vector<int>> get_lbound_size_from_slice(const ParseNode & slice);
 ParseNode gen_vardef_from_default(ARG_IN type, std::string name);
 
 #define get_all_declared get_all_declared_by_log
@@ -131,8 +132,9 @@ std::vector<VariableInfo *> get_all_declared_by_log(FunctionInfo * finfo, ARG_IN
 std::vector<ParseNode *> get_all_declared_by_node(FunctionInfo * finfo, ParseNode & suite);
 ParseNode gen_function(ARG_IN variable_function, ARG_IN paramtable, ARG_IN variable_result, ARG_IN suite); 
 ParseNode gen_hiddendo(ARG_IN argtable, ARG_IN index, ARG_IN from, ARG_IN to, TokenMeta_T return_token = TokenMeta::NT_HIDDENDO);
-std::vector<const ParseNode *> gen_nested_hiddendo_layers(ARG_IN hiddendo);
-std::string gen_hiddendo_expr(ARG_IN hiddendo);
+std::vector<ParseNode *> get_nested_hiddendo_layers(ParseNode & hiddendo);
+std::tuple<std::vector<int>, std::vector<int>> get_lbound_size_from_hiddendo(ParseNode & hiddendo);
+void regen_hiddendo_expr(FunctionInfo * finfo, ParseNode & hiddendo);
 
 ParseNode gen_function_array(ARG_IN callable_head, ARG_IN argtable); 
 
@@ -156,8 +158,6 @@ ParseNode gen_type(ARG_IN type_nospec);
 ParseNode gen_type(Term typeterm);
 std::string gen_qualified_typestr(ARG_IN type_name, VariableDesc & vardesc);
 
-
-ParseNode gen_array_from_hiddendo(ARG_IN hiddendo);
 ParseNode gen_array_from_paramtable(ARG_IN argtable);
 
 void set_variabledesc_attr(ARG_OUT vardescattr_node, boost::optional<bool> reference, boost::optional<bool> constant, boost::optional<bool> optional, boost::optional<ParseNode> slice, boost::optional<int> kind, boost::optional<bool> save);
@@ -180,6 +180,26 @@ ParseNode gen_comment(std::string comment, bool line_comment = true);
 ParseNode gen_suite(ARG_IN item, ARG_IN list);
 void get_full_paramtable(FunctionInfo * finfo);
 
+std::string get_mapped_function_name(std::string origin_name);
+
 void gen_fortran_program(ARG_IN wrappers);
 
 void do_trans(const std::string & src);
+
+
+template <typename Iterator>
+std::string gen_lbound_size_str(Iterator lb_begin, Iterator lb_end, Iterator sz_begin, Iterator sz_end) {
+	std::string size_str, lbound_str;
+	lbound_str = make_str_list(lb_begin, lb_end, [&](auto x) { return to_string(x); });
+	size_str = make_str_list(sz_begin, sz_end, [&](auto x) { return to_string(x); });
+	sprintf(codegen_buf, "{%s}, {%s}", lbound_str.c_str(), size_str.c_str());
+	return string(codegen_buf);
+}
+
+template <typename Iterator, typename Func1, typename Func2>
+std::tuple<std::vector<int>, std::vector<int>> get_lbound_size_base(Iterator begin, Iterator end, Func1 get_lb, Func2 get_sz) {
+	std::vector<int> lb(end - begin), sz(end - begin);
+	transform(begin, end, lb.begin(), get_lb);
+	transform(begin, end, sz.begin(), get_sz);
+	return make_tuple(lb, sz);
+}

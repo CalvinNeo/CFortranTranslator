@@ -1359,8 +1359,8 @@ using namespace std;
 	
 	hidden_do : '(' argtable ',' variable '=' exp ',' exp ')'
 			{
-				/* something like `abs(i), i=1,4` */
 				/******************
+				* implied do is something like `(abs(i), i=1,4)`
 				*==================
 				* Standard
 					R433 ac - implied - do is(ac - value - list, ac - implied - do - control)

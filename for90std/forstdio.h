@@ -26,10 +26,70 @@
 #include "farray.h"
 #include <complex>
 
-//#define eprintf(f, ...) fprintf(stdin, f, __VA_ARGS__)
 // 若编辑符表中含有重复使用的编辑符组，如2(2X,F3)，则当所有编辑符用完之后，返回至最右边的编辑符组开始使用
 
 namespace for90std {
+	template<typename T, typename F>
+	struct IOLambda {
+		IOLambda(int D, fsize_t * _lb, fsize_t * _to, F func ) : dim(D), f(func) {
+			lb = new fsize_t[dim];
+			sz = new fsize_t[dim];
+			cur = new fsize_t[dim];
+			std::copy_n(_lb, D, lb);
+			for (int i = 0; i < dim; i++)
+			{
+				sz[i] = _to[i] - lb[i] + 1;
+			}
+			_map_impl_reset(cur, dim, cur_dim, lb, sz);
+		}
+		IOLambda(const IOLambda<T, F> & x) : f(x.f) {
+			// TODO IOLambda is better passed by reference
+			dim = x.dim;
+			cur_dim = x.cur_dim;
+			lb = new fsize_t[dim];
+			sz = new fsize_t[dim];
+			cur = new fsize_t[dim];
+			std::copy_n(x.lb, dim, lb);
+			std::copy_n(x.sz, dim, sz);
+			std::copy_n(x.cur, dim, cur);
+		}
+		~IOLambda() {
+			if (lb != nullptr)
+			{
+				delete[] lb;
+				lb = nullptr;
+			}
+			if (sz != nullptr)
+			{
+				delete[] sz;
+				sz = nullptr;
+			}
+			if (cur != nullptr)
+			{
+				delete[] cur;
+				cur = nullptr;
+			}
+		}
+		bool get_next(T & x) {
+			auto newf = [&](fsize_t * _) {
+				x = f(_);
+			};
+			return _map_impl_next(newf, cur, dim, cur_dim, lb, sz);
+		}
+		int dim;
+		int cur_dim;
+		fsize_t * lb = nullptr, * sz = nullptr, *cur = nullptr;
+		F f;
+	};
+
+	template <typename T, int D, typename F>
+	auto make_iolambda(const fsize_t(&_lb)[D], const fsize_t(&_to)[D], F func) {
+		return IOLambda<T, F>{D, (fsize_t *)_lb, (fsize_t *)_to, func};
+	};
+	template <typename T, int D, typename F>
+	auto make_iolambda(fsize_t * _lb, fsize_t * _to, F func) {
+		return IOLambda<T, F>{D, _lb, _to, func};
+	};
 	inline std::string _forwrite_noargs(FILE * f, const std::string & format) {
 		for (size_t i = 0; i < format.size(); i++)
 		{
@@ -61,6 +121,7 @@ namespace for90std {
 
 	
 	// format
+	// step 2
 	template <typename T>
 	std::string _forwrite_one(FILE * f, std::string format, const T & x) {
 		// clear front
@@ -106,7 +167,7 @@ namespace for90std {
 		// clear front
 		std::string _format = _forwrite_noargs(f, format);
 		auto iter = x.cbegin();
-		for (auto i = 0; i < x.flatsize(); i++)
+		for (fsize_t i = 0; i < x.flatsize(); i++)
 		{
 			if (_format == "") {
 				_format = format;
@@ -118,21 +179,33 @@ namespace for90std {
 		}
 		return _format;
 	};
+	// step 1
 	template <typename T>
-	std::string _forwrite(FILE * f, std::string format, const for1array<T> & x) {
+	std::string _forwrite_dispatch(FILE * f, std::string format, const for1array<T> & x) {
 		return _forwrite_one_arr1(f, format, x);
 	};
 	template <typename T>
-	std::string _forwrite(FILE * f, std::string format, const farray<T> & x) {
+	std::string _forwrite_dispatch(FILE * f, std::string format, const farray<T> & x) {
 		return _forwrite_one_arrf(f, format, x);
 	};
 	template <typename T>
-	std::string _forwrite(FILE * f, std::string format, const T & x) {
+	std::string _forwrite_dispatch(FILE * f, std::string format, const T & x) {
 		return _forwrite_one(f, format, x);
 	};
+	template <typename T, typename F>
+	std::string _forwrite_dispatch(FILE * f, std::string format, IOLambda<T, F> & l) {
+		string _format = format;
+		T x;
+		while (l.get_next(x))
+		{
+			_format = _forwrite_dispatch(f, _format, x);
+		}
+		return  _format;
+	};
+	// step 0
 	template <typename T, typename... Args>
-	void forwrite(FILE * f, std::string format, const T & x, Args... args) {
-		format = _forwrite(f, format, x);
+	void forwrite(FILE * f, std::string format, T x, Args... args) {
+		format = _forwrite_dispatch(f, format, x);
 		forwrite(f, format, forward<Args>(args)...);
 	};
 	inline void forwrite(FILE * f, std::string format) {
@@ -180,7 +253,7 @@ namespace for90std {
 	template <typename T>
 	void _forwritefree_one_arrf(FILE * f, const farray<T> & x) {
 		auto iter = x.cbegin();
-		for (auto i = 0; i < x.flatsize(); i++)
+		for (fsize_t i = 0; i < x.flatsize(); i++)
 		{
 			_forwritefree_one(f, *(iter + i));
 			fprintf(f, "\t");
@@ -189,27 +262,35 @@ namespace for90std {
 	};
 	// step 1
 	template <typename T>
-	void _forwritefree(FILE * f, const for1array<T> & x) {
+	void _forwritefree_dispatch(FILE * f, const for1array<T> & x) {
 		_forwritefree_one_arr1(f, x);
 	};
 	template <typename T>
-	void _forwritefree(FILE * f, const farray<T> & x) {
+	void _forwritefree_dispatch(FILE * f, const farray<T> & x) {
 		_forwritefree_one_arrf(f, x);
 	};
 	template <typename T>
-	void _forwritefree(FILE * f, const T & x) {
+	void _forwritefree_dispatch(FILE * f, const T & x) {
 		_forwritefree_one(f, x);
+	};
+	template <typename T, typename F>
+	void _forwritefree_dispatch(FILE * f, IOLambda<T, F> & l) {
+		T x;
+		while (l.get_next(x))
+		{
+			_forwritefree_dispatch(f, x);
+		}
 	};
 
 	// step 0
 	template <typename T, typename... Args>
 	void forwritefree(FILE * f, const T & x, Args... args) {
-		_forwritefree(f, x);
+		_forwritefree_dispatch(f, x);
 		forwritefree(f, forward<Args>(args)...);
 	};
 	template <typename T>
 	void forwritefree(FILE * f, const T & x) {
-		_forwritefree(f, x);
+		_forwritefree_dispatch(f, x);
 	};
 
 	template <typename T, typename... Args>
@@ -290,26 +371,38 @@ namespace for90std {
 	void _forread_one_arrf(FILE * f, std::string format, farray<T> & x) {
 
 	};
+	// step 1
 	template <typename T>
-	std::string _forread(FILE * f, std::string format, for1array<T> & x) {
+	std::string _forread_dispatch(FILE * f, std::string format, for1array<T> & x) {
 		return _forread_one_arr1(f, format, x);
 	};
 	template <typename T>
-	std::string _forread(FILE * f, std::string format, farray<T> & x) {
+	std::string _forread_dispatch(FILE * f, std::string format, farray<T> & x) {
 		return _forread_one_arrf(f, format, x);
 	};
 	template <typename T>
-	std::string _forread(FILE * f, std::string format, T & x) {
+	std::string _forread_dispatch(FILE * f, std::string format, T & x) {
 		return _forread_one(f, format, x);
 	};
+	template <typename T, typename F>
+	std::string _forread_dispatch(FILE * f, std::string format, IOLambda<T, F> & l) {
+		string _format = format;
+		T x;
+		while (l.get_next(x))
+		{
+			_format = _forread_dispatch(f, _format, x);
+		}
+		return _format;
+	};
+	// step 0
 	template <typename T, typename... Args>
 	void forread(FILE * f, std::string format, T & x, Args... args) {
-		format = _forread(f, format, x);
+		format = _forread_dispatch(f, format, x);
 		forread(f, format, forward<Args>(args)...);
 	};
 	template <typename T>
 	void forread(FILE * f, std::string format, T & x) {
-		format = _forread(f, format, x);
+		format = _forread_dispatch(f, format, x);
 	};
 
 	// free format
@@ -324,30 +417,38 @@ namespace for90std {
 	template <typename T>
 	void _forreadfree_one_arrf(FILE * f, farray<T> & x) {
 		auto iter = x.begin();
-		for (auto i = 0; i < x.flatsize(); i++)
+		for (fsize_t i = 0; i < x.flatsize(); i++)
 		{
 			_forreadfree_one(f, *(iter + i));
 		}
 	};
 	template <typename T>
-	void _forreadfree(FILE * f, for1array<T> & x) {
+	void _forreadfree_dispatch(FILE * f, for1array<T> & x) {
 		_forreadfree_one_arr1(f, x);
 	};
 	template <typename T>
-	void _forreadfree(FILE * f, farray<T> & x) {
+	void _forreadfree_dispatch(FILE * f, farray<T> & x) {
 		_forreadfree_one_arrf(f, x);
 	};
 	template <typename T>
-	void _forreadfree(FILE * f, T & x) {
+	void _forreadfree_dispatch(FILE * f, T & x) {
 		_forreadfree_one(f, x);
+	};
+	template <typename T, typename F>
+	void _forreadfree_dispatch(FILE * f, IOLambda<T, F> & l) {
+		T x;
+		while (l.get_next(x))
+		{
+			_forreadfree_dispatch(f, x);
+		}
 	};
 	template <typename T, typename... Args>
 	void forreadfree(FILE * f, T & x, Args &&... args) {
-		_forreadfree(f, x);
+		_forreadfree_dispatch(f, x);
 		forreadfree(f, forward<Args>(args)...);
 	};
 	template <typename T>
 	void forreadfree(FILE * f, T & x) {
-		_forreadfree(f, x);
+		_forreadfree_dispatch(f, x);
 	};
 }

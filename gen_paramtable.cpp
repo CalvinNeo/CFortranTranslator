@@ -23,8 +23,7 @@ ParseNode gen_keyvalue_from_name(std::string name) {
 	/* paramtable is used in function decl */
 	/* this paramtable has only one value */
 
-	sprintf(codegen_buf, "%s", name.c_str());
-	ParseNode newnode = gen_token(Term{ TokenMeta::NT_VARIABLE_ENTITY, string(codegen_buf) }
+	ParseNode newnode = gen_token(Term{ TokenMeta::NT_VARIABLE_ENTITY, name }
 		, gen_token(Term{ TokenMeta::UnknownVariant, name }) 
 		, gen_token(Term{ TokenMeta::NT_VARIABLEINITIALDUMMY, "" })
 	);
@@ -35,8 +34,7 @@ ParseNode gen_keyvalue_from_exp(ARG_IN variable, ARG_IN initial) {
 	/* paramtable is used in function decl */
 	/* this paramtable has only one value */
 
-	sprintf(codegen_buf, "%s", variable.to_string().c_str());
-	ParseNode newnode = gen_token(Term{ TokenMeta::NT_VARIABLE_ENTITY, string(codegen_buf) }, variable, initial);
+	ParseNode newnode = gen_token(Term{ TokenMeta::NT_VARIABLE_ENTITY, variable.to_string() }, variable, initial);
 	return newnode;
 }
 

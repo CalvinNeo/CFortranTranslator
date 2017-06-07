@@ -311,9 +311,9 @@ namespace TokenMeta {
 		*	NT_ARRAYBUILDER_LAMBDA is a deprecated
 		****************************************/
 		ADD_ENUM(NT_ARRAYBUILDER_LAMBDA, -2016), 
-		ADD_ENUM(NT_ARRAYBUILDER_LIST, -2017), /*  */
+		ADD_ENUM(NT_ARRAYBUILDER_LIST, -2017),
 		/***************************************
-		*	NT_DEIEMSLICE is a section-subscript-list in fortran
+		*	NT_DIMENSLICE is a section-subscript-list in fortran
 		*	, which is a list of section-subscript concated by ','
 		*=======================================
 		*	EX:
@@ -342,7 +342,12 @@ namespace TokenMeta {
 		* UPDATE
 		* use NT_DUMMY instead
 		****************************************/
-		ADD_ENUM(NT_VOID, -2023), 
+		ADD_ENUM(NT_VOID, -2023),
+		/***************************************
+		*	UPDATE:
+		*	NT_ARRAYBUILDER is now DEPRECATED
+		*	all array builder is NT_ARRAYBUILDER_LIST now
+		****************************************/
 		ADD_ENUM(NT_ARRAYBUILDER, -2024), 
 		ADD_ENUM(NT_ARGTABLE_PURE, -2025),
 		ADD_ENUM(NT_WRAPPER, -2026),

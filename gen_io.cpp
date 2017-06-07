@@ -19,18 +19,38 @@
 
 #include "gen_common.h"
 
+std::string gen_io_argtable_str(FunctionInfo * finfo, ParseNode & argtable) {
+	string res = make_str_list(argtable.begin(), argtable.end(), [&](ParseNode * p) {
+		ParseNode & pn = *p;
+		if (pn.get_token() == TokenMeta::NT_HIDDENDO)
+		{
+			// wrap with IOLambda
+			std::tuple<std::vector<int>, std::vector<int>> lb_size = get_lbound_size_from_hiddendo(pn);
+			std::string lb_size_str = gen_lbound_size_str(get<0>(lb_size).begin(), get<0>(lb_size).end(), get<1>(lb_size).begin(), get<1>(lb_size).end());
+			int dim = (int)get<0>(lb_size).size();
+			sprintf(codegen_buf, "IOLambda(%d, %s, %s)", dim, lb_size_str.c_str(), pn.get_what().c_str());
+			return string(codegen_buf);
+		}
+		else {
+			return pn.get_what();
+		}
+	});
+	return res;
+}
+
 void regen_read(FunctionInfo * finfo, ARG_OUT stmt) {
 	const ParseNode & io_info = stmt.get(0);
 	ParseNode & argtable = stmt.get(1);
 	string device = io_info.get(0).to_string();
 	regen_paramtable(finfo, argtable);
+	std::string argtable_str =  gen_io_argtable_str(finfo, argtable);
 	if (io_info.get(1).get_token() == TokenMeta::NT_AUTOFORMATTER) {
 		if (device == "-1" || device == "") {
 			//device = "5"; // stdin
-			sprintf(codegen_buf, "forreadfree(stdin, %s);\n", argtable.to_string().c_str());
+			sprintf(codegen_buf, "forreadfree(stdin, %s);\n", argtable_str.c_str());
 		}
 		else {
-			sprintf(codegen_buf, "forreadfree(get_file(%s), %s);\n", device.c_str(), argtable.to_string().c_str());
+			sprintf(codegen_buf, "forreadfree(get_file(%s), %s);\n", device.c_str(), argtable_str.c_str());
 		}
 	}
 	else {
@@ -44,10 +64,10 @@ void regen_read(FunctionInfo * finfo, ARG_OUT stmt) {
 		}
 		if (device == "-1" || device == "") {
 			//device = "5"; // stdin
-			sprintf(codegen_buf, "forread(stdin, \"%s\", %s);\n", parse_ioformatter(fmt).c_str(), argtable.to_string().c_str());
+			sprintf(codegen_buf, "forread(stdin, \"%s\", %s);\n", parse_ioformatter(fmt).c_str(), argtable_str.c_str());
 		}
 		else {
-			sprintf(codegen_buf, "forread(get_file(%s), \"%s\", %s);\n", device.c_str(), parse_ioformatter(fmt).c_str(), argtable.to_string().c_str());
+			sprintf(codegen_buf, "forread(get_file(%s), \"%s\", %s);\n", device.c_str(), parse_ioformatter(fmt).c_str(), argtable_str.c_str());
 		}
 	}
 	stmt.fs.CurrentTerm = Term{ TokenMeta::NT_READ_STMT, string(codegen_buf) };
@@ -61,13 +81,14 @@ void regen_write(FunctionInfo * finfo, ARG_OUT stmt) {
 	ParseNode & argtable = stmt.get(1);
 	string device = io_info.get(0).to_string();
 	regen_paramtable(finfo, argtable);
+	std::string argtable_str = gen_io_argtable_str(finfo, argtable);
 	if (io_info.get(1).get_token() == TokenMeta::NT_AUTOFORMATTER) {
 		if (device == "-1") {
 			// device = "6"; // stdout
-			sprintf(codegen_buf, "forwritefree(stdout, %s);\n", argtable.to_string().c_str());
+			sprintf(codegen_buf, "forwritefree(stdout, %s);\n", argtable_str.c_str());
 		}
 		else {
-			sprintf(codegen_buf, "forwritefree(get_file(%s), %s);\n", device.c_str(), argtable.to_string().c_str());
+			sprintf(codegen_buf, "forwritefree(get_file(%s), %s);\n", device.c_str(), argtable_str.c_str());
 		}
 	}
 	else {
@@ -80,19 +101,21 @@ void regen_write(FunctionInfo * finfo, ARG_OUT stmt) {
 		}
 		if (device == "-1") {
 			// device = "6"; // stdout
-			sprintf(codegen_buf, "forwrite(stdout, \"%s\", %s);\n", parse_ioformatter(fmt).c_str(), argtable.to_string().c_str());
+			sprintf(codegen_buf, "forwrite(stdout, \"%s\", %s);\n", parse_ioformatter(fmt).c_str(), argtable_str.c_str());
 		}
 		else {
-			sprintf(codegen_buf, "forwrite(get_file(%s), \"%s\", %s);\n", device.c_str(), parse_ioformatter(fmt).c_str(), argtable.to_string().c_str());
+			sprintf(codegen_buf, "forwrite(get_file(%s), \"%s\", %s);\n", device.c_str(), parse_ioformatter(fmt).c_str(), argtable_str.c_str());
 		}
 	}
 	stmt.fs.CurrentTerm = Term{ TokenMeta::NT_WRITE_STMT, string(codegen_buf) };
 	return;
 }
+
 void regen_print(FunctionInfo * finfo, ARG_OUT stmt) {
 	const ParseNode & io_info = stmt.get(0);
 	ParseNode & argtable = stmt.get(1);
 	regen_paramtable(finfo, argtable);
+	std::string argtable_str = gen_io_argtable_str(finfo, argtable);
 	if (io_info.get(1).get_token() == TokenMeta::NT_AUTOFORMATTER) {
 		sprintf(codegen_buf, "forprintfree(%s);\n", argtable.to_string().c_str());
 	}

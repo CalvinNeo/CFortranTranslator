@@ -9,5 +9,8 @@ function sum(x) result (sum_result)
 	integer ii
 end function
 a = 4
+integer a2 = c_implicit
+integer a3 = c_implicit_arr(3)
 read *, vvvv, a(1)
+fun(b + 3)
 b(1) = a(1)

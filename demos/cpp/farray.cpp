@@ -19,6 +19,15 @@ void test_merge(){
 	// 8 2 3 4 5 3
 }
 
+void test_map(){
+	farray<int> aa = forconcat({ make_init_list({1,2,3}) });
+	forprintfree(aa);
+	aa.map([&](int & x, fsize_t * cur) {
+		x = x + 1;
+	});
+	forprintfree(aa);
+}
+
 void test_transpose(){
 	farray<int> a({ 1,1,1 }, { 2,2,2 });
 	farray<int> b({ 1,1,1 }, { 2,2,2 });
@@ -79,4 +88,18 @@ void test_slice(){
 	forprintfree(forslice(b, { { }, { 2,2 } }));
 	forprintfree(forslice(b, { { 1,1 },{  } }));
 	forprintfree(forslice(b, { { 2 },{} }));
+	farray<int> aa = forconcat({ make_init_list({1,2,3}) });
+	farray<int> c{ { 1 },{ 3 } };
+	c = forslice(aa, { {} });
+	forprintfree(c);
+}
+
+void test_io(){
+	farray<int> aa = forconcat({ make_init_list({1,2,3,4,5,6}) });
+	forprintfree(aa);
+	forwrite(stdout, "%d%d%d", make_iolambda<int>({ 2 }, { 4 }, [](fsize_t * current) {
+		return [](int i) {
+			return i + 1;
+		}(current[0]);
+	}));
 }

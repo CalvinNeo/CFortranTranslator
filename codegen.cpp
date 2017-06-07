@@ -52,18 +52,6 @@ FlexState gen_flex(Term term) {
 	return f;
 }
 
-std::string tabber(const std::string & src) {
-	std::string newline;
-	string ans = "";
-	std::istringstream f(src);
-	while (::getline(f, newline)) {
-		ans += '\t';
-		ans += newline;
-		ans += '\n';
-	}
-	return ans;
-}
-
 ParseNode flattern_bin(ARG_IN pn, bool recursion_direction_right) {
 	/* it cant work well because it create a whole new tree copy too much */
 	/* THIS ALGORITHM FLATTERNS A LEFT/RIGHT-RECURSIVE BINARY TREE */

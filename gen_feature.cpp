@@ -46,7 +46,7 @@ bool is_exp(const ParseNode & exp) {
 	switch (tok)
 	{
 	case TokenMeta::NT_EXPRESSION:
-	case TokenMeta::NT_ARRAYBUILDER:
+	case TokenMeta::NT_ARRAYBUILDER_LIST:
 	case TokenMeta::NT_FUCNTIONARRAY:
 	case TokenMeta::NT_HIDDENDO:
 		res = true;
@@ -83,4 +83,32 @@ bool is_literal(const ParseNode & lit) {
 	if (tok == TokenMeta::False) return true;
 	if (tok == TokenMeta::True) return true;
 	return false;
+}
+
+bool is_fortran_function(FunctionInfo * finfo, const ParseNode & callable) {
+	string name = callable.get(0).get_what();
+	VariableInfo * vinfo = get_variable(get_context().current_module, finfo->local_name, name);
+	if (vinfo == nullptr)
+	{
+		FunctionInfo * f = get_function(get_context().current_module, name);
+		std::map<std::string, std::vector<KeywordParamInfo>>::iterator sysfunc = get_context().func_kwargs.find(get_mapped_function_name(name));
+		if (f == nullptr && sysfunc == get_context().func_kwargs.end())
+		{
+			return false;
+		}
+		else {
+			// registed function
+			return true;
+		}
+	}
+	else {
+		if (vinfo->type.get_token() == TokenMeta::Function_Decl)
+		{
+			// interface
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
 }

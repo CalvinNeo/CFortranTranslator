@@ -150,7 +150,7 @@ void CLEAN_RIGHT(YYSTYPE x) {
 }
 #endif
 
-std::string tabber(const std::string &); // add tab(`\t`) into the front of each line
+std::string tabber(const std::string &, bool tail_crlf = true); // add tab(`\t`) into the front of each line
 ParseNode flattern_bin(ARG_IN pn, bool recursion_direction_right);// eliminate left/right recursion of an binary tree
 void flattern_bin_inplace(ParseNode & pn, bool recursion_direction_right); // eliminate left/right recursion of an binary tree in place
 

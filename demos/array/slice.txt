@@ -9,4 +9,5 @@ program array_test
 	print *, shape(a(1:2, 1, 1))
 	print *, a(1:2, 1:1, 1)
 	print *, shape(a(1:2, 1:1, 1))
+
 end program

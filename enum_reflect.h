@@ -27,7 +27,7 @@
 
 #define ADD_ENUM(NAME, VALUE) NAME = VALUE
 #define __MAKE_ENUM_DECL(T, ...) enum T {__VA_ARGS__}
-#define __MAKE_ENUM_HELPER(STR) struct EnumTableHelper { 																\
+#define __MAKE_ENUM_HELPER(ARGS) struct EnumTableHelper { 																\
 		int EnumTableHelper::from_name(std::string name) { 																\
 			std::map<std::string, int>::const_iterator iter = m.find(name); 											\
 			assert(iter != m.end()); 																					\
@@ -40,27 +40,12 @@
 			assert(iter != m.end()); 																					\
 			return iter->first; 																						\
 		} 																												\
-/*		void EnumTableHelper::make_enum_table(std::string str) { 														\
-			size_t s = 0; 																								\
-			std::string k, v; 																							\
-			for (size_t i = 0; i < str.length(); i++) { 																\
-				if (str[i] == ',')	{ 																					\
-					v = str.substr(s, i - s); 																			\
-					int xv;	sscanf(v.c_str(), "%d", &xv); 																\
-					m[k] = xv;	s = i + 1; 																				\
-				}else if (str[i] == '='){ 																				\
-					k = str.substr(s, i - s); s = i + 1; 																\
-				} 																										\
-				else if (str[i] = ' ') {  } 																			\
-				else {	} 																								\
-			} 																											\
-		} 		*/																										\
 		EnumTableHelper() {																								\
-			make_enum_table(m, input_str);																				\
+			::make_enum_table(m, input_str);																			\
 		} 																												\
 	protected:																											\
 		std::map<std::string, int> m; 																					\
-		const std::string input_str = #STR;																				\
+		const std::string input_str = #ARGS;																			\
 	}; 																													\
 	inline EnumTableHelper & get_enum_table() { 																		\
 		static EnumTableHelper table; 																					\
@@ -68,7 +53,8 @@
 	}
 #define MAKE_ENUM(T, ...) __MAKE_ENUM_DECL(T, __VA_ARGS__); \
 	__MAKE_ENUM_HELPER(__VA_ARGS__) 
-// 注意不能在这里给__VA_ARGS__加上#，否则ADD_ENUM不能被展开
+// 注意不能在这里给__VA_ARGS__加上#，否则ADD_ENUM不能被展开（不能在参数列表中展开）
+
 
 
 /*******************
@@ -82,23 +68,20 @@
 #define TokenMeta_T int
 //#define TokenMeta_T IntentMeta::IntentMeta_T
 
-namespace IntentMeta {
-	inline void make_enum_table(std::map<std::string, int> & m, std::string str) {
-		size_t s = 0;
-		std::string k, v;
-		for (size_t i = 0; i < str.length(); i++) {
-			if (str[i] == ',') {
-				v = str.substr(s, i - s);
-				int xv;	sscanf(v.c_str(), "%d", &xv);
-				m[k] = xv;
-				s = i + 1;
-			}
-			else if (str[i] == '=') {
-				k = str.substr(s, i - s); s = i + 1;
-			}
-			else if (str[i] == ' ') {}
-			else {}
+inline void make_enum_table(std::map<std::string, int> & m, std::string str) {
+	size_t s = 0;
+	std::string k, v;
+	for (size_t i = 0; i < str.length(); i++) {
+		if (str[i] == ',') {
+			v = str.substr(s, i - s);
+			int xv;	sscanf(v.c_str(), "%d", &xv);
+			m[k] = xv;
+			s = i + 1;
 		}
+		else if (str[i] == '=') {
+			k = str.substr(s, i - s); s = i + 1;
+		}
+		else if (str[i] == ' ') {}
+		else {}
 	}
 }
-

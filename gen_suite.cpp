@@ -105,44 +105,59 @@ std::string gen_joined_declarations(FunctionInfo * finfo, ARG_OUT oldsuite) {
 	*	3) this variable is used implicitly, and is in a declared common block
 	*	4) this variable is declared by a explicit statement, and is in a declared common block
 	***********************************/
-	forall_variable_in_function(get_context().current_module, finfo->local_name, [&](const std::pair<std::string, VariableInfo *> & p) {
-		VariableInfo * vinfo = p.second;
-		string local_name = vinfo->local_name;
-		ParseNode & entity_variable = vinfo->entity_variable;
-		VariableDesc & desc = vinfo->desc;
-		ParseNode & local_type = vinfo->type;
-		//ParseNode & vardef_node = vinfo->vardef_node; 不要使用这个局部变量因为vinfo->vardef_node是会变的（如果是nullptr会在regen_vardef中补上）
-		if (p.second->declared)
-		{
-			fatal_error("Pre-declared variable encountered");
-		}
-		else {
-			if (p.second->commonblock_name != "") {
-				// definition in common block
-				desc.reference = true;
-				regen_vardef(finfo, vinfo, local_type, desc, entity_variable);
+	bool all_generated = true;
+	do {
+		all_generated = true;
+		forall_variable_in_function(get_context().current_module, finfo->local_name, [&](const std::pair<std::string, VariableInfo *> & p) {
+			VariableInfo * vinfo = p.second;
+			string local_name = vinfo->local_name;
+			ParseNode & entity_variable = vinfo->entity_variable;
+			VariableDesc & desc = vinfo->desc;
+			ParseNode & local_type = vinfo->type;
 
-				// set common
-				auto common_info = get_context().commonblocks.find(vinfo->commonblock_name);
-				if (common_info == get_context().commonblocks.end()) {
-					fatal_error("can't find common");
-				}
-				else {
-					common_info->second.variables[vinfo->commonblock_index].desc = desc;
-					common_info->second.variables[vinfo->commonblock_index].type = local_type;
-				}
-			}
-			else if (vinfo->vardef_node == nullptr) {
-				// implicit definition
-				fatal_error("vinfo->vardef_node is nullptr");
-				regen_vardef(finfo, vinfo, local_type, desc, entity_variable);
+			/**********************************
+			* do not use the following reference
+			//ParseNode & vardef_node = vinfo->vardef_node;
+			* because vinfo->vardef_node is possibly reset by `regen_vardef`
+			***********************************/
+			if (p.second->declared)
+			{
+				fatal_error("Pre-declared variable encountered");
 			}
 			else {
-				// normal definition
-				regen_vardef(finfo, vinfo, local_type, desc, entity_variable);
+				if (vinfo->generated)
+				{
+
+				}else{
+					all_generated = false;
+					if (p.second->commonblock_name != "") {
+						// definition in common block
+						desc.reference = true;
+						regen_vardef(finfo, vinfo, local_type, desc, entity_variable);
+
+						// set common
+						auto common_info = get_context().commonblocks.find(vinfo->commonblock_name);
+						if (common_info == get_context().commonblocks.end()) {
+							fatal_error("can't find common");
+						}
+						else {
+							common_info->second.variables[vinfo->commonblock_index].desc = desc;
+							common_info->second.variables[vinfo->commonblock_index].type = local_type;
+						}
+					}
+					else if (vinfo->vardef_node == nullptr) {
+						// implicit definition
+						fatal_error("vinfo->vardef_node is nullptr");
+					}
+					else {
+						// normal definition
+						regen_vardef(finfo, vinfo, local_type, desc, entity_variable);
+					}
+					vinfo->generated = true;
+				}
 			}
-		}
-	});
+		});
+	} while (!all_generated);
 
 	/**********************************
 	* if a variable is in the paramtable, 
