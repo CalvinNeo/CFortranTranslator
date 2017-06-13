@@ -20,8 +20,6 @@
 #include "gen_common.h"
 
 ParseNode gen_keyvalue_from_name(std::string name) {
-	/* paramtable is used in function decl */
-	/* this paramtable has only one value */
 
 	ParseNode newnode = gen_token(Term{ TokenMeta::NT_VARIABLE_ENTITY, name }
 		, gen_token(Term{ TokenMeta::UnknownVariant, name }) 
@@ -31,9 +29,6 @@ ParseNode gen_keyvalue_from_name(std::string name) {
 }
 
 ParseNode gen_keyvalue_from_exp(ARG_IN variable, ARG_IN initial) {
-	/* paramtable is used in function decl */
-	/* this paramtable has only one value */
-
 	ParseNode newnode = gen_token(Term{ TokenMeta::NT_VARIABLE_ENTITY, variable.to_string() }, variable, initial);
 	return newnode;
 }
@@ -46,7 +41,7 @@ ParseNode gen_pure_paramtable(ARG_IN paramtable_elem) {
 	}
 	else if( paramtable_elem.get_token() == TokenMeta::NT_ARGTABLE_PURE) {
 		print_error("Can't generate paramtable from pure argtable", paramtable_elem);
-		// promote dimen_slice to paramtable
+		// promote dimen_slice to parameter list
 		return gen_argtable(paramtable_elem);
 	}
 	else if(paramtable_elem.get_token() == TokenMeta::NT_KEYVALUE){
@@ -64,8 +59,8 @@ ParseNode gen_pure_paramtable(ARG_IN paramtable_elem) {
 }
 
 
-ParseNode gen_pure_paramtable(ARG_IN paramtable_elem, ARG_IN paramtable) {
-	ParseNode newnode = gen_token(Term{ TokenMeta::NT_PARAMTABLE_PURE, "" });
+ParseNode gen_pure_paramtable(ARG_IN paramtable_elem, ARG_IN paramtable, bool left_recursion) {
+	ParseNode newnode;
 	bool to_param = is_paramtable(paramtable_elem) || is_paramtable(paramtable);
 	bool all_param = is_paramtable(paramtable_elem) && is_paramtable(paramtable);
 	bool to_dimen = is_dimenslice(paramtable_elem) || is_dimenslice(paramtable);
@@ -75,14 +70,12 @@ ParseNode gen_pure_paramtable(ARG_IN paramtable_elem, ARG_IN paramtable) {
 
 	if (all_param) {
 		// all keyvalue pair 
-		newnode = gen_flattern(paramtable_elem, paramtable, "%s, %s", TokenMeta::NT_PARAMTABLE_PURE);
+		newnode = gen_flattern(paramtable_elem, paramtable, "%s, %s", TokenMeta::NT_PARAMTABLE_PURE, left_recursion);
 	}
 	else if(to_param){
 		// there is keyvalue pair
-		newnode = promote_argtable_to_paramtable(paramtable);
-		newnode.addchild(promote_exp_to_keyvalue(paramtable_elem));
-		sprintf(codegen_buf, "%s, %s", paramtable_elem.to_string().c_str(), paramtable.to_string().c_str());
-		newnode.get_what() = string(codegen_buf);
+		ParseNode promoted_argtable = promote_argtable_to_paramtable(paramtable);
+		newnode = gen_flattern(promote_exp_to_keyvalue(paramtable_elem), promoted_argtable, "%s, %s", TokenMeta::NT_PARAMTABLE_PURE, left_recursion);
 	}
 	else if (to_dimen) {
 		print_error("Can't generate dimen_slice from paramtable");
@@ -91,10 +84,10 @@ ParseNode gen_pure_paramtable(ARG_IN paramtable_elem, ARG_IN paramtable) {
 	else if (all_arg) {
 		// all argument_pure or variable
 		print_error("Can't generate all arguments from paramtable");
-		newnode = gen_flattern(paramtable_elem, paramtable, "%s, %s", TokenMeta::NT_ARGTABLE_PURE);
+		newnode = gen_flattern(paramtable_elem, paramtable, "%s, %s", TokenMeta::NT_ARGTABLE_PURE, left_recursion);
 	}
 	else {
-		print_error("bad param table");
+		fatal_error("bad param table");
 	}
 	return newnode;
 }
@@ -115,7 +108,7 @@ ParseNode promote_exp_to_keyvalue(ARG_IN paramtable_elem) {
 ParseNode promote_argtable_to_paramtable(ARG_IN paramtable) {
 	/************************
 	*	this function map every element `x` in a argtable to a keyvalue by `promote_exp_to_keyvalue`, 
-	*	and return a flat paramtable
+	*	and return a flat parameter list
 	*************************/
 	ParseNode newnode = gen_token(Term{ TokenMeta::NT_PARAMTABLE_PURE, "" });
 	for (int i = 0; i < paramtable.length(); i++)
@@ -217,9 +210,9 @@ void foreach_paramtable(const ParseNode & pn, std::function<void(const ParseNode
 	do {
 		int from, to;
 		/************
-		*	pn->length() == 0: empty paramtable
-		*	pn->length() == 1: paramtable with a single element
-		*	pn->length() == 2: probably non-flattern paramtable
+		*	pn->length() == 0: empty parameter list
+		*	pn->length() == 1: parameter list with a single element
+		*	pn->length() == 2: probably non-flattern parameter list
 		**************/
 		bool possible_length = (pp->length() == 2);
 		if (recursion_direction_right)

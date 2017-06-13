@@ -22,7 +22,7 @@
 #include <sstream>  
 #include "parser.h"
 #include <stdio.h>
-#include "codegen.h"
+#include "target/codegen.h"
 #include "for90std/for90std.h"
 #include <numeric>
 

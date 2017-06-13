@@ -21,12 +21,20 @@
 #include "parser.h"
 #include "Variable.h"
 
-struct FunctionDesc {
-	// all variables passed as paramtable(must also be declared in function) and declared in the function
+struct FunctionDesc {	
+	/******************
+	* record all variables declared in the function
+	* because variables passed in parameter list are also declared in function body, so they are included in `declared_variables`
+	*******************/
 	std::vector<VariableInfo *> declared_variables;
-	// tuple (name, type node, variable_initial node) of all parameters
-	std::vector<std::tuple<std::string, ParseNode, struct ParseNode *>> paramtable_info;
-	// std::map < std::string, struct FunctionInfo * > function_variables;
+	/******************
+	* fortran's parameter list provides every parameter(called dummy arguments)'s name without their type
+	*	which are given in the function body as a normal variable decl statement
+	* `paramtable_info` log all names which appear in the parameter list
+	* you can `get_variable` to query every parameter's infomation
+	* ALSO REFER `NT_DECLAREDVARIABLE` in FUnction.h and `VariableInfo::declared` in Variable.h
+	*******************/
+	std::vector<std::string> paramtable_info;
 	std::vector<struct ParseNode *> declared_commons;
 
 	FunctionDesc() {

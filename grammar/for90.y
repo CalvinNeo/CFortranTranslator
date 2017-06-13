@@ -24,12 +24,10 @@
 #include <iostream>
 #include <stdarg.h>
 #include <tuple>
-#include "../tokenizer.h"
 #include "../attribute.h"
 #include "../parser.h"
-#include "../gen_config.h"
+#include "../target/codegen.h"
 #include "../Function.h"
-#include "../codegen.h"
 
 
 // 前置声明, 不然编译不过
@@ -266,9 +264,9 @@ using namespace std;
 			{
 				ParseNode variable_elem = YY2ARG($2);
 				ParseNode variable_desc = YY2ARG($3);
-				/* target code of slice depend on context */
+				// target code of slice depend on context
 				ParseNode newnode = gen_token(Term{ TokenMeta::NT_VARIABLEDESC, WHENDEBUG_OREMPTYSTR("NT_VARIABLEDESC GENERATED IN") });
-				/* merge attrs */
+				// merge attrs 
 				newnode.setattr(variable_elem.attr->clone());
 				get_variabledesc_attr(newnode).merge(get_variabledesc_attr(variable_desc));
 				// TODO do not add child
@@ -435,7 +433,7 @@ using namespace std;
 
 	argtable : exp
 			{
-				/* argtable is used in function call */
+				// argtable is used in function call 
 				ARG_IN exp = YY2ARG($1);
 				ParseNode newnode = gen_token(Term{ TokenMeta::NT_ARGTABLE_PURE , exp.get_what()}, exp);
 				$$ = RETURN_NT(newnode);
@@ -494,7 +492,7 @@ using namespace std;
 			{
 				ARG_IN slice = YY2ARG($3);
 				ARG_IN argtable = YY2ARG($1);
-				ParseNode newnode = ParseNode();
+				ParseNode newnode;
 				if (argtable.get_token() == TokenMeta::NT_ARGTABLE_PURE)
 				{
 					newnode = gen_flattern(slice, promote_argtable_to_dimenslice(argtable), "%s, %s", TokenMeta::NT_DIMENSLICE, true);
@@ -927,7 +925,7 @@ using namespace std;
 		| YY_GOTO YY_INTEGER
 			{
 				ARG_IN line = YY2ARG($2);
-				$$ = RETURN_NT(gen_token(Term{TokenMeta::Goto, "goto " + line.get_what() + ";\n"}));
+				$$ = RETURN_NT(gen_token(Term{TokenMeta::Goto, "goto LABEL_" + line.get_what() + ";\n"}));
 				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($2));
 				CLEAN_RIGHT($1, $2);
 			}
@@ -1311,7 +1309,7 @@ using namespace std;
 			{
 				ARG_IN paramtable_elem = YY2ARG($3);
 				ARG_IN paramtable = YY2ARG($1);
-				ParseNode newnode = gen_pure_paramtable(paramtable_elem, paramtable);
+				ParseNode newnode = gen_pure_paramtable(paramtable_elem, paramtable, true);
 				$$ = RETURN_NT(newnode);
 				CLEAN_RIGHT($1, $2, $3);
 			}				
@@ -1319,7 +1317,7 @@ using namespace std;
 			{
 				ARG_IN paramtable_elem = YY2ARG($3);
 				ARG_IN paramtable = YY2ARG($1);
-				ParseNode newnode = gen_pure_paramtable(promote_exp_to_keyvalue(paramtable_elem), paramtable);
+				ParseNode newnode = gen_pure_paramtable(paramtable_elem, paramtable, true);
 				$$ = RETURN_NT(newnode);
 				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($3));
 				CLEAN_RIGHT($1, $2, $3);
@@ -1328,14 +1326,14 @@ using namespace std;
 			{
 				ARG_IN paramtable_elem = YY2ARG($3);
 				ARG_IN paramtable = YY2ARG($1);
-				ParseNode newnode = gen_pure_paramtable(paramtable_elem, paramtable);
+				ParseNode newnode = gen_pure_paramtable(paramtable_elem, paramtable, true);
 				$$ = RETURN_NT(newnode);
 				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($3));
 				CLEAN_RIGHT($1, $2, $3);
 			}
 		|
 			{
-				/* no params */
+				// empty list
 				ParseNode newnode = gen_token(Term{ TokenMeta::NT_PARAMTABLE_PURE, "" });
 				$$ = RETURN_NT(newnode);
 				update_pos(YY2ARG($$));
@@ -1635,9 +1633,8 @@ using namespace std;
 
 	function_decl : dummy_function_iden _optional_function YY_WORD '(' paramtable ')' _optional_result at_least_one_end_line suite _optional_endfunction
 			{
-				/* fortran90 does not declare type of arguments in function declaration statement*/
 				ARG_IN variable_function = YY2ARG($3); // function name
-				/* enumerate paramtable */
+				// enumerate parameter list 
 				ARG_IN paramtable = YY2ARG($5);
 				ARG_IN variable_result = YY2ARG($7); // result variable
 				ARG_IN suite = YY2ARG($9);

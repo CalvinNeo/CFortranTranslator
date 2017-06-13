@@ -85,8 +85,7 @@ bool is_literal(const ParseNode & lit) {
 	return false;
 }
 
-bool is_fortran_function(FunctionInfo * finfo, const ParseNode & callable) {
-	string name = callable.get(0).get_what();
+bool is_fortran_function(FunctionInfo * finfo, std::string name) {
 	VariableInfo * vinfo = get_variable(get_context().current_module, finfo->local_name, name);
 	if (vinfo == nullptr)
 	{

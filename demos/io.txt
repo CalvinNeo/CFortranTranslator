@@ -1,0 +1,4 @@
+	character  filename* 80
+        READ (*,*) FILENAME
+        OPEN(1,FILE=FILENAME)
+READ(1,*) (I + 1,I=1,M)

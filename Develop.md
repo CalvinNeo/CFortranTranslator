@@ -16,13 +16,13 @@
 7. if this keyword are made up of more than 1 word, reduction conflicts may be caused between the keyword and its prefix,
     - if rules keywords are all charaters like `(/`, just add a regex to for90.l
     - if rules keywords are all words like `else if`, update forward1 in [/tokenizer.cpp](/tokenizer.cpp)
-8. update translation rules in [/gen_config.h.h](/gen_config.h.h)
+8. update translation rules in [/target/gen_config.h](/target/gen_config.h.h)
 
 ## extend new intrinsic function
 1. implement this function and included it in [for90std/for90std.h](/for90std/for90std.h)
 	- if a parameter is **optional** in fortran, wrap it with `foroptional`, and log all parameters of this function in [/gen_config.cpp](/gen_config.cpp)
     - if the parameter is the **only** optional parameter, can omit `foroptional` wrapper
-2. update `funcname_map` in [/gen_config.cpp](/gen_config.cpp) if necessary
+2. update `funcname_map` in [/target/gen_config.cpp](/target/gen_config.cpp) if necessary
 
 ## c++ code generate
 ### lazy generate
@@ -37,7 +37,7 @@ due to fortran's implicit declaration, code above `stmt` level, including `funct
 3. `regen_common` generates `common` statement code
 
 ### name mapping
-many type names and function names are mapped, they are defined in in [/gen_config.h](/gen_config.h)
+many type names and function names are mapped, they are defined in in [/target/gen_config.h](/target/gen_config.h)
 their replacement occur in following stages:
 
 1. mappings defined in `pre_map` is replacement in tokenizing stage in [/grammar/for90.l](/grammar/for90.l)
@@ -48,11 +48,11 @@ their replacement occur in following stages:
 
 **though fortran-style array is different from c-style array, only need to consider relationship with flatterned 1d array**
 
-1. for1array is a 1d dynamic array defined in [/for90std/for1array.l](/for90std/for1array.h), farray is a nd array defined in [/for90std/farray.l](/for90std/farray.h)
-2. functions and arrays are generated in normal order in [/gen_callable.cpp](/gen_callable.cpp). 
-3. array declaration is in [/gen_vardef.cpp](/gen_vardef.cpp)
+1. for1array is a 1d dynamic array defined in [/for90std/for1array.h](/for90std/for1array.h), farray is a nd array defined in [/for90std/farray.h](/for90std/farray.h)
+2. functions and arrays are generated in normal order in [/target/gen_callable.cpp](/target/gen_callable.cpp). 
+3. array declaration is in [/target/gen_vardef.cpp](/target/gen_vardef.cpp)
 4. overload `operator()` and  `operator[]` so `a(x, y, z)`(fortran-style) is same as `a(x)(y)(z)`(c-style) where x,y,z are `slice_info` or index
-5. slice selections are handled in [/gen_callable.cpp](/gen_callable.cpp). 
+5. slice selections are handled in [/target/gen_callable.cpp](/target/gen_callable.cpp). 
 
 
 ### variable definition
@@ -94,7 +94,7 @@ child ParseNode may also be referred when generating upper level ParseNode, so d
 - `argtable` is a list of `exp`(ref `is_exp()`)
 - `dimen_slice` is a list of `slice`(`NT_SLICE`) or `exp`
 - `pure_paramtable` is a list of `keyvalue`(`NT_KEYVALUE`/`NT_VARIABLE_ENTITY`) or `slice` or `exp`
-    - `NT_KEYVALUE.get_what()` will be regenerated in `gen_function_array` in [/gen_callable.cpp](/gen_callable.cpp)
+    - `NT_KEYVALUE.get_what()` will be regenerated in `gen_function_array` in [/target/gen_callable.cpp](/target/gen_callable.cpp)
 - `paramtable` is `argtable` or `dimen_slice` or `pure_paramtable`
 ##### promotion
 - `argtable` + `slice` = `dimen_slice`, all elements in `argtable` will be promote to `slice`(with one child)
@@ -115,7 +115,7 @@ To specify, `type_name` is like `INTEGER` and a `type_spec` is like `INTEGER(kin
 
 #### array builder
 - `NT_FUCNTIONARRAY` and `NT_HIDDENDO` will **NOT** be promote to `NT_EXPRESSION`
-- `NT_HIDDENDO` has 4 child elements: lambda, indexer, from, to. refer `gen_hiddendo` in [/gen_do.cpp](/gen_do.cpp)
+- `NT_HIDDENDO` has 4 child elements: lambda, indexer, from, to. refer `gen_hiddendo` in [/target/gen_do.cpp](/target/gen_do.cpp)
 
 #### stmt, suite
 - `stmt` is statement end with ';' or '\n'

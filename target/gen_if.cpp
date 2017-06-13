@@ -24,6 +24,7 @@ void regen_if(FunctionInfo * finfo, ARG_OUT if_stmt) {
 	ParseNode & suite_true = if_stmt.get(1);
 	ParseNode & elseif = if_stmt.get(2);
 	ParseNode & suite_else = if_stmt.get(3);
+	regen_exp(finfo, exp);
 	regen_suite(finfo, suite_true, true);
 	regen_suite(finfo, suite_else, true);
 
@@ -64,6 +65,7 @@ void regen_elseif(FunctionInfo * finfo, ARG_OUT elseif_stmt) {
 	ParseNode & suite_true = elseif_stmt.get(1);
 	ParseNode & elseif = elseif_stmt.get(2);
 
+	regen_exp(finfo, exp);
 	regen_suite(finfo, suite_true, true);
 
 	string true_str = tabber(suite_true.get_what());

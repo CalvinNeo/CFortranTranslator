@@ -1,8 +1,1 @@
-program array_test
-	implicit none
-       ! OPEN(1,FILE="aaa")
-	WRITE(*,*) (my_data(i),I=2,30)
-	!integer,dimension(3)::C = A(1)
-	!integer a = c2
-	!integer,dimension(5:7)::D = (/ a(5:7), b(5, 6, 7), ( int(i) + 1, i=5,7 ) /)
-end program
+WRITE(1,*) (EAA(I,J),SD(I,J),EVV(I,J),EA2(I,J),Q2(I,J),EV2(I,J),J=1,N(I))

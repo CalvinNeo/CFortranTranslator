@@ -18,9 +18,9 @@
 */
 #pragma once
 #include <map>
-#include "parser.h"
-#include "Variable.h"
-#include "Function.h"
+#include "../parser.h"
+#include "../Variable.h"
+#include "../Function.h"
 
 
 struct TranslateContext {

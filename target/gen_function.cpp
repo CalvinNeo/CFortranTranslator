@@ -19,40 +19,35 @@
 
 #include "gen_common.h"
 
-std::string regen_paramtable(const vector<tuple<string, ParseNode, ParseNode *>> & paramtable_info) {
-	/* generate new paramtable with type */
+std::string gen_paramtable_str(FunctionInfo * finfo, const vector<string> & paramtable_info) {
+	// generate C++ style parameter list
 	string paramtblstr;
-	paramtblstr = make_str_list(paramtable_info.begin(), paramtable_info.end() - 1/* exclude return value */, [&](const tuple<string, ParseNode, ParseNode *> & param) -> std::string {
-		string name = get<0>(param);
-		const ParseNode & type = get<1>(param);
-		ParseNode * vardef_node = get<2>(param);
+	paramtblstr = make_str_list(paramtable_info.begin(), paramtable_info.end() - 1/* exclude return value */, [&](const string & param_name) -> std::string {
+		VariableInfo * vinfo = get_variable(get_context().current_module, finfo->local_name, param_name);
+		const ParseNode & type = vinfo->type;
+		ParseNode * vardef_node = vinfo->vardef_node;
 		if (vardef_node == nullptr) {
-			print_error("Error when trying to find variable/function " + name);
-			return string("ERROR");
+			fatal_error("Error when trying to find variable/function " + param_name);
 		}
-		std::string typestr;
-		if (type.get_token() == TokenMeta::Function_Decl) {
-			typestr = type.to_string();
-		}
-		else {
-			VariableDesc desc = get_variabledesc_attr(*vardef_node);
-			typestr = gen_qualified_typestr(type, desc);
-		}
-		sprintf(codegen_buf, "%s %s", typestr.c_str(), name.c_str());
+		/****************
+		* IMPORTANT
+		* it's wrong to use `get_variabledesc_attr(*vardef_node)`, it will fail when `dimension arr(10)`
+		*****************/
+		VariableDesc desc = vinfo->desc;
+		std::string typestr = gen_qualified_typestr(type, desc);
+		sprintf(codegen_buf, "%s %s", typestr.c_str(), param_name.c_str());
 		return string(codegen_buf);
 	});
 	return paramtblstr;
 }
 
 void get_full_paramtable(FunctionInfo * finfo) {
-	// (var_name, var_type, ParseNode*)
 	const vector<VariableInfo *> & declared_variables = finfo->funcdesc.declared_variables;
-	vector<tuple<string, ParseNode, ParseNode *>> & paramtable_info = finfo->funcdesc.paramtable_info;
+	vector<string> & paramtable_info = finfo->funcdesc.paramtable_info;
 	// find by finfo
-	for (int i = 0; i < (int)paramtable_info.size(); i++) // definition in paramtable
+	for (int i = 0; i < (int)paramtable_info.size(); i++) 
 	{
-		tuple<string, ParseNode, ParseNode *> & param = paramtable_info[i];
-		string param_name = get<0>(param);
+		string param_name = paramtable_info[i];
 		if (param_name == "")
 		{
 			/****************
@@ -62,43 +57,40 @@ void get_full_paramtable(FunctionInfo * finfo) {
 			*****************/
 			continue;
 		}
-		ParseNode & param_type = get<1>(param);
-		ParseNode *& param_vardef = get<2>(param);
 		VariableInfo * vinfo = get_variable(get_context().current_module, finfo->local_name, param_name);
 
 		if(vinfo != nullptr) // definition in suite
 		{
-			ParseNode * vardef_node = vinfo->vardef_node;
 			if (vinfo->type.get_token() == TokenMeta::Function_Decl) {
 				// function declared in an interface block
+				ParseNode * funcdef_node = vinfo->vardef_node;
 				FunctionInfo * interface_finfo = add_function("@", "", FunctionInfo{});
-				regen_function(interface_finfo, *vardef_node); // regen interface function
-				if (vardef_node->attr != nullptr) {
-					FunctionAttr * interface_attr = dynamic_cast<FunctionAttr *>(vardef_node->attr);
-					vector<tuple<string, ParseNode, ParseNode *>> & interface_paramtable_info = interface_attr->finfoptr->funcdesc.paramtable_info;
-					string interface_paramtable_str = regen_paramtable(interface_paramtable_info);
-					sprintf(codegen_buf, "std::function<%s(%s)>", get<1>(interface_paramtable_info.back()).to_string().c_str(), interface_paramtable_str.c_str());
+				regen_function(interface_finfo, *funcdef_node); // regen interface function
+				if (funcdef_node->attr != nullptr) {
+					std::vector<std::string> & interface_paramtable_info = interface_finfo->funcdesc.paramtable_info;
+					string interface_paramtable_str = gen_paramtable_str(interface_finfo, interface_paramtable_info);
+					string interface_result_name = interface_paramtable_info.back();
+					VariableInfo * interface_return_vinfo = get_variable(get_context().current_module, interface_finfo->local_name, interface_result_name);
+					sprintf(codegen_buf, "std::function<%s(%s)>", interface_return_vinfo->type.get_what().c_str(), interface_paramtable_str.c_str());
 					
-					// set param_info for regen_paramtable
+					// set param_info for `regen_paramtable`
 					vinfo->type = gen_type(Term{ TokenMeta::Function_Decl, string(codegen_buf) });
-					param_type = vinfo->type;
-					param_vardef = vardef_node;
+
 					if (i != paramtable_info.size() - 1) {
 						// `delete` ParseNode except return value 
 						vinfo->declared = true;
 					}
 				}
 				else {
-					print_error("Invalid interface: " + vardef_node->get_what());
+					print_error("Invalid interface: " + funcdef_node->get_what());
 				}
 			}else {
+				ParseNode * vardef_node = vinfo->vardef_node;
 				// variable
 				ParseNode & entity_variable = vardef_node->get(2);
 				ParseNode & initial = entity_variable.get(1);
 
-				// set param_info for regen_paramtable
-				param_type = vardef_node->get(0); // type_nospec
-				param_vardef = vardef_node; // variable ParseNode
+				// set param_info for `regen_paramtable`
 				if (i != paramtable_info.size() - 1) {
 					// `delete` ParseNode except return value 
 					vinfo->declared = true;
@@ -115,45 +107,42 @@ void get_full_paramtable(FunctionInfo * finfo) {
 
 ParseNode gen_function(ARG_IN variable_function, ARG_IN paramtable, ARG_IN variable_result, ARG_IN suite) {
 	ParseNode newnode = gen_token(Term{ TokenMeta::NT_FUNCTIONDECLARE, ""});
-	ParseNode kvparamtable = promote_argtable_to_paramtable(paramtable); // a flatterned paramtable with all keyvalue elements
+	ParseNode kvparamtable = promote_argtable_to_paramtable(paramtable); // a flatterned parameter list with all keyvalue elements
 	newnode.addlist(ParseNode(), variable_function, kvparamtable, variable_result, suite);
 	return newnode;
 }
 
 void regen_function(FunctionInfo * finfo, ARG_OUT functiondecl_node) {
 	/* fortran90 does not declare type of arguments in function declaration statement*/
-	// paramtable is raw for90 paramtable and every variable in the table has no type infomation
 	ParseNode & variable_function = functiondecl_node.get(1);
 	ParseNode & kvparamtable = functiondecl_node.get(2);
-	ParseNode & variable_result = functiondecl_node.get(3);
+	ParseNode & result_variable = functiondecl_node.get(3);
 	ParseNode & suite = functiondecl_node.get(4);
 	ParseNode & oldsuite = suite;
-	bool is_subroutine = variable_result.to_string() == "";
+	string result_name = result_variable.get_what();
+	bool is_subroutine = result_name == "";
 	
 	/****************
-	* compose the paramtable
+	* compose parameter list
 	*****************/
-	std::vector<std::tuple<std::string, ParseNode, struct ParseNode *>> & paramtable_info = finfo->funcdesc.paramtable_info;
+	std::vector<std::string> & paramtable_info = finfo->funcdesc.paramtable_info;
 	for (auto iter = kvparamtable.begin(); iter < kvparamtable.end(); iter++)
 	{
 		/****************
 		* `check_implicit_variable` is IMPORTANT here, 
 		*	to prevent situation that
-		*	a variable is only used in paramtable, 
+		*	a variable is only used in parameter list, 
 		*	and not appear in function body(so it will not checked by `regen_exp`)
-		*================
-		* (name, type, entity node)
 		*****************/
 		check_implicit_variable(finfo, (*iter)->get_what());
 		// refer to function suite and determine type of params
-		paramtable_info.push_back(make_tuple((*iter)->get_what()
-			, gen_type(Term{ TokenMeta::Void_Decl, "void" }), nullptr));
+		paramtable_info.push_back((*iter)->get_what());
 	}
 	/****************
 	* create a placeholder for return variable
 	*================
 	* `check_implicit_variable` is IMPORTANT here too
-	* if variable_result is "", symbol table will have a varialbe whose name is "",
+	* if result_variable is "", this function will have a local variable will have a varialbe whose name is "",
 	*	then error will occurred, code like `double ;` will be generated
 	*================
 	* push result variable to the back of the paramtable_info stack
@@ -161,26 +150,35 @@ void regen_function(FunctionInfo * finfo, ARG_OUT functiondecl_node) {
 	*	so if this subprogram is a subroutine with no result variable,
 	*	it'll set by default `void`
 	*****************/
-	if (variable_result.get_what() != "")
+	if (is_subroutine)
 	{
-		check_implicit_variable(finfo, variable_result.get_what());
 	}
-	paramtable_info.push_back(make_tuple(variable_result.get_what()
-		, gen_type(Term{ TokenMeta::Void_Decl, "void" }), nullptr)); 
+	else {
+		check_implicit_variable(finfo, result_variable.get_what());
+	}
+	paramtable_info.push_back(result_variable.get_what()); 
 
 	// regen_suite
 	regen_suite(finfo, oldsuite);
 	// make newnode
-	string paramtblstr = regen_paramtable(paramtable_info);
+	string paramtblstr = gen_paramtable_str(finfo, paramtable_info);
 
-	std::string return_type_str = get<1>(paramtable_info.back()).get_what();
-	/* generate function code */
+	VariableInfo * result_vinfo = get_variable(get_context().current_module, finfo->local_name, result_name);
+	std::string result_type_str;
+	if (is_subroutine)
+	{
+		// subroutine
+		result_type_str = "void";
+	}else{
+		result_type_str = gen_qualified_typestr( result_vinfo->type, result_vinfo->desc);
+	}
+	// generate function code 
 	sprintf(codegen_buf, "%s %s(%s)\n{\n%s\treturn %s;\n}\n"
-		, return_type_str.c_str() // return value type, "void" if subroutine
+		, result_type_str.c_str() // return value type, "void" if subroutine
 		, variable_function.to_string().c_str() // function name
-		, paramtblstr.c_str() // paramtable
+		, paramtblstr.c_str() // parameter list
 		, tabber(oldsuite.to_string()).c_str() // code
-		, (is_subroutine ? "" : variable_result.get_what().c_str()) // add return stmt if not function
+		, (is_subroutine ? "" : result_name.c_str()) // add return stmt if not function
 	);
 	functiondecl_node.get_what() = string(codegen_buf);
 

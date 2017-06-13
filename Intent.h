@@ -262,7 +262,7 @@ namespace TokenMeta {
 
 		/***************************************
 		*	NT_PARAMTABLE is a deprecated
-		*	currently, paramtable must be of the following TokenMeta:
+		*	currently, rule `paramtable` must be of the following TokenMeta:
 		*	1) NT_ARGTABLE_PURE
 		*	2) NT_DIMENSLICE
 		*	3) NT_PARAMTABLE_PURE
@@ -295,10 +295,11 @@ namespace TokenMeta {
 		ADD_ENUM(NT_VARIABLE_ENTITY, -2012),
 		ADD_ENUM(NT_KEYVALUE, NT_VARIABLE_ENTITY),
 		/***************************************
-		*	in fortran, function's paramtable declarations don't include type of parameters
+		*	in fortran, function's parameter list declarations don't include type of parameters
 		*	, definition of parameters is placed in main body of function
-		*	ParseNode token of variables in paramtable is NT_DECLAREDVARIABLE rather than NT_VARIABLE_ENTITY
+		*	ParseNode token of variables in parameter list is NT_DECLAREDVARIABLE rather than NT_VARIABLE_ENTITY
 		*	, because it's actual declaration is in the function's body
+		* ALSO REFER `paramtable_info` in FUnction.h
 		*========================================
 		*	UPDATE:
 		*	NT_DECLAREDVARIABLE is now DEPRECATED

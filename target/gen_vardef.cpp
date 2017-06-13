@@ -19,11 +19,16 @@
 
 #include "gen_common.h"
 
-std::string gen_vardef_array_str(FunctionInfo * finfo, VariableInfo * vinfo, ParseNode & entity_variable, std::string type_str, const std::tuple<std::vector<int>, std::vector<int>> & shape);
+std::string gen_vardef_array_str(FunctionInfo * finfo, VariableInfo * vinfo, ParseNode & entity_variable, std::string type_str, const SliceBoundInfo & shape);
 std::string gen_vardef_scalar_str(FunctionInfo * finfo, VariableInfo * vinfo, ParseNode & entity_variable, std::string type_str);
 
+bool isnumber(std::string str) {
+	return std::accumulate(str.begin(), str.end(), true, [](bool x, char y) {
+		return x && y >= '0' && y <= '9';
+	});
+}
 
-std::tuple<std::vector<int>, std::vector<int>> get_lbound_size_from_slice(const ParseNode & slice) {
+SliceBoundInfo get_lbound_size_from_slice(const ParseNode & slice) {
 
 	/*****************
 	* because the usage of `boost::optional<ParseNode> desc.slice`
@@ -34,42 +39,47 @@ std::tuple<std::vector<int>, std::vector<int>> get_lbound_size_from_slice(const 
 	//}
 	*****************/
 
-	std::vector<int> lb(slice.length()), sz(slice.length());
+	std::vector<std::string> lb(slice.length()), sz(slice.length());
 	if (slice.get_token() == TokenMeta::NT_ARGTABLE_PURE)
 	{
 		return get_lbound_size_base(slice.begin(), slice.end()
 			, [](const ParseNode * x) {
-				return 1;
+				return "1";
 			}
 			, [](const ParseNode * x) {
-				int l; sscanf(x->get_what().c_str(), "%d", &l);
-				return l;
+				return x->get_what();
 		});
 	}
 	else {
 		return get_lbound_size_base(slice.begin(), slice.end()
 			, [](const ParseNode * x) {
-				int l; sscanf(x->get(0).get_what().c_str(), "%d", &l);
-				return l;
+			return x->get_what();
 			}
 			, [](const ParseNode * x) {
-				int u; sscanf(x->get(1).get_what().c_str(), "%d", &u);
-				int l; sscanf(x->get(0).get_what().c_str(), "%d", &l);
-				return u - l + 1;
+				if (isnumber(x->get(1).get_what()) && isnumber(x->get(0).get_what()))
+				{
+					int u; sscanf(x->get(1).get_what().c_str(), "%d", &u);
+					int l; sscanf(x->get(0).get_what().c_str(), "%d", &l);
+					return to_string(u - l + 1);
+				}
+				else {
+					sprintf("%s - %s + 1", x->get(1).get_what().c_str(), x->get(0).get_what().c_str());
+					return string(codegen_buf);
+				}
 		});
 	}
 }
 
-std::string gen_vardef_array_str(FunctionInfo * finfo, VariableInfo * vinfo, ParseNode & entity_variable, std::string type_str, const std::tuple<std::vector<int>, std::vector<int>> & shape) {
+std::string gen_vardef_array_str(FunctionInfo * finfo, VariableInfo * vinfo, ParseNode & entity_variable, std::string type_str, const SliceBoundInfo & shape) {
 	string arr_decl = "";
 	// entity_variable is 
 	// NT_VARIABLE_ENTITY(entity_variable) -> NT_FUCNTIONARRAY(entity_variable_name) -> (UnknownVariant, NT_ARGTABLE_PURE)/NT_VARIABLE_ENTITY
 	// or NT_VARIABLE_ENTITY(entity_variable) -> (UnknownVariant, NT_VARIABLEINITIALDUMMY or else)
 	int dimension = (int)get<0>(shape).size();
 	string alias_name = get_variable_name(entity_variable);
-	const std::vector<int> & lbound_vec = get<0>(shape);
-	const std::vector<int> & size_vec = get<1>(shape);
-	// no desc if var_def is not in paramtable
+	const std::vector<std::string> & lbound_vec = get<0>(shape);
+	const std::vector<std::string> & size_vec = get<1>(shape);
+	// no desc if var_def is not in parameter list
 	sprintf(codegen_buf, "%s %s", type_str.c_str(), alias_name.c_str()  /* array name */);
 	arr_decl += string(codegen_buf);
 	if (entity_variable.get(1).get_token() == TokenMeta::NT_VARIABLEINITIALDUMMY) {
@@ -81,7 +91,7 @@ std::string gen_vardef_array_str(FunctionInfo * finfo, VariableInfo * vinfo, Par
 		}
 		else {
 			// for1array
-			sprintf(codegen_buf, "(%d, %d)", lbound_vec[0], lbound_vec[0] + size_vec[0] + 1 ); // slice from to
+			sprintf(codegen_buf, "(%s, %s + %s + 1)", lbound_vec[0].c_str(), lbound_vec[0].c_str(), size_vec[0].c_str()); // slice from to
 			arr_decl += string(codegen_buf);
 		}
 	}
@@ -197,7 +207,7 @@ void regen_vardef(FunctionInfo * finfo, VariableInfo * vinfo, ARG_OUT type_nospe
 		ParseNode & argtable = entity_variable_name.get(1);
 		desc.slice = argtable;
 		// get slice info
-		std::tuple<std::vector<int>, std::vector<int>> ls = get_lbound_size_from_slice(argtable);
+		SliceBoundInfo ls = get_lbound_size_from_slice(argtable);
 		type_str = gen_qualified_typestr(type_nospec, desc);
 		var_decl = gen_vardef_array_str(finfo, vinfo, entity_variable, type_str, ls);
 		vinfo->vardef_node->fs.CurrentTerm = Term{ TokenMeta::NT_VARIABLEDEFINE, var_decl };
@@ -209,7 +219,7 @@ void regen_vardef(FunctionInfo * finfo, VariableInfo * vinfo, ARG_OUT type_nospe
 		if (vinfo->vardef_node == nullptr)
 		{
 			// considered to be implicitly defined
-			fatal_error("variable not defined: "+ vinfo->local_name );
+			fatal_error("variable not defined: "+ vinfo->local_name);
 		}
 		vinfo->vardef_node->fs.CurrentTerm = Term{ TokenMeta::NT_VARIABLEDEFINE, var_decl };
 	} 

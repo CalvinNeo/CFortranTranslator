@@ -190,4 +190,8 @@ namespace for90std {
 	T fortiny() {
 		return std::numeric_limits<T>::max();
 	}
+
+	inline void nop() {
+		
+	}
 }

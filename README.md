@@ -119,14 +119,32 @@ refer types:array
 |`(device_id,*)`|forreadfree/forwritefree|
 |`(device_id,formatter)`|forread/forwrite|
 
+#### io-implied-do
+
+> R916 io-implied-do is ( io-implied-do-object-list , io-implied-do-control )
+
+> R917 io-implied-do-object is input-item or output-item
+
+> R918 io-implied-do-control is do-variable = scalar-numeric-expr , scalar-numeric-expr [ , scalar-numeric-expr ]
+
+io-implied-do will be translated into a `IOLambda`, refer [/target/gen_io.cpp](/target/gen_io.cpp)
+```
+auto make_iolambda(const fsize_t(&_lb)[D], const fsize_t(&_to)[D], F func);
+auto make_iolambda(fsize_t * _lb, fsize_t * _to, F func);
+```
+
 ## translation results and restrictions
 refer to [/grammar/for90.y](/grammar/for90.y) for all accepted grammar
 ### grammar
 
 1. you can rename keyword parameter in `interface` block
 2. you can use anonymous grammar structures
-3. variable definitions and interfaces is not forced before any other statements
-    1. you can initialize array immediately like `integer,dimension(3)::A = (/1, 2, 3/)`, in gfortran you must assign initial value after all variables/arrays are defined
+3. declaration/specification is not forced before any other statements
+    by fortran standard, declaration/specification(sudh as variable declarations and interfaces) statements must before all executable constructs(2.3.1)
+    however, there's no such restriction in this translator 
+
+#### implied-do
+
 
 ### types
 #### type mapping
@@ -272,7 +290,7 @@ refer to [/grammar/for90.y](/grammar/for90.y) for all accepted grammar
 |transpose|fortranspose| fortran standard only defined rank 2 situation, for this implementation, the result will be a array with reversed rank |
 |maxloc, minloc, maxval, minval|formaxloc, forminloc, formaxval, formaxloc| |
 |sum, product|forsum, forproduct| call `operator+` and `operator*` |
-|any, all, count|forany, forall, forcount| `forall` is **NOT** fortran95's `forall` |
+|any, all, count|forany, forall, forcount| `forall` is **NOT** fortran95's `forall`, which is renamed to `forforall` |
 |pack, unpack|not implemented yet| |
 |merge|formerge| |
 |size, lbound, ubound|forsize, forlbound, forubound| |

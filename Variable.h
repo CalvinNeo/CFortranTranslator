@@ -100,8 +100,9 @@ struct VariableInfo
 	ParseNode * vardef_node;
 	/******************
 	*	this flag is intended to replace the `NT_DECLAREDVARIABLE` token
-	*	if `flag` is true, this variable is declared in paramtable
+	*	if `flag` is true, this variable is declared in parameter list
 	*	so don't need to generate repeated code in function body
+	* ALSO REFER `NT_DECLAREDVARIABLE` in FUnction.h
 	*******************/
 	bool declared; 
 	bool generated;

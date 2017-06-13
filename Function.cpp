@@ -19,7 +19,7 @@
 
 #include "Function.h"
 #include "tokenizer.h"
-#include "codegen.h"
+#include "target/codegen.h"
 #include <boost/algorithm/string/predicate.hpp>
 
 FunctionInfo * get_function(std::string module_name, std::string function_name) {

@@ -38,6 +38,11 @@ namespace for90std {
 		filenos[6] = stdout;
 		forfilesys_inited = true;
 	}
+	void foropenfile(int unit, foroptional<int> iostat, foroptional<forlabel> err, foroptional<const char *> file, foroptional<std::string> status, foroptional<std::string> access
+		, foroptional<std::string> form, foroptional<int> recl, foroptional<std::string> blank, foroptional<std::string> position, foroptional<std::string> action
+		, foroptional<std::string> delim, foroptional<std::string> pad) {
+		foropenfile(unit, iostat, err, std::string(file.get()), status, access, form, recl, blank, position, action, delim, pad);
+	}
 	void foropenfile(int unit, foroptional<int> iostat, foroptional<forlabel> err, foroptional<std::string> file, foroptional<std::string> status, foroptional<std::string> access
 		, foroptional<std::string> form, foroptional<int> recl, foroptional<std::string> blank, foroptional<std::string> position, foroptional<std::string> action
 		, foroptional<std::string> delim, foroptional<std::string> pad) {

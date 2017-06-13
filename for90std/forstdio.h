@@ -82,12 +82,14 @@ namespace for90std {
 		F f;
 	};
 
-	template <typename T, int D, typename F>
+	template <int D, typename F>
 	auto make_iolambda(const fsize_t(&_lb)[D], const fsize_t(&_to)[D], F func) {
+		typedef typename function_traits<decltype(func)>::result_type T;
 		return IOLambda<T, F>{D, (fsize_t *)_lb, (fsize_t *)_to, func};
 	};
 	template <typename T, int D, typename F>
 	auto make_iolambda(fsize_t * _lb, fsize_t * _to, F func) {
+		typedef typename function_traits<decltype(func)>::result_type T;
 		return IOLambda<T, F>{D, _lb, _to, func};
 	};
 	inline std::string _forwrite_noargs(FILE * f, const std::string & format) {

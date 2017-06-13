@@ -25,10 +25,10 @@ std::string gen_io_argtable_str(FunctionInfo * finfo, ParseNode & argtable) {
 		if (pn.get_token() == TokenMeta::NT_HIDDENDO)
 		{
 			// wrap with IOLambda
-			std::tuple<std::vector<int>, std::vector<int>> lb_size = get_lbound_size_from_hiddendo(pn);
+			SliceBoundInfo lb_size = get_lbound_size_from_hiddendo(finfo, pn);
 			std::string lb_size_str = gen_lbound_size_str(get<0>(lb_size).begin(), get<0>(lb_size).end(), get<1>(lb_size).begin(), get<1>(lb_size).end());
 			int dim = (int)get<0>(lb_size).size();
-			sprintf(codegen_buf, "IOLambda(%d, %s, %s)", dim, lb_size_str.c_str(), pn.get_what().c_str());
+			sprintf(codegen_buf, "make_iolambda(%s, %s)", lb_size_str.c_str(), pn.get_what().c_str());
 			return string(codegen_buf);
 		}
 		else {
@@ -55,12 +55,13 @@ void regen_read(FunctionInfo * finfo, ARG_OUT stmt) {
 	}
 	else {
 		string fmt;
+		string label_name = io_info.get(1).to_string();
 		if (io_info.get(1).get_token() == TokenMeta::NT_FORMATTER_LOCATION)
 		{
-			fmt = get_context().labels[io_info.get(1).to_string()].to_string();
+			fmt = get_context().labels[label_name].to_string();
 		}
 		else {
-			fmt = io_info.get(1).to_string().substr(1, io_info.get(1).to_string().size() - 1); // strip " 
+			fmt = label_name.substr(1, label_name.size() - 1); // strip " 
 		}
 		if (device == "-1" || device == "") {
 			//device = "5"; // stdin
@@ -329,10 +330,13 @@ std::string parse_ioformatter(const std::string & src) {
 			break;
 		case '%':
 			rt += "%%";
+			break;
 		case '/':
-			rt += "\n";
+			rt += "\\n";
+			break;
 		case '\\':
 			add_crlf_at_end = false;
+			break;
 		case '\"':
 			descriptor = "";
 			for (i++; i < src.size() && src[i] != '\"'; i++)
@@ -366,13 +370,15 @@ std::string parse_ioformatter(const std::string & src) {
 		case '\n':
 		{
 			int start = i;
-			for (i++; i < src.size() && src[i] != '*'; i++)
+			// line continuation
+			for (i++; i < src.size() && src[i] == ' '; i++)
 			{
 				rt += src[i];
 			}
 			int leading_space = i - start - 1;
-			rt += '\n';
+			//rt += '\\n';
 			rt += string(leading_space, ' ');
+			i++; // jump line continuation symbol
 			break;
 		}
 		default:
@@ -381,6 +387,7 @@ std::string parse_ioformatter(const std::string & src) {
 	}
 	memset(buf, 0, sizeof(buf));
 	sprintf(buf, descriptor.c_str(), prec.c_str());
+	rt += string(buf);
 	if (add_crlf_at_end)
 	{
 		rt += "\\n";

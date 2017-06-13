@@ -20,8 +20,7 @@
 #include "parser.h"
 #include "attribute.h"
 #include "tokenizer.h"
-#include "gen_config.h"
-#include "codegen.h"
+#include "target/codegen.h"
 #include <stack>
 #include <iostream>
 #include <cstdio>
@@ -31,7 +30,7 @@
 #include <cstdio>
 
 void reset_parser() {
-	get_context().func_kwargs = func_kwargs_preset;
+	get_context().func_kwargs = sysfunc_args;
 	get_context().labels.clear();
 	clear_variables();
 }

@@ -37,12 +37,11 @@ std::string get_mapped_function_name(std::string origin_name) {
 
 void regen_function_array(FunctionInfo * finfo, ARG_OUT callable) {
 
-	/* function call OR array index */
-	/* NOTE that array index can be A(1:2, 3:4) */
+	// function call OR array index 
+	// NOTE that array index can be A(1:2, 3:4) 
 	ParseNode & callable_head = callable.get(0);
 	ParseNode & argtable = callable.get(1);
-	string head_name;
-	head_name = get_mapped_function_name(callable_head.to_string());
+	string head_name = get_mapped_function_name(callable_head.to_string());
 	if (argtable.get_token() == TokenMeta::NT_DIMENSLICE ) {
 		// array section
 		string array_str;
@@ -69,7 +68,7 @@ void regen_function_array(FunctionInfo * finfo, ARG_OUT callable) {
 	else if(argtable.get_token() == TokenMeta::NT_ARGTABLE_PURE 
 		|| argtable.get_token() == TokenMeta::NT_PARAMTABLE_PURE){
 		// function call(with or without kwargs) OR array section
-		if (is_fortran_function(finfo, callable))
+		if (is_fortran_function(finfo, head_name))
 		{
 
 		}
@@ -88,36 +87,46 @@ void regen_function_array(FunctionInfo * finfo, ARG_OUT callable) {
 		*	valid_kwargs is true iif any keyword arguments 
 		*	come before normal arguments
 		***************/
-		bool valid_kwargs = false;
+		bool valid_kwargs_test = false;
 		/**************
 		*	number of non-kwarg parameters
 		***************/
 		int normal_count = 0; 
 		map<string, string> kw_args;
-		vector<ParseNode *> normal_args;
+		vector<string> normal_args;
 		for (int i = 0; i < argtable.length(); i++)
 		{
 			ParseNode & elem = argtable.get(i);
 			if (elem.get_token() == TokenMeta::NT_KEYVALUE) {
-				// keyword/named argument
-				regen_exp(finfo, elem.get(1));
-				valid_kwargs = true;
-				if (map_func == get_context().func_kwargs.end()) {
-					print_error("this function don't have keyword paramters" + head_name, argtable);
+				// MAYBE kwarg, MAYBE normal arg
+				if (elem.get(1).get_token() == TokenMeta::NT_VARIABLEINITIALDUMMY)
+				{
+					// normal argument
+					regen_exp(finfo, elem.get(0));
+					normal_args.push_back(elem.get(0).get_what());
+					normal_count++;
 				}
 				else {
-					string argname = elem.get(0).to_string();
-					string argvalue = elem.get(1).to_string();
-					kw_args[argname] = argvalue;
+					// kwarg
+					regen_exp(finfo, elem.get(1));
+					if (map_func == get_context().func_kwargs.end()) {
+						print_error("this function don't have keyword paramters" + head_name, argtable);
+					}
+					else {
+						string argname = elem.get(0).to_string();
+						string argvalue = elem.get(1).to_string();
+						kw_args[argname] = argvalue;
+					}
+					valid_kwargs_test = true;
 				}
 			}
 			else {
 				// normal argument
 				regen_exp(finfo, elem);
-				normal_args.push_back(&elem);
+				normal_args.push_back(elem.get_what());
 
 				// generated code from normal_args
-				if (valid_kwargs) {
+				if (valid_kwargs_test) {
 					fatal_error("keyword arguments must come after normal arguments", argtable);
 				}
 				else {
@@ -126,41 +135,52 @@ void regen_function_array(FunctionInfo * finfo, ARG_OUT callable) {
 			}
 		}
 
-		argtable_str += make_str_list(normal_args.begin(), normal_args.end(), [&](ParseNode * p) {
-			return p->get_what();
+		argtable_str += make_str_list(normal_args.begin(), normal_args.end(), [&](string p) {
+			return p;
 		});
+		/**************
+		*	if exist kwargs, must add `,` delimer between arguments
+		*	if not exist, mustn't add `,`, use `)` enclose whole argument list directly
+		***************/
+		string tail = ", ";
 		// generated code of kwargs
 		if (map_func != get_context().func_kwargs.end()) {
 			std::vector<KeywordParamInfo> & params = map_func->second;
-			std::string kwargs_str = make_str_list(params.begin() + normal_count, params.end(), [&](KeywordParamInfo & kwparam_info) {
-				string this_param_name = std::get<0>(kwparam_info);
-				string this_param_type = std::get<1>(kwparam_info);
-				string this_param_initial_default = std::get<2>(kwparam_info);
-				map<string, string>::iterator this_arg = kw_args.find(this_param_name);
-				std::string s;
-				if (this_arg == kw_args.end()) {
-					// if value of this keyword argument is not present
-					if (this_param_initial_default == "") {
-						s = "None";
+			if (normal_count <= params.size())
+			{
+				// or `params.begin() + normal_count` will overflow
+				std::string kwargs_str = make_str_list(params.begin() + normal_count, params.end(), [&](KeywordParamInfo & kwparam_info) {
+					string this_param_name = std::get<0>(kwparam_info);
+					string this_param_type = std::get<1>(kwparam_info);
+					string this_param_initial_default = std::get<2>(kwparam_info);
+					map<string, string>::iterator this_arg = kw_args.find(this_param_name);
+					std::string s;
+					if (this_arg == kw_args.end()) {
+						// if value of this keyword argument is not present
+						if (this_param_initial_default == "") {
+							s = "None";
+						}
+						else {
+							// use initial defined in get_context().func_kwargs
+							s = this_param_initial_default;
+						}
 					}
 					else {
-						// use initial defined in get_context().func_kwargs
-						s = this_param_initial_default;
+						// if value of this keyword argument is present
+						if (this_param_type == "mask_wrapper_t") {
+							// fortran's mask is now implemented by boolean array, not lambda functions
+							s = this_arg->second;
+						}
+						else {
+							s = this_arg->second;
+						}
 					}
-				}
-				else {
-					// if value of this keyword argument is present
-					if (this_param_type == "mask_wrapper_t") {
-						// fortran's mask is now implemented by boolean array, not lambda functions
-						s = this_arg->second;
-					}
-					else {
-						s = this_arg->second;
-					}
-				}
-				return s;
-			});
-			argtable_str += kwargs_str;
+					string tailed = tail + s;
+					tail = "";
+					return tailed;
+				});
+				argtable_str += kwargs_str;
+			}
 		}
 		sprintf(codegen_buf, "%s(%s)", head_name.c_str(), argtable_str.c_str());
 		callable.fs.CurrentTerm = Term{ TokenMeta::NT_FUCNTIONARRAY, string(codegen_buf) };

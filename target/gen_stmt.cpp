@@ -35,7 +35,7 @@ void regen_simple_stmt(FunctionInfo * finfo, ARG_OUT stmt) {
 	}
 }
 
-vector<VariableInfo *> get_all_declared_by_log(FunctionInfo * finfo, ARG_IN suite) {
+vector<VariableInfo *> get_all_declared_vinfo(FunctionInfo * finfo, ARG_IN suite) {
 	vector<VariableInfo *> declared_variables_and_functions;
 	forall_variable_in_function(get_context().current_module, finfo->local_name, [&](const std::pair<std::string, VariableInfo *> p) {
 		declared_variables_and_functions.push_back(p.second);
@@ -151,6 +151,14 @@ std::string regen_stmt(FunctionInfo * finfo, ARG_OUT stmt) {
 						vinfo = add_variable(get_context().current_module, finfo->local_name, name, VariableInfo{});
 						vinfo->commonblock_index = 0; // set in regen_suite and gen_common
 						vinfo->commonblock_name = ""; // set in regen_suite and gen_common
+					}
+					if (is_function_array(entity_variable))
+					{
+						// handled in `regen_stmt`
+					}
+					else if (entity_variable.get_token() == TokenMeta::NT_EXPRESSION)
+					{
+
 					}
 					vinfo->desc = get_variabledesc_attr(vardescattr); // set in regen_vardef
 					vinfo->implicit_defined = false; // set in regen_suite and regen_common

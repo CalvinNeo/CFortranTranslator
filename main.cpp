@@ -22,18 +22,18 @@
 #include <fstream>
 #include "parser.h"
 #include <stdio.h>
-#include "gen_config.h"
+#include "target/codegen.h"
 #include "for90std/for90std.h"
 #include <numeric>
 #include "develop.h"
 #include "getopt.h"
 #include "IntentHelper.h"
-#include "codegen.h"
 
 using namespace std;
 
 int main(int argc, char* argv[], char* env[])
 {
+	vector<int> v;
 	int opt;
 	std::string code;
 	while ((opt = getopt(argc, argv, "df:Fp")) != -1) {
@@ -70,6 +70,8 @@ int main(int argc, char* argv[], char* env[])
 	else {
 
 	}
+#ifdef _DEBUG
 	system("pause");
+#endif
 	return 0;
 }

@@ -22,7 +22,7 @@
 ParseNode gen_type(ARG_IN type_nospec, ARG_IN _type_kind) {
 	// attach _type_kind to type_nospec nonterminal
 	ParseNode newnode = type_nospec;
-	// now name translated in pre_map
+	// now base_typename translated in pre_map
 	newnode.setattr(_type_kind.attr->clone());
 	return newnode;
 }
@@ -30,7 +30,7 @@ ParseNode gen_type(ARG_IN type_nospec, ARG_IN _type_kind) {
 ParseNode gen_type(ARG_IN type_nospec) {
 	// promote type_nospec to default type_spec nonterminal
 	ParseNode newnode = type_nospec;
-	// now name translated in pre_map
+	// now base_typename translated in pre_map
 	newnode.setattr(new VariableDescAttr());
 	return newnode;
 }
@@ -84,57 +84,66 @@ void promote_type(ARG_OUT type_nospec, VariableDesc & vardesc) {
 
 std::string gen_qualified_typestr(ARG_IN type_nospec, VariableDesc & vardesc) {
 	ParseNode type_spec = type_nospec;
-	promote_type(type_spec, vardesc); // reset type according to kind
+	// get specific type according to kind
+	promote_type(type_spec, vardesc); 
 	string var_pattern;
-	if (vardesc.optional)
+	if (type_spec.get_token() == TokenMeta::Function_Decl)
 	{
-		var_pattern = "foroptional<%s>";
+		var_pattern = "%s";
 	}
-	else if (vardesc.save) {
-		if (vardesc.constant)
+	else
+	{
+		if (vardesc.optional)
 		{
-			var_pattern = "static const %s";
+			var_pattern = "foroptional<%s>";
 		}
-		else {
-			var_pattern = "static %s";
-		}
-	}else {
-		if (vardesc.reference) {
-			if (vardesc.constant) {
-				var_pattern = "const %s &";
+		else if (vardesc.save) {
+			if (vardesc.constant)
+			{
+				var_pattern = "static const %s";
 			}
 			else {
-				var_pattern = "%s &";
+				var_pattern = "static %s";
 			}
 		}
 		else {
-			if (vardesc.constant) {
-				var_pattern = "const %s";
+			if (vardesc.reference) {
+				if (vardesc.constant) {
+					var_pattern = "const %s &";
+				}
+				else {
+					var_pattern = "%s &";
+				}
 			}
 			else {
-				var_pattern = "%s";
+				if (vardesc.constant) {
+					var_pattern = "const %s";
+				}
+				else {
+					var_pattern = "%s";
+				}
 			}
 		}
 	}
-	string name = type_spec.get_what();
+	string base_typename = type_spec.get_what();
 	if (vardesc.slice.is_initialized())
 	{
-		// if is array
+		// if slice attr is presented, this variable is an array of type_spec 
 		if (get_context().parse_config.usefarray) {
-			sprintf(codegen_buf, "farray<%s>", name.c_str());
-			name = string(codegen_buf);
+			sprintf(codegen_buf, "farray<%s>", base_typename.c_str());
+			base_typename = string(codegen_buf);
 		}
 		else {
-			sprintf(codegen_buf, "for1array<%s>", name.c_str());
-			name = string(codegen_buf);
+			sprintf(codegen_buf, "for1array<%s>", base_typename.c_str());
+			base_typename = string(codegen_buf);
 			for (int sliceid = vardesc.slice.value().length() - 2; sliceid >= 0; sliceid--)
 			{
-				sprintf(codegen_buf, "for1array<%s>", name.c_str());
-				name = string(codegen_buf);
+				sprintf(codegen_buf, "for1array<%s>", base_typename.c_str());
+				base_typename = string(codegen_buf);
 			}
 		}
 	}
-	sprintf(codegen_buf, var_pattern.c_str(), name.c_str());
+	sprintf(codegen_buf, var_pattern.c_str(), base_typename.c_str());
 	return string(codegen_buf);
 }
 

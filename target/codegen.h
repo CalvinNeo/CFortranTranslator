@@ -19,10 +19,10 @@
 
 #pragma once
 
-#include "parser.h"
-#include "attribute.h"
+
+#include "../context.h"
+#include "../attribute.h"
 #include "gen_config.h"
-#include "context.h"
 #include <boost/lexical_cast.hpp>
 
 #define WHENDEBUG_OREMPTYSTR(STR) WHENDEBUG(STR, "")
@@ -84,6 +84,10 @@ std::string make_str_list(Iterator begin, Iterator end, F handler, std::string d
 }
 
 
+typedef std::vector<std::string> SliceLBoundInfo;
+typedef std::vector<std::string> SliceSizeInfo;
+typedef std::tuple<SliceLBoundInfo, SliceSizeInfo> SliceBoundInfo;
+
 bool is_dimenslice(const ParseNode & elem);
 bool is_argtable(const ParseNode & elem);
 bool is_paramtable(const ParseNode & elem);
@@ -91,7 +95,7 @@ bool is_function_array(const ParseNode & entity_variable);
 bool is_exp(const ParseNode & exp); 
 bool is_element(const ParseNode & x);
 bool is_literal(const ParseNode & x);
-bool is_fortran_function(FunctionInfo * finfo, const ParseNode & callable);
+bool is_fortran_function(FunctionInfo * finfo, std::string name);
 
 void regen_read(FunctionInfo * finfo, ARG_OUT stmt);
 void regen_write(FunctionInfo * finfo, ARG_OUT stmt);
@@ -123,17 +127,17 @@ ParseNode gen_format(ARG_IN format);
 ParseNode gen_vardef(ARG_IN type_nospec, ARG_IN variable_desc, ARG_IN paramtable);
 
 std::string get_variable_name(const ParseNode & entity_variable);
-std::tuple<std::vector<int>, std::vector<int>> get_lbound_size_from_slice(const ParseNode & slice);
+SliceBoundInfo get_lbound_size_from_slice(const ParseNode & slice);
 ParseNode gen_vardef_from_default(ARG_IN type, std::string name);
 
-#define get_all_declared get_all_declared_by_log
+#define get_all_declared get_all_declared_vinfo
 
-std::vector<VariableInfo *> get_all_declared_by_log(FunctionInfo * finfo, ARG_IN suite);
+std::vector<VariableInfo *> get_all_declared_vinfo(FunctionInfo * finfo, ARG_IN suite);
 std::vector<ParseNode *> get_all_declared_by_node(FunctionInfo * finfo, ParseNode & suite);
 ParseNode gen_function(ARG_IN variable_function, ARG_IN paramtable, ARG_IN variable_result, ARG_IN suite); 
 ParseNode gen_hiddendo(ARG_IN argtable, ARG_IN index, ARG_IN from, ARG_IN to, TokenMeta_T return_token = TokenMeta::NT_HIDDENDO);
 std::vector<ParseNode *> get_nested_hiddendo_layers(ParseNode & hiddendo);
-std::tuple<std::vector<int>, std::vector<int>> get_lbound_size_from_hiddendo(ParseNode & hiddendo);
+SliceBoundInfo get_lbound_size_from_hiddendo(FunctionInfo * finfo, ParseNode & hiddendo);
 void regen_hiddendo_expr(FunctionInfo * finfo, ParseNode & hiddendo);
 
 ParseNode gen_function_array(ARG_IN callable_head, ARG_IN argtable); 
@@ -147,7 +151,7 @@ ParseNode gen_keyvalue_from_exp(ARG_IN variable, ARG_IN initial);
 ParseNode promote_exp_to_keyvalue(ARG_IN paramtable_elem);
 ParseNode promote_argtable_to_paramtable(ARG_IN paramtable);
 ParseNode gen_pure_paramtable(ARG_IN paramtable_elem);
-ParseNode gen_pure_paramtable(ARG_IN paramtable_elem, ARG_IN paramtable);
+ParseNode gen_pure_paramtable(ARG_IN paramtable_elem, ARG_IN paramtable, bool left_recursion = false);
 ParseNode gen_dimenslice(ARG_IN dimen_slice);
 ParseNode gen_argtable(ARG_IN argtable);
 void foreach_paramtable(const ParseNode & pn, std::function<void(const ParseNode &)> f, bool recursion_direction_right);
@@ -190,15 +194,16 @@ void do_trans(const std::string & src);
 template <typename Iterator>
 std::string gen_lbound_size_str(Iterator lb_begin, Iterator lb_end, Iterator sz_begin, Iterator sz_end) {
 	std::string size_str, lbound_str;
-	lbound_str = make_str_list(lb_begin, lb_end, [&](auto x) { return to_string(x); });
-	size_str = make_str_list(sz_begin, sz_end, [&](auto x) { return to_string(x); });
+	lbound_str = make_str_list(lb_begin, lb_end, [&](auto x) { return x; });
+	size_str = make_str_list(sz_begin, sz_end, [&](auto x) { return x; });
 	sprintf(codegen_buf, "{%s}, {%s}", lbound_str.c_str(), size_str.c_str());
 	return string(codegen_buf);
 }
 
 template <typename Iterator, typename Func1, typename Func2>
-std::tuple<std::vector<int>, std::vector<int>> get_lbound_size_base(Iterator begin, Iterator end, Func1 get_lb, Func2 get_sz) {
-	std::vector<int> lb(end - begin), sz(end - begin);
+SliceBoundInfo get_lbound_size_base(Iterator begin, Iterator end, Func1 get_lb, Func2 get_sz) {
+	SliceLBoundInfo lb(end - begin);
+	SliceSizeInfo sz(end - begin);
 	transform(begin, end, lb.begin(), get_lb);
 	transform(begin, end, sz.begin(), get_sz);
 	return make_tuple(lb, sz);

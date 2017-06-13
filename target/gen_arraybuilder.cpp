@@ -65,10 +65,9 @@ bool maybe_return_array(FunctionInfo * finfo, const ParseNode & elem) {
 		if (f != nullptr)
 		{
 			// function
-			std::tuple<std::string, ParseNode, struct ParseNode *> & result_tuple = f->funcdesc.paramtable_info.back();
-			string result_name = get<0>(result_tuple);
-			ParseNode & result_type = get<1>(result_tuple);
+			std::string & result_name = f->funcdesc.paramtable_info.back();
 			VariableInfo * result_vinfo = get_variable(get_context().current_module, finfo->local_name, result_name);
+			ParseNode & result_type = result_vinfo->type;
 			if (result_type.get_token() == TokenMeta::Void_Decl)
 			{
 				// subroutine
@@ -133,7 +132,7 @@ void regen_arraybuilder(FunctionInfo * finfo, ARG_OUT array_builder) {
 			arr_decl += make_str_list(argtable.begin(), argtable.end(), [&](ParseNode * p) {
 				ParseNode & elem = *p;
 				if (elem.get_token() == TokenMeta::NT_HIDDENDO) {
-					std::tuple<std::vector<int>, std::vector<int>> lb_size = get_lbound_size_from_hiddendo(elem);
+					SliceBoundInfo lb_size = get_lbound_size_from_hiddendo(finfo, elem);
 					std::string lb_size_str = gen_lbound_size_str(get<0>(lb_size).begin(), get<0>(lb_size).end(), get<1>(lb_size).begin(), get<1>(lb_size).end());
 					regen_exp(finfo, elem);
 					std::string lambda = elem.get_what();

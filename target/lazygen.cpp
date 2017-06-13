@@ -17,7 +17,7 @@
 *   51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
-#include "parser.h"
+#include "../parser.h"
 #include <stack>
 #include <iostream>
 #include <cstdio>

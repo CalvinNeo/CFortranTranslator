@@ -160,7 +160,7 @@ std::string gen_joined_declarations(FunctionInfo * finfo, ARG_OUT oldsuite) {
 	} while (!all_generated);
 
 	/**********************************
-	* if a variable is in the paramtable, 
+	* if a variable is in the parameter list, 
 	*	it should not have declaration in function body(which is different from fortran)	
 	***********************************/
 	get_full_paramtable(finfo);

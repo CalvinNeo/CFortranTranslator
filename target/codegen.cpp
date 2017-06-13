@@ -28,7 +28,7 @@ TranslateContext & get_context() {
 	static TranslateContext tc;
 	if (tc.inited == false)
 	{
-		tc.func_kwargs = func_kwargs_preset;
+		tc.func_kwargs = sysfunc_args;
 		tc.inited = true;
 	}
 	return tc;
@@ -131,7 +131,7 @@ void flattern_bin_inplace(ParseNode & pn, bool recursion_direction_right) {
 
 
 ParseNode gen_flattern(ARG_IN item, ARG_IN list, std::string merge_rule, TokenMeta_T merged_token_meta, bool left_recursion) {
-	ParseNode nn = ParseNode();
+	 ParseNode();
 	if (left_recursion)
 	{
 		sprintf(codegen_buf, merge_rule.c_str(), list.to_string().c_str(), item.to_string().c_str());
@@ -142,7 +142,7 @@ ParseNode gen_flattern(ARG_IN item, ARG_IN list, std::string merge_rule, TokenMe
 	if (merged_token_meta == TokenMeta::USE_DEFAULT_VALUE) {
 		merged_token_meta = list.get_token();
 	}
-	nn.fs.CurrentTerm = Term{ merged_token_meta, string(codegen_buf) };
+	ParseNode nn = gen_token(Term{ merged_token_meta, string(codegen_buf) });
 	if (left_recursion)
 	{
 		nn.addlist(list, item);

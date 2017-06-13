@@ -1,0 +1,15 @@
+2..gt.2.
+2..gt..2
+2e2..gt..2
+KKK.EQ.1.OR.KKK.EQ.2
+KKK.GT.1..OR.KKK.EQ.2.
+
+	a + 
+     * 3
+     a + 1
+	b
+	a + 
+     2 5
+     
+ 120    FORMAT(2X,
+     4   '**')

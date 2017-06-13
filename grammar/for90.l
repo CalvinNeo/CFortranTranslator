@@ -28,7 +28,7 @@
 #include "../tokenizer.h"
 #include "../parser.h"
 #include "../context.h"
-#include "../gen_config.h"
+#include "../target/gen_config.h"
 #include "for90.tab.h"
 #include <tuple>
 #define YY_DECL int pure_yylex(void)
@@ -124,6 +124,7 @@ std::string parse_ioformatter(const std::string & src); // gen_io.cpp
 struct FlexExternalContext : public FlexScannerContext {
 	int left_brackets = 0;
 	int len;
+	bool in_str = false;
 	FlexExternalContext(std::string trigger, int condition) : FlexScannerContext(trigger, condition) {
 		left_brackets = 0;
 		len = 0;
@@ -131,14 +132,13 @@ struct FlexExternalContext : public FlexScannerContext {
 	int do_scanner(const char * text) {
 		// return true to return a YYTOK
 		len++;
-		code += text;
 		if (this->trigger == "format")
 		{
-			if (text[0] == '(')
+			if (text[0] == '(' && !in_str)
 			{
 				left_brackets++;
 			}
-			else if (text[0] == ')') {
+			else if (text[0] == ')' && !in_str) {
 				left_brackets--;
 				if (left_brackets == 0)
 				{
@@ -146,7 +146,21 @@ struct FlexExternalContext : public FlexScannerContext {
 					update_flex((int)len);
 					return quit_condition(YY_FORMAT_STMT, Term{ TokenMeta::NT_FORMAT, result });
 				}
+			}else{
+				if (text[0] == '\"' || text[0] == '\'')
+				{
+					in_str = !in_str;
+				}
+				else if(text[0] == '\n')
+				{
+					get_flex_state().parse_line++;
+				}
 			}
+			code += text;
+		}
+		else
+		{
+			code += text;
 		}
 		return YY_IGNORE_THIS;
 	}
@@ -217,25 +231,30 @@ string ({string1}|{string2})
 
 %%
 
+<external_scanner,jump_to_scanner>{newline} {
+	// this rule is essential or `\n` will br left out intentionally
+	int p = get_current_scanner()->do_scanner(yytext);
+	DORET(p)
+}
 <external_scanner,jump_to_scanner>. { 
 	int p = get_current_scanner()->do_scanner(yytext);
 	DORET(p)
 }
 
 ^[Cc]{delim}*[^\r\n]* {
-	// std::cout << yytext << std::endl;
 	int p = comment_parse(yytext);
 	update_flex();
 	DORET(p);
 }
 ![^\r\n]* {
-	// std::cout << yytext << std::endl;
 	int p = comment_parse(yytext);
 	update_flex();
 	DORET(p);
 }
 
-{newline}{ws}\* {
+{newline}([ ][ ][ ][ ][ ])({digit}|[*&]) {
+	// continuation line
+	// {newline}{ws}\*
 	int p = nop_parse();
 	update_flex();
 	DORET(p);
@@ -434,7 +453,7 @@ NORMAL_CONDITION:
 
 void set_buff(const std::string & code) {
 	using namespace std;
-	int slen = code.size();
+	int slen = (int)code.size();
 	get_flex_state().parse_line = 0;
 	get_flex_state().parse_pos = 0;
 	get_flex_state().parse_len = 0;

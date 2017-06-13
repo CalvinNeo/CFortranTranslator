@@ -19,7 +19,7 @@
 
 #include "tokenizer.h"
 #include "grammar/for90.tab.h"
-#include "gen_config.h"
+#include "target/gen_config.h"
 
 using namespace std;
 

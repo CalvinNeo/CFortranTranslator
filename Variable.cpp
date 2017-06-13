@@ -19,7 +19,7 @@
 
 #include "Variable.h"
 #include "tokenizer.h"
-#include "codegen.h"
+#include "target/codegen.h"
 #include <boost/algorithm/string/predicate.hpp>
 
 VariableInfo * get_variable(std::string module_name, std::string function_name, std::string variable_name) {

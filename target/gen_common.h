@@ -17,11 +17,7 @@
 *   51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
-#include "tokenizer.h"
-#include "attribute.h"
-#include "parser.h"
-#include "gen_config.h"
-#include "Function.h"
+
 #include "codegen.h"
 #include <vector>
 #include <string>
