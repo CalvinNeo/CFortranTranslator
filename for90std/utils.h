@@ -17,6 +17,7 @@
 *   51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 #pragma once
+#include <tuple>
 
 // WARNING: DEPRECATED
 #if (defined(_MSC_VER) && _MSC_VER <= 1900)
@@ -44,6 +45,17 @@ namespace for90std {
 	template<typename T, typename Return, Return(T::*)()const>
 	struct const_func_matcher;
 	
+	/*****************
+	*	create a struct `is_typename` 
+	*	struct `is_typename` test whether type of a variable matchs signature given by `MATCHERNAME`
+	* e.g.
+	* ```
+	*	template <typename T>
+	*	using for1array_matcher = const_func_matcher<T, fsize_t, &(T::size)>*;
+	*
+	*	MAKE_FUNC_TEST(for1array, for1array_matcher)
+	* ```
+	*****************/
 #define MAKE_FUNC_TEST(TYPENAME, MATCHERNAME) struct is_##TYPENAME { \
 		template<typename T> \
 		constexpr static bool test(MATCHERNAME<T>) {\
@@ -116,4 +128,35 @@ namespace for90std {
 	{
 		enum { value = I };
 	};
+
+
+	template<typename F, typename _Tuple, std::size_t ... Is >
+	size_t _foreach_tuple_impl(F && f, const _Tuple & tup, std::index_sequence<Is...>)
+	{
+		// avoid error
+		int dummy[] = { (f(std::get<Is>(tup)), 0)... };
+		return sizeof(dummy);
+		// the following causes error
+		//f(std::get<Is>(tup))...;
+	}
+
+	template <typename F, typename ... Args>
+	void foreach_tuple(const std::tuple<Args...> & tup, F && f) {
+		_foreach_tuple_impl(std::forward<F>(f), tup, std::index_sequence_for<Args...>{});
+	}
+
+	template<typename F, typename _Tuple, std::size_t ... Is >
+	size_t _foreach_tuple_impl(F && f, _Tuple & tup, std::index_sequence<Is...>)
+	{
+		// avoid error
+		int dummy[] = { (f(std::get<Is>(tup)), 0)... };
+		return sizeof(dummy);
+		// the following causes error
+		//f(std::get<Is>(tup))...;
+	}
+
+	template <typename F, typename ... Args>
+	void foreach_tuple(std::tuple<Args...> & tup, F && f) {
+		_foreach_tuple_impl(std::forward<F>(f), tup, std::index_sequence_for<Args...>{});
+	}
 }

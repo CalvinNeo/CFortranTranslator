@@ -1,1 +1,1 @@
-WRITE(1,*) (EAA(I,J),SD(I,J),EVV(I,J),EA2(I,J),Q2(I,J),EV2(I,J),J=1,N(I))
+WRITE(1,*) (j+1,j+2,J=1,2)

@@ -63,12 +63,6 @@
     <ClCompile Include="..\..\for90std\farray.cpp">
       <Filter>for90std</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\grammar\for90.flex.cpp">
-      <Filter>grammar</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\grammar\for90.tab.cpp">
-      <Filter>grammar</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\target\codegen.cpp">
       <Filter>target</Filter>
     </ClCompile>
@@ -141,6 +135,12 @@
     <ClCompile Include="..\..\target\lazygen.cpp">
       <Filter>target</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\grammar\for90.flex.cpp">
+      <Filter>grammar</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\grammar\for90.tab.cpp">
+      <Filter>grammar</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\grammar\for90.tab.h">
@@ -188,9 +188,6 @@
     <ClInclude Include="..\..\for90std\fortime.h">
       <Filter>for90std</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\for90std\forutils.h">
-      <Filter>for90std</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\for90std\farray.h">
       <Filter>for90std</Filter>
     </ClInclude>
@@ -213,6 +210,9 @@
     <ClInclude Include="..\..\target\gen_config.h">
       <Filter>target</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\for90std\utils.h">
+      <Filter>for90std</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\README.md" />
@@ -221,13 +221,13 @@
     <None Include="..\..\Develop.md" />
   </ItemGroup>
   <ItemGroup>
-    <Flex Include="..\..\grammar\for90.l">
-      <Filter>grammar</Filter>
-    </Flex>
-  </ItemGroup>
-  <ItemGroup>
     <Bison Include="..\..\grammar\for90.y">
       <Filter>grammar</Filter>
     </Bison>
+  </ItemGroup>
+  <ItemGroup>
+    <Flex Include="..\..\grammar\for90.l">
+      <Filter>grammar</Filter>
+    </Flex>
   </ItemGroup>
 </Project>

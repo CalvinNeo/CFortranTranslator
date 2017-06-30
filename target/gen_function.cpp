@@ -112,8 +112,10 @@ ParseNode gen_function(ARG_IN variable_function, ARG_IN paramtable, ARG_IN varia
 	return newnode;
 }
 
-void regen_function(FunctionInfo * finfo, ARG_OUT functiondecl_node) {
-	/* fortran90 does not declare type of arguments in function declaration statement*/
+void regen_function(FunctionInfo * finfo, ParseNode & functiondecl_node) {
+	/****************
+	*	fortran90 does not declare type of arguments in function declaration statement
+	*****************/
 	ParseNode & variable_function = functiondecl_node.get(1);
 	ParseNode & kvparamtable = functiondecl_node.get(2);
 	ParseNode & result_variable = functiondecl_node.get(3);

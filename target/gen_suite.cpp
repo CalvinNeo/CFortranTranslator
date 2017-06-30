@@ -35,7 +35,7 @@ vector<ParseNode *> get_all_commons(FunctionInfo * finfo, ParseNode & suite) {
 	return declared_commons;
 }
 
-void regen_suite(FunctionInfo * finfo, ARG_OUT oldsuite, bool is_partial) {
+void regen_suite(FunctionInfo * finfo, ParseNode & oldsuite, bool is_partial) {
 	/****
 	* this function regen code of `suite` node and
 	* 1. remove all NT_DECLAREDVARIABLE in suite
@@ -93,7 +93,7 @@ void regen_suite(FunctionInfo * finfo, ARG_OUT oldsuite, bool is_partial) {
 	oldsuite.get_what() = newsuitestr;
 }
 
-std::string gen_joined_declarations(FunctionInfo * finfo, ARG_OUT oldsuite) {
+std::string gen_joined_declarations(FunctionInfo * finfo, ParseNode & oldsuite) {
 	/**********************************
 	*	for all variables used in the subprogram, cal regen_vardef to generate their code
 	*	there're 2 cases:

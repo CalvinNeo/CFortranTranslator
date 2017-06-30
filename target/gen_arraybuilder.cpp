@@ -107,7 +107,7 @@ bool maybe_return_array(FunctionInfo * finfo, const ParseNode & elem) {
 	}
 }
 
-void regen_arraybuilder(FunctionInfo * finfo, ARG_OUT array_builder) {
+void regen_arraybuilder(FunctionInfo * finfo, ParseNode & array_builder) {
 	// wrap arraybuilder.fs.CurrentTerm.what with make_farray function
 	string arr_decl;
 	if (array_builder.get_token() == TokenMeta::NT_ARRAYBUILDER_LIST)

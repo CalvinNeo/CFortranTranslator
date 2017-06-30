@@ -19,12 +19,23 @@
 
 #include "gen_common.h"
 
-std::string gen_io_argtable_str(FunctionInfo * finfo, ParseNode & argtable) {
+std::string gen_io_argtable_str(FunctionInfo * finfo, ParseNode & argtable, std::string iofunc, bool is_free_format) {
 	string res = make_str_list(argtable.begin(), argtable.end(), [&](ParseNode * p) {
 		ParseNode & pn = *p;
 		if (pn.get_token() == TokenMeta::NT_HIDDENDO)
 		{
 			// wrap with IOLambda
+			regen_hiddendo_expr(finfo, pn, [&](ParseNode & innermost_argtable) {
+				string return_str;
+				return_str = make_str_list(innermost_argtable.begin(), innermost_argtable.end(), [&](ParseNode * p2) {
+					ParseNode & return_item = *p2;
+					regen_exp(finfo, return_item);
+					return return_item.get_what();
+				});
+				sprintf(codegen_buf, "return make_iostuff(make_tuple(%s));", return_str.c_str());
+				innermost_argtable.get_what() = string(codegen_buf);
+				return;
+			});
 			SliceBoundInfo lb_size = get_lbound_size_from_hiddendo(finfo, pn);
 			std::string lb_size_str = gen_lbound_size_str(get<0>(lb_size).begin(), get<0>(lb_size).end(), get<1>(lb_size).begin(), get<1>(lb_size).end());
 			int dim = (int)get<0>(lb_size).size();
@@ -38,15 +49,16 @@ std::string gen_io_argtable_str(FunctionInfo * finfo, ParseNode & argtable) {
 	return res;
 }
 
-void regen_read(FunctionInfo * finfo, ARG_OUT stmt) {
+void regen_read(FunctionInfo * finfo, ParseNode & stmt) {
 	const ParseNode & io_info = stmt.get(0);
 	ParseNode & argtable = stmt.get(1);
 	string device = io_info.get(0).to_string();
 	regen_paramtable(finfo, argtable);
-	std::string argtable_str =  gen_io_argtable_str(finfo, argtable);
+	bool is_stdio = (device == "-1" || device == "");
+	std::string argtable_str =  gen_io_argtable_str(finfo, argtable, "read", io_info.get(1).get_token() == TokenMeta::NT_AUTOFORMATTER);
 	if (io_info.get(1).get_token() == TokenMeta::NT_AUTOFORMATTER) {
-		if (device == "-1" || device == "") {
-			//device = "5"; // stdin
+		if (is_stdio) {
+			// device = "5"; // stdin
 			sprintf(codegen_buf, "forreadfree(stdin, %s);\n", argtable_str.c_str());
 		}
 		else {
@@ -63,8 +75,8 @@ void regen_read(FunctionInfo * finfo, ARG_OUT stmt) {
 		else {
 			fmt = label_name.substr(1, label_name.size() - 1); // strip " 
 		}
-		if (device == "-1" || device == "") {
-			//device = "5"; // stdin
+		if (is_stdio) {
+			// device = "5"; // stdin
 			sprintf(codegen_buf, "forread(stdin, \"%s\", %s);\n", parse_ioformatter(fmt).c_str(), argtable_str.c_str());
 		}
 		else {
@@ -76,15 +88,16 @@ void regen_read(FunctionInfo * finfo, ARG_OUT stmt) {
 }
 
 
-void regen_write(FunctionInfo * finfo, ARG_OUT stmt) {
+void regen_write(FunctionInfo * finfo, ParseNode & stmt) {
 	// brace is forced
 	const ParseNode & io_info = stmt.get(0);
 	ParseNode & argtable = stmt.get(1);
 	string device = io_info.get(0).to_string();
 	regen_paramtable(finfo, argtable);
-	std::string argtable_str = gen_io_argtable_str(finfo, argtable);
+	bool is_stdio = (device == "-1" || device == "");
+	std::string argtable_str = gen_io_argtable_str(finfo, argtable, "write", io_info.get(1).get_token() == TokenMeta::NT_AUTOFORMATTER);
 	if (io_info.get(1).get_token() == TokenMeta::NT_AUTOFORMATTER) {
-		if (device == "-1") {
+		if (is_stdio) {
 			// device = "6"; // stdout
 			sprintf(codegen_buf, "forwritefree(stdout, %s);\n", argtable_str.c_str());
 		}
@@ -100,7 +113,7 @@ void regen_write(FunctionInfo * finfo, ARG_OUT stmt) {
 		} else{
 			fmt = io_info.get(1).to_string().substr(1, io_info.get(1).to_string().size() - 1); // strip " 
 		}
-		if (device == "-1") {
+		if (is_stdio) {
 			// device = "6"; // stdout
 			sprintf(codegen_buf, "forwrite(stdout, \"%s\", %s);\n", parse_ioformatter(fmt).c_str(), argtable_str.c_str());
 		}
@@ -112,11 +125,11 @@ void regen_write(FunctionInfo * finfo, ARG_OUT stmt) {
 	return;
 }
 
-void regen_print(FunctionInfo * finfo, ARG_OUT stmt) {
+void regen_print(FunctionInfo * finfo, ParseNode & stmt) {
 	const ParseNode & io_info = stmt.get(0);
 	ParseNode & argtable = stmt.get(1);
 	regen_paramtable(finfo, argtable);
-	std::string argtable_str = gen_io_argtable_str(finfo, argtable);
+	std::string argtable_str = gen_io_argtable_str(finfo, argtable, "print", io_info.get(1).get_token() == TokenMeta::NT_AUTOFORMATTER);
 	if (io_info.get(1).get_token() == TokenMeta::NT_AUTOFORMATTER) {
 		sprintf(codegen_buf, "forprintfree(%s);\n", argtable.to_string().c_str());
 	}
@@ -167,7 +180,11 @@ std::string parse_ioformatter(const std::string & src) {
 	std::string prec;
 	char buf[256];
 	char ch;
-	int stat = 0; /* stat == 0 repeat */
+	/********************
+	*	stat == 0: this integer is repeat specification
+	*	stat == 1: this integer is edit descriptor(w, m, d, e)
+	********************/
+	int stat = 0; 
 	std::vector<int> repeat;
 	std::vector<int> repeat_from;
 	/********************
@@ -295,7 +312,7 @@ std::string parse_ioformatter(const std::string & src) {
 			stat = 0;
 			break;
 		case '(':
-			// 此层的重复次数默认是1
+			// every `( format-item-list )` repeat 1 time by default
 			repeat.push_back(1);
 			// 重复从'('的下一个字符开始
 			repeat_from.push_back((int)rt.size());
@@ -381,6 +398,11 @@ std::string parse_ioformatter(const std::string & src) {
 			i++; // jump line continuation symbol
 			break;
 		}
+		case ' ':
+			//Blank characters may precede the initial left parenthesis of the format specification.Additional blank characters
+			//	may appear at any point within the format specification, with no effect on the interpretation of the format
+			//	specification, except within a character string edit descriptor(10.7.1, 10.7.2).
+			break;
 		default:
 			break;
 		}

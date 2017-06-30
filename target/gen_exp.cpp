@@ -18,7 +18,7 @@
 */
 #include "gen_common.h"
 
-void regen_exp(FunctionInfo * finfo, ARG_OUT exp) {
+void regen_exp(FunctionInfo * finfo, ParseNode & exp) {
 	if (exp.get_token() == TokenMeta::NT_EXPRESSION)
 	{
 		if (exp.length() == 2)

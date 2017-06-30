@@ -82,7 +82,7 @@
     <ClInclude Include="..\..\for90std\formath.h" />
     <ClInclude Include="..\..\for90std\forstdio.h" />
     <ClInclude Include="..\..\for90std\fortime.h" />
-    <ClInclude Include="..\..\for90std\forutils.h" />
+    <ClInclude Include="..\..\for90std\utils.h" />
     <ClInclude Include="..\..\general_config.h" />
     <ClInclude Include="..\..\develop.h" />
     <ClInclude Include="..\..\Function.h" />
@@ -105,10 +105,10 @@
     <None Include="..\..\todolist.md" />
   </ItemGroup>
   <ItemGroup>
-    <Flex Include="..\..\grammar\for90.l" />
+    <Bison Include="..\..\grammar\for90.y" />
   </ItemGroup>
   <ItemGroup>
-    <Bison Include="..\..\grammar\for90.y" />
+    <Flex Include="..\..\grammar\for90.l" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{EEFFE8C1-37FF-4F41-9113-5996FEA58436}</ProjectGuid>

@@ -36,7 +36,7 @@ ParseNode promote_argtable_to_dimenslice(ARG_IN argtable) {
 	return newnode;
 }
 
-void regen_slice(FunctionInfo * finfo, ARG_OUT slice) {
+void regen_slice(FunctionInfo * finfo, ParseNode & slice) {
 	if (slice.get_token() == TokenMeta::NT_SLICE) {
 		bool empty_slice = false;
 		// use slice_info_arr to handle default situation

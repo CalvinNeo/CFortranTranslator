@@ -97,29 +97,29 @@ bool is_element(const ParseNode & x);
 bool is_literal(const ParseNode & x);
 bool is_fortran_function(FunctionInfo * finfo, std::string name);
 
-void regen_read(FunctionInfo * finfo, ARG_OUT stmt);
-void regen_write(FunctionInfo * finfo, ARG_OUT stmt);
-void regen_print(FunctionInfo * finfo, ARG_OUT stmt);
-void regen_vardef(FunctionInfo * finfo, VariableInfo * vinfo, ARG_OUT type_nospec, VariableDesc & desc, ARG_OUT entity_variable);
-void regen_function(FunctionInfo * finfo, ARG_OUT functiondecl_node);
-void regen_select(FunctionInfo * finfo, ARG_OUT select_stmt);
-void regen_if(FunctionInfo * finfo, ARG_OUT if_stmt);
-void regen_elseif(FunctionInfo * finfo, ARG_OUT elseif_stmt);
-void regen_do(FunctionInfo * finfo, ARG_OUT do_stmt);
-void regen_do_range(FunctionInfo * finfo, ARG_OUT do_stmt);
-void regen_do_while(FunctionInfo * finfo, ARG_OUT do_stmt);
-void regen_simple_stmt(FunctionInfo * finfo, ARG_OUT stmt);
-std::string gen_joined_declarations(FunctionInfo * finfo, ARG_OUT oldsuite);
-void regen_suite(FunctionInfo * finfo, ARG_OUT oldsuite, bool is_partial = false);
-std::string regen_stmt(FunctionInfo * finfo, ARG_OUT stmt);
-void regen_arraybuilder(FunctionInfo * finfo, ARG_OUT arraybuilder);
-void regen_common(FunctionInfo * finfo, ARG_OUT common_block);
-void promote_type(ARG_OUT type_nospec, VariableDesc & vardesc);
-void regen_exp(FunctionInfo * finfo, ARG_OUT exp);
-void regen_paramtable(FunctionInfo * finfo, ARG_OUT paramtable);
-void regen_function_array(FunctionInfo * finfo, ARG_OUT callable);
-void regen_slice(FunctionInfo * finfo, ARG_OUT slice);
-void insert_comments(ARG_OUT newnode);
+void regen_read(FunctionInfo * finfo, ParseNode & stmt);
+void regen_write(FunctionInfo * finfo, ParseNode & stmt);
+void regen_print(FunctionInfo * finfo, ParseNode & stmt);
+void regen_vardef(FunctionInfo * finfo, VariableInfo * vinfo, ParseNode & type_nospec, VariableDesc & desc, ParseNode & entity_variable);
+void regen_function(FunctionInfo * finfo, ParseNode & functiondecl_node);
+void regen_select(FunctionInfo * finfo, ParseNode & select_stmt);
+void regen_if(FunctionInfo * finfo, ParseNode & if_stmt);
+void regen_elseif(FunctionInfo * finfo, ParseNode & elseif_stmt);
+void regen_do(FunctionInfo * finfo, ParseNode & do_stmt);
+void regen_do_range(FunctionInfo * finfo, ParseNode & do_stmt);
+void regen_do_while(FunctionInfo * finfo, ParseNode & do_stmt);
+void regen_simple_stmt(FunctionInfo * finfo, ParseNode & stmt);
+std::string gen_joined_declarations(FunctionInfo * finfo, ParseNode & oldsuite);
+void regen_suite(FunctionInfo * finfo, ParseNode & oldsuite, bool is_partial = false);
+std::string regen_stmt(FunctionInfo * finfo, ParseNode & stmt);
+void regen_arraybuilder(FunctionInfo * finfo, ParseNode & arraybuilder);
+void regen_common(FunctionInfo * finfo, ParseNode & common_block);
+void promote_type(ParseNode & type_nospec, VariableDesc & vardesc);
+void regen_exp(FunctionInfo * finfo, ParseNode & exp);
+void regen_paramtable(FunctionInfo * finfo, ParseNode & paramtable);
+void regen_function_array(FunctionInfo * finfo, ParseNode & callable);
+void regen_slice(FunctionInfo * finfo, ParseNode & slice);
+void insert_comments(ParseNode & newnode);
 
 std::string parse_ioformatter(const std::string &); 
 ParseNode gen_format(ARG_IN format);
@@ -139,6 +139,7 @@ ParseNode gen_hiddendo(ARG_IN argtable, ARG_IN index, ARG_IN from, ARG_IN to, To
 std::vector<ParseNode *> get_nested_hiddendo_layers(ParseNode & hiddendo);
 SliceBoundInfo get_lbound_size_from_hiddendo(FunctionInfo * finfo, ParseNode & hiddendo);
 void regen_hiddendo_expr(FunctionInfo * finfo, ParseNode & hiddendo);
+void regen_hiddendo_expr(FunctionInfo * finfo, ParseNode & hiddendo, std::function<void(ParseNode &)> regen_innermost);
 
 ParseNode gen_function_array(ARG_IN callable_head, ARG_IN argtable); 
 
@@ -164,8 +165,8 @@ std::string gen_qualified_typestr(ARG_IN type_name, VariableDesc & vardesc);
 
 ParseNode gen_array_from_paramtable(ARG_IN argtable);
 
-void set_variabledesc_attr(ARG_OUT vardescattr_node, boost::optional<bool> reference, boost::optional<bool> constant, boost::optional<bool> optional, boost::optional<ParseNode> slice, boost::optional<int> kind, boost::optional<bool> save);
-VariableDesc & get_variabledesc_attr(ARG_OUT vardescattr_node);
+void set_variabledesc_attr(ParseNode & vardescattr_node, boost::optional<bool> reference, boost::optional<bool> constant, boost::optional<bool> optional, boost::optional<ParseNode> slice, boost::optional<int> kind, boost::optional<bool> save);
+VariableDesc & get_variabledesc_attr(ParseNode & vardescattr_node);
 ParseNode gen_variabledesc_from_dimenslice(ARG_IN dimen_slice);
 
 void add_function_forward(ARG_IN function_decl);

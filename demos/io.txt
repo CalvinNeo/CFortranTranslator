@@ -2,3 +2,4 @@
         READ (*,*) FILENAME
         OPEN(1,FILE=FILENAME)
 READ(1,*) (I + 1,I=1,M)
+WRITE(1,*) (a,b,J=1,2)

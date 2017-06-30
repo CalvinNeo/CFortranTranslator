@@ -1,21 +1,19 @@
-//#include "../for90std/for90std.h"
-//#define USE_FORARRAY
-//
-//int ff(fsize_t * cur) {
-//	return 0;
-//};
-//int main()
-//{
-//	//int a = 0, b = 0, c = 0;
-//	//test_pack_clvalue(a, b, c);
-//	farray<int> aa = forconcat({ make_init_list({1,2,3}) });
-//	forprintfree(aa);
-//
-//	forwrite(stdout, "%d%d%d", make_iolambda({ 1 }, { 2 }, [](fsize_t * current) {
-//		return [](int i) {
-//			return i + 1;
-//		}(current[0]);
-//	}));
-//	system("pause");
-//	return 0;
-//}
+#include "../for90std/for90std.h"
+#define USE_FORARRAY
+
+int main() {
+	forwritefree(stdout, make_iolambda({ 1 }, { 2 }, [&](const fsize_t * current) {
+		return [&](fsize_t j) {
+			return make_iostuff(make_tuple(j + 1, j + 2));
+		}(current[0]);
+	}));
+
+
+	//const auto stuff = make_iostuff(make_tuple(1, 2));
+	//foreach_tuple(stuff.tp, [&](auto x) {
+	//	cout << x + 1 << endl;;
+	//});
+
+	system("pause");
+	return 0;
+}

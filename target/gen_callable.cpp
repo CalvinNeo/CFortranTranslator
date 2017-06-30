@@ -35,7 +35,7 @@ std::string get_mapped_function_name(std::string origin_name) {
 	}
 }
 
-void regen_function_array(FunctionInfo * finfo, ARG_OUT callable) {
+void regen_function_array(FunctionInfo * finfo, ParseNode & callable) {
 
 	// function call OR array index 
 	// NOTE that array index can be A(1:2, 3:4) 

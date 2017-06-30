@@ -19,7 +19,7 @@
 
 #include "gen_common.h"
 
-void regen_simple_stmt(FunctionInfo * finfo, ARG_OUT stmt) {
+void regen_simple_stmt(FunctionInfo * finfo, ParseNode & stmt) {
 	if (stmt.length() == 0)
 	{
 		// dummy
@@ -44,11 +44,11 @@ vector<VariableInfo *> get_all_declared_vinfo(FunctionInfo * finfo, ARG_IN suite
 }
 
 vector<ParseNode *> get_all_declared_by_node(FunctionInfo * finfo, ParseNode & suite) {
-	/*
-	* find out all var_def and interface-function nodes
+	/***************
+	* find out all explicit declarations of variables and interface in a function
+	*	, by enumerating all nodes
 	* NOT including implicit declared variables
-	*/
-	// vector<ParseNode *> dd = get_all_declared(get_context().current_module, finfo->local_name);
+	***************/
 	vector<ParseNode *> declared_variables;
 	for (int i = 0; i < suite.length(); i++)
 	{
@@ -77,7 +77,7 @@ vector<ParseNode *> get_all_declared_by_node(FunctionInfo * finfo, ParseNode & s
 }
 
 
-std::string regen_stmt(FunctionInfo * finfo, ARG_OUT stmt) {
+std::string regen_stmt(FunctionInfo * finfo, ParseNode & stmt) {
 	/***************
 	*	including:
 	*	exp							NT_STATEMENT

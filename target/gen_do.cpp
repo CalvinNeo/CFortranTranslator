@@ -19,14 +19,14 @@
 
 #include "gen_common.h"
 
-void regen_do(FunctionInfo * finfo, ARG_OUT do_stmt) {
+void regen_do(FunctionInfo * finfo, ParseNode & do_stmt) {
 	ParseNode & suite = do_stmt.get(0);
 	regen_suite(finfo, suite, true);
 	sprintf(codegen_buf, "do{\n%s}", tabber(suite.get_what()).c_str());
 	do_stmt.fs.CurrentTerm = Term{ TokenMeta::NT_DO, string(codegen_buf) };
 }
 
-void regen_do_range(FunctionInfo * finfo, ARG_OUT do_stmt){
+void regen_do_range(FunctionInfo * finfo, ParseNode & do_stmt){
 	ParseNode & loop_variable = do_stmt.get(0);
 	ParseNode & exp1 = do_stmt.get(1);
 	ParseNode & exp2 = do_stmt.get(2);
@@ -43,7 +43,7 @@ void regen_do_range(FunctionInfo * finfo, ARG_OUT do_stmt){
 	do_stmt.fs.CurrentTerm = Term{ TokenMeta::NT_DORANGE, string(codegen_buf) };
 }
 
-void regen_do_while(FunctionInfo * finfo, ARG_OUT do_stmt) {
+void regen_do_while(FunctionInfo * finfo, ParseNode & do_stmt) {
 	ParseNode & exp = do_stmt.get(0);
 	ParseNode & suite = do_stmt.get(1);
 	regen_exp(finfo, exp);
@@ -85,10 +85,10 @@ SliceBoundInfo get_lbound_size_from_hiddendo(FunctionInfo * finfo, ParseNode & h
 	return lb_size;
 }
 
-void regen_hiddendo_expr(FunctionInfo * finfo, ARG_OUT hiddendo) {
+void regen_hiddendo_expr(FunctionInfo * finfo, ParseNode & hiddendo, std::function<void(ParseNode &)> regen_innermost) {
 	/**************************************
-	* this function flattern a n-layer nested hidden do into an lambda function, 
-	*	this function use a 1-dimension size-n array of `fsize_t`, 
+	* this function flattern a n-layer nested hidden do into an lambda function,
+	*	this function use a 1-dimension size-n array of `fsize_t`,
 	*	which stands for index of every n-dimensions.
 	* this function is used to deal with io-implied-do, ac-implied-do, data-implied-do.
 	* Usage:
@@ -110,15 +110,14 @@ void regen_hiddendo_expr(FunctionInfo * finfo, ARG_OUT hiddendo) {
 		string indexer_str = make_str_list(hiddendo_layer.begin(), hiddendo_layer.end(), [](auto x)->string {
 			return "fsize_t " + (x)->get(1).get_what();
 		});
-		
+
 		/***************
 		*	refer rule `hidden_do` and found NT_HIDDENDO have 4 children
 		*	the first child is argtable(because a hidden_do can contain several exps)
 		****************/
 		ParseNode & innermost_argtable = hiddendo_layer.back()->get(0);
-		regen_paramtable(finfo, innermost_argtable);
-		sprintf(codegen_buf, "return %s;", innermost_argtable.get_what().c_str());
-		string body1 = string(codegen_buf);
+		regen_innermost(innermost_argtable);
+		string body1 = innermost_argtable.get_what();
 		sprintf(codegen_buf, "[&](%s){\n%s}", indexer_str.c_str(), tabber(body1).c_str());
 		string lambda = string(codegen_buf);
 		int j = 0;
@@ -143,6 +142,15 @@ void regen_hiddendo_expr(FunctionInfo * finfo, ARG_OUT hiddendo) {
 	}
 	hiddendo.get_what() = string(codegen_buf);
 }
+
+void regen_hiddendo_expr(FunctionInfo * finfo, ParseNode & hiddendo) {
+	regen_hiddendo_expr(finfo, hiddendo, [&](ParseNode & innermost_argtable) {
+		regen_paramtable(finfo, innermost_argtable);
+		sprintf(codegen_buf, "return %s;", innermost_argtable.get_what().c_str());
+		innermost_argtable.get_what() = string(codegen_buf);
+	});
+}
+
 
 ParseNode gen_hiddendo(ARG_IN argtable, ARG_IN index, ARG_IN from, ARG_IN to, TokenMeta_T return_token) {
 	/**************************************

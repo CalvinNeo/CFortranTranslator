@@ -75,10 +75,10 @@ std::string gen_vardef_array_str(FunctionInfo * finfo, VariableInfo * vinfo, Par
 	// entity_variable is 
 	// NT_VARIABLE_ENTITY(entity_variable) -> NT_FUCNTIONARRAY(entity_variable_name) -> (UnknownVariant, NT_ARGTABLE_PURE)/NT_VARIABLE_ENTITY
 	// or NT_VARIABLE_ENTITY(entity_variable) -> (UnknownVariant, NT_VARIABLEINITIALDUMMY or else)
-	int dimension = (int)get<0>(shape).size();
 	string alias_name = get_variable_name(entity_variable);
 	const std::vector<std::string> & lbound_vec = get<0>(shape);
 	const std::vector<std::string> & size_vec = get<1>(shape);
+	int dimension = (int)lbound_vec.size();
 	// no desc if var_def is not in parameter list
 	sprintf(codegen_buf, "%s %s", type_str.c_str(), alias_name.c_str()  /* array name */);
 	arr_decl += string(codegen_buf);
@@ -171,7 +171,7 @@ ParseNode gen_vardef(ARG_IN type_nospec, ARG_IN variable_desc, ARG_IN paramtable
 	return newnode;
 }
 
-void regen_vardef(FunctionInfo * finfo, VariableInfo * vinfo, ARG_OUT type_nospec, VariableDesc & desc, ARG_OUT entity_variable) {
+void regen_vardef(FunctionInfo * finfo, VariableInfo * vinfo, ParseNode & type_nospec, VariableDesc & desc, ParseNode & entity_variable) {
 	string var_decl; 
 	bool do_arr = desc.slice.is_initialized();
 	string type_str;

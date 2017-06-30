@@ -49,7 +49,7 @@ ParseNode gen_implicit_type(std::string name) {
 	}
 }
 
-void promote_type(ARG_OUT type_nospec, VariableDesc & vardesc) {
+void promote_type(ParseNode & type_nospec, VariableDesc & vardesc) {
 	// reset type according to kind
 	/* merge type_spec and variable_desc attr */
 	vardesc.merge(dynamic_cast<VariableDescAttr *>(type_nospec.attr)->desc);

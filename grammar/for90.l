@@ -62,8 +62,10 @@ void update_yylval(Term & current_term) {
 int yylex(void) {
 	if (!get_flex_context().terminal_cache.empty())
 	{
-		int p = std::get<0>(get_flex_context().terminal_cache.back());
-		update_yylval(std::get<1>(get_flex_context().terminal_cache.back()));
+		int p;
+		Term term;
+		std::tie(p, term) = get_flex_context().terminal_cache.back();
+		update_yylval(term);
 		get_flex_context().terminal_cache.pop_back();
 		return p;
 	}

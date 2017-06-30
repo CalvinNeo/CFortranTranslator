@@ -126,7 +126,7 @@ ParseNode gen_argtable(ARG_IN argtable) {
 }
 
 
-void regen_paramtable(FunctionInfo * finfo, ARG_OUT paramtable) {
+void regen_paramtable(FunctionInfo * finfo, ParseNode & paramtable) {
 	TokenMeta_T paramtable_type = TokenMeta::NT_ARGTABLE_PURE;
 	for (int i = 0; i < paramtable.length(); i++)
 	{

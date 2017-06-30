@@ -70,7 +70,7 @@ ParseNode gen_comment(std::string comment, bool line_comment) {
 	}
 }
 
-void insert_comments(ARG_OUT newnode) {
+void insert_comments(ParseNode & newnode) {
 	for (size_t i = 0; i < get_flex_context().comments.size(); i++)
 	{
 		std::string c = get_flex_context().comments[i];

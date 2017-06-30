@@ -53,13 +53,13 @@
     <ClInclude Include="..\..\for90std\forstdio.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\for90std\forutils.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\for90std\farray.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="..\..\for90std\forarray_common.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\for90std\utils.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

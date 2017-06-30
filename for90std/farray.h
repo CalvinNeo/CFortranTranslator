@@ -448,6 +448,17 @@ static void _map_impl_reset(size_type * cur, int dimension, int & curdim, const 
 	std::copy_n(LBound, dimension, cur);
 	curdim = 0;
 }
+template <typename size_type>
+static bool _map_impl_has_next(size_type * cur, int dimension, const size_type * LBound, const size_type * size) {
+	for (int i = 0; i < dimension; i++)
+	{
+		if (cur[i] < LBound[i] + size[i] - 1)
+		{
+			return true;
+		}
+	}
+	return false;
+}
 template <typename F, typename size_type>
 static bool _map_impl_next(F f, size_type * cur, int dimension, int & cur_dim, const size_type * LBound, const size_type * size) {
 	/***************

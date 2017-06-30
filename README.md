@@ -132,6 +132,11 @@ io-implied-do will be translated into a `IOLambda`, refer [/target/gen_io.cpp](/
 auto make_iolambda(const fsize_t(&_lb)[D], const fsize_t(&_to)[D], F func);
 auto make_iolambda(fsize_t * _lb, fsize_t * _to, F func);
 ```
+For input function like `forreadfree` and `forread`, the `io-implied-do-object-list` must be a *variable*(R914), so `F f` must return left-value.
+For output function like `forwritefree` and `forwrite`, the `io-implied-do-object-list` must be a *expr*(R915), so `F f` can return anything.
+
+#### IOStuff
+`IOStuff` wraps a list of `input-item-list` or `output-item-list` inside an io-implied-do.  
 
 ## translation results and restrictions
 refer to [/grammar/for90.y](/grammar/for90.y) for all accepted grammar
@@ -404,56 +409,9 @@ actual argument (12.5.2.1, 12.5.2.2, 12.5.2.3).
 
 ## fortran 77 standard support
 ### fixed form
-> 3.3.2 Fixed source form
-In fixed source form, there are restrictions on where a statement may appear within a line. If a source line
-contains only default kind characters, it must contain exactly 72 characters; otherwise, its maximum number of
-characters is processor dependent.
-Except in a character context, blanks are insignificant and may be used freely throughout the program.
-
-> 3.3.2.1 Fixed form commentary
-The character "!" initiates a comment except when it appears within a character context or in character position 6. 
-The comment extends to the end of the line. If the first nonblank character on a line is an "!" in any character
-position other than character position 6, the line is a comment line. Lines beginning with a "C" or "*" in
-character position 1 and lines containing only blanks are also comments. Comments may appear anywhere within
-a program unit and may precede the first statement of the program unit. Comments have no effect on the
-interpretation of the program unit.
-
-> 3.3.2.2 Fixed form statement separation
-The character ";" separates statements, or partial statements, on a single source line except when it appears in a
-character context or in a comment. If a ";" separator is followed by zero or more blanks and one or more ";"
-separators, the sequence from the first ";" to the last, inclusive, is interpreted as a single ";" separator. A ";"
-separator that is the last nonblank character on a line, or the last nonblank character ahead of commentary, is
-ignored.
-
-> 3.3.2.3 Fixed form statement continuation
-Except within commentary, character position 6 is used to indicate continuation. If character position 6 contains
-a blank or zero, this line is the initial line of a new statement which begins in character position 7. If character
-position 6 contains any character other than blank or zero, character positions 7-72 of this line constitute a
-continuation of the preceding noncomment line. Note that an "!" or ";" in character position 6 indicates a
-continuation of the preceding noncomment line. Comment lines cannot be continued. Comment lines may occur
-within a continued statement.
-In order to support some old fortran codes, a tab `'\t'` at the beginning of one line is also treated as the 5 characters indent
 
 ### implicit 
 
-> 5.3 IMPLICIT statement
-> In a scoping unit, an IMPLICIT statement specifies a type, and possibly type parameters, for all implicitly
-typed data entities whose names begin with one of the letters specified in the statement. Alternatively, it may
-indicate that no implicit typing rules are to apply in a particular scoping unit.
-
-> In each scoping unit, there is a mapping, which may be null, between each of the letters A, B, ..., Z and a type
-(and type parameters). An IMPLICIT statement specifies the mapping for the letters in its letter-spec-list.
-IMPLICIT NONE specifies the null mapping for all the letters. If a mapping is not specified for a letter, the
-default for a program unit or an interface body is default integer if the letter is I, J, ..., or N and default real
-otherwise, and the default for an internal or module procedure is the mapping in the host scoping unit.
-
-> Any data entity that is not explicitly declared by a type declaration statement, is not an intrinsic function, and is
-not made accessible by use association or host association is declared implicitly to be of the type (and type
-parameters) mapped from the first letter of its name, provided the mapping is not null. Note that the mapping can
-be to a derived type that is inaccessible in the local scope if the derived type is accessible to the host scope. The
-data entity is treated as if it were declared in an explicit type declaration in the outermost scoping unit in which
-it appears. An explicit type specification in a FUNCTION statement overrides an IMPLICIT statement for the
-name of that function subprogram.
 
 #### implicit parameters table
 Not all parameters in a `paramtable` need to be declared explicitly in the function body, if the parameter
