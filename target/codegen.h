@@ -20,8 +20,8 @@
 #pragma once
 
 
-#include "../context.h"
-#include "../attribute.h"
+#include "../parser/context.h"
+#include "../parser/attribute.h"
 #include "gen_config.h"
 #include <boost/lexical_cast.hpp>
 
@@ -95,12 +95,15 @@ bool is_function_array(const ParseNode & entity_variable);
 bool is_exp(const ParseNode & exp); 
 bool is_element(const ParseNode & x);
 bool is_literal(const ParseNode & x);
+bool is_str(const ParseNode & x);
+bool is_int(const ParseNode & x);
+bool is_floating(const ParseNode & x);
 bool is_fortran_function(FunctionInfo * finfo, std::string name);
 
 void regen_read(FunctionInfo * finfo, ParseNode & stmt);
 void regen_write(FunctionInfo * finfo, ParseNode & stmt);
 void regen_print(FunctionInfo * finfo, ParseNode & stmt);
-void regen_vardef(FunctionInfo * finfo, VariableInfo * vinfo, ParseNode & type_nospec, VariableDesc & desc, ParseNode & entity_variable);
+void regen_vardef(FunctionInfo * finfo, VariableInfo * vinfo, VariableDesc & desc);
 void regen_function(FunctionInfo * finfo, ParseNode & functiondecl_node);
 void regen_select(FunctionInfo * finfo, ParseNode & select_stmt);
 void regen_if(FunctionInfo * finfo, ParseNode & if_stmt);
@@ -121,7 +124,6 @@ void regen_function_array(FunctionInfo * finfo, ParseNode & callable);
 void regen_slice(FunctionInfo * finfo, ParseNode & slice);
 void insert_comments(ParseNode & newnode);
 
-std::string parse_ioformatter(const std::string &); 
 ParseNode gen_format(ARG_IN format);
 
 ParseNode gen_vardef(ARG_IN type_nospec, ARG_IN variable_desc, ARG_IN paramtable);
@@ -161,7 +163,7 @@ ParseNode gen_implicit_type(std::string name);
 ParseNode gen_type(ARG_IN type_nospec, ARG_IN _type_kind);
 ParseNode gen_type(ARG_IN type_nospec);
 ParseNode gen_type(Term typeterm);
-std::string gen_qualified_typestr(ARG_IN type_name, VariableDesc & vardesc);
+std::string gen_qualified_typestr(const ParseNode & type_spec, VariableDesc & vardesc);
 
 ParseNode gen_array_from_paramtable(ARG_IN argtable);
 

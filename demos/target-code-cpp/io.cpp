@@ -25,9 +25,23 @@ void test_iolambda(){
 			return i + 1;
 		}(current[0]);
 	}));
+	
+	forwrite(stdout, "%d", make_iolambda({ 1 }, { 2 }, [&](const fsize_t * current) {
+		return [&](fsize_t j) {
+			return make_iostuff(make_tuple(j + 1, j + 2));
+		}(current[0]);
+	}));
 }
 
-void test_combined(){
+void test_ioformat(){
+	int a , b, c;
+	forreadfree(stdin, a, b, c);
+	forread(stdin, IOFormat("%d"), a, b, c);
+	a = 21; b = 22; c = 23;
+	forprintfree(a, b, c);
+}
+
+void test_error(){
 	//auto f = [&](const fsize_t * current) {
 	//	const IOStuff<int, int> & iost = [&](fsize_t j) {
 	//		return make_iostuff(make_tuple(j + 1, j + 2));
@@ -47,18 +61,24 @@ void test_combined(){
 	//foreach_tuple(ans.tp, [&](auto x) {
 	//	cout << x << endl;;
 	//});
-	const IOStuff<int, int> * ptr = nullptr;
-	auto newf = [&](fsize_t * _) {
-		const IOStuff<int, int> & ans = make_iostuff(make_tuple(1 + 1, 1 + 2));
+	
+	//const IOStuff<int, int> * ptr = nullptr;
+	//auto newf = [&](fsize_t * _) {
+	//	const IOStuff<int, int> & ans = make_iostuff(make_tuple(1 + 1, 1 + 2));
 		// WARNING: do not get pointer of expiring value
-		ptr = &ans;
-	};
-	int index[] = { 0, 0 };
+	//	ptr = &ans;
+	//};
+	//int index[] = { 0, 0 };
 	//auto ans = f(index);
-	newf(index);
+	//newf(index);
 	//auto ans = *ptr; // error
-	const IOStuff<int, int> & ans = *ptr;
-	foreach_tuple(ans.tp, [&](auto x) {
-		cout << x << endl;;
-	});
+	//const IOStuff<int, int> & ans = *ptr;
+	//foreach_tuple(ans.tp, [&](auto x) {
+	//	cout << x << endl;;
+	//});
+	
+	//const auto stuff = make_iostuff(make_tuple(1, 2));
+	//foreach_tuple(stuff.tp, [&](auto x) {
+	//	cout << x + 1 << endl;;
+	//});
 }

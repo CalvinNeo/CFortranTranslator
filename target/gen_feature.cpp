@@ -66,24 +66,43 @@ bool is_element(const ParseNode & elem) {
 }
 bool is_literal(const ParseNode & lit) {
 	TokenMeta_T tok = lit.get_token();
-	if (tok == TokenMeta::Int) return true;
-	if (tok == TokenMeta::Char) return true;
-	if (tok == TokenMeta::String) return true;
-	if (tok == TokenMeta::Double) return true;
+	if (is_int(lit)) return true;
+	if (is_str(lit)) return true;
+	if (is_floating(lit)) return true;
 	if (tok == TokenMeta::Bool) return true;
-	if (tok == TokenMeta::Float) return true;
 	if (tok == TokenMeta::Complex) return true;
 	if (tok == TokenMeta::Function) return true;
+	if (tok == TokenMeta::False) return true;
+	if (tok == TokenMeta::True) return true;
+	return false;
+}
+
+bool is_int(const ParseNode & lit) {
+	TokenMeta_T tok = lit.get_token();
+	if (tok == TokenMeta::Int) return true;
+	if (tok == TokenMeta::Char) return true;
 	if (tok == TokenMeta::Int8) return true;
 	if (tok == TokenMeta::Int16) return true;
 	if (tok == TokenMeta::Int32) return true;
 	if (tok == TokenMeta::Int16) return true;
 	if (tok == TokenMeta::Int64) return true;
-	if (tok == TokenMeta::LongDouble) return true;
-	if (tok == TokenMeta::False) return true;
-	if (tok == TokenMeta::True) return true;
 	return false;
 }
+
+bool is_str(const ParseNode & lit) {
+	TokenMeta_T tok = lit.get_token();
+	if (tok == TokenMeta::String) return true;
+	return false;
+}
+
+bool is_floating(const ParseNode & lit) {
+	TokenMeta_T tok = lit.get_token();
+	if (tok == TokenMeta::Double) return true;
+	if (tok == TokenMeta::LongDouble) return true;
+	if (tok == TokenMeta::Float) return true;
+	return false;
+}
+
 
 bool is_fortran_function(FunctionInfo * finfo, std::string name) {
 	VariableInfo * vinfo = get_variable(get_context().current_module, finfo->local_name, name);
@@ -101,7 +120,7 @@ bool is_fortran_function(FunctionInfo * finfo, std::string name) {
 		}
 	}
 	else {
-		if (vinfo->type.get_token() == TokenMeta::Function_Decl)
+		if (vinfo->type.get_token() == TokenMeta::Function_Decl || vinfo->type.get_token() == TokenMeta::Function)
 		{
 			// interface
 			return true;

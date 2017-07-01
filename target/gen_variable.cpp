@@ -122,7 +122,7 @@ VariableInfo * check_implicit_variable(FunctionInfo * finfo, const std::string &
 		ParseNode vardef_node = gen_vardef_from_default(implicit_type, name);
 		vinfo->vardef_node = new ParseNode(vardef_node); // set in regen_suite and gen_common
 	}
-	else if (vinfo->type.get_token() == TokenMeta::Implicit_Decl)
+	else if (vinfo->type.get_token() == TokenMeta::Implicit_Decl )
 	{
 		vinfo->type = gen_implicit_type(name); // set in regen_vardef
 	}

@@ -61,7 +61,7 @@ void get_full_paramtable(FunctionInfo * finfo) {
 
 		if(vinfo != nullptr) // definition in suite
 		{
-			if (vinfo->type.get_token() == TokenMeta::Function_Decl) {
+			if (vinfo->type.get_token() == TokenMeta::Function) {
 				// function declared in an interface block
 				ParseNode * funcdef_node = vinfo->vardef_node;
 				FunctionInfo * interface_finfo = add_function("@", "", FunctionInfo{});
@@ -74,7 +74,7 @@ void get_full_paramtable(FunctionInfo * finfo) {
 					sprintf(codegen_buf, "std::function<%s(%s)>", interface_return_vinfo->type.get_what().c_str(), interface_paramtable_str.c_str());
 					
 					// set param_info for `regen_paramtable`
-					vinfo->type = gen_type(Term{ TokenMeta::Function_Decl, string(codegen_buf) });
+					vinfo->type = gen_type(Term{ TokenMeta::Function, string(codegen_buf) });
 
 					if (i != paramtable_info.size() - 1) {
 						// `delete` ParseNode except return value 

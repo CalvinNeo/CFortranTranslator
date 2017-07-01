@@ -1,6 +1,6 @@
 # todolist
 ## todolist(features)
-- lazygen(partial)
+- ~~lazygen~~
 - ~~function-array reduction-reduction conflict~~
 - ~~multi-dimension forarray~~
 - ~~multi-dimension forarray array-builder~~
@@ -37,15 +37,15 @@
 - C.13.2.1 Unconditional array computations and C.13.2.2 Conditional array computations
 - underscore kind param, like `.93E7_QUAD` ref standard 4.3.1.2
 - keyword conflict between fortran and c++, such as `class`, `struct`, `int`
-- defined blocks
 - arithmatic if
 - ~~labeled do,~~ if
 - `exit`, `cycle` outer do-loop
-- detailed type attr(add `TokenMeta::Int64`, etc.), use `TokenMeta::Implicit_Decl`, clean `TokenMeta` enum
+- ~~detailed type attr(add `TokenMeta::Int64`, etc.), use `TokenMeta::Implicit_Decl`, clean `TokenMeta` enum~~
 - unicode file
 - underscore kind-param for all type literal(ref 4.3.2.1)
 - ~~display comments~~
 - support other C++ compilers
+- free format continuation(ref 3.3.1.3)
 
 ## todolist(bugfix)
 - ~~if slice can be a scalar x and equal to (1: x + 1), there will be conflict in argtable~~
@@ -63,13 +63,12 @@
 	~~2. only change reduce rules~~
 - ~~`printf` array~~
 - ~~fixed length character initialize with shorter characters~~
-- global attr and node attr
 - ~~add arraybuilder rule to exp rules~~
 - ~~use `make_str_list` function replace some ugly code~~
-- hidden do(~~io-implied-do~~, ac-implied-do, data-implied-do)
+- ~~hidden do(io-implied-do, ac-implied-do, data-implied-do)~~
 - ~~pointer problem, including `VariableDesc::slice`, deal with nullptr~~
 - ~~`ParseNode` inteface change to reference, remove pointer in other structures~~
-- won't generate repeated definitions in implicit paramtable
+- ~~won't generate repeated definitions in implicit paramtable~~
     ```
     subroutine sub(A)
 	    A = 2
@@ -77,7 +76,7 @@
     ```
 - ~~`temporary_variable` to `FunctionInfo` variable~~
 - ~~`regen_if`, `regen_do`, `regen_suite`~~
-- delete all `gen_` functions except `gen_token` with multiple which accepts a list of `YYSTYPE`. ~~`regen_paramtable`~~, ~~`regen_function_array`~~
+- ~~delete all `gen_` functions except `gen_token` with multiple which accepts a list of `YYSTYPE`.~~ ~~`regen_paramtable`~~, ~~`regen_function_array`~~
 - ~~log all arguments in paramtable to `get_context().variable`~~
 - ~~use `is_exp` function instead of `NT_EXPRESSION` node~~. rename `NT_EXPRESSION` to `NT_ARITH_EXP`, which constructed only by arithmatic rules
 - declare all implicit variables (ref demos/implicit variable.txt)
@@ -85,3 +84,5 @@
     ```
     integer a = c
     ```
+- ~~solve `(i+1,i+2, i = 1, 2)` in IO function~~
+- tokenizer: real type(4.3.1.2) conflict with operators, refer demos/control/tokenizer.txt

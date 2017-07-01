@@ -68,7 +68,7 @@ bool maybe_return_array(FunctionInfo * finfo, const ParseNode & elem) {
 			std::string & result_name = f->funcdesc.paramtable_info.back();
 			VariableInfo * result_vinfo = get_variable(get_context().current_module, finfo->local_name, result_name);
 			ParseNode & result_type = result_vinfo->type;
-			if (result_type.get_token() == TokenMeta::Void_Decl)
+			if (result_type.get_token() == TokenMeta::Void_Decl || result_type.get_token() == TokenMeta::Void)
 			{
 				// subroutine
 				return false;

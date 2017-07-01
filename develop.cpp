@@ -20,7 +20,7 @@
 #include "develop.h"
 #include <iostream>  
 #include <sstream>  
-#include "parser.h"
+#include "parser/parser.h"
 #include <stdio.h>
 #include "target/codegen.h"
 #include "for90std/for90std.h"

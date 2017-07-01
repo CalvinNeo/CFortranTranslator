@@ -20,11 +20,9 @@
 #include "parser.h"
 #include "attribute.h"
 #include "tokenizer.h"
-#include "target/codegen.h"
+#include "../target/codegen.h"
 #include <stack>
-#include <iostream>
 #include <cstdio>
-#include <map>
 #include <boost/algorithm/string.hpp>
 #include <cmath>
 #include <cstdio>

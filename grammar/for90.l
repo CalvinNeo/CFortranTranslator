@@ -18,16 +18,14 @@
 */
 %{
 #include <cstdio>
-#include <string>
 #include <iostream>
 #include <functional>
 #include <algorithm>
-#include <map>
 #include <boost/algorithm/string.hpp>
 #include <memory>
-#include "../tokenizer.h"
-#include "../parser.h"
-#include "../context.h"
+#include "../parser/tokenizer.h"
+#include "../parser/parser.h"
+#include "../parser/context.h"
 #include "../target/gen_config.h"
 #include "for90.tab.h"
 #include <tuple>
@@ -122,7 +120,7 @@ int quit_condition(int yy_token, Term term) {
 	abort_condition();
 	return p;
 }
-std::string parse_ioformatter(const std::string & src); // gen_io.cpp
+
 struct FlexExternalContext : public FlexScannerContext {
 	int left_brackets = 0;
 	int len;
@@ -223,7 +221,7 @@ exponent [eEdD][-+]?{digits}?\.{digits}
 floating {digits}?\.{digits}{exponent}?
 narrow_floating {digits}\.
 integral {digits}(_{kind_param})?
-starter ({letter}|_)
+starter({letter}|_)
 wordname {starter}({starter}|{digit})*
 wordoperator \.{wordname}\.
 word ({wordname}|{wordoperator})

@@ -131,9 +131,9 @@ std::string gen_joined_declarations(FunctionInfo * finfo, ParseNode & oldsuite) 
 				}else{
 					all_generated = false;
 					if (p.second->commonblock_name != "") {
-						// definition in common block
+						// this variable is defined in common block
 						desc.reference = true;
-						regen_vardef(finfo, vinfo, local_type, desc, entity_variable);
+						regen_vardef(finfo, vinfo, desc);
 
 						// set common
 						auto common_info = get_context().commonblocks.find(vinfo->commonblock_name);
@@ -151,7 +151,7 @@ std::string gen_joined_declarations(FunctionInfo * finfo, ParseNode & oldsuite) 
 					}
 					else {
 						// normal definition
-						regen_vardef(finfo, vinfo, local_type, desc, entity_variable);
+						regen_vardef(finfo, vinfo, desc);
 					}
 					vinfo->generated = true;
 				}
@@ -180,14 +180,14 @@ std::string gen_joined_declarations(FunctionInfo * finfo, ParseNode & oldsuite) 
 		}
 		else {
 			if (p.second->commonblock_name != "") {
-				// definition in common block
+				// this variable is defined in common block
 				std::string common_varname = "_" + to_string(vinfo->commonblock_index + 1);
 				sprintf(codegen_buf, "%s %s = %s.%s;\n", gen_qualified_typestr(local_type, desc).c_str()
 					, local_name.c_str(), vinfo->commonblock_name.c_str(), common_varname.c_str());
 			}
 			else {
 				// normal definition and implicit definition
-				if (vinfo->type.get_token() == TokenMeta::Function_Decl)
+				if (vinfo->type.get_token() == TokenMeta::Function)
 				{
 					// interface
 					sprintf(codegen_buf, "");

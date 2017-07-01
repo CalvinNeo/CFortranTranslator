@@ -24,10 +24,10 @@
 #include <iostream>
 #include <stdarg.h>
 #include <tuple>
-#include "../attribute.h"
-#include "../parser.h"
+#include "../parser/attribute.h"
+#include "../parser/parser.h"
 #include "../target/codegen.h"
-#include "../Function.h"
+#include "../parser/Function.h"
 
 
 // 前置声明, 不然编译不过

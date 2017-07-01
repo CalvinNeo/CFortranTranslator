@@ -54,40 +54,37 @@ void promote_type(ParseNode & type_nospec, VariableDesc & vardesc) {
 	/* merge type_spec and variable_desc attr */
 	vardesc.merge(dynamic_cast<VariableDescAttr *>(type_nospec.attr)->desc);
 	if (vardesc.kind.isdirty()) {
-		if (type_nospec.get_token() == TokenMeta::Int_Decl) {
+		if (type_nospec.get_token() == TokenMeta::Int) {
 			if (vardesc.kind == 1) {
-				type_nospec.fs.CurrentTerm = Term{ TokenMeta::Int8_Decl, "int8_t" };
+				type_nospec.fs.CurrentTerm = Term{ TokenMeta::Int8, "int8_t" };
 			}
 			else if (vardesc.kind == 2) {
-				type_nospec.fs.CurrentTerm = Term{ TokenMeta::Int16_Decl, "int16_t" };
+				type_nospec.fs.CurrentTerm = Term{ TokenMeta::Int16, "int16_t" };
 			}
 			else if (vardesc.kind == 4) {
-				type_nospec.fs.CurrentTerm = Term{ TokenMeta::Int32_Decl, "int32_t" };
+				type_nospec.fs.CurrentTerm = Term{ TokenMeta::Int32, "int32_t" };
 			}
 			else if (vardesc.kind == 8) {
-				type_nospec.fs.CurrentTerm = Term{ TokenMeta::Int64_Decl, "int64_t" };
+				type_nospec.fs.CurrentTerm = Term{ TokenMeta::Int64, "int64_t" };
 			}
 		}
-		else if (type_nospec.get_token() == TokenMeta::Float_Decl) {
+		else if (type_nospec.get_token() == TokenMeta::Float) {
 			if (vardesc.kind < 4) {
-				type_nospec.fs.CurrentTerm = Term{ TokenMeta::Float_Decl, "float" };
+				type_nospec.fs.CurrentTerm = Term{ TokenMeta::Float, "float" };
 			}
 			else if (vardesc.kind == 4) {
-				type_nospec.fs.CurrentTerm = Term{ TokenMeta::Double_Decl, "double" };
+				type_nospec.fs.CurrentTerm = Term{ TokenMeta::Double, "double" };
 			}
 			else if (vardesc.kind == 8) {
-				type_nospec.fs.CurrentTerm = Term{ TokenMeta::LongDouble_Decl, "long double" };
+				type_nospec.fs.CurrentTerm = Term{ TokenMeta::LongDouble, "long double" };
 			}
 		}
 	}
 }
 
-std::string gen_qualified_typestr(ARG_IN type_nospec, VariableDesc & vardesc) {
-	ParseNode type_spec = type_nospec;
-	// get specific type according to kind
-	promote_type(type_spec, vardesc); 
+std::string gen_qualified_typestr(const ParseNode & type_spec, VariableDesc & vardesc) {
 	string var_pattern;
-	if (type_spec.get_token() == TokenMeta::Function_Decl)
+	if (type_spec.get_token() == TokenMeta::Function)
 	{
 		var_pattern = "%s";
 	}

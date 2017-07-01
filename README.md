@@ -52,12 +52,12 @@ bjam --toolset=msvc-14.0 address-model=64
 - configure win\_flex and win\_bison
     1. On the Project menu, choose Project Dependencies.
     2. Select Custom Build Tools
-    3. Add [/build/custom_build_rules/win_flex_bison_custom_build.props](/build/custom_build_rules/win_flex_bison_custom_build.props)
+    3. Add [/grammar/custom_build_rules/win_flex_bison_custom_build.props](/grammar/custom_build_rules/win_flex_bison_custom_build.props)
 
 ### Use fortran standard library
 fortran standard library requires compiler support at least C++14 standard
 
-### start
+### run with arguments
 
     -f file_name : translate file_name into C++
     -d : use debug mode
@@ -69,12 +69,12 @@ Only fatal errors hinderring parsing will be reported by translator.
 Debug origin fortran code or generated C++ code is recommended.
 
 ## Demo
-demos provided in [demos](/demos)
+several demos are provided in [demos](/demos)
 
 ## fortran standard library
 include [for90std/for90std.h](/for90std/for90std.h) to use C++ implementation of intrinsic fortran functions and language features
 
-### inherit function mapping
+### inherit function
 #### type and type cast function
 |fortran|C++|
 |:-:|:-:|
@@ -93,7 +93,7 @@ include [for90std/for90std.h](/for90std/for90std.h) to use C++ implementation of
 #### array
 refer types:array
 
-### IO function mapping
+### IO function
 #### unit id mapping
 
 |fortran|C++|
@@ -103,28 +103,26 @@ refer types:array
 |6|`stdout`|
 |id|`get_file(id)`|
 
-#### file function mapping
+#### file function
 
 |fortran|C++|
 |:-:|:-:|
 |open|foropenfile|
 |close|forclosefile|
 
-#### IO formatter mapping
+#### IO format
 
 |fortran|C++|
 |:-:|:-:|
-|`*` and `(*,*)`|forscanfree/forprintfree|
-|`(*,formatter)`|forscan/forprint|
-|`(device_id,*)`|forreadfree/forwritefree|
-|`(device_id,formatter)`|forread/forwrite|
+|`*` and `(*,*)`|`forscanfree`/`forprintfree`|
+|`(*,formatter)`|`forscan`/`forprint`|
+|`(device_id,*)`|`forreadfree`/`forwritefree`|
+|`(device_id,formatter)`|`forread`/`forwrite`|
 
 #### io-implied-do
 
 > R916 io-implied-do is ( io-implied-do-object-list , io-implied-do-control )
-
 > R917 io-implied-do-object is input-item or output-item
-
 > R918 io-implied-do-control is do-variable = scalar-numeric-expr , scalar-numeric-expr [ , scalar-numeric-expr ]
 
 io-implied-do will be translated into a `IOLambda`, refer [/target/gen_io.cpp](/target/gen_io.cpp)
@@ -133,12 +131,15 @@ auto make_iolambda(const fsize_t(&_lb)[D], const fsize_t(&_to)[D], F func);
 auto make_iolambda(fsize_t * _lb, fsize_t * _to, F func);
 ```
 For input function like `forreadfree` and `forread`, the `io-implied-do-object-list` must be a *variable*(R914), so `F f` must return left-value.
+
 For output function like `forwritefree` and `forwrite`, the `io-implied-do-object-list` must be a *expr*(R915), so `F f` can return anything.
 
 #### IOStuff
-`IOStuff` wraps a list of `input-item-list` or `output-item-list` inside an io-implied-do.  
+`IOStuff` wraps a list of `input-item-list` or `output-item-list` inside an io-implied-do. 
 
-## translation results and restrictions
+Inside `IOStuff` is a `std::tuple`, use `foreach_tupe(iostuff.tup)` to enumerate content of `IOStuff`
+
+## target code and restrictions
 refer to [/grammar/for90.y](/grammar/for90.y) for all accepted grammar
 ### grammar
 

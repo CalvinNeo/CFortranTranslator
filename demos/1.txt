@@ -1,1 +1,2 @@
+integer a1
 WRITE(1,*) (j+1,j+2,J=1,2)

@@ -146,15 +146,15 @@ std::string regen_stmt(FunctionInfo * finfo, ParseNode & stmt) {
 					{
 						vinfo->desc.merge(get_variabledesc_attr(vardescattr));
 					}
-					else {
-						// `regen_vardef` will be called in the end
+					else if(vinfo == nullptr){
+						// `regen_vardef` will be called in `gen_joined_declarations`
 						vinfo = add_variable(get_context().current_module, finfo->local_name, name, VariableInfo{});
 						vinfo->commonblock_index = 0; // set in regen_suite and gen_common
 						vinfo->commonblock_name = ""; // set in regen_suite and gen_common
 					}
 					if (is_function_array(entity_variable))
 					{
-						// handled in `regen_stmt`
+						
 					}
 					else if (entity_variable.get_token() == TokenMeta::NT_EXPRESSION)
 					{

@@ -139,50 +139,115 @@ namespace for90std {
 	}
 
 	struct IOFormat {
-		IOFormat(const char * ch) : reversion_start(0) {
-			format = std::string(ch);
+		IOFormat(const char * ch) : reversion_start(0), p(0) {
+			fmt = std::string(ch);
 		}
-		IOFormat(const std::string & s) : reversion_start(0) {
-			format = s;
+		IOFormat(const std::string & s) : reversion_start(0), p(0) {
+			fmt = s;
 		}
-		IOFormat(const char * ch, int rev_start) : reversion_start(rev_start) {
-			format = std::string(ch);
+		IOFormat(const char * ch, int rev_start) : reversion_start(rev_start), p(0) {
+			fmt = std::string(ch);
 		}
-		IOFormat(const std::string & s, int rev_start) : reversion_start(rev_start) {
-			format = s;
+		IOFormat(const std::string & s, int rev_start) : reversion_start(rev_start), p(0) {
+			fmt = s;
 		}
+
+		IOFormat & operator=(const IOFormat & x) {
+			if (this == &x) return *this;
+			fmt = x.fmt;
+			reversion_start = x.reversion_start;
+			p = 0;
+			return *this;
+		}
+
+		const char & operator[](size_t off) const {
+			return fmt[off];
+		}
+		char & operator[](size_t off) {
+			return fmt[off];
+		}
+		size_t size() const {
+			return fmt.size();
+		}
+		std::string substr(size_t offset = 0, size_t count = std::string::npos) const {
+			return fmt.substr(offset, count);
+		}
+		const char * c_str() const{
+			return fmt.c_str();
+		}
+		size_t & index() {
+			if (p >= size())
+			{
+				p = reversion_start;
+			}
+			return p;
+		}
+		const size_t & index() const {
+			if (p >= size())
+			{
+				p = reversion_start;
+			}
+			return p;
+		}
+
+
+		std::string strip_front() {
+			size_t st = index();
+			size_t i = st;
+			for (; i < size(); i++)
+			{
+				switch (fmt[i])
+				{
+				case '\\':
+					if (i + 1 < size()) {
+						// escape character
+					}
+					i++;
+					break;
+				case '%':
+					// start of placeholder
+					goto RETURN_FRONT;
+				default:
+					break;
+				}
+			}
+RETURN_FRONT:
+			std::string sub = fmt.substr(st, i - st);
+			index() = i;
+			return sub;
+		}
+
+		std::string next_editing() {
+			std::string editing;
+			size_t st = index();
+			assert(st >= size() || fmt[st] == '%'); // start with an editing
+			size_t e = fmt.find_first_of('%', st + 1); // find next editing
+			if (e == std::string::npos) {
+				// the last editing
+			}
+			else {
+			}
+			editing = fmt.substr(st, e);
+			index() = e - st;
+			return editing;
+		}
+
 		int reversion_start;
-		std::string format;
+		mutable size_t p;
+		std::string fmt;
 	};
 
 
-	inline std::string _forwrite_noargs(FILE * f, const std::string & format) {
-		for (size_t i = 0; i < format.size(); i++)
-		{
-			switch (format[i])
-			{
-			case '\\':
-				if (i + 1 < format.size()) {
-					// escape character
-					fprintf(f, format.substr(i, 2).c_str());
-				}
-				i++;
-				break;
-			case '%':
-				return format.substr(i);
-			default:
-				fprintf(f, format.substr(i, 1).c_str());
-				break;
-			}
-		}
-		return format;
+	inline void _forwrite_noargs(FILE * f, IOFormat & format) {
+		fprintf(f, format.strip_front().c_str());
+		return;
 	}
 
 	template <typename T>
-	void _str_fprintf(FILE * f, std::string _format, const T & x) {
+	void _str_fprintf(FILE * f, const std::string & _format, const T & x) {
 		fprintf(f, _format.c_str(), x);
 	}
-	inline void _str_fprintf(FILE * f, std::string _format, const std::string & x) {
+	inline void _str_fprintf(FILE * f, const std::string & _format, const std::string & x) {
 		fprintf(f, _format.c_str(), x.c_str());
 	}
 
@@ -190,95 +255,85 @@ namespace for90std {
 	// format
 	// write formatted step 2
 	template <typename T>
-	std::string _forwrite_one(FILE * f, std::string format, const T & x) {
-		// clear front
-		std::string _format = _forwrite_noargs(f, format);
-		if (_format != "") {
-			// now start from '%' or _format is empty string
-			size_t e = _format.find_first_of('%', 1);
-			if (e == std::string::npos) {
-				// the last formatter
-				_str_fprintf(f, _format, x);
-				return "";
-			}
-			else {
-				_str_fprintf(f, _format.substr(0, e), x);
-				return _format.substr(e);
-			}
-		}
-		else {
-			_str_fprintf(f, _format, x);
-			return "";
-		}
+	void _forwrite_one(FILE * f, IOFormat & format, const T & x) {
+		// strip front
+		_forwrite_noargs(f, format);
+		fprintf(f, format.next_editing().c_str(), x);
 	};
 	template <typename T>
-	std::string _forwrite_one_arr1(FILE * f, std::string format, const T & x) {
+	void _forwrite_one_arr1(FILE * f, IOFormat & format, const T & x) {
 		// clear front
-		std::string _format = _forwrite_noargs(f, format);
+		_forwrite_noargs(f, format);
 		typedef typename f1a_gettype<T>::type _InnerT;
 		std::vector<_InnerT> vec = f1a_flatterned(x);
-		for (auto i = 0; i < vec.size(); i++)
+		for (size_t i = 0; i < vec.size(); i++)
 		{
-			if (_format == "") {
-				_format = format;
-			}
-			_format = _forwrite_one(f, _format, vec[i]);
+			_forwrite_dispatch(f, format, vec[i]);
 		}
-		if (_format.find_first_of("%") != std::string::npos) {
-			fprintf(f, "\n");
-		}
-		return _format;
+		//if (_format.find_first_of("%") != std::string::npos) {
+		//	fprintf(f, "\n");
+		//}
+		return;
 	};
 	template <typename T>
-	std::string _forwrite_one_arrf(FILE * f, std::string format, const farray<T> & x) {
+	void _forwrite_one_arrf(FILE * f, IOFormat & format, const farray<T> & x) {
 		// clear front
-		std::string _format = _forwrite_noargs(f, format);
+		_forwrite_noargs(f, format);
 		auto iter = x.cbegin();
 		for (fsize_t i = 0; i < x.flatsize(); i++)
 		{
-			if (_format == "") {
-				_format = format;
-			}
-			_format = _forwrite_one(f, _format, *(iter + i));
+			_forwrite_dispatch(f, format, *(iter + i));
 		}
-		if (_format.find_first_of("%") != std::string::npos) {
-			fprintf(f, "\n");
-		}
-		return _format;
+		//if (_format.find_first_of("%") != std::string::npos) {
+		//	fprintf(f, "\n");
+		//}
+		return;
 	};
 	// write formatted step 1
 	template <typename T>
-	std::string _forwrite_dispatch(FILE * f, std::string format, const for1array<T> & x) {
-		return _forwrite_one_arr1(f, format, x);
+	void _forwrite_dispatch(FILE * f, IOFormat & format, const for1array<T> & x) {
+		_forwrite_one_arr1(f, format, x);
 	};
 	template <typename T>
-	std::string _forwrite_dispatch(FILE * f, std::string format, const farray<T> & x) {
-		return _forwrite_one_arrf(f, format, x);
+	void _forwrite_dispatch(FILE * f, IOFormat & format, const farray<T> & x) {
+		_forwrite_one_arrf(f, format, x);
 	};
 	template <typename T>
-	std::string _forwrite_dispatch(FILE * f, std::string format, const T & x) {
-		return _forwrite_one(f, format, x);
+	void _forwrite_dispatch(FILE * f, IOFormat & format, const T & x) {
+		_forwrite_one(f, format, x);
+	};
+	template <typename ... Types>
+	void _forwrite_dispatch(FILE * f, IOFormat & format, const typename IOStuff<Types...> & iostuff) {
+		foreach_tuple(iostuff.tp, [&](auto x) {
+			_forwrite_dispatch(f, format, x);
+		});
 	};
 	template <typename T, typename F>
-	std::string _forwrite_dispatch(FILE * f, std::string format, IOLambda<T, F> & l) {
-		string _format = format;
+	void _forwrite_dispatch(FILE * f, IOFormat & format, const IOLambda<T, F> & l) {
 		while (l.has_next())
 		{
-			_format = _forwrite_dispatch(f, _format, l.get_next());
+			_forwrite_dispatch(f, format, l.get_next());
 		}
-		return  _format;
+		return ;
 	};
 
 	// write formatted step 0
 	template <typename T, typename... Args>
-	void forwrite(FILE * f, std::string format, T x, Args... args) {
-		format = _forwrite_dispatch(f, format, x);
+	void forwrite(FILE * f, IOFormat & format, const T & x, Args&&... args) {
+		_forwrite_dispatch(f, format, x);
 		forwrite(f, format, std::forward<Args>(args)...);
 	};
-	inline void forwrite(FILE * f, std::string format) {
+	inline void forwrite(FILE * f, IOFormat & format) {
 		// clear end
 		_forwrite_noargs(f, format);
 	};
+	template <typename T, typename... Args>
+	void forwrite(FILE * f, const std::string & format, const T & x, Args&&... args) {
+		IOFormat _format(format);
+		_forwrite_dispatch(f, _format, x);
+		forwrite(f, _format, std::forward<Args>(args)...);
+	};
+
 
 	// free format
 	// write free step 2
@@ -307,11 +362,12 @@ namespace for90std {
 	void _forwritefree_one(FILE * f, T x) {
 		fprintf(f, "[object %s] %p", typeid(T).name(), &x);
 	};
+
 	template <typename T>
 	void _forwritefree_one_arr1(FILE * f, const for1array<T> &  x) {
 		typedef typename f1a_gettype<T>::type _InnerT;
 		std::vector<_InnerT> vec = f1a_flatterned(x);
-		for (auto i = 0; i < vec.size(); i++)
+		for (size_t i = 0; i < vec.size(); i++)
 		{
 			_forwritefree_one(f, vec[i]);
 			fprintf(f, "\t");
@@ -368,7 +424,7 @@ namespace for90std {
 
 
 	template <typename T, typename... Args>
-	void forprintfree(const T & x, Args... args) {
+	void forprintfree(const T & x, Args&&... args) {
 		// no format
 		forwritefree(stdout, x, std::forward<Args>(args)...);
 	};
@@ -377,106 +433,95 @@ namespace for90std {
 		forwritefree(stdout, x);
 	};
 	template <typename T, typename... Args>
-	void forprint(std::string format, const T & x, Args... args) {
+	void forprint(IOFormat & format, const T & x, Args... args) {
 		// format
 		forwrite(stdout, format, x, std::forward<Args>(args)...);
 	};
-	inline void forprint(std::string format) {
+	template <typename T, typename... Args>
+	void forprint(const std::string & format, const T & x, Args... args) {
+		// format
+		forwrite(stdout, format, x, std::forward<Args>(args)...);
+	};
+	inline void forprint(IOFormat & format) {
 		forwrite(stdout, format);
 	};
 	
 
 	// read
-	inline std::string _forread_noargs(FILE * f, std::string format) {
-		char x;
-		std::string::iterator it = format.begin();
-		while (fscanf(f, "%c", &x) != EOF)
-		{
-			if (x == *it) {
-				it++;
-			}
-			else if (x == '%') {
-				break;
-			}
-			else {
-				// error
-				throw 0;
-			}
-		}
-		return std::string(it, format.end());
+	inline void _forread_noargs(FILE * f, IOFormat & format) {
+		format.strip_front();
 	}
 
-
 	template <typename T>
-	void _str_fscanf(FILE * f, std::string _format, T & x) {
+	void _str_fscanf(FILE * f, const std::string & _format, T & x) {
 		fscanf(f, _format.c_str(), &x);
 	}
-	inline void _str_fscanf(FILE * f, std::string _format, std::string & x) {
+	inline void _str_fscanf(FILE * f, const std::string & _format, std::string & x) {
 		std::cin >> x;
 	}
+
 	// read formatted step 2
 	template <typename T>
-	void _forread_one(FILE * f, std::string format, T & x) {
+	void _forread_one(FILE * f, IOFormat & format, T & x) {
+		// strip front
+		_forread_noargs(f, format);
+		fscanf(f, format.next_editing().c_str(), &x);
+	};
+	template <typename T>
+	void _forread_one_arr1(FILE * f, IOFormat & format, for1array<T> & x) {
+
+	};
+	template <typename T>
+	void _forread_one_arrf(FILE * f, IOFormat & format, farray<T> & x) {
 		// clear front
-		std::string _format = _forread_noargs(f, format);
-		if (_format != "") {
-			// now start from '%' or _format is empty string
-			size_t e = _format.find_first_of('%', 1);
-			if (e == std::string::npos) {
-				// the last formatter
-				_str_fscanf(f, _format, x);
-				return "";
-			}
-			else {
-				_str_fscanf(f, _format.substr(0, e), x);
-				return _format.substr(e);
-			}
+		_forread_noargs(f, format);
+		auto iter = x.cbegin();
+		for (fsize_t i = 0; i < x.flatsize(); i++)
+		{
+			_forread_dispatch(f, format, *(iter + i));
 		}
-		else {
-			_str_fscanf(f, _format, x);
-			return "";
-		}
-	};
-	template <typename T>
-	void _forread_one_arr1(FILE * f, std::string format, for1array<T> & x) {
-
-	};
-	template <typename T>
-	void _forread_one_arrf(FILE * f, std::string format, farray<T> & x) {
-
 	};
 	// read formatted step 1
 	template <typename T>
-	std::string _forread_dispatch(FILE * f, std::string format, for1array<T> & x) {
-		return _forread_one_arr1(f, format, x);
+	void _forread_dispatch(FILE * f, IOFormat & format, for1array<T> & x) {
+		_forread_one_arr1(f, format, x);
 	};
 	template <typename T>
-	std::string _forread_dispatch(FILE * f, std::string format, farray<T> & x) {
-		return _forread_one_arrf(f, format, x);
+	void _forread_dispatch(FILE * f, IOFormat & format, farray<T> & x) {
+		_forread_one_arrf(f, format, x);
 	};
 	template <typename T>
-	std::string _forread_dispatch(FILE * f, std::string format, T & x) {
-		return _forread_one(f, format, x);
+	void _forread_dispatch(FILE * f, IOFormat & format, T & x) {
+		_forread_one(f, format, x);
 	};
 	template <typename T, typename F>
-	std::string _forread_dispatch(FILE * f, std::string format, IOLambda<T, F> & l) {
-		string _format = format;
+	void _forread_dispatch(FILE * f, IOFormat & format, IOLambda<T, F> & l) {
 		while (l.has_next())
 		{
-			_format = _forread_dispatch(f, _format, l.get_next());
+			_forread_dispatch(f, format, l.get_next());
 		}
-		return _format;
 	};
+
 	// read formatted step 0
 	template <typename T, typename... Args>
-	void forread(FILE * f, std::string format, T & x, Args... args) {
-		format = _forread_dispatch(f, format, x);
+	void forread(FILE * f, IOFormat & format, T & x, Args&&... args) {
+		_forread_dispatch(f, format, x);
 		forread(f, format, std::forward<Args>(args)...);
 	};
-	template <typename T>
-	void forread(FILE * f, std::string format, T & x) {
-		format = _forread_dispatch(f, format, x);
+
+	inline void forread(FILE * f, IOFormat & format) {
 	};
+	//template <typename T, typename... Args>
+	//void forread(FILE * f, const std::string & format, T & x, Args... args) {
+	//	IOFormat _format(format);
+	//	_forread_dispatch(f, _format, x);
+	//	forread(f, _format, std::forward<Args>(args)...);
+	//};
+	//template <typename T>
+	//void forread(FILE * f, const std::string & format, T & x) {
+	//	IOFormat _format(format);
+	//	_forread_dispatch(f, _format, x);
+	//};
 
 	// free format
 	// read free step 2

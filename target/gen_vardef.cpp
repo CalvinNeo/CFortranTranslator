@@ -139,7 +139,19 @@ std::string gen_vardef_scalar_str(FunctionInfo * finfo, VariableInfo * vinfo, Pa
 	// from entity_variable
 	if (entity_variable_initial.get_token() == TokenMeta::NT_VARIABLEINITIALDUMMY) {
 		// if initial value is not dummy but `exp` 
-		sprintf(codegen_buf, "%s %s", type_str.c_str(), get_variable_name(entity_variable).c_str());
+		if (is_int(vinfo->type) ) {
+			sprintf(codegen_buf, "%s %s = 0", type_str.c_str(), get_variable_name(entity_variable).c_str());
+		}
+		else if (is_floating(vinfo->type)) {
+			sprintf(codegen_buf, "%s %s = 0.0", type_str.c_str(), get_variable_name(entity_variable).c_str());
+		}
+		else if (is_str(vinfo->type)) {
+			sprintf(codegen_buf, "%s %s = \"\"", type_str.c_str(), get_variable_name(entity_variable).c_str());
+		}
+		else
+		{
+			sprintf(codegen_buf, "%s %s", type_str.c_str(), get_variable_name(entity_variable).c_str());
+		}
 	}
 	else {
 		regen_exp(finfo, entity_variable_initial);
@@ -171,11 +183,7 @@ ParseNode gen_vardef(ARG_IN type_nospec, ARG_IN variable_desc, ARG_IN paramtable
 	return newnode;
 }
 
-void regen_vardef(FunctionInfo * finfo, VariableInfo * vinfo, ParseNode & type_nospec, VariableDesc & desc, ParseNode & entity_variable) {
-	string var_decl; 
-	bool do_arr = desc.slice.is_initialized();
-	string type_str;
-	// entity_variable is NT_VARIABLE_ENTITY
+void regen_type(ParseNode & type_nospec, VariableInfo * vinfo) {
 	if (type_nospec.get_token() == TokenMeta::Implicit_Decl)
 	{
 		/*****************
@@ -186,9 +194,24 @@ void regen_vardef(FunctionInfo * finfo, VariableInfo * vinfo, ParseNode & type_n
 		* though `check_implicit_variable` will deduce all implicit variable's type and all Implicit_Decl type,
 		*	it can't handle vardef nodes
 		*****************/
-		type_nospec.get_what() = gen_implicit_type(get_variable_name(entity_variable)).get_what();
+		type_nospec.get_what() = gen_implicit_type(get_variable_name(vinfo->entity_variable)).get_what();
 		type_nospec.setattr(new VariableDescAttr());
 	}
+	else {
+		// X_Decl -> X
+		type_nospec.get_token() = type_nospec.get_token() + 100;
+	}
+	promote_type(type_nospec, vinfo->desc);
+}
+
+void regen_vardef(FunctionInfo * finfo, VariableInfo * vinfo, VariableDesc & desc) {
+	string var_decl; 
+	bool do_arr = desc.slice.is_initialized();
+	string type_str;
+	ParseNode & entity_variable = vinfo->entity_variable;
+	ParseNode & type_nospec = vinfo->type;
+	regen_type(type_nospec, vinfo);
+	// entity_variable is NT_VARIABLE_ENTITY
 	if(do_arr){
 		// ARRAY
 		type_str = gen_qualified_typestr(type_nospec, desc);

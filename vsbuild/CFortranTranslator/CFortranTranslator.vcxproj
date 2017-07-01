@@ -27,7 +27,6 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\attribute.cpp" />
     <ClCompile Include="..\..\develop.cpp" />
     <ClCompile Include="..\..\for90std\farray.cpp" />
     <ClCompile Include="..\..\for90std\for90std.cpp" />
@@ -35,14 +34,17 @@
     <ClCompile Include="..\..\for90std\forfilesys.h" />
     <ClCompile Include="..\..\for90std\forlang.cpp" />
     <ClCompile Include="..\..\for90std\forstdio.cpp" />
-    <ClCompile Include="..\..\Function.cpp" />
     <ClCompile Include="..\..\getopt.cpp" />
     <ClCompile Include="..\..\grammar\for90.flex.cpp" />
     <ClCompile Include="..\..\grammar\for90.tab.cpp" />
-    <ClCompile Include="..\..\Intent.cpp" />
     <ClCompile Include="..\..\main.cpp" />
-    <ClCompile Include="..\..\parser.cpp" />
-    <ClCompile Include="..\..\scanner.cpp" />
+    <ClCompile Include="..\..\parser\attribute.cpp" />
+    <ClCompile Include="..\..\parser\Function.cpp" />
+    <ClCompile Include="..\..\parser\Intent.cpp" />
+    <ClCompile Include="..\..\parser\parser.cpp" />
+    <ClCompile Include="..\..\parser\scanner.cpp" />
+    <ClCompile Include="..\..\parser\tokenizer.cpp" />
+    <ClCompile Include="..\..\parser\Variable.cpp" />
     <ClCompile Include="..\..\target\codegen.cpp" />
     <ClCompile Include="..\..\target\gen_arraybuilder.cpp" />
     <ClCompile Include="..\..\target\gen_attr_describer.cpp" />
@@ -67,12 +69,8 @@
     <ClCompile Include="..\..\target\gen_vardef.cpp" />
     <ClCompile Include="..\..\target\gen_variable.cpp" />
     <ClCompile Include="..\..\target\lazygen.cpp" />
-    <ClCompile Include="..\..\tokenizer.cpp" />
-    <ClCompile Include="..\..\Variable.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\attribute.h" />
-    <ClInclude Include="..\..\context.h" />
     <ClInclude Include="..\..\enum_reflect.h" />
     <ClInclude Include="..\..\for90std\farray.h" />
     <ClInclude Include="..\..\for90std\for1array.h" />
@@ -85,18 +83,20 @@
     <ClInclude Include="..\..\for90std\utils.h" />
     <ClInclude Include="..\..\general_config.h" />
     <ClInclude Include="..\..\develop.h" />
-    <ClInclude Include="..\..\Function.h" />
     <ClInclude Include="..\..\getopt.h" />
     <ClInclude Include="..\..\grammar\for90.flex.h" />
     <ClInclude Include="..\..\grammar\for90.tab.h" />
-    <ClInclude Include="..\..\Intent.h" />
-    <ClInclude Include="..\..\parser.h" />
+    <ClInclude Include="..\..\parser\attribute.h" />
+    <ClInclude Include="..\..\parser\context.h" />
+    <ClInclude Include="..\..\parser\Function.h" />
+    <ClInclude Include="..\..\parser\Intent.h" />
+    <ClInclude Include="..\..\parser\parser.h" />
+    <ClInclude Include="..\..\parser\tokenizer.h" />
+    <ClInclude Include="..\..\parser\Variable.h" />
     <ClInclude Include="..\..\target\codegen.h" />
     <ClInclude Include="..\..\target\gen_common.h" />
     <ClInclude Include="..\..\target\gen_config.h" />
-    <ClInclude Include="..\..\tokenizer.h" />
     <ClInclude Include="..\..\utf8.h" />
-    <ClInclude Include="..\..\Variable.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\cn.md" />

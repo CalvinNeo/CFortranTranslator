@@ -18,8 +18,8 @@
 */
 
 #include "tokenizer.h"
-#include "grammar/for90.tab.h"
-#include "target/gen_config.h"
+#include "../grammar/for90.tab.h"
+#include "../target/gen_config.h"
 
 using namespace std;
 

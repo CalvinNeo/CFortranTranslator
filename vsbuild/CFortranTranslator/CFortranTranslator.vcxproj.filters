@@ -21,26 +21,8 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\parser.cpp">
-      <Filter>parser</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\tokenizer.cpp">
-      <Filter>parser</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\scanner.cpp">
-      <Filter>parser</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Variable.cpp">
-      <Filter>NuclearLang</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\attribute.cpp">
-      <Filter>parser</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\develop.cpp" />
     <ClCompile Include="..\..\getopt.cpp" />
-    <ClCompile Include="..\..\Function.cpp">
-      <Filter>NuclearLang</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\for90std\for90std.cpp">
       <Filter>for90std</Filter>
     </ClCompile>
@@ -56,9 +38,6 @@
     <ClCompile Include="..\..\main.cpp" />
     <ClCompile Include="..\..\for90std\forstdio.cpp">
       <Filter>for90std</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Intent.cpp">
-      <Filter>NuclearLang</Filter>
     </ClCompile>
     <ClCompile Include="..\..\for90std\farray.cpp">
       <Filter>for90std</Filter>
@@ -135,6 +114,27 @@
     <ClCompile Include="..\..\target\lazygen.cpp">
       <Filter>target</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\parser\Function.cpp">
+      <Filter>NuclearLang</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\parser\Intent.cpp">
+      <Filter>NuclearLang</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\parser\Variable.cpp">
+      <Filter>NuclearLang</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\parser\attribute.cpp">
+      <Filter>parser</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\parser\parser.cpp">
+      <Filter>parser</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\parser\scanner.cpp">
+      <Filter>parser</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\parser\tokenizer.cpp">
+      <Filter>parser</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\grammar\for90.flex.cpp">
       <Filter>grammar</Filter>
     </ClCompile>
@@ -146,29 +146,11 @@
     <ClInclude Include="..\..\grammar\for90.tab.h">
       <Filter>grammar</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Intent.h">
-      <Filter>NuclearLang</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\grammar\for90.flex.h">
       <Filter>grammar</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\parser.h">
-      <Filter>parser</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\tokenizer.h">
-      <Filter>parser</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Variable.h">
-      <Filter>NuclearLang</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\attribute.h">
-      <Filter>parser</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\develop.h" />
     <ClInclude Include="..\..\getopt.h" />
-    <ClInclude Include="..\..\Function.h">
-      <Filter>NuclearLang</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\for90std\for1array.h">
       <Filter>for90std</Filter>
     </ClInclude>
@@ -194,9 +176,6 @@
     <ClInclude Include="..\..\for90std\forarray_common.h">
       <Filter>for90std</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\context.h">
-      <Filter>parser</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\utf8.h" />
     <ClInclude Include="..\..\enum_reflect.h">
       <Filter>NuclearLang</Filter>
@@ -212,6 +191,27 @@
     </ClInclude>
     <ClInclude Include="..\..\for90std\utils.h">
       <Filter>for90std</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\parser\Function.h">
+      <Filter>NuclearLang</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\parser\Intent.h">
+      <Filter>NuclearLang</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\parser\Variable.h">
+      <Filter>NuclearLang</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\parser\attribute.h">
+      <Filter>parser</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\parser\context.h">
+      <Filter>parser</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\parser\parser.h">
+      <Filter>parser</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\parser\tokenizer.h">
+      <Filter>parser</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -18,6 +18,9 @@
 */
 
 #include "gen_common.h"
+#include "../for90std/forstdio.h"
+
+for90std::IOFormat parse_ioformatter(const std::string & src);
 
 std::string gen_io_argtable_str(FunctionInfo * finfo, ParseNode & argtable, std::string iofunc, bool is_free_format) {
 	string res = make_str_list(argtable.begin(), argtable.end(), [&](ParseNode * p) {
@@ -75,12 +78,13 @@ void regen_read(FunctionInfo * finfo, ParseNode & stmt) {
 		else {
 			fmt = label_name.substr(1, label_name.size() - 1); // strip " 
 		}
+		for90std::IOFormat ioformat = parse_ioformatter(fmt);
 		if (is_stdio) {
 			// device = "5"; // stdin
-			sprintf(codegen_buf, "forread(stdin, \"%s\", %s);\n", parse_ioformatter(fmt).c_str(), argtable_str.c_str());
+			sprintf(codegen_buf, "forread(stdin, IOFormat(\"%s\", %d), %s);\n", ioformat.fmt.c_str(), ioformat.reversion_start, argtable_str.c_str());
 		}
 		else {
-			sprintf(codegen_buf, "forread(get_file(%s), \"%s\", %s);\n", device.c_str(), parse_ioformatter(fmt).c_str(), argtable_str.c_str());
+			sprintf(codegen_buf, "forread(get_file(%s), IOFormat(\"%s\", %d), %s);\n", device.c_str(), ioformat.fmt.c_str(), ioformat.reversion_start, argtable_str.c_str());
 		}
 	}
 	stmt.fs.CurrentTerm = Term{ TokenMeta::NT_READ_STMT, string(codegen_buf) };
@@ -113,12 +117,13 @@ void regen_write(FunctionInfo * finfo, ParseNode & stmt) {
 		} else{
 			fmt = io_info.get(1).to_string().substr(1, io_info.get(1).to_string().size() - 1); // strip " 
 		}
+		for90std::IOFormat ioformat = parse_ioformatter(fmt);
 		if (is_stdio) {
 			// device = "6"; // stdout
-			sprintf(codegen_buf, "forwrite(stdout, \"%s\", %s);\n", parse_ioformatter(fmt).c_str(), argtable_str.c_str());
+			sprintf(codegen_buf, "forwrite(stdout, IOFormat(\"%s\", %d), %s);\n", ioformat.fmt.c_str(), ioformat.reversion_start, argtable_str.c_str());
 		}
 		else {
-			sprintf(codegen_buf, "forwrite(get_file(%s), \"%s\", %s);\n", device.c_str(), parse_ioformatter(fmt).c_str(), argtable_str.c_str());
+			sprintf(codegen_buf, "forwrite(get_file(%s), IOFormat(\"%s\", %d), %s);\n", device.c_str(), ioformat.fmt.c_str(), ioformat.reversion_start, argtable_str.c_str());
 		}
 	}
 	stmt.fs.CurrentTerm = Term{ TokenMeta::NT_WRITE_STMT, string(codegen_buf) };
@@ -173,7 +178,7 @@ ParseNode gen_format(ARG_IN format) {
 //A character expression used as a format specifier in a formatted input / output statement must evaluate to a
 //character string whose leading part is a valid format specification.Note that the format specification begins with
 //a left parenthesis and ends with a right parenthesis.
-std::string parse_ioformatter(const std::string & src) {
+for90std::IOFormat parse_ioformatter(const std::string & src) {
 
 	std::string rt = "";
 	std::string descriptor;
@@ -193,6 +198,7 @@ std::string parse_ioformatter(const std::string & src) {
 	********************/
 	bool instant_defined = false;
 	bool add_crlf_at_end = true;
+	int reversion_start = 0;
 	for (int i = 0; i < src.size(); i++)
 	{
 		ch = tolower(src[i]);
@@ -316,6 +322,7 @@ std::string parse_ioformatter(const std::string & src) {
 			repeat.push_back(1);
 			// 重复从'('的下一个字符开始
 			repeat_from.push_back((int)rt.size());
+			reversion_start = i;
 			break;
 		case ')':
 			memset(buf, 0, sizeof(buf));
@@ -414,5 +421,5 @@ std::string parse_ioformatter(const std::string & src) {
 	{
 		rt += "\\n";
 	}
-	return rt;
+	return for90std::IOFormat(rt, reversion_start);
 }
