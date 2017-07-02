@@ -227,8 +227,8 @@ RETURN_FRONT:
 			}
 			else {
 			}
-			editing = fmt.substr(st, e);
-			index() = e - st;
+			editing = fmt.substr(st, e - st);
+			index() = e;
 			return editing;
 		}
 
@@ -258,7 +258,8 @@ RETURN_FRONT:
 	void _forwrite_one(FILE * f, IOFormat & format, const T & x) {
 		// strip front
 		_forwrite_noargs(f, format);
-		fprintf(f, format.next_editing().c_str(), x);
+		std::string ed = format.next_editing();
+		fprintf(f, ed.c_str(), x);
 	};
 	template <typename T>
 	void _forwrite_one_arr1(FILE * f, IOFormat & format, const T & x) {
@@ -415,11 +416,13 @@ RETURN_FRONT:
 	template <typename T, typename... Args>
 	void forwritefree(FILE * f, const T & x, Args... args) {
 		_forwritefree_dispatch(f, x);
+		fprintf(f, "\t");
 		forwritefree(f, std::forward<Args>(args)...);
 	};
 	template <typename T>
 	void forwritefree(FILE * f, const T & x) {
 		_forwritefree_dispatch(f, x);
+		fprintf(f, "\n");
 	};
 
 
@@ -525,9 +528,42 @@ RETURN_FRONT:
 
 	// free format
 	// read free step 2
+
+	inline void _forreadfree_one(FILE * f, int & x) {
+		int res = fscanf(f, "%d", &x);
+		
+	};
+	inline void _forreadfree_one(FILE * f, long long & x) {
+		fscanf(f, "%lld", &x);
+	};
+	inline void _forreadfree_one(FILE * f, double & x) {
+		fscanf(f, "%lf", &x);
+	};
+	inline void _forreadfree_one(FILE * f, long double & x) {
+		fscanf(f, "%Lf", &x);
+	};
+	inline void _forreadfree_one(FILE * f, std::string & x) {
+		std::ifstream ifs(f);
+		ifs >> x;
+	};
+	inline void _forreadfree_one(FILE * f, bool & x) {
+		char bool_str[10];
+		fscanf(f, "%s", bool_str);
+		if (bool_str[0] == 'T' || bool_str[0] == 't')
+		{
+			x = true;
+		}
+		else {
+			x = false;
+		}
+	};
+	inline void _forreadfree_one(FILE * f, char * x) {
+		fscanf(f, "%s", x);
+	};
 	template <typename T>
 	void _forreadfree_one(FILE * f, T & x) {
-		std::cin >> x;
+		std::ifstream ifs(f);
+		ifs >> x;
 	};
 	template <typename T>
 	void _forreadfree_one_arr1(FILE * f, for1array<T> & x) {

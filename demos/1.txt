@@ -1,2 +1,3 @@
-integer a1
-WRITE(1,*) (j+1,j+2,J=1,2)
+	DO 5 I=1,M
+	Y(I)=SDF(I)/2.   !SDF每组最大大小主应力差，求出半径
+ 5	X(I)=S3(I)+Y(I)   !找出圆心坐标

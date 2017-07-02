@@ -44,6 +44,12 @@ struct FunctionInfo {
 	std::string local_name; // name can only set by add_function
 	FunctionDesc funcdesc;
 };
+/******************
+* KeywordParamInfo:
+*	std::string name
+*	std::string type
+*	std::string default
+*******************/
 typedef std::tuple<std::string, std::string, std::string> KeywordParamInfo;
 
 FunctionInfo * get_function(std::string module_name, std::string function_name);

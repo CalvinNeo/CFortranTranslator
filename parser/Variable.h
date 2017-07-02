@@ -104,7 +104,10 @@ struct VariableInfo
 	*	so don't need to generate repeated code in function body
 	* ALSO REFER `NT_DECLAREDVARIABLE` in FUnction.h
 	*******************/
-	bool declared; 
+	bool declared;
+	/******************
+	*	true if `regen_vardef` is called towards this variable
+	*******************/
 	bool generated;
 
 	/******************

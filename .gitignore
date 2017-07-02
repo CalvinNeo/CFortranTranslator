@@ -57,3 +57,8 @@ vsbuild/CFortran77Translator/x64/
 *.flex.cpp
 *.tab.cpp
 presentation/
+/vsbuild/cpptest/test.dat
+/vsbuild/cpptest/prmfig.DAT
+/vsbuild/cpptest/para.dat
+/vsbuild/cpptest/E-S-V.DAT
+/vsbuild/cpptest/1

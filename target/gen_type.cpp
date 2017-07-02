@@ -82,7 +82,7 @@ void promote_type(ParseNode & type_nospec, VariableDesc & vardesc) {
 	}
 }
 
-std::string gen_qualified_typestr(const ParseNode & type_spec, VariableDesc & vardesc) {
+std::string gen_qualified_typestr(const ParseNode & type_spec, VariableDesc & vardesc, bool in_paramtable) {
 	string var_pattern;
 	if (type_spec.get_token() == TokenMeta::Function)
 	{
@@ -117,7 +117,13 @@ std::string gen_qualified_typestr(const ParseNode & type_spec, VariableDesc & va
 					var_pattern = "const %s";
 				}
 				else {
-					var_pattern = "%s";
+					if (in_paramtable)
+					{
+						var_pattern = "%s &&";
+					}
+					else {
+						var_pattern = "%s";
+					}
 				}
 			}
 		}

@@ -103,7 +103,7 @@ bool is_fortran_function(FunctionInfo * finfo, std::string name);
 void regen_read(FunctionInfo * finfo, ParseNode & stmt);
 void regen_write(FunctionInfo * finfo, ParseNode & stmt);
 void regen_print(FunctionInfo * finfo, ParseNode & stmt);
-void regen_vardef(FunctionInfo * finfo, VariableInfo * vinfo, VariableDesc & desc);
+void regen_vardef(FunctionInfo * finfo, VariableInfo * vinfo);
 void regen_function(FunctionInfo * finfo, ParseNode & functiondecl_node);
 void regen_select(FunctionInfo * finfo, ParseNode & select_stmt);
 void regen_if(FunctionInfo * finfo, ParseNode & if_stmt);
@@ -163,7 +163,7 @@ ParseNode gen_implicit_type(std::string name);
 ParseNode gen_type(ARG_IN type_nospec, ARG_IN _type_kind);
 ParseNode gen_type(ARG_IN type_nospec);
 ParseNode gen_type(Term typeterm);
-std::string gen_qualified_typestr(const ParseNode & type_spec, VariableDesc & vardesc);
+std::string gen_qualified_typestr(const ParseNode & type_spec, VariableDesc & vardesc, bool in_paramtable);
 
 ParseNode gen_array_from_paramtable(ARG_IN argtable);
 

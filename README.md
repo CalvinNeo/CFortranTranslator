@@ -1,6 +1,6 @@
 ﻿# CFortranTranslator
 
-A translator from Fortran90/Fortran77(ISO/IEC 1539:1991) to C++
+A translator from Fortran90/Fortran77(ISO/IEC 1539:1991) to C++14
 
 Fortran is an efficient tool in scientific calculation. However sometimes translating old fortran codes to C++ will enable more programming abstraction, better GUI framework support, higher performance IDE and easier interaction.
 
@@ -323,7 +323,7 @@ refer to [/grammar/for90.y](/grammar/for90.y) for all accepted grammar
 |:-:|:-:|
 |`f1a_flattern(array)`|get flatterned size of an array|
 |`f1a_gettype<T>::type`|get innermost type of an array|
-|`f1a_flatmap(array, begin_iterator, end_iterator, lambda)`|return a vector of all elements mapped by function `lambda` in fortran/c order|
+|`f1a_flatmap(array, begin_iterator, end_iterator, lambda)`|return a vector of all elements mapped by function `lambda` in fortran/C++ order|
 
 ### variables
 1. variable names in fortran is **case-insensitive**, and their names will be translated into lower case.
@@ -379,9 +379,9 @@ argument must be definable.
 actual argument (12.5.2.1, 12.5.2.2, 12.5.2.3).
 
 
-|intent|parameter|save|result|
+|intent|parameter|save|C++|
 |:-:|:-:|:-:|:-:|
-|/|/|/|refer fortran 77 standard support|
+|/|/|/|`T &&`|
 |ignore|/|save|`static`|
 |ignore|parameter|save|`static const`|
 |ignore|parameter|/|`const T`|

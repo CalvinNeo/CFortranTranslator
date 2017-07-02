@@ -10,12 +10,11 @@
 1. declare new %token in [/grammar/for90.y](/grammar/for90.y)
 2. add pattern of this %token in [/grammar/for90.l](/grammar/for90.l)
 3. add rules related to the %token in [/grammar/for90.y](/grammar/for90.y)
-4. update bytecodes and grammar tokens in [/Intent.h](/Intent.h)
-5. update IntentName in [/IntentHelper.cpp](/IntentHelper.cpp)
-6. register keyword in [/tokenizer.cpp](/tokenizer.cpp)(if this token is keyword)
+4. update bytecodes and grammar tokens in [/parser/Intent.h](/parser/Intent.h)
+6. register keyword in [/parser/tokenizer.cpp](/parser/tokenizer.cpp)(if this token is keyword)
 7. if this keyword are made up of more than 1 word, reduction conflicts may be caused between the keyword and its prefix,
     - if rules keywords are all charaters like `(/`, just add a regex to for90.l
-    - if rules keywords are all words like `else if`, update forward1 in [/tokenizer.cpp](/tokenizer.cpp)
+    - if rules keywords are all words like `else if`, update forward1 in [/parser/tokenizer.cpp](/parser/tokenizer.cpp)
 8. update translation rules in [/target/gen_config.h](/target/gen_config.h.h)
 
 ## extend new intrinsic function
@@ -24,7 +23,7 @@
     - if the parameter is the **only** optional parameter, can omit `foroptional` wrapper
 2. update `funcname_map` in [/target/gen_config.cpp](/target/gen_config.cpp) if necessary
 
-## c++ code generate
+## C++ code generate
 ### lazy generate
 when using immediate code generate(or using lazy gen), upper level non-terminal can channge generated codes by low level non-terminal, so `gen_` functions pass `ParseNode &` other than `const ParseNode &`:
 
@@ -42,7 +41,7 @@ their replacement occur in following stages:
 
 1. mappings defined in `pre_map` is replacement in tokenizing stage in [/grammar/for90.l](/grammar/for90.l)
 
-2. function name mapping in `funcname_map` is replacement in parse stage in function `gen_function_array` [/gen_callable.cpp](/gen_callable.cpp)
+2. function name mapping in `funcname_map` is replacement in parse stage in function `gen_function_array` [/target/gen_callable.cpp](/target/gen_callable.cpp)
 
 ### array
 
@@ -58,14 +57,27 @@ their replacement occur in following stages:
 ### variable definition
 
 #### 3-phase strategy
-1. in [/grammar/for90.y](/grammar/for90.y), generate `NT_VARIABLEDEFINESET` and `NT_VARIABLEDEFINE`
-2. in `regen_suite`
-    1. when encounter `NT_COMMONBLOCK`, call `regen_common` to log `VariableInfo` to `gen_context().variables`, mark `commonblock_name` and `commonblock_index`
-    2. when encounter `NT_VARIABLEDEFINESET` and `NT_VARIABLEDEFINE`, log `VariableInfo` to `gen_context().variables`, mark `commonblock_name` to `""` and `commonblock_index` to `0`
-    3. in `regen_exp` when encounter a `UnknownVariant` which is not logged to `gen_context().variables`(implicit defined), call `check_implicit_variable`
+1. Step 1:
+    1. when encounter `NT_COMMONBLOCK`(occur in `regen_stmt`, after the AST is built):
 
-3. at the end of `regen_suite`
-    for each `VariableInfo` in `gen_context().variables`, call `regen_vardef` to generate C++ codes
+        call `regen_common` to log `VariableInfo` to `gen_context().variables`, mark `commonblock_name` and `commonblock_index`
+    2. when encounter `NT_VARIABLEDEFINESET` and `NT_VARIABLEDEFINE`(in `regen_stmt`, after the AST is built):
+
+        these two nodes are generated in [/grammar/for90.y](/grammar/for90.y), generate `NT_VARIABLEDEFINESET` and `NT_VARIABLEDEFINE`
+        log `VariableInfo` to `gen_context().variables`, mark `commonblock_name` to `""` and `commonblock_index` to `0`
+        this will only happen if the variable is never used
+    3. when encounter a `UnknownVariant`(in `regen_exp`, when the AST is building):
+        
+        **THE MOST CASE**
+        call `check_implicit_variable`, it will register this variable to `gen_context().variables`, if this variable is implicit defined, not declared as case 2.
+
+2. Step 2:
+    the first loop of `gen_joined_declarations`
+    enumerate all `VariableInfo` of this suite several times UNTIL ALL VARIABLES ARE GENERATED, call `regen_vardef`
+
+3. Step 3:
+    the second loop of `gen_joined_declarations`
+    join generated codes of Step 2, depending whether this variable is common block
 
 ## Parse Tree
 all parse tree nodes are defined in [/Intent.h](/Intent.h) with an `NT_` prefix

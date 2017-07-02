@@ -348,7 +348,7 @@ namespace for90std {
 			// allocate only according to sz
 			clear();
 			fsize_t totalsize = flatsize();
-			parr = new T[totalsize];
+			parr = new T[totalsize]{};
 		}
 		template <typename Iterator_FSize_T>
 		farray(int D, Iterator_FSize_T lower_bound, Iterator_FSize_T size) noexcept: is_view(false)
@@ -452,7 +452,7 @@ template <typename size_type>
 static bool _map_impl_has_next(size_type * cur, int dimension, const size_type * LBound, const size_type * size) {
 	for (int i = 0; i < dimension; i++)
 	{
-		if (cur[i] < LBound[i] + size[i] - 1)
+		if (cur[i] < LBound[i] + size[i])
 		{
 			return true;
 		}

@@ -8,8 +8,8 @@ function sum(x) result (sum_result)
 	dimension arr(10), j	
 	character s1*3
 	character*3 s2
-	integer(kind=2)::int1
-	integer int2
+	integer int2 = int1 + 1
+	integer(kind=2)::int1 
 end function
 X = 4
 integer a2 = c_implicit

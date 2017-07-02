@@ -106,6 +106,12 @@ std::string gen_joined_declarations(FunctionInfo * finfo, ParseNode & oldsuite) 
 	*	4) this variable is declared by a explicit statement, and is in a declared common block
 	***********************************/
 	bool all_generated = true;
+
+	/**********************************
+	* `regen_vardef` will set initial value to variables
+	* variable A's initial value may depend on variable B
+	* `all_generated` and `vinfo->generated` is used to make sure B is defined before A
+	***********************************/
 	do {
 		all_generated = true;
 		forall_variable_in_function(get_context().current_module, finfo->local_name, [&](const std::pair<std::string, VariableInfo *> & p) {
@@ -132,17 +138,20 @@ std::string gen_joined_declarations(FunctionInfo * finfo, ParseNode & oldsuite) 
 					all_generated = false;
 					if (p.second->commonblock_name != "") {
 						// this variable is defined in common block
-						desc.reference = true;
-						regen_vardef(finfo, vinfo, desc);
+						regen_vardef(finfo, vinfo);
 
 						// set common
 						auto common_info = get_context().commonblocks.find(vinfo->commonblock_name);
 						if (common_info == get_context().commonblocks.end()) {
-							fatal_error("can't find common");
+							fatal_error("can't find common block");
 						}
 						else {
-							common_info->second.variables[vinfo->commonblock_index].desc = desc;
-							common_info->second.variables[vinfo->commonblock_index].type = local_type;
+							// set CommonBLockInfo.variable
+							VariableInfo & commonblock_vinfo = common_info->second.variables[vinfo->commonblock_index];
+							// do not set `desc.reference = true;`
+							commonblock_vinfo.desc = desc;
+							commonblock_vinfo.type = local_type;
+							commonblock_vinfo.vardef_node = vinfo->vardef_node;
 						}
 					}
 					else if (vinfo->vardef_node == nullptr) {
@@ -151,7 +160,7 @@ std::string gen_joined_declarations(FunctionInfo * finfo, ParseNode & oldsuite) 
 					}
 					else {
 						// normal definition
-						regen_vardef(finfo, vinfo, desc);
+						regen_vardef(finfo, vinfo);
 					}
 					vinfo->generated = true;
 				}
@@ -182,8 +191,15 @@ std::string gen_joined_declarations(FunctionInfo * finfo, ParseNode & oldsuite) 
 			if (p.second->commonblock_name != "") {
 				// this variable is defined in common block
 				std::string common_varname = "_" + to_string(vinfo->commonblock_index + 1);
-				sprintf(codegen_buf, "%s %s = %s.%s;\n", gen_qualified_typestr(local_type, desc).c_str()
-					, local_name.c_str(), vinfo->commonblock_name.c_str(), common_varname.c_str());
+				if (vinfo->desc.reference == true)
+				{
+					sprintf(codegen_buf, "%s %s = %s.%s;\n", gen_qualified_typestr(local_type, desc, false).c_str()
+						, local_name.c_str(), vinfo->commonblock_name.c_str(), common_varname.c_str());
+				}
+				else {
+					sprintf(codegen_buf, "%s & %s = %s.%s;\n", gen_qualified_typestr(local_type, desc, false).c_str()
+						, local_name.c_str(), vinfo->commonblock_name.c_str(), common_varname.c_str());
+				}
 			}
 			else {
 				// normal definition and implicit definition

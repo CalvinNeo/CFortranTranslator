@@ -159,4 +159,7 @@ namespace for90std {
 	void foreach_tuple(std::tuple<Args...> & tup, F && f) {
 		_foreach_tuple_impl(std::forward<F>(f), tup, std::index_sequence_for<Args...>{});
 	}
+
+	#define FW(X) std::move(X)
+	#define SS(X) std::string(X)
 }

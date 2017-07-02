@@ -42,6 +42,7 @@ void regen_function_array(FunctionInfo * finfo, ParseNode & callable) {
 	ParseNode & callable_head = callable.get(0);
 	ParseNode & argtable = callable.get(1);
 	string head_name = get_mapped_function_name(callable_head.to_string());
+	bool is_sysfunc = sysfunc_args.find(head_name) != sysfunc_args.end();
 	if (argtable.get_token() == TokenMeta::NT_DIMENSLICE ) {
 		// array section
 		string array_str;
@@ -136,7 +137,16 @@ void regen_function_array(FunctionInfo * finfo, ParseNode & callable) {
 		}
 
 		argtable_str += make_str_list(normal_args.begin(), normal_args.end(), [&](string p) {
-			return p;
+			// origin: a, b, 1
+			// fuck fortran: FW(a), FW(b), FW(1)
+			if (is_sysfunc)
+			{
+				return p;
+			}
+			else {
+				sprintf(codegen_buf, "FW(%s)", p.c_str());
+				return string(codegen_buf);
+			}
 		});
 		/**************
 		*	if exist kwargs, must add `,` delimer between arguments
@@ -159,6 +169,11 @@ void regen_function_array(FunctionInfo * finfo, ParseNode & callable) {
 						// if value of this keyword argument is not present
 						if (this_param_initial_default == "") {
 							s = "None";
+						}
+						else if (this_param_initial_default[0] == '\"') {
+							// BUGFIX: const char * to string
+							sprintf(codegen_buf, "SS(%s)", this_param_initial_default.c_str());
+							s = string(codegen_buf);
 						}
 						else {
 							// use initial defined in get_context().func_kwargs

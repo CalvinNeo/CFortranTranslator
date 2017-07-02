@@ -21,7 +21,6 @@
 
 namespace for90std {
 	/* string type cast */
-	/* using static/inline/extern to avoid repeated definition */ 
 	foroptional_dummy None;
 	int to_int(std::string x, foroptional<int> kind = None) {
 		int a;

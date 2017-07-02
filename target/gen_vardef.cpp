@@ -204,17 +204,17 @@ void regen_type(ParseNode & type_nospec, VariableInfo * vinfo) {
 	promote_type(type_nospec, vinfo->desc);
 }
 
-void regen_vardef(FunctionInfo * finfo, VariableInfo * vinfo, VariableDesc & desc) {
-	string var_decl; 
-	bool do_arr = desc.slice.is_initialized();
-	string type_str;
+void regen_vardef(FunctionInfo * finfo, VariableInfo * vinfo) {
+	VariableDesc & desc = vinfo->desc;
 	ParseNode & entity_variable = vinfo->entity_variable;
 	ParseNode & type_nospec = vinfo->type;
+	bool do_arr = desc.slice.is_initialized();
+	string var_decl, type_str;
 	regen_type(type_nospec, vinfo);
 	// entity_variable is NT_VARIABLE_ENTITY
 	if(do_arr){
 		// ARRAY
-		type_str = gen_qualified_typestr(type_nospec, desc);
+		type_str = gen_qualified_typestr(type_nospec, desc, false);
 		var_decl = gen_vardef_array_str(finfo, vinfo, entity_variable, type_str, get_lbound_size_from_slice(desc.slice.value()));
 		if (vinfo->vardef_node == nullptr)
 		{
@@ -231,13 +231,13 @@ void regen_vardef(FunctionInfo * finfo, VariableInfo * vinfo, VariableDesc & des
 		desc.slice = argtable;
 		// get slice info
 		SliceBoundInfo ls = get_lbound_size_from_slice(argtable);
-		type_str = gen_qualified_typestr(type_nospec, desc);
+		type_str = gen_qualified_typestr(type_nospec, desc, false);
 		var_decl = gen_vardef_array_str(finfo, vinfo, entity_variable, type_str, ls);
 		vinfo->vardef_node->fs.CurrentTerm = Term{ TokenMeta::NT_VARIABLEDEFINE, var_decl };
 	}
 	else {
 		// SCALAR
-		type_str = gen_qualified_typestr(type_nospec, desc);
+		type_str = gen_qualified_typestr(type_nospec, desc, false);
 		var_decl = gen_vardef_scalar_str(finfo, vinfo, entity_variable, type_str);
 		if (vinfo->vardef_node == nullptr)
 		{

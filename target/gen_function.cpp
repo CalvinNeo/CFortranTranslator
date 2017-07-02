@@ -34,7 +34,7 @@ std::string gen_paramtable_str(FunctionInfo * finfo, const vector<string> & para
 		* it's wrong to use `get_variabledesc_attr(*vardef_node)`, it will fail when `dimension arr(10)`
 		*****************/
 		VariableDesc desc = vinfo->desc;
-		std::string typestr = gen_qualified_typestr(type, desc);
+		std::string typestr = gen_qualified_typestr(type, desc, true);
 		sprintf(codegen_buf, "%s %s", typestr.c_str(), param_name.c_str());
 		return string(codegen_buf);
 	});
@@ -172,7 +172,7 @@ void regen_function(FunctionInfo * finfo, ParseNode & functiondecl_node) {
 		// subroutine
 		result_type_str = "void";
 	}else{
-		result_type_str = gen_qualified_typestr( result_vinfo->type, result_vinfo->desc);
+		result_type_str = gen_qualified_typestr( result_vinfo->type, result_vinfo->desc, false);
 	}
 	// generate function code 
 	sprintf(codegen_buf, "%s %s(%s)\n{\n%s\treturn %s;\n}\n"

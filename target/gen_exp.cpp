@@ -50,7 +50,11 @@ void regen_exp(FunctionInfo * finfo, ParseNode & exp) {
 	}
 	else if(is_literal(exp))
 	{
-
+		if (exp.get_token() == TokenMeta::String)
+		{
+			sprintf(codegen_buf, "SS(%s)", exp.get_what().c_str());
+			exp.get_what() = string(codegen_buf);
+		}
 	}
 	else if (exp.get_token() == TokenMeta::UnknownVariant)
 	{

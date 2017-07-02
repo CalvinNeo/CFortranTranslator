@@ -41,7 +41,6 @@ namespace for90std {
 			return *this;
 		}
 		foroptional<T> & operator= (const foroptional<T> & newv) {
-			invalid = (newv.inited());
 			if (newv.inited())
 			{
 				delete value_ptr;
@@ -120,6 +119,7 @@ namespace for90std {
 	protected:
 		T * value_ptr = nullptr;
 	};
+
 
 	template <typename T>
 	bool forpresent(const foroptional<T> & x) {

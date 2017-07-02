@@ -26,11 +26,8 @@ namespace for90std {
 	FILE * get_file(int unit) {
 		if (!forfilesys_inited) flush_fileno();
 		auto iter = filenos.find(unit);
-		if (iter != filenos.end()) {
-			return iter->second;
-		}
-		return stdin;
-		return stdout;
+		assert(iter != filenos.end());
+		return iter->second;
 	}
 	void flush_fileno() {
 		filenos.clear();
@@ -63,10 +60,11 @@ namespace for90std {
 		****************/
 		if (!forfilesys_inited) flush_fileno();
 		using namespace std;
-		bool docreate;
-		bool doread;
-		bool dowrite;
-		bool doappend;
+		bool docreate = true;
+		bool doread = true;
+		bool dowrite = true;
+		bool doappend = true;
+		bool doreplace = false;
 		string s;
 
 		// method opertion(file attribute)
@@ -77,12 +75,22 @@ namespace for90std {
 		// a append create(w)
 		// a+ append create(rw)
 
-		s = access.const_get();
+		s = position.value_or("rewind");
 		transform(s.begin(), s.end(), s.begin(), tolower);
-		if (s == "append") {
+		if (s == "rewind") {
+			doappend = false;
+		}
+		else if (s == "append") {
 			doappend = true;
 		}
-		else if (s == "sequential") {
+		else {
+			// asia
+			doappend = false;
+		}
+
+		s = access.value_or("sequential");
+		transform(s.begin(), s.end(), s.begin(), tolower);
+		if (s == "sequential") {
 
 		}
 		else if (s == "direct") {
@@ -92,31 +100,41 @@ namespace for90std {
 			// not inited or else value
 		}
 
-		s = status.const_get();
+		s = status.value_or("unknown");
 		transform(s.begin(), s.end(), s.begin(), tolower);
 		if (s == "new") {
 			docreate = true;
+			doreplace = false;
 		}else if(s == "replace"){
 			docreate = true;
+			doreplace = true;
 		}
 		else if (s == "old") {
 			docreate = false;
+			doreplace = false;
 		}
 		else if (s == "scratch") {
+			docreate = true;
+			doreplace = false;
 		}
 		else {
-			// not inited or else value
+			// unknown
+			docreate = true;
+			doreplace = false;
 		}
 
-		s = action.const_get();
+		s = action.value_or("readwrite");
 		transform(s.begin(), s.end(), s.begin(), tolower);
 		if (s == "read") {
 			doread = true;
+			dowrite = false;
 		}
 		else if (s == "write") {
+			dowrite = false;
 			dowrite = true;
 		}
-		else {
+		else{
+			// s == "readwrite"
 			doread = true;
 			dowrite = true;
 		}
@@ -125,22 +143,9 @@ namespace for90std {
 			mode = "a";
 		}
 		else {
-			if (doread) {
-				if (dowrite) {
-					if (docreate) {
-						mode = "w+";
-					}
-					else {
-						mode = "r+";
-					}
-				}
-				else {
-					mode = "r";
-				}
-			}
-			else {
-				mode = "w";
-			}
+			std::string flag_rw = (dowrite ? "+" : "");
+			std::string flag_replace = (doreplace ? "w" : "r");
+			mode = flag_replace + flag_rw;
 		}
 		filenos[unit] = fopen(file.get().c_str(), mode.c_str());
 	}

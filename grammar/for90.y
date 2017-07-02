@@ -539,6 +539,17 @@ using namespace std;
 				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($1));
 				CLEAN_RIGHT($1);
 			}
+		| YY_CALL variable
+			{
+				// function call can omit trailing `()` if there's no arguments
+				ARG_IN callable_head = YY2ARG($1);
+				ParseNode newnode = gen_token(Term{TokenMeta::NT_FUCNTIONARRAY, WHENDEBUG_OREMPTYSTR("FUNCTIONARRAY GENERATED IN REGEN_SUITE") }
+					, callable_head, gen_token(Term{TokenMeta::NT_ARGTABLE_PURE, ""}) );
+				$$ = RETURN_NT(newnode);
+				CLEAN_RIGHT($1, $2);
+				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($1));
+				CLEAN_RIGHT($1);
+			}
 
 	exp : function_array 
 			{
@@ -547,9 +558,7 @@ using namespace std;
 				******************/
 				ARG_IN function_array = YY2ARG($1);
 				$$ = $1;
-				//$$ = RETURN_NT(gen_token(Term{ TokenMeta::NT_EXPRESSION, function_array.get_what()}, function_array));
 				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($1));
-				//CLEAN_RIGHT($1);
 			}
 		| array_builder
 			{
