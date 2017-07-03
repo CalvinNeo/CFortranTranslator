@@ -43,7 +43,10 @@ struct FlexState {
 FlexState & get_flex_state();
 
 struct FlexContext {
+	// return immediately
 	std::vector<std::tuple<int, Term>> terminal_cache;
+	// return after the whole line ends
+	std::vector<std::tuple<int, Term>> terminal_cache_line;
 	std::vector<std::string> comments;
 };
 FlexContext & get_flex_context();

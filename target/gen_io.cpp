@@ -33,7 +33,13 @@ std::string gen_io_argtable_str(FunctionInfo * finfo, ParseNode & argtable, std:
 				return_str = make_str_list(innermost_argtable.begin(), innermost_argtable.end(), [&](ParseNode * p2) {
 					ParseNode & return_item = *p2;
 					regen_exp(finfo, return_item);
-					return return_item.get_what();
+					if (iofunc == "read")
+					{
+						return "&" + return_item.get_what();
+					}
+					else {
+						return return_item.get_what();
+					}
 				});
 				sprintf(codegen_buf, "return make_iostuff(make_tuple(%s));", return_str.c_str());
 				innermost_argtable.get_what() = string(codegen_buf);

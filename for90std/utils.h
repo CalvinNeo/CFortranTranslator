@@ -160,6 +160,11 @@ namespace for90std {
 		_foreach_tuple_impl(std::forward<F>(f), tup, std::index_sequence_for<Args...>{});
 	}
 
+	template <typename T>
+	auto make_reference_wrapper(T x){
+		return std::reference_wrapper<T>(x);
+	}
+
 	#define FW(X) std::move(X)
 	#define SS(X) std::string(X)
 }

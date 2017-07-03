@@ -81,4 +81,9 @@ void test_error(){
 	//foreach_tuple(stuff.tp, [&](auto x) {
 	//	cout << x + 1 << endl;;
 	//});
+	
+		//int a = 1;
+	//tuple<int&> tu = std::tie(a);
+	//tuple<int&> tu2 = tu;
+	//std::get<0>(tu2) = 22;
 }

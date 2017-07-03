@@ -51,141 +51,59 @@ void update_flex() {
 	update_flex(yyleng);
 }
 void update_yylval(Term & current_term) {
-	get_flex_state().CurrentTerm = current_term;
-	ParseNode newnode{ FlexState(get_flex_state()) , nullptr, nullptr};
+	ParseNode newnode{ FlexState(get_flex_state()) , nullptr, nullptr };
+	newnode.fs.CurrentTerm = current_term;
 	yylval = RETURN_NT(newnode);
 }
 
 int yylex(void) {
 	int p;
 	Term term;
-	AGAIN:
 	if (!get_flex_context().terminal_cache.empty())
 	{
+		// use terminal in the cache
 		std::tie(p, term) = get_flex_context().terminal_cache.back();
 		update_yylval(term);
 		get_flex_context().terminal_cache.pop_back();
-		return p;
-	}
-	p = pure_yylex();
-	term = get_flex_state().CurrentTerm;
-	if (p == YY_CRLF || (p == NULL))
-	{
-		if (get_flex_context().terminal_cache_line.size() != 0)
-		{
-			get_flex_context().terminal_cache.push_back(std::make_tuple(p, get_flex_state().CurrentTerm));
-			for (int i = 0; i < get_flex_context().terminal_cache_line.size(); i++)
-			{
-				get_flex_context().terminal_cache.push_back(get_flex_context().terminal_cache_line[i]);
-			}
-			get_flex_context().terminal_cache_line.clear();
-			goto AGAIN;
-		}
-	}
-	return p;
-}
-struct FlexScannerContext {
-	std::string trigger;
-	int condition;
-	std::string code;
-	FlexScannerContext(std::string trigger, int condition) {
-		this->trigger = trigger;
-		this->condition = condition;
-		code = "";
-	}
-	virtual int do_scanner(const char * text) {
-		return YY_IGNORE_THIS;
-	};
-};
-
-std::vector<FlexScannerContext *> & get_flex_scanner_context_stack() {
-	static std::vector<FlexScannerContext *> st;
-	return st;
-}
-FlexScannerContext * get_current_scanner() {
-	return get_flex_scanner_context_stack().back();
-}
-void reset_condition() {
-
-}
-void enter_condition(FlexScannerContext * fsc) {
-	get_flex_scanner_context_stack().push_back(fsc);
-	BEGIN(fsc->condition);
-}
-int yield_condition(int yy_token, Term term) {
-	update_yylval(term);
-	return yy_token;
-}
-void abort_condition() {
-	delete get_flex_scanner_context_stack().back();
-	get_flex_scanner_context_stack().pop_back();
-	if (get_flex_scanner_context_stack().empty())
-	{
-		BEGIN(0);
 	}
 	else {
-		BEGIN(get_flex_scanner_context_stack().back()->condition);
+		p = pure_yylex();
+		term = get_flex_state().CurrentTerm;
 	}
-}
-int quit_condition(int yy_token, Term term) {
-	int p = yield_condition(yy_token, term);
-	abort_condition();
+	if (term.what == "format")
+	{
+
+		if (text[0] == '(' && !in_str)
+		{
+			left_brackets++;
+		}
+		else if (text[0] == ')' && !in_str) {
+			left_brackets--;
+			if (left_brackets == 0)
+			{
+				std::string result = code;
+				update_flex((int)len);
+				return quit_condition(YY_FORMAT_STMT, Term{ TokenMeta::NT_FORMAT, result });
+			}
+		}
+		else {
+			if (text[0] == '\"' || text[0] == '\'')
+			{
+				in_str = !in_str;
+			}
+			else if (text[0] == '\n')
+			{
+				get_flex_state().parse_line++;
+			}
+		}
+		code += text;
+	}
+	else if (term.token == TokenMeta::Label)
+	{
+		// handle end label of do
+	}
 	return p;
 }
-
-struct FlexExternalContext : public FlexScannerContext {
-	int left_brackets = 0;
-	int len;
-	bool in_str = false;
-	FlexExternalContext(std::string trigger, int condition) : FlexScannerContext(trigger, condition) {
-		left_brackets = 0;
-		len = 0;
-	}
-	int do_scanner(const char * text) {
-		// return true to return a YYTOK
-		len++;
-		if (this->trigger == "format")
-		{
-			if (text[0] == '(' && !in_str)
-			{
-				left_brackets++;
-			}
-			else if (text[0] == ')' && !in_str) {
-				left_brackets--;
-				if (left_brackets == 0)
-				{
-					std::string result = code; 
-					update_flex((int)len);
-					return quit_condition(YY_FORMAT_STMT, Term{ TokenMeta::NT_FORMAT, result });
-				}
-			}else{
-				if (text[0] == '\"' || text[0] == '\'')
-				{
-					in_str = !in_str;
-				}
-				else if(text[0] == '\n')
-				{
-					get_flex_state().parse_line++;
-				}
-			}
-			code += text;
-		}
-		else
-		{
-			code += text;
-		}
-		return YY_IGNORE_THIS;
-	}
-};
-
-struct FlexLabelEndContext : public FlexScannerContext {
-	bool end_label_hit = false;
-	bool int_is_label = false;
-	
-	FlexLabelEndContext(std::string trigger, int condition) : FlexScannerContext(trigger, condition){
-		end_label_hit = false;
-	}
-};
 
 static bool abandon = false;
 
@@ -204,8 +122,6 @@ int operator_parse(const char * origin_yytext, TokenMeta_T token, int yytoken);
 
 %option yymore
 %x external_scanner
-%s label_end_scanner
-%x jump_to_scanner
 
 delim   [ \t]
 ws      {delim}+
@@ -243,22 +159,24 @@ string ({string1}|{string2})
 
 %%
 
-<external_scanner,jump_to_scanner>{newline} {
+<external_scanner>{newline} {
 	// this rule is essential or `\n` will br left out intentionally
 	int p = get_current_scanner()->do_scanner(yytext);
-	DORET(p)
+	DORET(YY_IGNORE_THIS)
 }
-<external_scanner,jump_to_scanner>. { 
+<external_scanner>. {
 	int p = get_current_scanner()->do_scanner(yytext);
-	DORET(p)
+	DORET(YY_IGNORE_THIS)
 }
 
 ^[Cc]{delim}*[^\r\n]* {
+	// comment start with [Cc]
 	int p = comment_parse(yytext);
 	update_flex();
 	DORET(p);
 }
 ![^\r\n]* {
+	// comment start with `!`
 	int p = comment_parse(yytext);
 	update_flex();
 	DORET(p);
@@ -289,18 +207,24 @@ string ({string1}|{string2})
 <label_end_scanner>^{delim}*[0-9]+ {
 	int label_index;
 	sscanf(yytext, "%d", &label_index);
-	auto end_label_iter = get_context().end_labels.find(std::to_string(label_index));
-	if (end_label_iter != get_context().end_labels.end()) {
+	auto iter = get_context().end_labels.find(std::to_string(label_index));
+	if (iter != get_context().end_labels.end()) {
 		FlexLabelEndContext * fec;
 		bool first = true;
-		while (!end_label_iter->second.empty()) {
+		while (!iter->second.empty()) {
 			fec = dynamic_cast<FlexLabelEndContext*> (get_current_scanner());
-			end_label_iter->second.pop_back();
-			quit_condition(YY_IGNORE_THIS, Term{ TokenMeta::Nop, "" });
-			get_flex_context().terminal_cache_line.push_back(std::make_tuple(YY_ENDDO, Term{ TokenMeta::RBrace, std::string("enddo") }));
+			iter->second.pop_back();
+			quit_condition(YY_ENDDO, Term{ TokenMeta::RBrace, "enddo" });
+			if (first) {
+				first = false;
+			}
+			else {
+				get_flex_context().terminal_cache.push_back(std::make_tuple(YY_ENDDO, Term{ TokenMeta::RBrace, std::string("enddo") }));
+			}
+			get_flex_context().terminal_cache.push_back(std::make_tuple(YY_CRLF, Term{ TokenMeta::CRLF, std::string("") }));
 		}
 		update_flex();
-		DORET(YY_IGNORE_THIS);
+		return YY_ENDDO;
 	}
 	else {
 		int p = label_parse(yytext);

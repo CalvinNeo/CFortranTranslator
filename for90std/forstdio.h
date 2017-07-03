@@ -93,15 +93,15 @@ namespace for90std {
 			_map_impl_next(newf, cur, dim, cur_dim, lb, sz);
 			return ans;
 		}
-		T & get_next() {
-			T * ptr = nullptr;
-			auto newf = [&](const fsize_t * _) {
-				// f(_) must return left-value
-				ptr = & f(_);
-			};
-			_map_impl_next(newf, cur, dim, cur_dim, lb, sz);
-			return *ptr;
-		}
+		//T & get_next() {
+		//	T * ptr = nullptr;
+		//	auto newf = [&](const fsize_t * _) {
+		//		// f(_) must return left-value
+		//		ptr = & f(_);
+		//	};
+		//	_map_impl_next(newf, cur, dim, cur_dim, lb, sz);
+		//	return *ptr;
+		//}
 		int dim;
 		mutable int cur_dim;
 		fsize_t * lb = nullptr, * sz = nullptr, *cur = nullptr;
@@ -127,9 +127,10 @@ namespace for90std {
 		IOStuff(const std::tuple<Types...> & _tp) : tp(_tp) {
 
 		}
-		IOStuff(const IOStuff<Types...> & _m) {
-			this->tp = _m.tp;
+		IOStuff(const IOStuff<Types...> & _m) : tp(_m.tp) {
+
 		}
+
 		std::tuple<Types...> tp;
 	};
 
@@ -137,6 +138,10 @@ namespace for90std {
 	IOStuff<Types...> make_iostuff(const std::tuple<Types...> & _tp) {
 		return IOStuff<Types...>(_tp);
 	}
+	//template<typename ... Types>
+	//IOStuff<Types...> make_iostuff(std::tuple<Types...> & _tp) {
+	//	return IOStuff<Types...>(_tp);
+	//}
 
 	struct IOFormat {
 		IOFormat(const char * ch) : reversion_start(0), p(0) {
@@ -560,11 +565,11 @@ RETURN_FRONT:
 	inline void _forreadfree_one(FILE * f, char * x) {
 		fscanf(f, "%s", x);
 	};
-	template <typename T>
-	void _forreadfree_one(FILE * f, T & x) {
-		std::ifstream ifs(f);
-		ifs >> x;
-	};
+	//template <typename T>
+	//void _forreadfree_one(FILE * f, T & x) {
+	//	std::ifstream ifs(f);
+	//	ifs >> x;
+	//};
 	template <typename T>
 	void _forreadfree_one_arr1(FILE * f, for1array<T> & x) {
 
@@ -591,9 +596,9 @@ RETURN_FRONT:
 		_forreadfree_one(f, x);
 	};
 	template <typename ... Types>
-	void _forreadfree_dispatch(FILE * f, IOStuff<Types...> & iostuff) {
+	void _forreadfree_dispatch(FILE * f, typename IOStuff<Types...> & iostuff) {
 		foreach_tuple(iostuff.tp, [&](auto & x) {
-			 _forreadfree_dispatch(f, x);
+			 _forreadfree_dispatch(f, *x);
 		});
 	};
 	template <typename T, typename F>

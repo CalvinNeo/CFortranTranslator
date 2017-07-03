@@ -38,7 +38,7 @@ extern void release_buff();
 #define YYDEBUG 1
 #define YYERROR_VERBOSE
 #define YYINITDEPTH 500
-#define YYLEX advanced_yylex()
+//#define YYLEX advanced_yylex()
 // static is necessary, or will cause lnk
 static char codegen_buf[MAX_CODE_LENGTH];
 

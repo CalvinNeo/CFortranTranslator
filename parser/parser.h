@@ -71,7 +71,7 @@ struct ParseNode {
 	ParseNode & get(int child_index);
 	const ParseNode & get(int child_index) const;
 	const ParseNode & const_get(int child_index) const;
-	void setattr(ParseAttr * pa);
+	void setattr(struct ParseAttr * pa);
 	const std::string & to_string() const { return fs.CurrentTerm.what; }
 	int length() const { return (int)child.size(); }
 	TokenMeta_T & get_token() { return this->fs.CurrentTerm.token; }
@@ -86,7 +86,7 @@ struct ParseNode {
 	ParseNode(const ParseNode &);
 	ParseNode & operator= (const ParseNode &) ;
 	ParseNode() : attr(nullptr), father(nullptr) {};
-	ParseNode(const FlexState & s, ParseNode * fa, ParseAttr * att = nullptr) : father(fa), attr(att), fs(s) {}
+	ParseNode(const FlexState & s, ParseNode * fa, struct ParseAttr * att = nullptr) : father(fa), attr(att), fs(s) {}
 	~ParseNode();
 };
 
