@@ -26,13 +26,7 @@
     <ClCompile Include="..\..\for90std\for90std.cpp">
       <Filter>for90std</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\for90std\forfilesys.h">
-      <Filter>for90std</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\for90std\forlang.cpp">
-      <Filter>for90std</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\for90std\forfilesys.cpp">
       <Filter>for90std</Filter>
     </ClCompile>
     <ClCompile Include="..\..\main.cpp" />
@@ -141,6 +135,12 @@
     <ClCompile Include="..\..\grammar\for90.tab.cpp">
       <Filter>grammar</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\for90std\forfilesys.cpp">
+      <Filter>for90std</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\grammar\simple_lexer.cpp">
+      <Filter>grammar</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\grammar\for90.tab.h">
@@ -177,9 +177,6 @@
       <Filter>for90std</Filter>
     </ClInclude>
     <ClInclude Include="..\..\utf8.h" />
-    <ClInclude Include="..\..\enum_reflect.h">
-      <Filter>NuclearLang</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\target\codegen.h">
       <Filter>target</Filter>
     </ClInclude>
@@ -212,6 +209,12 @@
     </ClInclude>
     <ClInclude Include="..\..\parser\tokenizer.h">
       <Filter>parser</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\for90std\forfilesys.h">
+      <Filter>for90std</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\parser\enum_reflect.h">
+      <Filter>NuclearLang</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

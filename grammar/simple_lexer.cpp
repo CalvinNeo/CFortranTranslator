@@ -17,30 +17,14 @@
 *   51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
-#include "Intent.h"
+#include <cstdio>
+#include <iostream>
+#include <functional>
+#include <algorithm>
+#include <boost/algorithm/string.hpp>
+#include <memory>
+#include "../parser/tokenizer.h"
+#include "../parser/parser.h"
+#include "../parser/context.h"
+#include "../target/gen_config.h"
 
-std::string get_intent_name(TokenMeta_T intent_id) {
-	return TokenMeta::get_enum_table().from_value(intent_id);
-}
-
-void make_enum_table(std::map<std::string, TokenMeta_T> & m, std::string str) {
-	size_t s = 0;
-	std::string k, v;
-	for (size_t i = 0; i < str.length(); i++) {
-		if (str[i] == ',') {
-			v = str.substr(s, i - s);
-			// TODO: ERROR: it can not work for expressions
-			int xv;	sscanf(v.c_str(), "%d", &xv);
-			m[k] = xv;
-			s = i + 1;
-		}
-		else if (str[i] == '=') {
-			k = str.substr(s, i - s); 
-			s = i + 1;
-		}
-		else if (str[i] == ' ') {
-		}
-		else {
-		}
-	}
-}

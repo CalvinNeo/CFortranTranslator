@@ -353,7 +353,7 @@ if this common block is an unamed block, `COMMON_NAME` is by default `G`
 
 
 ### subroutines and functions
-#### parameter tables
+#### parameter list
 1. remove all definition of local variables which is also in parameter list
 2. optional parameter: instead of c-style optional parameter, wrap optional parameters with `foroptional<T>`, function `forpresent` functions as `present` function in fortran90
 3. keyword/named parameter: C++ don't support keyword parameters, all keyword parameter will be reorganized in normal paramtable
@@ -391,7 +391,7 @@ actual argument (12.5.2.1, 12.5.2.2, 12.5.2.3).
 
 
 ### operators
-1. defined operators is not supported
+1. defined operators is not supported yet
 
 #### intrinsic operators
 
@@ -411,23 +411,24 @@ actual argument (12.5.2.1, 12.5.2.2, 12.5.2.3).
 ## fortran 77 standard support
 ### fixed form
 
-### implicit 
+### implicit variables
+All implicit variables will have their definitions generated in target code.
+Because of the [3-phase strategy](/Develop.md)
 
-
-#### implicit parameters table
+#### implicit variables in parameters list
 Not all parameters in a `paramtable` need to be declared explicitly in the function body, if the parameter
 1. used in both `paramtable` and the function body
     fortran 90 standard
 2. used only in `paramtable`
     implicit definition conforming to fortran 77 standard
 
-### subroutines and functions
+### subprogram
 #### attribute specification statements
-fortran77 programs do not specify intent:
+fortran77 do not specify intent, target code will follow the strategy:
 
 |fortran|C++|
 |:-:|:-:|
-|literals(right value)|`T`|
+|literals(right value)|`T &&`|
 |left value|`T &`|
 
 # Develop

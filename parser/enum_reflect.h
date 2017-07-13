@@ -43,7 +43,7 @@
 		EnumTableHelper() {																								\
 			::make_enum_table(m, input_str);																			\
 		} 																												\
-	protected:																											\
+	public:																												\
 		std::map<std::string, int> m; 																					\
 		const std::string input_str = #ARGS;																			\
 	}; 																													\
@@ -68,20 +68,4 @@
 #define TokenMeta_T int
 //#define TokenMeta_T IntentMeta::IntentMeta_T
 
-inline void make_enum_table(std::map<std::string, int> & m, std::string str) {
-	size_t s = 0;
-	std::string k, v;
-	for (size_t i = 0; i < str.length(); i++) {
-		if (str[i] == ',') {
-			v = str.substr(s, i - s);
-			int xv;	sscanf(v.c_str(), "%d", &xv);
-			m[k] = xv;
-			s = i + 1;
-		}
-		else if (str[i] == '=') {
-			k = str.substr(s, i - s); s = i + 1;
-		}
-		else if (str[i] == ' ') {}
-		else {}
-	}
-}
+void make_enum_table(std::map<std::string, TokenMeta_T> & m, std::string str);

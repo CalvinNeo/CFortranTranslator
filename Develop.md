@@ -15,6 +15,8 @@
 7. if this keyword are made up of more than 1 word, reduction conflicts may be caused between the keyword and its prefix,
     - if rules keywords are all charaters like `(/`, just add a regex to for90.l
     - if rules keywords are all words like `else if`, update forward1 in [/parser/tokenizer.cpp](/parser/tokenizer.cpp)
+
+        the first part don't need to be registered to keyword
 8. update translation rules in [/target/gen_config.h](/target/gen_config.h.h)
 
 ## extend new intrinsic function
@@ -58,24 +60,34 @@ their replacement occur in following stages:
 
 #### 3-phase strategy
 1. Step 1:
-    1. when encounter `NT_COMMONBLOCK`(occur in `regen_stmt`, after the AST is built):
+    1. when encounter a `UnknownVariant`(in `regen_exp`, when the AST is building):
 
-        call `regen_common` to log `VariableInfo` to `gen_context().variables`, mark `commonblock_name` and `commonblock_index`
-    2. when encounter `NT_VARIABLEDEFINESET` and `NT_VARIABLEDEFINE`(in `regen_stmt`, after the AST is built):
+        all variables, **once** reached by the parser and not registered to symbol table `gen_context().variables` yes, will be addded to symbol table, which includes: 
 
-        these two nodes are generated in [/grammar/for90.y](/grammar/for90.y), generate `NT_VARIABLEDEFINESET` and `NT_VARIABLEDEFINE`
-        log `VariableInfo` to `gen_context().variables`, mark `commonblock_name` to `""` and `commonblock_index` to `0`
-        this will only happen if the variable is never used
-    3. when encounter a `UnknownVariant`(in `regen_exp`, when the AST is building):
-        
-        **THE MOST CASE**
+            1. add `VariableInfo` node 
+            2. `.type` is deduced by its name in `gen_implicit_type`
+            3. `.implicit_defined` = true
+            4. `.vardef` is pointer(!= nullptr) to a `ParseNode` node. 
+            5. `commonblock_name` = `""`, `commonblock_index` = `0`.
+        VARIABLES ARE REGISTERED TO SYMBOL TABLE IN THIS CONDITION MOSTLY
         call `check_implicit_variable`, it will register this variable to `gen_context().variables`, if this variable is implicit defined, not declared as case 2.
+    2. when encounter `NT_COMMONBLOCK`(occur in `regen_stmt`, after the AST is built):
+
+        THIS IS AN EXPLICIT DEFINITION
+        call `regen_common` to log `VariableInfo` to `gen_context().variables`, mark `commonblock_name` and `commonblock_index`
+    3. when encounter `NT_VARIABLEDEFINESET` and `NT_VARIABLEDEFINE`(in `regen_stmt`, after the AST is built):
+
+        THIS IS AN EXPLICIT DEFINITION
+        these two nodes are generated in [/grammar/for90.y](/grammar/for90.y), generate `NT_VARIABLEDEFINESET` and `NT_VARIABLEDEFINE`
+        register(add, only happen if the variable is never used, or **mainly modify/overwrite**) corresponding `VariableInfo` to symbol table.
 
 2. Step 2:
+
     the first loop of `gen_joined_declarations`
     enumerate all `VariableInfo` of this suite several times UNTIL ALL VARIABLES ARE GENERATED, call `regen_vardef`
 
 3. Step 3:
+
     the second loop of `gen_joined_declarations`
     join generated codes of Step 2, depending whether this variable is common block
 

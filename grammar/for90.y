@@ -24,6 +24,7 @@
 #include <iostream>
 #include <stdarg.h>
 #include <tuple>
+#include <stdint.h>
 #include "../parser/attribute.h"
 #include "../parser/parser.h"
 #include "../target/codegen.h"
@@ -37,7 +38,7 @@ extern void set_buff(const std::string & code);
 extern void release_buff();
 #define YYDEBUG 1
 #define YYERROR_VERBOSE
-#define YYINITDEPTH 500
+#define YYINITDEPTH 2000
 //#define YYLEX advanced_yylex()
 // static is necessary, or will cause lnk
 static char codegen_buf[MAX_CODE_LENGTH];
@@ -102,9 +103,10 @@ using namespace std;
 %token /*_YY_TYPE*/ YY_INTEGER YY_FLOAT YY_WORD YY_OPERATOR YY_STRING YY_ILLEGAL YY_COMPLEX YY_TRUE YY_FALSE YY_FORMAT_STMT YY_COMMENT
 %token /*_YY_CONTROL*/ YY_LABEL YY_END YY_IF YY_THEN YY_ELSE YY_ELSEIF YY_ENDIF YY_DO YY_ENDDO YY_CONTINUE YY_BREAK YY_EXIT YY_CYCLE YY_WHILE YY_ENDWHILE YY_WHERE YY_ENDWHERE YY_CASE YY_ENDCASE YY_SELECT YY_ENDSELECT YY_GOTO YY_DOWHILE YY_DEFAULT 
 %token /*_YY_DELIM*/ YY_PROGRAM YY_ENDPROGRAM YY_FUNCTION YY_ENDFUNCTION YY_RECURSIVE YY_RESULT YY_SUBROUTINE YY_ENDSUBROUTINE YY_MODULE YY_ENDMODULE YY_BLOCK YY_ENDBLOCK YY_INTERFACE YY_ENDINTERFACE YY_COMMON YY_DATA
-%token /*_YY_DESCRIBER*/ YY_IMPLICIT YY_NONE YY_USE YY_PARAMETER YY_ENTRY YY_DIMENSION YY_ARRAYBUILDER_START YY_ARRAYBUILDER_END YY_INTENT YY_IN YY_OUT YY_INOUT YY_OPTIONAL YY_LEN YY_KIND YY_SAVE
+%token /*_YY_DESCRIBER*/ YY_IMPLICIT YY_NONE YY_USE YY_PARAMETER YY_ENTRY YY_DIMENSION YY_ARRAYBUILDER_START YY_ARRAYBUILDER_END YY_INTENT YY_IN YY_OUT YY_INOUT YY_OPTIONAL YY_LEN YY_KIND YY_SAVE YY_ALLOCATABLE YY_TARGET
 %token /*_YY_TYPEDEF*/ YY_INTEGER_T YY_FLOAT_T YY_STRING_T YY_COMPLEX_T YY_BOOL_T YY_CHARACTER_T YY_DOUBLE_T
 %token /*_YY_COMMAND*/ YY_WRITE YY_READ YY_PRINT YY_CALL  YY_STOP YY_PAUSE YY_RETURN
+%token /*_YY_CONFIG*/ YY_CONFIG_IMPLICIT
 
 
 %left YY_EQV YY_NEQV
@@ -259,6 +261,24 @@ using namespace std;
 				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($1));
 				CLEAN_RIGHT($1);
 			}
+		| YY_ALLOCATABLE
+			{
+				/* allocatable value */
+				ParseNode newnode = gen_token(Term{ TokenMeta::NT_VARIABLEDESC, WHENDEBUG_OREMPTYSTR("NT_VARIABLEDESC GENERATED IN") }); // allocatable
+				set_variabledesc_attr(newnode, boost::none, boost::none, boost::none, boost::none, boost::none, true);
+				$$ = RETURN_NT(newnode);
+				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($1));
+				CLEAN_RIGHT($1);
+			}
+		| YY_TARGET
+			{
+				/* target value */
+				ParseNode newnode = gen_token(Term{ TokenMeta::NT_VARIABLEDESC, WHENDEBUG_OREMPTYSTR("NT_VARIABLEDESC GENERATED IN") }); // target
+				set_variabledesc_attr(newnode, boost::none, boost::none, boost::none, boost::none, boost::none, true);
+				$$ = RETURN_NT(newnode);
+				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($1));
+				CLEAN_RIGHT($1);
+			}
 				
 	variable_desc : ',' variable_desc_elem variable_desc
 			{
@@ -324,6 +344,13 @@ using namespace std;
 				$$ = RETURN_NT(gen_token(Term{ TokenMeta::Float, lit.get_what() })); // float number
 				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($1));
 				CLEAN_RIGHT($1);
+			}
+		| YY_INTEGER '.'
+			{
+				ARG_IN lit = YY2ARG($1);
+				$$ = RETURN_NT(gen_token(Term{ TokenMeta::Float, lit.get_what() + ".0" })); // float number
+				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($1));
+				CLEAN_RIGHT($1, $2);
 			}
 		| YY_INTEGER
 			{
@@ -546,9 +573,8 @@ using namespace std;
 				ParseNode newnode = gen_token(Term{TokenMeta::NT_FUCNTIONARRAY, WHENDEBUG_OREMPTYSTR("FUNCTIONARRAY GENERATED IN REGEN_SUITE") }
 					, callable_head, gen_token(Term{TokenMeta::NT_ARGTABLE_PURE, ""}) );
 				$$ = RETURN_NT(newnode);
-				CLEAN_RIGHT($1, $2);
 				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($1));
-				CLEAN_RIGHT($1);
+				CLEAN_RIGHT($1, $2);
 			}
 
 	exp : function_array 
@@ -813,7 +839,7 @@ using namespace std;
 				insert_comments(YY2ARG($$));
 				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($1));
 			}
-		| dummy_stmt
+		| implicit_stmt
 			{
 				$$ = $1;
 				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($1));
@@ -977,12 +1003,22 @@ using namespace std;
 				CLEAN_RIGHT($1, $2, $3);
 			}
 
-	dummy_stmt : YY_IMPLICIT YY_NONE
+	implicit_stmt : YY_IMPLICIT YY_NONE
 			{
 				// dummy stmt
 				$$ = RETURN_NT(gen_dummy());
 				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($2));
 				CLEAN_RIGHT($1, $2);
+			}
+		| YY_IMPLICIT type_name '(' paramtable ')'
+			{
+				// dummy stmt
+				ParseNode & type_name = YY2ARG($2);
+				ParseNode & paramtable = YY2ARG($4);
+				ParseNode newnode = gen_token(Term{ TokenMeta::ConfigImplicit, "" }, type_name, paramtable);
+				$$ = RETURN_NT(newnode);
+				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($5));
+				CLEAN_RIGHT($1, $2, $3, $4, $5);
 			}
 
 	labeled_stmts : YY_LABEL stmt
@@ -1652,8 +1688,15 @@ using namespace std;
 				YYSTYPE XXX = $1;
 				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($10));
 				CLEAN_RIGHT($1, $2, $3, $4, $5, $6, $7, $8, $9, $10);
+			}	
+		| dummy_function_iden _optional_function YY_WORD at_least_one_end_line suite _optional_endfunction
+			{
+				ARG_IN variable_function = YY2ARG($3); // function name
+				ARG_IN suite = YY2ARG($5);
+				$$ = RETURN_NT(gen_function(variable_function, gen_token(Term{ TokenMeta::NT_PARAMTABLE_PURE, "" }), gen_token(Term{ TokenMeta::UnknownVariant, "" }), suite));
+				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($1));
+				CLEAN_RIGHT($1, $2, $3, $4, $5, $6);
 			}
-	
 	_optional_name : YY_WORD
 			{
 				$$ = $1;

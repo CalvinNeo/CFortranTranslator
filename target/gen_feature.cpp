@@ -84,7 +84,6 @@ bool is_int(const ParseNode & lit) {
 	if (tok == TokenMeta::Int8) return true;
 	if (tok == TokenMeta::Int16) return true;
 	if (tok == TokenMeta::Int32) return true;
-	if (tok == TokenMeta::Int16) return true;
 	if (tok == TokenMeta::Int64) return true;
 	return false;
 }

@@ -39,10 +39,22 @@ ParseNode gen_type(Term typeterm) {
 	return gen_type(gen_token(typeterm));
 }
 
-ParseNode gen_implicit_type(std::string name) {
-	if (name.size() > 0 && name[0] <= 'n' && name[0] >= 'i')
-	{
-		return gen_type(Term{ TokenMeta::Int_Decl, "int" });
+ParseNode gen_implicit_type(FunctionInfo * finfo, std::string name) {
+	if (name.size() > 0)
+	{	
+		TokenMeta_T tok = finfo->implicit_type_config[name[0]];
+		string tname;
+		//std::cout << IntentMeta::get_enum_table().input_str << std::endl;
+		if (tok == TokenMeta::Int_Decl) tname = "int";
+		if (tok == TokenMeta::Char_Decl) tname = "char";
+		if (tok == TokenMeta::Int8_Decl) tname = "int8_t";
+		if (tok == TokenMeta::Int16_Decl) tname = "int16_t";
+		if (tok == TokenMeta::Int32_Decl) tname = "int32_t";
+		if (tok == TokenMeta::Int64_Decl) tname = "int64_t";
+		if (tok == TokenMeta::Double_Decl) tname = "double";
+		if (tok == TokenMeta::LongDouble_Decl) tname = "long double";
+		if (tok == TokenMeta::Float_Decl) tname = "float";
+		return gen_type(Term{ tok, tname });
 	}
 	else {
 		return gen_type(Term{ TokenMeta::Float_Decl, "double" });

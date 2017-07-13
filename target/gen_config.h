@@ -33,6 +33,8 @@ const std::map<std::string, std::string> pre_map{
 	, { "logical", "bool" }
 	, { "character", "string" }
 	, { "real", "double" }
+	, { "double", "double" }
+	, { "doubleprecision", "double" }
 	, { "complex", "forcomplex" }
 	, { "cycle", "continue" }
 	, { "exit", "break" }
@@ -57,6 +59,7 @@ const std::map<std::string, std::string> funcname_map{
 	, { "bool", "to_bool" }
 	, { "string", "to_string" }
 	, { "double", "to_double" }
+	, { "doubleprecision", "to_double" }
 	, { "forcomplex", "forcomplex" }
 
 	// array

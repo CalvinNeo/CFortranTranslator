@@ -261,6 +261,10 @@ const vector<KeywordMeta> keywords = {
 		, TokenMeta::Double_Decl
 		, YY_DOUBLE_T
 	}
+	, KeywordMeta{ "double"
+		, TokenMeta::Double_Decl
+		, YY_DOUBLE_T
+	}
 	, KeywordMeta{ "print"
 		, TokenMeta::META_ANY
 		, YY_PRINT
@@ -332,7 +336,7 @@ const vector<KeywordMeta> keywords = {
 	}
 	// 在词法分析中特别处理，YY_FORMAT和NT_FORMAT为FORMAT语句的处理结果
 	//, KeywordMeta{ "format"
-	//	, TokenMeta::Format
+	//	, TokenMeta::NT_FORMAT
 	//	, YY_FORMAT
 	//}
 	, KeywordMeta{ "common"
@@ -358,6 +362,14 @@ const vector<KeywordMeta> keywords = {
 	, KeywordMeta{ "return"
 		, TokenMeta::Return
 		, YY_RETURN
+	}
+	, KeywordMeta{ "allocatable"
+		, TokenMeta::META_ANY
+		, YY_ALLOCATABLE
+	}
+	, KeywordMeta{ "target"
+		, TokenMeta::META_ANY
+		, YY_TARGET
 	}
 };
 

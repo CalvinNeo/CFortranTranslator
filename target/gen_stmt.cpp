@@ -92,6 +92,7 @@ std::string regen_stmt(FunctionInfo * finfo, ParseNode & stmt) {
 	*	label(in suite rule)		Label
 	*	io_stmt						NT_READ_STMT, NT_WRITE_STMT, NT_PRINT_STMT
 	*	compound_stmt				NT_IF, ...
+	*	implicit_stmt				ConfigImplicit
 	***************/
 	std::string newsuitestr;
 	int comment_start = -1;
@@ -164,7 +165,11 @@ std::string regen_stmt(FunctionInfo * finfo, ParseNode & stmt) {
 					vinfo->implicit_defined = false; // set in regen_suite and regen_common
 					vinfo->type = type_nospec; // set in regen_vardef
 					vinfo->entity_variable = entity_variable; // set in regen_vardef
-					vinfo->vardef_node = &vardef_node; // set in regen_vardef
+					//if (vinfo->vardef_node != nullptr)
+					//{
+					//	delete vinfo->vardef_node;
+					//}
+					vinfo->vardef_node = new ParseNode(vardef_node); // set in regen_vardef
 				}
 				else if (vardef_node.get_token() == TokenMeta::NT_DECLAREDVARIABLE) {
 					// declared variable
@@ -268,6 +273,32 @@ std::string regen_stmt(FunctionInfo * finfo, ParseNode & stmt) {
 		regen_select(finfo, stmt);
 		newsuitestr += stmt.get_what();
 		newsuitestr += '\n';
+	}
+	else if (stmt.get_token() == TokenMeta::ConfigImplicit)
+	{
+		ParseNode & type_decl = stmt.get(0);
+		ParseNode & paramtable = stmt.get(1);
+		for (int i = 0; i < paramtable.length(); i++)
+		{
+			ParseNode & range = paramtable.get(i);
+			if (range.length() == 3 && range.get(2).get_token() == TokenMeta::Minus)
+			{
+				char start = range.get(0).get_what()[0];
+				char end = range.get(1).get_what()[0];
+				if (start > end)
+				{
+					std::swap(start, end);
+				}
+				for (char ch = start; ch <= end; ch++)
+				{
+					finfo->implicit_type_config[ch] = type_decl.get_token();
+				}
+			}
+			else {
+				char start = range.get_what()[0];
+				finfo->implicit_type_config[start] = type_decl.get_token();
+			}
+		}
 	}
 	else {
 		// normal stmt

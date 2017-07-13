@@ -87,10 +87,10 @@ void regen_read(FunctionInfo * finfo, ParseNode & stmt) {
 		for90std::IOFormat ioformat = parse_ioformatter(fmt);
 		if (is_stdio) {
 			// device = "5"; // stdin
-			sprintf(codegen_buf, "forread(stdin, IOFormat(\"%s\", %d), %s);\n", ioformat.fmt.c_str(), ioformat.reversion_start, argtable_str.c_str());
+			sprintf(codegen_buf, "forread(stdin, IOFormat{\"%s\", %d}, %s);\n", ioformat.fmt.c_str(), ioformat.reversion_start, argtable_str.c_str());
 		}
 		else {
-			sprintf(codegen_buf, "forread(get_file(%s), IOFormat(\"%s\", %d), %s);\n", device.c_str(), ioformat.fmt.c_str(), ioformat.reversion_start, argtable_str.c_str());
+			sprintf(codegen_buf, "forread(get_file(%s), IOFormat{\"%s\", %d}, %s);\n", device.c_str(), ioformat.fmt.c_str(), ioformat.reversion_start, argtable_str.c_str());
 		}
 	}
 	stmt.fs.CurrentTerm = Term{ TokenMeta::NT_READ_STMT, string(codegen_buf) };
@@ -126,10 +126,10 @@ void regen_write(FunctionInfo * finfo, ParseNode & stmt) {
 		for90std::IOFormat ioformat = parse_ioformatter(fmt);
 		if (is_stdio) {
 			// device = "6"; // stdout
-			sprintf(codegen_buf, "forwrite(stdout, IOFormat(\"%s\", %d), %s);\n", ioformat.fmt.c_str(), ioformat.reversion_start, argtable_str.c_str());
+			sprintf(codegen_buf, "forwrite(stdout, IOFormat{\"%s\", %d}, %s);\n", ioformat.fmt.c_str(), ioformat.reversion_start, argtable_str.c_str());
 		}
 		else {
-			sprintf(codegen_buf, "forwrite(get_file(%s), IOFormat(\"%s\", %d), %s);\n", device.c_str(), ioformat.fmt.c_str(), ioformat.reversion_start, argtable_str.c_str());
+			sprintf(codegen_buf, "forwrite(get_file(%s), IOFormat{\"%s\", %d}, %s);\n", device.c_str(), ioformat.fmt.c_str(), ioformat.reversion_start, argtable_str.c_str());
 		}
 	}
 	stmt.fs.CurrentTerm = Term{ TokenMeta::NT_WRITE_STMT, string(codegen_buf) };
@@ -179,6 +179,25 @@ ParseNode gen_format(ARG_IN format) {
 //Examples of FORMAT statements are :
 //5 FORMAT(1PE12.4, I10)
 //9 FORMAT(I12, / , ¡¯ Dates : ¡¯, 2 (2I3, I5))
+
+std::string add_escape_char(std::string s) {
+	string r;
+	for (int i = 0; i < s.size(); i++)
+	{
+		switch (s[i])
+		{
+		case '\\':
+		case '\'':
+		case '\"':
+			r += '\\';
+			/* NO `break;` */
+		default:
+			r += s[i];
+			break;
+		}
+	}
+	return r;
+}
 
 //10.1.2 Character format specification
 //A character expression used as a format specifier in a formatted input / output statement must evaluate to a
@@ -268,6 +287,19 @@ for90std::IOFormat parse_ioformatter(const std::string & src) {
 			stat = 1;
 			instant_defined = false;
 			break;
+		case 'h':
+		{
+			/*
+			*	H-editing
+			* nH means put next n characters after H into output
+			*/
+			int length = repeat.back();
+			repeat.pop_back();
+			string raw = src.substr(i + 1, length);
+			rt += add_escape_char(raw);
+			i = i + 1 + length;
+			break;
+		}
 		case '0':
 		case '1':
 		case '2':
@@ -293,8 +325,7 @@ for90std::IOFormat parse_ioformatter(const std::string & src) {
 				for (; j < src.size() && src[j] >= '0' && src[j] <= '9'; j++);
 				// IMPORTANT in level repeat.size() - 1 BEFORE push_back, or will cause `rt += buf;` failure
 				instant_defined = true;
-				int t;
-				sscanf(src.substr(i, j - i).c_str(), "%d", &t);
+				int t = std::atoi(src.substr(i, j - i).c_str());
 				repeat.push_back(t);
 				i = j - 1;
 			}

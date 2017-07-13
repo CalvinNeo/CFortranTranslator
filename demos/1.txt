@@ -1,4 +1,1 @@
-	DO 5 I=1,M
-		Y
- 5	X
- 
+      COMMON /GO/ KFM

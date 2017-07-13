@@ -21,7 +21,6 @@
 #include <string>
 #include "enum_reflect.h"
 
-
 namespace TokenMeta {
 
 	//enum IntentMeta {
@@ -185,7 +184,7 @@ namespace TokenMeta {
 		ADD_ENUM(META_VOID, -312),
 
 		// typename (-300~--399) and type decl(-400~-599)
-		ADD_ENUM(Void, META_VOID), ADD_ENUM(Void_Decl, Void - 100),
+		ADD_ENUM(Void, META_VOID), 	ADD_ENUM(Void_Decl, (Void - 100)),
 		ADD_ENUM(Obj, -321), ADD_ENUM(Obj_Decl, Obj - 100),
 		ADD_ENUM(Int, META_INTEGER), ADD_ENUM(Int_Decl, Int - 100),
 		ADD_ENUM(Char, META_CHARACTER), ADD_ENUM(Char_Decl, Char - 100),
@@ -238,6 +237,7 @@ namespace TokenMeta {
 		ADD_ENUM(CommentsEnd, -1009),
 		ADD_ENUM(CommentLine, -1010),
 		ADD_ENUM(Include, -1011),
+		ADD_ENUM(ConfigImplicit, -1012),
 
 		/***************************************
 		*	NT_PARAMTABLE is a deprecated
@@ -261,7 +261,7 @@ namespace TokenMeta {
 		* a statement that defines a list of variables , such as `int a = 2, b, c` ,
 		*	will create 3 NT_VARIABLEDEFINE node , which are all sons to a NT_VARIABLEDEFINESET node
 		****************************************/
-		ADD_ENUM(NT_VARIABLEDEFINE, -2006),  /* is  */
+		ADD_ENUM(NT_VARIABLEDEFINE, -2006), 
 		ADD_ENUM(NT_STATEMENT, -2007),
 		ADD_ENUM(NT_EXPRESSION, -2008),
 		ADD_ENUM(NT_IF, -2009),

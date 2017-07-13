@@ -85,4 +85,5 @@
     integer a = c
     ```
 - ~~solve `(i+1,i+2, i = 1, 2)` in IO function~~
-- tokenizer: real type(4.3.1.2) conflict with operators, refer demos/control/tokenizer.txt
+- ~~tokenizer: real type(4.3.1.2) conflict with operators, refer demos/control/tokenizer.txt~~
+- enum-reflect.h can not calculate value like `Void - 100`, refer `make_enum_table`'s TODO

@@ -43,6 +43,14 @@ struct FunctionDesc {
 struct FunctionInfo {
 	std::string local_name; // name can only set by add_function
 	FunctionDesc funcdesc;
+	TokenMeta_T implicit_type_config[256];
+	FunctionInfo() {
+		std::fill_n(implicit_type_config, 256, TokenMeta::Double_Decl);
+		for (char i = 'i'; i <= 'n'; i++)
+		{
+			implicit_type_config[i] = TokenMeta::Int_Decl;
+		}
+	}
 };
 /******************
 * KeywordParamInfo:

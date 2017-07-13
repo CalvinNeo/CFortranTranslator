@@ -13,3 +13,5 @@ KKK.GT.1..OR.KKK.EQ.2.
      
  120    FORMAT(2X,
      4   '**')
+
+      COMMON /GO/ KFM ! must distinguish with goto-stmt

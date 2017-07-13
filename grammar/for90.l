@@ -135,8 +135,9 @@ int quit_condition(int yy_token, Term term) {
 
 struct FlexExternalContext : public FlexScannerContext {
 	int left_brackets = 0;
-	int len;
+	int len; // len != code.size(), because of special editing like H-editing
 	bool in_str = false;
+	int h_editing_count = 0;
 	FlexExternalContext(std::string trigger, int condition) : FlexScannerContext(trigger, condition) {
 		left_brackets = 0;
 		len = 0;
@@ -146,20 +147,34 @@ struct FlexExternalContext : public FlexScannerContext {
 		len++;
 		if (this->trigger == "format")
 		{
-			if (text[0] == '(' && !in_str)
+			if (text[0] == '(' && !in_str && !h_editing_count)
 			{
 				left_brackets++;
+				code += text;
 			}
-			else if (text[0] == ')' && !in_str) {
+			else if (text[0] == ')' && !in_str && !h_editing_count) {
 				left_brackets--;
+				code += text;
 				if (left_brackets == 0)
 				{
 					std::string result = code; 
 					update_flex((int)len);
 					return quit_condition(YY_FORMAT_STMT, Term{ TokenMeta::NT_FORMAT, result });
 				}
-			}else{
-				if (text[0] == '\"' || text[0] == '\'')
+			}
+			else if (tolower( text[0] ) == 'h' && !in_str) {
+				// h-editing
+				int num_s = code.size() - 1;
+				while (num_s > 0 && !(code[num_s] >= '0' && code[num_s] <= '9')) {
+					num_s--;
+				}
+				std::string h_editing_arg = code.substr(num_s);
+				//code = code.substr(0, num_s ); // remove  `xH`
+				h_editing_count = std::atoi(h_editing_arg.c_str());
+				code += text;
+			}
+			else{
+				if (!h_editing_count && (text[0] == '\"' || text[0] == '\''))
 				{
 					in_str = !in_str;
 				}
@@ -167,8 +182,12 @@ struct FlexExternalContext : public FlexScannerContext {
 				{
 					get_flex_state().parse_line++;
 				}
+				if (h_editing_count >0)
+				{
+					h_editing_count--;
+				}
+				code += text;
 			}
-			code += text;
 		}
 		else
 		{
@@ -231,7 +250,6 @@ digits {digit}+
 kind_param (digits|{letter}+)
 exponent [eEdD][-+]?{digits}?\.{digits}
 floating {digits}?\.{digits}{exponent}?
-narrow_floating {digits}\.
 integral {digits}(_{kind_param})?
 starter({letter}|_)
 wordname {starter}({starter}|{digit})*
@@ -265,6 +283,13 @@ string ({string1}|{string2})
 }
 
 {newline}([ ][ ][ ][ ][ ])({digit}|[*&]) {
+	// continuation line
+	// {newline}{ws}\*
+	int p = nop_parse();
+	update_flex();
+	DORET(p);
+}
+{newline}\t({digit}|[*&]) {
 	// continuation line
 	// {newline}{ws}\*
 	int p = nop_parse();
@@ -315,11 +340,22 @@ string ({string1}|{string2})
 	DORET(p)
 }
 {floating} {
+	/****************
+	*	narrow_floating is of rule
+	*	```
+	*	narrow_floating{ digits }\.
+	*	```
+	* It will conflict with keywords begins with dot"." such as `.and.`
+	****************/
+
+	/****************
+	{narrow_floating} {
+
 	int p = literal_parse(yytext, TokenMeta::META_REAL, YY_FLOAT);
 	update_flex();
 	DORET(p)
-}
-{narrow_floating} {
+	}
+	****************/
 	int p = literal_parse(yytext, TokenMeta::META_REAL, YY_FLOAT);
 	update_flex();
 	DORET(p)
@@ -431,9 +467,9 @@ NORMAL_CONDITION:
 	TokenMeta_T tok = TokenMeta::META_WORD;
 	int yytok = YY_WORD;
 	auto keyword_iter = find_if(keywords.begin(), keywords.end(), [&](const auto & x) {return x.what == lowercase_name; });
-	if (keyword_iter != keywords.end()) {
+	auto forward1_iter = find_if(forward1.begin(), forward1.end(), [&](const auto & x) {return x.first == lowercase_name; });
+	if (keyword_iter != keywords.end() || forward1_iter != forward1.end()) {
 		// if fortran keyword
-		auto forward1_iter = find_if(forward1.begin(), forward1.end(), [&](const auto & x) {return x.first == lowercase_name; });
 		if (forward1_iter != forward1.end()) {
 			// not a valid yylval
 			std::string next = CutString(get_context().global_code.begin() + fs.parse_pos + yyleng , get_context().global_code.end(), false);
@@ -446,8 +482,16 @@ NORMAL_CONDITION:
 				goto FIND_CONCAT;
 			}
 		}
-		tok = keyword_iter->token;
-		yytok = keyword_iter->yytoken;
+		if (keyword_iter != keywords.end())
+		{
+			// this is another keyword
+			tok = keyword_iter->token;
+			yytok = keyword_iter->yytoken;
+		}
+		else {
+			// this is just a name
+			
+		}
 	}
 	if (pre_map.find(lowercase_name) != pre_map.end()) {
 		// replace according to tokenizer.cpp

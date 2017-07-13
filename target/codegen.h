@@ -159,7 +159,7 @@ ParseNode gen_dimenslice(ARG_IN dimen_slice);
 ParseNode gen_argtable(ARG_IN argtable);
 void foreach_paramtable(const ParseNode & pn, std::function<void(const ParseNode &)> f, bool recursion_direction_right);
 
-ParseNode gen_implicit_type(std::string name);
+ParseNode gen_implicit_type(FunctionInfo * finfo, std::string name);
 ParseNode gen_type(ARG_IN type_nospec, ARG_IN _type_kind);
 ParseNode gen_type(ARG_IN type_nospec);
 ParseNode gen_type(Term typeterm);

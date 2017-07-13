@@ -183,7 +183,7 @@ ParseNode gen_vardef(ARG_IN type_nospec, ARG_IN variable_desc, ARG_IN paramtable
 	return newnode;
 }
 
-void regen_type(ParseNode & type_nospec, VariableInfo * vinfo) {
+void regen_type(ParseNode & type_nospec, FunctionInfo * finfo, VariableInfo * vinfo) {
 	if (type_nospec.get_token() == TokenMeta::Implicit_Decl)
 	{
 		/*****************
@@ -194,7 +194,7 @@ void regen_type(ParseNode & type_nospec, VariableInfo * vinfo) {
 		* though `check_implicit_variable` will deduce all implicit variable's type and all Implicit_Decl type,
 		*	it can't handle vardef nodes
 		*****************/
-		type_nospec.get_what() = gen_implicit_type(get_variable_name(vinfo->entity_variable)).get_what();
+		type_nospec.get_what() = gen_implicit_type(finfo, get_variable_name(vinfo->entity_variable)).get_what();
 		type_nospec.setattr(new VariableDescAttr());
 	}
 	else {
@@ -210,7 +210,7 @@ void regen_vardef(FunctionInfo * finfo, VariableInfo * vinfo) {
 	ParseNode & type_nospec = vinfo->type;
 	bool do_arr = desc.slice.is_initialized();
 	string var_decl, type_str;
-	regen_type(type_nospec, vinfo);
+	regen_type(type_nospec, finfo, vinfo);
 	// entity_variable is NT_VARIABLE_ENTITY
 	if(do_arr){
 		// ARRAY

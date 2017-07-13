@@ -1,5 +1,6 @@
 	character  filename* 80
         READ (*,*) FILENAME
         OPEN(1,FILE=FILENAME)
+196     FORMAT('PS ',2F10.3,' 0.06 0.0 ',2H(",I4,2H)")
 READ(1,*) (I + 1,I=1,M)
 WRITE(1,*) (a,b,J=1,2)

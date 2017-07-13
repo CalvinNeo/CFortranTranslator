@@ -31,12 +31,12 @@
     <ClCompile Include="..\..\for90std\farray.cpp" />
     <ClCompile Include="..\..\for90std\for90std.cpp" />
     <ClCompile Include="..\..\for90std\forfilesys.cpp" />
-    <ClCompile Include="..\..\for90std\forfilesys.h" />
     <ClCompile Include="..\..\for90std\forlang.cpp" />
     <ClCompile Include="..\..\for90std\forstdio.cpp" />
     <ClCompile Include="..\..\getopt.cpp" />
     <ClCompile Include="..\..\grammar\for90.flex.cpp" />
     <ClCompile Include="..\..\grammar\for90.tab.cpp" />
+    <ClCompile Include="..\..\grammar\simple_lexer.cpp" />
     <ClCompile Include="..\..\main.cpp" />
     <ClCompile Include="..\..\parser\attribute.cpp" />
     <ClCompile Include="..\..\parser\Function.cpp" />
@@ -71,11 +71,11 @@
     <ClCompile Include="..\..\target\lazygen.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\enum_reflect.h" />
     <ClInclude Include="..\..\for90std\farray.h" />
     <ClInclude Include="..\..\for90std\for1array.h" />
     <ClInclude Include="..\..\for90std\for90std.h" />
     <ClInclude Include="..\..\for90std\forarray_common.h" />
+    <ClInclude Include="..\..\for90std\forfilesys.h" />
     <ClInclude Include="..\..\for90std\forlang.h" />
     <ClInclude Include="..\..\for90std\formath.h" />
     <ClInclude Include="..\..\for90std\forstdio.h" />
@@ -88,6 +88,7 @@
     <ClInclude Include="..\..\grammar\for90.tab.h" />
     <ClInclude Include="..\..\parser\attribute.h" />
     <ClInclude Include="..\..\parser\context.h" />
+    <ClInclude Include="..\..\parser\enum_reflect.h" />
     <ClInclude Include="..\..\parser\Function.h" />
     <ClInclude Include="..\..\parser\Intent.h" />
     <ClInclude Include="..\..\parser\parser.h" />
