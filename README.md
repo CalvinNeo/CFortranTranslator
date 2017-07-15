@@ -6,6 +6,15 @@ Fortran is an efficient tool in scientific calculation. However sometimes transl
 
 This translator is not intended to improve existing codes, but to make convenience for those who need features of C++ and remain fortran traits as much as possible.
 
+## Features
+
+1. Convert Fortran90/Fortran77 code to C++14
+2. Parse codes mixed with fixed form and free form automaticlly
+3. C++ implemetation of some Fortran's type and functions
+4. Generated C++ code remains abstract level of the origin code
+    e.g. implied-do will not expand to a for-loop directly, but to a `IOLambda` struct
+
+
 ## License
 The whole project, including both the translator itself and fortran standrad library implementation is distributed under GNU GENERAL PUBLIC LICENSE Version 2
 
@@ -52,7 +61,7 @@ bjam --toolset=msvc-14.0 address-model=64
 - configure win\_flex and win\_bison
     1. On the Project menu, choose Project Dependencies.
     2. Select Custom Build Tools
-    3. Add [/grammar/custom_build_rules/win_flex_bison_custom_build.props](/grammar/custom_build_rules/win_flex_bison_custom_build.props)
+    3. Add [/grammar/custom_build_rules/win_flex_bison_custom_build.props](/src/grammar/custom_build_rules/win_flex_bison_custom_build.props)
 
 ### Use fortran standard library
 fortran standard library requires compiler support at least C++14 standard
@@ -75,7 +84,7 @@ several demos are provided in [demos](/demos)
 include [for90std/for90std.h](/for90std/for90std.h) to use C++ implementation of intrinsic fortran functions and language features
 
 ### inherit function
-#### type and type cast function
+#### cast
 |fortran|C++|
 |:-:|:-:|
 |`INTEGER()`|`to_int`|
@@ -107,8 +116,8 @@ refer types:array
 
 |fortran|C++|
 |:-:|:-:|
-|open|foropenfile|
-|close|forclosefile|
+|`open`|`foropenfile`|
+|`close`|`forclosefile`|
 
 #### IO format
 
@@ -125,7 +134,7 @@ refer types:array
 > R917 io-implied-do-object is input-item or output-item
 > R918 io-implied-do-control is do-variable = scalar-numeric-expr , scalar-numeric-expr [ , scalar-numeric-expr ]
 
-io-implied-do will be translated into a `IOLambda`, refer [/target/gen_io.cpp](/target/gen_io.cpp)
+io-implied-do will be translated into a `IOLambda`, refer [/src/target/gen_io.cpp](/src/target/gen_io.cpp)
 ```
 auto make_iolambda(const fsize_t(&_lb)[D], const fsize_t(&_to)[D], F func);
 auto make_iolambda(fsize_t * _lb, fsize_t * _to, F func);
@@ -140,7 +149,7 @@ For output function like `forwritefree` and `forwrite`, the `io-implied-do-objec
 Inside `IOStuff` is a `std::tuple`, use `foreach_tupe(iostuff.tup)` to enumerate content of `IOStuff`
 
 ## target code and restrictions
-refer to [/grammar/for90.y](/grammar/for90.y) for all accepted grammar
+refer to [/src/grammar/for90.y](/src/grammar/for90.y) for all accepted grammar
 ### grammar
 
 1. you can rename keyword parameter in `interface` block
@@ -150,7 +159,7 @@ refer to [/grammar/for90.y](/grammar/for90.y) for all accepted grammar
     however, there's no such restriction in this translator 
 
 #### implied-do
-
+ref io-implied-do
 
 ### types
 #### type mapping
@@ -177,7 +186,7 @@ refer to [/grammar/for90.y](/grammar/for90.y) for all accepted grammar
 1. fortran store array in a **column-first order**
     - for a 2d array, it means when initializing a 1d array by sequence, it follows the order of `a(1)(1) -> a(2)(1) -> a(1)(2) -> a(1)(2)` 
     - similarly, for a nd array, rank 1 increase by 1 first, when rank 1 equals to upper bound it wrap back and rank 2 increase by 1..., rank n increase the last.
-    - for details refer to `array_builder` rule in [/grammar/for90.y](/grammar/for90.y)
+    - for details refer to `array_builder` rule in [/src/grammar/for90.y](/src/grammar/for90.y)
 2. fortran array default lower bound for each rank is **1**, and it can be negative; each dimension of C++ style array has constant lower bound 0
 3. fortran array **rank** start from 1, C++ array **dimension** start from 0, parameter for most `for-` functions are index of rank, though they are called "dim" in standard, they are called `fordim` in this implementation
 4. `#define USE_FORARRAY` to use fortran style array, `#define USE_CARRAY` to use c style array
@@ -189,6 +198,9 @@ refer to [/grammar/for90.y](/grammar/for90.y) for all accepted grammar
 1. `slice_info<T>{T x}`: stands for the scalar `x`, `x` is an index not a range
 2. `slice_info<T>{T x, T y}`: `x`, `y` stands for a range of **[x, y]** of default step 1
 3. `slice_info<T>{T x, T y, T z}`: `x`, `y`, `z` stands for a range of **[x, y]** step `z`
+
+`template <typename T, int X> auto forslice(const farray<T> & farr, const slice_info<fsize_t>(&tp)[X])` returns an array section by `tp`, an array of `slice_info<fsize_t>`
+`tp` has length `X`, represents `slice_info<fsize_t>` data of the first `X` dimension, `X` is not always equal to `farr.dimension`
 
 #### farray
 `farray` is a multi-dimentional valarray
@@ -398,7 +410,7 @@ actual argument (12.5.2.1, 12.5.2.2, 12.5.2.3).
 | fortran intrinsic operators | C++ |
 |:-:|:-:|
 | `.and.` | `&&` |
-| `.or.` | `&&` |
+| `.or.` | `||` |
 | `.eqv.` | `!(A^B)` |
 | `.neqv.` | `^` |
 | `.eq.` | `==` |
@@ -410,6 +422,21 @@ actual argument (12.5.2.1, 12.5.2.2, 12.5.2.3).
 
 ## fortran 77 standard support
 ### fixed form
+CFortranTranslator can accept both fixed form and free form code.
+
+CFortranTranslator **WON'T** handle fixed/free part of the code respectively
+
+1. Comments(ref 3.3.2.1 Fixed form commentary)
+
+    under any condition lines begin with `C` or `c` are comments
+
+2. Continuation(ref 3.3.2.3 Fixed form statement continuation)
+
+    THIS DO NOT CONFORM TO FORTRAN90 STANDARD
+
+    under any condition lines is continuation when
+    1. begin with **5** **BLANKS**(not in standard) and position 6 is not blank, or,
+    2. (not in standard)begin with **1** TAB and the next character is not blank
 
 ### implicit variables
 All implicit variables will have their definitions generated in target code.

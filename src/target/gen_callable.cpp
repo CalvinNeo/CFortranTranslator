@@ -22,16 +22,17 @@
 // both function and array is callable
 
 std::string get_mapped_function_name(std::string origin_name) {
-	if (funcname_map.find(origin_name) != funcname_map.end()) {
+	
+	if (funcname_map.find(origin_name) == funcname_map.end()) {
+		return origin_name;
+	}
+	else {
 		/***********
 		* some fortran intrinsic function NAME is different from
 		*	its C++ implementation function NAME in for90std.h,
 		*	in order to avoid possible head_name conflicts
 		***********/
 		return funcname_map.at(origin_name);
-	}
-	else {
-		return origin_name;
 	}
 }
 
@@ -52,6 +53,7 @@ void regen_function_array(FunctionInfo * finfo, ParseNode & callable) {
 
 		if (is_slice) {
 			check_implicit_variable(finfo, head_name);
+			// join all `slice.get_what()` with ","
 			string slice_info_str = make_str_list(argtable.begin(), argtable.end(), [&](ParseNode * pslice) {
 				ParseNode & slice = *pslice;
 				regen_slice(finfo, slice);

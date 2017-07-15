@@ -54,13 +54,13 @@ const std::map<std::string, std::string> funcname_map{
 	,{ "alog", "log" }
 
 
-	// type
+	// cast
 	, {"int", "to_int"}
 	, { "bool", "to_bool" }
 	, { "string", "to_string" }
 	, { "double", "to_double" }
 	, { "doubleprecision", "to_double" }
-	, { "forcomplex", "forcomplex" }
+	, { "forcomplex", "to_forcomplex" }
 
 	// array
 	, { "reshape", "forreshape" }
@@ -99,16 +99,18 @@ const std::map<std::string, std::vector<KeywordParamInfo>> sysfunc_args{
 	, { "forwrite", { { "unit", "int" , "" }, { "fmt", "string", "" }, { "iostat", "int", "" } } }
 	, { "forprint", { { "unit", "int" , "" }, { "fmt", "string", "" }, { "iostat", "int", "" } } }
 
+	,{ "forreshape",{ } }
 	, { "forsum", { { "dim", "int", "" }, { "mask", "mask_wrapper_t", "" } } }
 	, { "forproduct", { { "dim", "int", "" }, { "mask", "mask_wrapper_t", "" } } }
+	, { "forsize", { { "dim", "int", "" } } }
+	, { "forshape",{ } }
+	, { "forlbound", { { "dim", "int", "" } } }
+	, { "forubound", { { "dim", "int", "" } } }
 	, { "formaxval", { { "dim", "int", "" }, { "mask", "mask_wrapper_t", "" } } }
 	, { "forminval", { { "dim", "int", "" }, { "mask", "mask_wrapper_t", "" } } }
 	, { "formaxloc", { { "dim", "int", "" }, { "mask", "mask_wrapper_t", "" } } }
 	, { "forminloc", { { "dim", "int", "" }, { "mask", "mask_wrapper_t", "" } } }
 
-	, { "forsize", { { "dim", "int", "" } } }
-	, { "forlbound", { { "dim", "int", "" } } }
-	, { "forubound", { { "dim", "int", "" } } }
 
 	, { "abs", {  } }
 	, { "acos", {  } }
@@ -124,6 +126,19 @@ const std::map<std::string, std::vector<KeywordParamInfo>> sysfunc_args{
 	, { "sqrt", {} }
 	, { "tan", {} }
 	, { "tanh", {} }
+
+	
+	, { "min_n" ,{}}
+	, { "max_n",{} }
+
+	// cast
+	, { "to_int",{} }
+	, { "to_bool",{} }
+	, { "to_string",{} }
+	, { "to_double",{} }
+	, { "to_double",{} }
+	, { "to_forcomplex", {} }
+
 };
 
 

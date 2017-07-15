@@ -29,7 +29,7 @@ ParseNode gen_keyvalue_from_name(std::string name) {
 }
 
 ParseNode gen_keyvalue_from_exp(ARG_IN variable, ARG_IN initial) {
-	ParseNode newnode = gen_token(Term{ TokenMeta::NT_VARIABLE_ENTITY, variable.to_string() }, variable, initial);
+	ParseNode newnode = gen_token(Term{ TokenMeta::NT_VARIABLE_ENTITY, variable.get_what() }, variable, initial);
 	return newnode;
 }
 
@@ -45,7 +45,7 @@ ParseNode gen_pure_paramtable(ARG_IN paramtable_elem) {
 		return gen_argtable(paramtable_elem);
 	}
 	else if(paramtable_elem.get_token() == TokenMeta::NT_KEYVALUE){
-		sprintf(codegen_buf, "%s", paramtable_elem.to_string().c_str());
+		sprintf(codegen_buf, "%s", paramtable_elem.get_what().c_str());
 		ParseNode newnode = gen_token(Term{ TokenMeta::NT_PARAMTABLE_PURE, string(codegen_buf) }, paramtable_elem);
 		return newnode;
 	}

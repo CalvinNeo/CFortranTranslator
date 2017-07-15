@@ -21,136 +21,125 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\develop.cpp" />
-    <ClCompile Include="..\..\getopt.cpp" />
     <ClCompile Include="..\..\for90std\for90std.cpp">
       <Filter>for90std</Filter>
     </ClCompile>
     <ClCompile Include="..\..\for90std\forlang.cpp">
       <Filter>for90std</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\main.cpp" />
     <ClCompile Include="..\..\for90std\forstdio.cpp">
       <Filter>for90std</Filter>
     </ClCompile>
     <ClCompile Include="..\..\for90std\farray.cpp">
       <Filter>for90std</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\target\codegen.cpp">
-      <Filter>target</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\target\gen_arraybuilder.cpp">
-      <Filter>target</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\target\gen_attr_describer.cpp">
-      <Filter>target</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\target\gen_callable.cpp">
-      <Filter>target</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\target\gen_config.cpp">
-      <Filter>target</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\target\gen_dimenslice.cpp">
-      <Filter>target</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\target\gen_do.cpp">
-      <Filter>target</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\target\gen_doc.cpp">
-      <Filter>target</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\target\gen_exp.cpp">
-      <Filter>target</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\target\gen_feature.cpp">
-      <Filter>target</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\target\gen_forwarddecl.cpp">
-      <Filter>target</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\target\gen_function.cpp">
-      <Filter>target</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\target\gen_if.cpp">
-      <Filter>target</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\target\gen_io.cpp">
-      <Filter>target</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\target\gen_label.cpp">
-      <Filter>target</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\target\gen_paramtable.cpp">
-      <Filter>target</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\target\gen_program.cpp">
-      <Filter>target</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\target\gen_select.cpp">
-      <Filter>target</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\target\gen_stmt.cpp">
-      <Filter>target</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\target\gen_suite.cpp">
-      <Filter>target</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\target\gen_type.cpp">
-      <Filter>target</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\target\gen_vardef.cpp">
-      <Filter>target</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\target\gen_variable.cpp">
-      <Filter>target</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\target\lazygen.cpp">
-      <Filter>target</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\parser\Function.cpp">
-      <Filter>NuclearLang</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\parser\Intent.cpp">
-      <Filter>NuclearLang</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\parser\Variable.cpp">
-      <Filter>NuclearLang</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\parser\attribute.cpp">
-      <Filter>parser</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\parser\parser.cpp">
-      <Filter>parser</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\parser\scanner.cpp">
-      <Filter>parser</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\parser\tokenizer.cpp">
-      <Filter>parser</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\grammar\for90.flex.cpp">
-      <Filter>grammar</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\grammar\for90.tab.cpp">
-      <Filter>grammar</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\for90std\forfilesys.cpp">
       <Filter>for90std</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\grammar\simple_lexer.cpp">
+    <ClCompile Include="..\..\src\parser\attribute.cpp">
+      <Filter>parser</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\parser\parser.cpp">
+      <Filter>parser</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\parser\scanner.cpp">
+      <Filter>parser</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\parser\tokenizer.cpp">
+      <Filter>parser</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\parser\Function.cpp">
+      <Filter>NuclearLang</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\parser\Intent.cpp">
+      <Filter>NuclearLang</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\parser\Variable.cpp">
+      <Filter>NuclearLang</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\target\gen_vardef.cpp">
+      <Filter>target</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\target\gen_attr_describer.cpp">
+      <Filter>target</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\target\gen_stmt.cpp">
+      <Filter>target</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\target\gen_type.cpp">
+      <Filter>target</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\target\gen_feature.cpp">
+      <Filter>target</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\target\gen_variable.cpp">
+      <Filter>target</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\target\gen_io.cpp">
+      <Filter>target</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\target\gen_callable.cpp">
+      <Filter>target</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\target\gen_exp.cpp">
+      <Filter>target</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\target\gen_suite.cpp">
+      <Filter>target</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\target\gen_function.cpp">
+      <Filter>target</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\target\gen_label.cpp">
+      <Filter>target</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\target\gen_arraybuilder.cpp">
+      <Filter>target</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\target\lazygen.cpp">
+      <Filter>target</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\target\gen_do.cpp">
+      <Filter>target</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\target\gen_dimenslice.cpp">
+      <Filter>target</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\target\gen_doc.cpp">
+      <Filter>target</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\target\gen_if.cpp">
+      <Filter>target</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\target\gen_select.cpp">
+      <Filter>target</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\target\gen_paramtable.cpp">
+      <Filter>target</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\target\codegen.cpp">
+      <Filter>target</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\target\gen_program.cpp">
+      <Filter>target</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\target\gen_forwarddecl.cpp">
+      <Filter>target</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\target\gen_config.cpp">
+      <Filter>target</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\develop.cpp" />
+    <ClCompile Include="..\..\src\getopt.cpp" />
+    <ClCompile Include="..\..\src\main.cpp" />
+    <ClCompile Include="..\..\src\grammar\for90.flex.cpp">
+      <Filter>grammar</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\grammar\for90.tab.cpp">
       <Filter>grammar</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\grammar\for90.tab.h">
-      <Filter>grammar</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\grammar\for90.flex.h">
-      <Filter>grammar</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\develop.h" />
-    <ClInclude Include="..\..\getopt.h" />
     <ClInclude Include="..\..\for90std\for1array.h">
       <Filter>for90std</Filter>
     </ClInclude>
@@ -166,7 +155,6 @@
     <ClInclude Include="..\..\for90std\forstdio.h">
       <Filter>for90std</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\general_config.h" />
     <ClInclude Include="..\..\for90std\fortime.h">
       <Filter>for90std</Filter>
     </ClInclude>
@@ -176,46 +164,55 @@
     <ClInclude Include="..\..\for90std\forarray_common.h">
       <Filter>for90std</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\utf8.h" />
-    <ClInclude Include="..\..\target\codegen.h">
-      <Filter>target</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\target\gen_common.h">
-      <Filter>target</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\target\gen_config.h">
-      <Filter>target</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\for90std\utils.h">
       <Filter>for90std</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\parser\Function.h">
-      <Filter>NuclearLang</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\parser\Intent.h">
-      <Filter>NuclearLang</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\parser\Variable.h">
-      <Filter>NuclearLang</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\parser\attribute.h">
-      <Filter>parser</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\parser\context.h">
-      <Filter>parser</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\parser\parser.h">
-      <Filter>parser</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\parser\tokenizer.h">
-      <Filter>parser</Filter>
     </ClInclude>
     <ClInclude Include="..\..\for90std\forfilesys.h">
       <Filter>for90std</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\parser\enum_reflect.h">
+    <ClInclude Include="..\..\src\parser\attribute.h">
+      <Filter>parser</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\parser\context.h">
+      <Filter>parser</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\parser\parser.h">
+      <Filter>parser</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\parser\tokenizer.h">
+      <Filter>parser</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\parser\enum_reflect.h">
       <Filter>NuclearLang</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\src\parser\Function.h">
+      <Filter>NuclearLang</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\parser\Intent.h">
+      <Filter>NuclearLang</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\parser\Variable.h">
+      <Filter>NuclearLang</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\grammar\for90.flex.h">
+      <Filter>grammar</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\grammar\for90.tab.h">
+      <Filter>grammar</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\target\codegen.h">
+      <Filter>target</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\target\gen_config.h">
+      <Filter>target</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\target\gen_common.h">
+      <Filter>target</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\develop.h" />
+    <ClInclude Include="..\..\src\general_config.h" />
+    <ClInclude Include="..\..\src\getopt.h" />
+    <ClInclude Include="..\..\src\utf8.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\README.md" />
@@ -224,13 +221,13 @@
     <None Include="..\..\Develop.md" />
   </ItemGroup>
   <ItemGroup>
-    <Bison Include="..\..\grammar\for90.y">
-      <Filter>grammar</Filter>
-    </Bison>
-  </ItemGroup>
-  <ItemGroup>
-    <Flex Include="..\..\grammar\for90.l">
+    <Flex Include="..\..\src\grammar\for90.l">
       <Filter>grammar</Filter>
     </Flex>
+  </ItemGroup>
+  <ItemGroup>
+    <Bison Include="..\..\src\grammar\for90.y">
+      <Filter>grammar</Filter>
+    </Bison>
   </ItemGroup>
 </Project>

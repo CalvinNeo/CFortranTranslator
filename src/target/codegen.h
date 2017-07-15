@@ -84,9 +84,9 @@ std::string make_str_list(Iterator begin, Iterator end, F handler, std::string d
 }
 
 
-typedef std::vector<std::string> SliceLBoundInfo;
+typedef std::vector<std::string> SliceIndexInfo;
 typedef std::vector<std::string> SliceSizeInfo;
-typedef std::tuple<SliceLBoundInfo, SliceSizeInfo> SliceBoundInfo;
+typedef std::tuple<SliceIndexInfo, SliceSizeInfo> SliceBoundInfo;
 
 bool is_dimenslice(const ParseNode & elem);
 bool is_argtable(const ParseNode & elem);
@@ -167,9 +167,11 @@ std::string gen_qualified_typestr(const ParseNode & type_spec, VariableDesc & va
 
 ParseNode gen_array_from_paramtable(ARG_IN argtable);
 
-void set_variabledesc_attr(ParseNode & vardescattr_node, boost::optional<bool> reference, boost::optional<bool> constant, boost::optional<bool> optional, boost::optional<ParseNode> slice, boost::optional<int> kind, boost::optional<bool> save);
+void set_variabledesc_attr(ParseNode & vardescattr_node, boost::optional<bool> reference, boost::optional<bool> constant, boost::optional<bool> optional
+	, boost::optional<ParseNode> slice, boost::optional<int> kind, boost::optional<bool> save, boost::optional<bool> allocatable, boost::optional<bool> target, boost::optional<bool> pointer);
 VariableDesc & get_variabledesc_attr(ParseNode & vardescattr_node);
 ParseNode gen_variabledesc_from_dimenslice(ARG_IN dimen_slice);
+ParseNode gen_variabledesc_from_dimenslice();
 
 void add_function_forward(ARG_IN function_decl);
 
@@ -205,7 +207,7 @@ std::string gen_lbound_size_str(Iterator lb_begin, Iterator lb_end, Iterator sz_
 
 template <typename Iterator, typename Func1, typename Func2>
 SliceBoundInfo get_lbound_size_base(Iterator begin, Iterator end, Func1 get_lb, Func2 get_sz) {
-	SliceLBoundInfo lb(end - begin);
+	SliceIndexInfo lb(end - begin);
 	SliceSizeInfo sz(end - begin);
 	transform(begin, end, lb.begin(), get_lb);
 	transform(begin, end, sz.begin(), get_sz);

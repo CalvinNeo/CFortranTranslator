@@ -79,6 +79,7 @@ namespace for90std {
 		slice_info(const slice_info<T> & x) : fr(x.fr), to(x.to), step(x.step), isall(x.isall), isslice(x.isslice) {
 		}
 	};
+	// specialization `forslice` of std::string
 	inline std::string forslice(std::string str, const slice_info<std::string::size_type> & tp) {
 		if (tp.to >= str.size()) {
 			size_t appendlen = tp.to + 1- str.size() + 1;

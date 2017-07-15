@@ -19,7 +19,7 @@
 
 #include "gen_common.h"
 
-std::string gen_vardef_array_str(FunctionInfo * finfo, VariableInfo * vinfo, ParseNode & entity_variable, std::string type_str, const SliceBoundInfo & shape);
+std::string gen_vardef_array_str(FunctionInfo * finfo, VariableInfo * vinfo, ParseNode & entity_variable, std::string type_str, const ParseNode & additional_desc);
 std::string gen_vardef_scalar_str(FunctionInfo * finfo, VariableInfo * vinfo, ParseNode & entity_variable, std::string type_str);
 
 bool isnumber(std::string str) {
@@ -53,41 +53,66 @@ SliceBoundInfo get_lbound_size_from_slice(const ParseNode & slice) {
 	else {
 		return get_lbound_size_base(slice.begin(), slice.end()
 			, [](const ParseNode * x) {
-			return x->get_what();
+				if (isnumber(x->get(0).get_what()))
+				{
+					int l = std::atoi(x->get(0).get_what().c_str());
+					return to_string(l);
+				}
+				else {
+					return x->get(0).get_what();
+				}
 			}
 			, [](const ParseNode * x) {
 				if (isnumber(x->get(1).get_what()) && isnumber(x->get(0).get_what()))
 				{
-					int u; sscanf(x->get(1).get_what().c_str(), "%d", &u);
-					int l; sscanf(x->get(0).get_what().c_str(), "%d", &l);
+					int u = std::atoi(x->get(1).get_what().c_str()); 
+					int l = std::atoi(x->get(0).get_what().c_str()); 
 					return to_string(u - l + 1);
 				}
 				else {
-					sprintf("%s - %s + 1", x->get(1).get_what().c_str(), x->get(0).get_what().c_str());
+					sprintf(codegen_buf, "%s - %s + 1", x->get(1).get_what().c_str(), x->get(0).get_what().c_str());
 					return string(codegen_buf);
 				}
 		});
 	}
 }
 
-std::string gen_vardef_array_str(FunctionInfo * finfo, VariableInfo * vinfo, ParseNode & entity_variable, std::string type_str, const SliceBoundInfo & shape) {
+std::string gen_vardef_array_str(FunctionInfo * finfo, VariableInfo * vinfo, ParseNode & entity_variable, std::string type_str, const ParseNode & additional_desc) {
 	string arr_decl = "";
 	// entity_variable is 
 	// NT_VARIABLE_ENTITY(entity_variable) -> NT_FUCNTIONARRAY(entity_variable_name) -> (UnknownVariant, NT_ARGTABLE_PURE)/NT_VARIABLE_ENTITY
 	// or NT_VARIABLE_ENTITY(entity_variable) -> (UnknownVariant, NT_VARIABLEINITIALDUMMY or else)
+	bool dynamic_array = false;
+	for (int i = 0; i < additional_desc.length(); i++)
+	{
+		const ParseNode & slice = additional_desc.get(i);
+		if (slice.get_token() == TokenMeta::NT_SLICE && slice.get(0).get_token() == TokenMeta::NT_VARIABLEINITIALDUMMY)
+		{
+			dynamic_array = true;
+		}
+	}
+	SliceBoundInfo & shape = get_lbound_size_from_slice(additional_desc);
 	string alias_name = get_variable_name(entity_variable);
+
 	const std::vector<std::string> & lbound_vec = get<0>(shape);
 	const std::vector<std::string> & size_vec = get<1>(shape);
 	int dimension = (int)lbound_vec.size();
-	// no desc if var_def is not in parameter list
-	sprintf(codegen_buf, "%s %s", type_str.c_str(), alias_name.c_str()  /* array name */);
+	sprintf(codegen_buf, "%s %s", type_str.c_str(), alias_name.c_str());
 	arr_decl += string(codegen_buf);
 	if (entity_variable.get(1).get_token() == TokenMeta::NT_VARIABLEINITIALDUMMY) {
 		// default initialize
 		if (get_context().parse_config.usefarray) {
 			// farray
-			sprintf(codegen_buf, "{%s}", gen_lbound_size_str(lbound_vec.begin(), lbound_vec.end(), size_vec.begin(), size_vec.end()).c_str()); // C++ reckon "T a();" as function decl, so use `{}` 
-			arr_decl += string(codegen_buf);
+			if (dynamic_array)
+			{
+				sprintf(codegen_buf, "{}");
+				arr_decl += string(codegen_buf);
+			}
+			else {
+				std::string lb_sz_str = gen_lbound_size_str(lbound_vec.begin(), lbound_vec.end(), size_vec.begin(), size_vec.end());
+				sprintf(codegen_buf, "{%s}", lb_sz_str.c_str()); // C++ reckon "T a();" as function decl, so use `{}` 
+				arr_decl += string(codegen_buf);
+			}
 		}
 		else {
 			// for1array
@@ -176,8 +201,21 @@ ParseNode gen_vardef(ARG_IN type_nospec, ARG_IN variable_desc, ARG_IN paramtable
 	for (int i = 0; i < kvparamtable.length(); i++)
 	{
 		ParseNode newvardef = gen_token(Term{ TokenMeta::NT_VARIABLEDEFINE, "VARDEF GENERATED IN REGEN_SUITE" });
-		newvardef.addlist(type_nospec, variable_desc, kvparamtable.get(i)/*variable_entity*/);
-		newvardef.setattr(variable_desc.attr->clone()); 
+		ParseNode & variable_entity = kvparamtable.get(i);
+		newvardef.addlist(type_nospec, variable_desc, variable_entity);
+
+		/*****************
+		* IMPORTANT
+		* must take care of duplicate decl
+		* in case of
+		*	```
+		*	real a(:)
+		*	allocatable a
+		*	intent(in) a
+		*	```
+		* it will overwrite previous decls
+		*****************/
+		newvardef.setattr(variable_desc.attr->clone());
 		newnode.addchild(newvardef);
 	}
 	return newnode;
@@ -194,7 +232,8 @@ void regen_type(ParseNode & type_nospec, FunctionInfo * finfo, VariableInfo * vi
 		* though `check_implicit_variable` will deduce all implicit variable's type and all Implicit_Decl type,
 		*	it can't handle vardef nodes
 		*****************/
-		type_nospec.get_what() = gen_implicit_type(finfo, get_variable_name(vinfo->entity_variable)).get_what();
+		ParseNode deduced_type = gen_implicit_type(finfo, get_variable_name(vinfo->entity_variable));
+		type_nospec.fs.CurrentTerm = deduced_type.fs.CurrentTerm;
 		type_nospec.setattr(new VariableDescAttr());
 	}
 	else {
@@ -208,14 +247,22 @@ void regen_vardef(FunctionInfo * finfo, VariableInfo * vinfo) {
 	VariableDesc & desc = vinfo->desc;
 	ParseNode & entity_variable = vinfo->entity_variable;
 	ParseNode & type_nospec = vinfo->type;
-	bool do_arr = desc.slice.is_initialized();
+	/*****************
+	* IMPORTANT
+	* ref `vinfo->is_array()`
+	*=================
+	* is array when 
+	*	desc.slice.is_initialized() == true or,
+	*	desc.allocatable == true
+	*****************/
+	bool do_arr = vinfo->is_array();
 	string var_decl, type_str;
 	regen_type(type_nospec, finfo, vinfo);
 	// entity_variable is NT_VARIABLE_ENTITY
-	if(do_arr){
-		// ARRAY
+	if(desc.slice.is_initialized()){
+		// ARRAY with slice info
 		type_str = gen_qualified_typestr(type_nospec, desc, false);
-		var_decl = gen_vardef_array_str(finfo, vinfo, entity_variable, type_str, get_lbound_size_from_slice(desc.slice.value()));
+		var_decl = gen_vardef_array_str(finfo, vinfo, entity_variable, type_str, desc.slice.value());
 		if (vinfo->vardef_node == nullptr)
 		{
 			// considered to be implicit defined
@@ -224,15 +271,15 @@ void regen_vardef(FunctionInfo * finfo, VariableInfo * vinfo) {
 		vinfo->vardef_node->fs.CurrentTerm = Term{ TokenMeta::NT_VARIABLEDEFINE, var_decl };
 	}
 	else if (is_function_array(entity_variable)) {
-		// FOR70 ARRAY
+		// ARRAY declared by `DIMENSION a(10)`
+		// OVERRIDE original dimension attr
 		ParseNode & entity_variable_name = entity_variable.get(0);
 		// add slice attribute to vardescattr.desc
 		ParseNode & argtable = entity_variable_name.get(1);
 		desc.slice = argtable;
 		// get slice info
-		SliceBoundInfo ls = get_lbound_size_from_slice(argtable);
 		type_str = gen_qualified_typestr(type_nospec, desc, false);
-		var_decl = gen_vardef_array_str(finfo, vinfo, entity_variable, type_str, ls);
+		var_decl = gen_vardef_array_str(finfo, vinfo, entity_variable, type_str, desc.slice.value());
 		vinfo->vardef_node->fs.CurrentTerm = Term{ TokenMeta::NT_VARIABLEDEFINE, var_decl };
 	}
 	else {

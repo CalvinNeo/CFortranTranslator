@@ -18,7 +18,7 @@
 */
 
 #include "gen_common.h"
-#include "../for90std/forstdio.h"
+#include "../../for90std/for90std.h"
 
 for90std::IOFormat parse_ioformatter(const std::string & src);
 
@@ -293,8 +293,9 @@ for90std::IOFormat parse_ioformatter(const std::string & src) {
 			*	H-editing
 			* nH means put next n characters after H into output
 			*/
-			int length = repeat.back();
+			int length = repeat.back(); 
 			repeat.pop_back();
+			repeat.push_back(1); // the H editing can't only be repeated
 			string raw = src.substr(i + 1, length);
 			rt += add_escape_char(raw);
 			i = i + 1 + length;

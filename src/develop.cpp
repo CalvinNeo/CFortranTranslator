@@ -23,7 +23,7 @@
 #include "parser/parser.h"
 #include <stdio.h>
 #include "target/codegen.h"
-#include "for90std/for90std.h"
+#include "../for90std/for90std.h"
 #include <numeric>
 
 using namespace std;
@@ -91,9 +91,9 @@ void debug() {
 	get_context().global_code = " recursive function main(A,B) result(C) \n implicit none \n integer,intent(in)::a = 1 + 2, b \n integer,intent(out)::c = 3 \n end function  "; // pay attention  no def a, b and add return c
 	get_context().global_code = "recursive function main(A,B) result(C) \n integer::a , b , c \n a = abs(c, abs(1 ,2)) \n end function";
 	get_context().global_code = "recursive function main(A,B) result(C) \n integer::a , b , c \n a = empty() \n end function";
-	get_context().global_code = "recursive function main(A,B) result(C) \n integer::a, b, c\n a = abs(ahhhhh(c)) \n end function"; /* '(' exp ')' 和 callable_head归约冲突 */ /* IMPORTANT */ // now ok
-	get_context().global_code = "recursive function main(A,B) result(C) \n integer::a, b, c\n a = abs(real(c)) \n end function"; /* _type_kind 和 type cast function call 冲突 */ /* IMPORTANT */ // now ok
-	/* 和以上对比，给出冲突的另一边 */
+	get_context().global_code = "recursive function main(A,B) result(C) \n integer::a, b, c\n a = abs(ahhhhh(c)) \n end function"; // IMPORTANT '(' exp ')' 和 callable_head归约冲突   // now ok
+	get_context().global_code = "recursive function main(A,B) result(C) \n integer::a, b, c\n a = abs(real(c)) \n end function"; // IMPORTANT _type_kind 和 type cast function call 冲突 // now ok
+	// 和以上对比，给出冲突的另一边 
 	get_context().global_code = "program \n integer(kind = 4)::a, b \n end program"; // now ok
 	get_context().global_code = "program \n kwargs(1, b = 3, c = 3) \n end program";
 

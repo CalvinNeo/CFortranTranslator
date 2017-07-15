@@ -190,3 +190,18 @@ void regen_function(FunctionInfo * finfo, ParseNode & functiondecl_node) {
 	// cleaning
 	return ;
 }
+
+FunctionInfo * check_implicit_function(FunctionInfo * finfo, const std::string & name) {
+	/******************
+	* call-stmt 
+	* e.g.
+	*	```
+	*	call func
+	*	```
+	* `func` is not a variable, but a function
+	* SHOULDN"T GENERATE VARDEF FOR `func`
+	*******************/
+	FunctionInfo * ineer_info = get_function(get_context().current_module, name);
+
+	return ineer_info;
+}

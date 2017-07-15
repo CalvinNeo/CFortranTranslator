@@ -20,20 +20,21 @@
 #include "gen_common.h"
 
 void set_variabledesc_attr(ParseNode & vardescattr_node, boost::optional<bool> reference, boost::optional<bool> constant
-	, boost::optional<bool> optional, boost::optional<ParseNode> slice, boost::optional<int> kind, boost::optional<bool> save) {
+	, boost::optional<bool> optional, boost::optional<ParseNode> slice, boost::optional<int> kind, boost::optional<bool> save
+	, boost::optional<bool> allocatable, boost::optional<bool> target, boost::optional<bool> pointer) {
 	if (vardescattr_node.attr == nullptr) {
 		vardescattr_node.setattr(new VariableDescAttr());
 	}
-	VariableDescAttr * x = dynamic_cast<VariableDescAttr *>(vardescattr_node.attr);
-	x->desc = VariableDesc(reference, constant, optional, slice, kind, save);
+	VariableDescAttr * desc_attr = dynamic_cast<VariableDescAttr *>(vardescattr_node.attr);
+	desc_attr->desc = VariableDesc(reference, constant, optional, slice, kind, save, allocatable, target, pointer);
 }
 
 VariableDesc & get_variabledesc_attr(ParseNode & vardescattr_node) {
 	if (vardescattr_node.attr == nullptr) {
 		vardescattr_node.setattr(new VariableDescAttr());
 	}
-	VariableDescAttr * x = dynamic_cast<VariableDescAttr *>(vardescattr_node.attr);
-	return x->desc;
+	VariableDescAttr * desc_attr = dynamic_cast<VariableDescAttr *>(vardescattr_node.attr);
+	return desc_attr->desc;
 }
 
 ParseNode gen_variabledesc_from_dimenslice(ARG_IN dimen_slice) {
@@ -46,10 +47,15 @@ ParseNode gen_variabledesc_from_dimenslice(ARG_IN dimen_slice) {
 		else {
 			dimen.replace(sliceid, promote_exp_to_slice(dimen.get(sliceid)));
 		}
-		sprintf(codegen_buf, "(%s, %s)"
+		sprintf(codegen_buf, "%s, %s"
 			, dimen.get(sliceid).get(0).get_what().c_str() // from
 			, dimen.get(sliceid).get(1).get_what().c_str()); // to
-		dimen.get(sliceid).fs.CurrentTerm = Term{ TokenMeta::NT_VARIABLEDESC, string(codegen_buf) };
+		dimen.get(sliceid).fs.CurrentTerm = Term{ TokenMeta::NT_SLICE, string(codegen_buf) };
 	}
-	return dimen;
+	ParseNode vardesc = gen_token(Term{ TokenMeta::NT_VARIABLEDESC, "NT_VARIABLEDESC GENERATED IN" }, dimen);
+	return vardesc;
+}
+
+ParseNode gen_variabledesc_from_dimenslice() {
+	return gen_token(Term{ TokenMeta::NT_VARIABLEDESC, string(codegen_buf) });
 }

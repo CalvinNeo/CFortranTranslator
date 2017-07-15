@@ -117,6 +117,7 @@ inline ParseNode & YY2ARG(YYSTYPE X) {
 }
 /***************
 * this macro is error
+// TODO why?
 // #define (X == nullptr? ParseNode(): *X)
 ***************/
 #define ARG_IN const ParseNode &
@@ -155,7 +156,12 @@ ParseNode flattern_bin(ARG_IN pn, bool recursion_direction_right);// eliminate l
 void flattern_bin_inplace(ParseNode & pn, bool recursion_direction_right); // eliminate left/right recursion of an binary tree in place
 
 
-#define MAX_CODE_LENGTH 32767
+/***************
+* by testing 
+* a 202kb code file will cause `sprintf` erase data elsewhere(when `MAX_CODE_LENGTH` is 32767)
+* `MAX_CODE_LENGTH` should be enough
+***************/
+#define MAX_CODE_LENGTH 65535
 
 struct ParseConfig {
 	bool for90 = true;

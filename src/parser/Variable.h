@@ -27,6 +27,9 @@ struct VariableDesc {
 	boost::optional<ParseNode> slice = boost::none;
 	dirty<int> kind = 0;
 	dirty<bool> save = false;
+	dirty<bool> allocatable = false;
+	dirty<bool> target = false;
+	dirty<bool> pointer = false;
 	void merge(const VariableDesc & x2) {
 		if (!constant.isdirty() && x2.constant.isdirty()) {
 			constant = x2.constant;
@@ -46,12 +49,22 @@ struct VariableDesc {
 		if (!save.isdirty() && x2.save.isdirty()) {
 			save = x2.save;
 		}
+		if (!allocatable.isdirty() && x2.allocatable.isdirty()) {
+			allocatable = x2.allocatable;
+		}
+		if (!target.isdirty() && x2.target.isdirty()) {
+			target = x2.target;
+		}
+		if (!pointer.isdirty() && x2.pointer.isdirty()) {
+			pointer = x2.pointer;
+		}
 	}
 
 	VariableDesc() {
 
 	}
-	VariableDesc(boost::optional<bool> reference, boost::optional<bool> constant, boost::optional<bool> optional, boost::optional<ParseNode> slice, boost::optional<int> kind, boost::optional<bool> save) {
+	VariableDesc(boost::optional<bool> reference, boost::optional<bool> constant, boost::optional<bool> optional, boost::optional<ParseNode> slice
+		, boost::optional<int> kind, boost::optional<bool> save, boost::optional<bool> allocatable, boost::optional<bool> target, boost::optional<bool> pointer) {
 		if (reference.is_initialized())
 			this->reference = reference.value();
 		if (constant.is_initialized())
@@ -64,13 +77,20 @@ struct VariableDesc {
 			this->kind = kind.value();
 		if (save.is_initialized())
 			this->save = save.value();
+		if (allocatable.is_initialized())
+			this->allocatable = allocatable.value();
+		if (target.is_initialized())
+			this->target = target.value();
+		if (pointer.is_initialized())
+			this->pointer = pointer.value();
 	}
 };
 
 struct VariableInfo
 {
 	bool is_array() {
-		return desc.slice.is_initialized();
+		// only array has slice info, or is allocatable
+		return desc.slice.is_initialized() || desc.allocatable.get();
 	}
 	/******************
 	*	name of this variable
@@ -122,7 +142,7 @@ struct VariableInfo
 	bool implicit_defined = true; 
 
 	VariableInfo()
-		: local_name(""), implicit_defined(true), commonblock_index(0), commonblock_name(""), declared(false), generated(false) {
+		: local_name(""), implicit_defined(true), commonblock_index(0), commonblock_name(""), vardef_node(nullptr), declared(false), generated(false) {
 
 	}
 };

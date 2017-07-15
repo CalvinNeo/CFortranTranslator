@@ -273,7 +273,8 @@ namespace for90std {
 			lb = new fsize_t[dimension]; sz = new fsize_t[dimension]; delta = new fsize_t[dimension];
 			// if X < dimension, use farr as default from dimension X + 1
 			if (force_lower_bound) {
-				// lower bound of each dimension(new array) should be forced to 1
+				// lower bound of each dimension(new array) will be forced to 1
+				// only use size infomation from `tp`
 				std::fill_n(lb, dimension, 1);
 			}
 			else {
@@ -368,11 +369,6 @@ namespace for90std {
 			reset_array(D, lower_bound, size);
 			reset_value(begin, end);
 		}
-		//template <int D>
-		//farray(const size_type(&lower_bound)[D], const size_type(&size)[D], const T & scalar) noexcept : is_view(false) {
-		//	reset_array(D, lower_bound, size);
-		//	reset_value(scalar);
-		//}
 
 		// deprecated
 		template <int D, int X>
@@ -400,6 +396,9 @@ namespace for90std {
 			reset_array({ 1 }, { 1 });
 			narr.reset_value(scalar);
 		}
+		//explicit farray(int dim)  noexcept: is_view(false) {
+		// 
+		//}
 		farray() noexcept: is_view(false) {
 
 		}

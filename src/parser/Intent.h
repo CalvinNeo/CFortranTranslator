@@ -354,6 +354,7 @@ namespace TokenMeta {
 		ADD_ENUM(NT_PRINT_STMT, -2047),
 		ADD_ENUM(NT_DORANGE, -2048),
 		ADD_ENUM(NT_CONTROL_STMT, -2049),
+		ADD_ENUM(NT_ALLOCATE_STMT, -2050),
 
 		ADD_ENUM(NT_DUMMY, -9999),
 		/***************************************

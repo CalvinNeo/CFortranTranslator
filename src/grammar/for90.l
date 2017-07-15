@@ -286,6 +286,7 @@ string ({string1}|{string2})
 	// continuation line
 	// {newline}{ws}\*
 	int p = nop_parse();
+	get_flex_state().parse_line++;
 	update_flex();
 	DORET(p);
 }
@@ -293,6 +294,7 @@ string ({string1}|{string2})
 	// continuation line
 	// {newline}{ws}\*
 	int p = nop_parse();
+	get_flex_state().parse_line++;
 	update_flex();
 	DORET(p);
 }

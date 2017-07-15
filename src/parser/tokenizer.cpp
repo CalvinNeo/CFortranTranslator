@@ -367,9 +367,17 @@ const vector<KeywordMeta> keywords = {
 		, TokenMeta::META_ANY
 		, YY_ALLOCATABLE
 	}
+	, KeywordMeta{ "allocate"
+		, TokenMeta::META_ANY
+		, YY_ALLOCATE
+	}
 	, KeywordMeta{ "target"
 		, TokenMeta::META_ANY
 		, YY_TARGET
+	}
+	, KeywordMeta{ "pointer"
+		, TokenMeta::META_ANY
+		, YY_POINTER
 	}
 };
 

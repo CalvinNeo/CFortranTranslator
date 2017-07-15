@@ -93,6 +93,7 @@ std::string regen_stmt(FunctionInfo * finfo, ParseNode & stmt) {
 	*	io_stmt						NT_READ_STMT, NT_WRITE_STMT, NT_PRINT_STMT
 	*	compound_stmt				NT_IF, ...
 	*	implicit_stmt				ConfigImplicit
+	*	allocate_stmt				NT_ALLOCATE_STMT
 	***************/
 	std::string newsuitestr;
 	int comment_start = -1;
@@ -142,7 +143,8 @@ std::string regen_stmt(FunctionInfo * finfo, ParseNode & stmt) {
 				if (vardef_node.get_token() == TokenMeta::NT_VARIABLEDEFINE) {
 					// for every variable, generate independent definition
 					VariableInfo * vinfo = get_variable(get_context().current_module, finfo->local_name, name);
-					bool belong_to_common_block = (vinfo != nullptr && vinfo->commonblock_name == "");
+					bool new_variable = vinfo == nullptr;
+					bool belong_to_common_block = (!new_variable && vinfo->commonblock_name == "");
 					if (belong_to_common_block)
 					{
 						vinfo->desc.merge(get_variabledesc_attr(vardescattr));
@@ -161,15 +163,44 @@ std::string regen_stmt(FunctionInfo * finfo, ParseNode & stmt) {
 					{
 
 					}
-					vinfo->desc = get_variabledesc_attr(vardescattr); // set in regen_vardef
-					vinfo->implicit_defined = false; // set in regen_suite and regen_common
-					vinfo->type = type_nospec; // set in regen_vardef
-					vinfo->entity_variable = entity_variable; // set in regen_vardef
-					//if (vinfo->vardef_node != nullptr)
-					//{
-					//	delete vinfo->vardef_node;
-					//}
-					vinfo->vardef_node = new ParseNode(vardef_node); // set in regen_vardef
+					/*****************
+					* IMPORTANT
+					* must take care of duplicate decl
+					* in case of
+					*	```
+					*	real a(:)
+					*	allocatable a
+					*	intent(in) a
+					*	```
+					* it will overwrite previous decls
+					*****************/
+					vinfo->desc.merge(get_variabledesc_attr(vardescattr));
+					vinfo->implicit_defined = false; 
+					vinfo->type = type_nospec;
+					if (!new_variable && is_function_array(vinfo->entity_variable) && !is_function_array(entity_variable))
+					{
+						/*****************
+						* IMPORTANT
+						* if this variable is declared as an fortran 77 style array by one decl stmt
+						* the array feature will never be "erased" by another decl
+						* e.g.
+						*	```
+						*	REAL A(:)
+						*	ALLOCATABLE A
+						*	```
+						* a is still array
+						*****************/
+						
+						// do nothing
+					}
+					else {
+						vinfo->entity_variable = entity_variable;
+					}
+					if (vinfo->vardef_node != nullptr)
+					{
+						delete vinfo->vardef_node;
+					}
+					vinfo->vardef_node = new ParseNode(vardef_node); 
 				}
 				else if (vardef_node.get_token() == TokenMeta::NT_DECLAREDVARIABLE) {
 					// declared variable
@@ -298,6 +329,33 @@ std::string regen_stmt(FunctionInfo * finfo, ParseNode & stmt) {
 				char start = range.get_what()[0];
 				finfo->implicit_type_config[start] = type_decl.get_token();
 			}
+		}
+	}
+	else if (stmt.get_token() == TokenMeta::NT_ALLOCATE_STMT)
+	{
+		ParseNode & paramtable = stmt.get(0);
+		for (int i = 0; i < paramtable.length(); i++)
+		{
+			ParseNode & arr = paramtable.get(i); // NT_FUNCTIONARRAY
+			ParseNode & arr_name = arr.get(0);
+			ParseNode & dimen_slice = arr.get(1);
+			if (dimen_slice.get_token() == TokenMeta::NT_DIMENSLICE)
+			{
+			}
+			else if (dimen_slice.get_token() == TokenMeta::NT_ARGTABLE_PURE)
+			{
+
+			}
+			string slice_info_str = make_str_list(dimen_slice.begin(), dimen_slice.end(), [&](ParseNode * pslice) {
+				ParseNode & slice = *pslice;
+				regen_slice(finfo, slice);
+				string res = "{" + slice.get_what() + "}";
+				return res;
+			});
+			sprintf(codegen_buf, "%s.reset_array({%s})", arr_name.get_what().c_str(), slice_info_str.c_str());
+			stmt.get_what() = string(codegen_buf);
+			newsuitestr += stmt.get_what();
+			newsuitestr += ';\n';
 		}
 	}
 	else {

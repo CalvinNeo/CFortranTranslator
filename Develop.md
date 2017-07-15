@@ -7,23 +7,23 @@
 3. the **Release** is same as the **Debug** mode except for default values which is not set
 
 ## extend grammar
-1. declare new %token in [/grammar/for90.y](/grammar/for90.y)
-2. add pattern of this %token in [/grammar/for90.l](/grammar/for90.l)
-3. add rules related to the %token in [/grammar/for90.y](/grammar/for90.y)
-4. update bytecodes and grammar tokens in [/parser/Intent.h](/parser/Intent.h)
-6. register keyword in [/parser/tokenizer.cpp](/parser/tokenizer.cpp)(if this token is keyword)
+1. declare new %token in [/src/grammar/for90.y](/src/grammar/for90.y)
+2. add pattern of this %token in [/src/grammar/for90.l](/src/grammar/for90.l)
+3. add rules related to the %token in [/src/grammar/for90.y](/src/grammar/for90.y)
+4. update bytecodes and grammar tokens in [/src/parser/Intent.h](/src/parser/Intent.h)
+6. register keyword in [/src/parser/tokenizer.cpp](/src/parser/tokenizer.cpp)(if this token is keyword)
 7. if this keyword are made up of more than 1 word, reduction conflicts may be caused between the keyword and its prefix,
     - if rules keywords are all charaters like `(/`, just add a regex to for90.l
-    - if rules keywords are all words like `else if`, update forward1 in [/parser/tokenizer.cpp](/parser/tokenizer.cpp)
+    - if rules keywords are all words like `else if`, update forward1 in [/src/parser/tokenizer.cpp](/src/parser/tokenizer.cpp)
 
         the first part don't need to be registered to keyword
-8. update translation rules in [/target/gen_config.h](/target/gen_config.h.h)
+8. update translation rules in [/src/target/gen_config.h](/src/target/gen_config.h.h)
 
 ## extend new intrinsic function
 1. implement this function and included it in [for90std/for90std.h](/for90std/for90std.h)
 	- if a parameter is **optional** in fortran, wrap it with `foroptional`, and log all parameters of this function in [/gen_config.cpp](/gen_config.cpp)
     - if the parameter is the **only** optional parameter, can omit `foroptional` wrapper
-2. update `funcname_map` in [/target/gen_config.cpp](/target/gen_config.cpp) if necessary
+2. update `funcname_map` in [/src/target/gen_config.cpp](/src/target/gen_config.cpp) if necessary
 
 ## C++ code generate
 ### lazy generate
@@ -38,22 +38,22 @@ due to fortran's implicit declaration, code above `stmt` level, including `funct
 3. `regen_common` generates `common` statement code
 
 ### name mapping
-many type names and function names are mapped, they are defined in in [/target/gen_config.h](/target/gen_config.h)
+many type names and function names are mapped, they are defined in in [/src/target/gen_config.h](/src/target/gen_config.h)
 their replacement occur in following stages:
 
-1. mappings defined in `pre_map` is replacement in tokenizing stage in [/grammar/for90.l](/grammar/for90.l)
+1. mappings defined in `pre_map` is replacement in tokenizing stage in [/src/grammar/for90.l](/src/grammar/for90.l)
 
-2. function name mapping in `funcname_map` is replacement in parse stage in function `gen_function_array` [/target/gen_callable.cpp](/target/gen_callable.cpp)
+2. function name mapping in `funcname_map` is replacement in parse stage in function `gen_function_array` [/src/target/gen_callable.cpp](/src/target/gen_callable.cpp)
 
 ### array
 
 **though fortran-style array is different from c-style array, only need to consider relationship with flatterned 1d array**
 
 1. for1array is a 1d dynamic array defined in [/for90std/for1array.h](/for90std/for1array.h), farray is a nd array defined in [/for90std/farray.h](/for90std/farray.h)
-2. functions and arrays are generated in normal order in [/target/gen_callable.cpp](/target/gen_callable.cpp). 
-3. array declaration is in [/target/gen_vardef.cpp](/target/gen_vardef.cpp)
+2. functions and arrays are generated in normal order in [/src/target/gen_callable.cpp](/src/target/gen_callable.cpp). 
+3. array declaration is in [/src/target/gen_vardef.cpp](/src/target/gen_vardef.cpp)
 4. overload `operator()` and  `operator[]` so `a(x, y, z)`(fortran-style) is same as `a(x)(y)(z)`(c-style) where x,y,z are `slice_info` or index
-5. slice selections are handled in [/target/gen_callable.cpp](/target/gen_callable.cpp). 
+5. slice selections are handled in [/src/target/gen_callable.cpp](/src/target/gen_callable.cpp). 
 
 
 ### variable definition
@@ -70,33 +70,38 @@ their replacement occur in following stages:
             4. `.vardef` is pointer(!= nullptr) to a `ParseNode` node. 
             5. `commonblock_name` = `""`, `commonblock_index` = `0`.
         VARIABLES ARE REGISTERED TO SYMBOL TABLE IN THIS CONDITION MOSTLY
+
         call `check_implicit_variable`, it will register this variable to `gen_context().variables`, if this variable is implicit defined, not declared as case 2.
     2. when encounter `NT_COMMONBLOCK`(occur in `regen_stmt`, after the AST is built):
 
         THIS IS AN EXPLICIT DEFINITION
+
         call `regen_common` to log `VariableInfo` to `gen_context().variables`, mark `commonblock_name` and `commonblock_index`
     3. when encounter `NT_VARIABLEDEFINESET` and `NT_VARIABLEDEFINE`(in `regen_stmt`, after the AST is built):
 
         THIS IS AN EXPLICIT DEFINITION
+
         these two nodes are generated in [/grammar/for90.y](/grammar/for90.y), generate `NT_VARIABLEDEFINESET` and `NT_VARIABLEDEFINE`
         register(add, only happen if the variable is never used, or **mainly modify/overwrite**) corresponding `VariableInfo` to symbol table.
 
 2. Step 2:
 
     the first loop of `gen_joined_declarations`
-    enumerate all `VariableInfo` of this suite several times UNTIL ALL VARIABLES ARE GENERATED, call `regen_vardef`
+
+    enumerate all `VariableInfo` of this suite several times UNTIL ALL VARIABLES ARE GENERATED(`.generate` = true), call `regen_vardef`
 
 3. Step 3:
 
     the second loop of `gen_joined_declarations`
+
     join generated codes of Step 2, depending whether this variable is common block
 
 ## Parse Tree
-all parse tree nodes are defined in [/Intent.h](/Intent.h) with an `NT_` prefix
+all parse tree nodes are defined in [/src/Intent.h](/src/Intent.h) with an `NT_` prefix
 ### struct ParseNode
 1. fs:
 	* fs.CurrentTerm.what: immediate-generated code, generated from child's `fs.CurrentTerm.what`, or from other infomations
-	* fs.CurrentTerm.token: refer [/Intent.h](/Intent.h)
+	* fs.CurrentTerm.token: refer [/src/Intent.h](/src/Intent.h)
 2. child
 3. attr:
 	attrs including
@@ -113,12 +118,12 @@ child ParseNode may also be referred when generating upper level ParseNode, so d
 
 ### rules explanation
 #### argtable, dimen_slice, pure_paramtable
-`argtable`, `dimen_slice`, `pure_paramtable` are special lists seprated by `,`.
+`argtable`, `dimen_slice`, `pure_paramtable` are a list of different items seprated by `,`
 ##### constitution
 - `argtable` is a list of `exp`(ref `is_exp()`)
 - `dimen_slice` is a list of `slice`(`NT_SLICE`) or `exp`
 - `pure_paramtable` is a list of `keyvalue`(`NT_KEYVALUE`/`NT_VARIABLE_ENTITY`) or `slice` or `exp`
-    - `NT_KEYVALUE.get_what()` will be regenerated in `gen_function_array` in [/target/gen_callable.cpp](/target/gen_callable.cpp)
+    - `NT_KEYVALUE.get_what()` will be regenerated in `gen_function_array` in [/src/target/gen_callable.cpp](/src/target/gen_callable.cpp)
 - `paramtable` is `argtable` or `dimen_slice` or `pure_paramtable`
 ##### promotion
 - `argtable` + `slice` = `dimen_slice`, all elements in `argtable` will be promote to `slice`(with one child)
@@ -139,7 +144,7 @@ To specify, `type_name` is like `INTEGER` and a `type_spec` is like `INTEGER(kin
 
 #### array builder
 - `NT_FUCNTIONARRAY` and `NT_HIDDENDO` will **NOT** be promote to `NT_EXPRESSION`
-- `NT_HIDDENDO` has 4 child elements: lambda, indexer, from, to. refer `gen_hiddendo` in [/target/gen_do.cpp](/target/gen_do.cpp)
+- `NT_HIDDENDO` has 4 child elements: lambda, indexer, from, to. refer `gen_hiddendo` in [/src/target/gen_do.cpp](/src/target/gen_do.cpp)
 
 #### stmt, suite
 - `stmt` is statement end with ';' or '\n'
@@ -163,7 +168,7 @@ To specify, `type_name` is like `INTEGER` and a `type_spec` is like `INTEGER(kin
 | type_spec |  | type_name / (type_name, type_selector) |
 
 ### Symbols
-all variables(including `commom` block) and functions is now logged in [/Variable.h](/Variable.h) and [/Function.h](/Function.h) by
+all variables(including `commom` block) and functions is now logged in [/src/Variable.h](/src/Variable.h) and [/src/Function.h](/src/Function.h) by
 `VariableInfo` and `FunctionInfo`
 
 #### VariableDesc

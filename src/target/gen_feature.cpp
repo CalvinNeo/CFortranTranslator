@@ -114,7 +114,7 @@ bool is_fortran_function(FunctionInfo * finfo, std::string name) {
 			return false;
 		}
 		else {
-			// registed function
+			// registed function or sysfunc
 			return true;
 		}
 	}
