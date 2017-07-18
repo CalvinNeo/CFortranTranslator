@@ -109,7 +109,7 @@ void fatal_error(const std::string & error_info);
 inline ParseNode & YY2ARG(YYSTYPE X) {
 	if (X == nullptr)
 	{
-		abort();
+		fatal_error("null ParseNode during parsing");
 	}
 	else {
 		return *X;
@@ -161,7 +161,7 @@ void flattern_bin_inplace(ParseNode & pn, bool recursion_direction_right); // el
 * a 202kb code file will cause `sprintf` erase data elsewhere(when `MAX_CODE_LENGTH` is 32767)
 * `MAX_CODE_LENGTH` should be enough
 ***************/
-#define MAX_CODE_LENGTH 65535
+#define MAX_CODE_LENGTH 262143
 
 struct ParseConfig {
 	bool for90 = true;

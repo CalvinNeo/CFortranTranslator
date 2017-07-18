@@ -18,7 +18,7 @@
 */
 
 %{
-#include <stdio.h>
+#include <cstdio>
 #include <string>
 #include <sstream>
 #include <iostream>
@@ -34,16 +34,19 @@
 // 前置声明, 不然编译不过
 void yyerror(const char* s); 
 extern int yylex();
-extern void set_buff(const std::string & code);
-extern void release_buff();
+
+#ifdef USE_LEX
+void set_buff(const std::string & code);
+void release_buff();
+#endif
+
 #define YYDEBUG 1
 #define YYERROR_VERBOSE
 #define YYINITDEPTH 2000
-//#define YYLEX advanced_yylex()
-// static is necessary, or will cause lnk
+//// static is necessary, or will cause lnk
 static char codegen_buf[MAX_CODE_LENGTH];
 
-/* update pos os non-terminal tokens(terminal tokens have pos updated in flex using update_flex and update_yylval) */
+// update pos os non-terminal tokens(terminal tokens have pos updated in flex using update_flex and update_yylval) 
 void update_pos(ParseNode & current) {
 	if (current.length() == 0) {
 		// do nothing 
@@ -586,11 +589,11 @@ using namespace std;
 				* `func` is not a variable, but a function
 				* SHOULDN"T GENERATE VARDEF FOR `func`
 				*******************/
-				ARG_IN callable_head = YY2ARG($1);
+				ARG_IN callable_head = YY2ARG($2);
 				ParseNode newnode = gen_token(Term{TokenMeta::NT_FUCNTIONARRAY, WHENDEBUG_OREMPTYSTR("FUNCTIONARRAY GENERATED IN REGEN_SUITE") }
 					, callable_head, gen_token(Term{TokenMeta::NT_ARGTABLE_PURE, ""}) );
 				$$ = RETURN_NT(newnode);
-				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($1));
+				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($2));
 				CLEAN_RIGHT($1, $2);
 			}
 
@@ -1726,6 +1729,7 @@ using namespace std;
 				ARG_IN variable_result = YY2ARG($7); // result variable
 				ARG_IN suite = YY2ARG($9);
 
+				//printf("==================function1: %s \n", variable_function.get_what().c_str());
 				$$ = RETURN_NT(gen_function(variable_function, paramtable, variable_result, suite));
 				YYSTYPE XXX = $1;
 				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($10));
@@ -1735,6 +1739,7 @@ using namespace std;
 			{
 				ARG_IN variable_function = YY2ARG($3); // function name
 				ARG_IN suite = YY2ARG($5);
+				//printf("==================function2: %s \n", variable_function.get_what().c_str());
 				$$ = RETURN_NT(gen_function(variable_function, gen_token(Term{ TokenMeta::NT_PARAMTABLE_PURE, "" }), gen_token(Term{ TokenMeta::UnknownVariant, "" }), suite));
 				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($1));
 				CLEAN_RIGHT($1, $2, $3, $4, $5, $6);
@@ -1826,17 +1831,27 @@ using namespace std;
 
 
 %%
-
-void yyerror(const char* s)
+void update_yylval(Term & current_term) {
+	get_flex_state().CurrentTerm = current_term;
+	ParseNode newnode{ FlexState(get_flex_state()) , nullptr, nullptr };
+	yylval = RETURN_NT(newnode);
+}
+static void yyerror(const char* s)
 {
 	// fprintf(stderr, "%s", s);
 	print_error(string(s), YY2ARG(yylval));
 }
 int parse(std::string code) {
 #ifdef USE_YACC
-	set_buff(code);
+#ifdef USE_LEX
+	get_flex_context().load_code = set_buff;
+	get_flex_context().unload_code = release_buff;
+#else
+
+#endif
+	get_flex_context().load_code(code);
 	yyparse();
-	release_buff();
+	get_flex_context().unload_code();
 #endif
 	return 0;
 }

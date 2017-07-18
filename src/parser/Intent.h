@@ -28,7 +28,6 @@ namespace TokenMeta {
 	MAKE_ENUM(IntentMeta,  
 		// Operator
 		// in priority order
-		//Dereference = 260,
 		ADD_ENUM(Dereference, 260),
 		ADD_ENUM(Reference, 261),
 
@@ -183,7 +182,7 @@ namespace TokenMeta {
 		ADD_ENUM(META_COMPLEX, -311),
 		ADD_ENUM(META_VOID, -312),
 
-		// typename (-300~--399) and type decl(-400~-599)
+		// type name (-300~--398) and type decl(-400~-498)
 		ADD_ENUM(Void, META_VOID), 	ADD_ENUM(Void_Decl, (Void - 100)),
 		ADD_ENUM(Obj, -321), ADD_ENUM(Obj_Decl, Obj - 100),
 		ADD_ENUM(Int, META_INTEGER), ADD_ENUM(Int_Decl, Int - 100),
@@ -203,7 +202,7 @@ namespace TokenMeta {
 		ADD_ENUM(Int32, -336), ADD_ENUM(Int32_Decl, Int32 - 100),
 		ADD_ENUM(Int64, -337), ADD_ENUM(Int64_Decl, Int64 - 100),
 		ADD_ENUM(LongDouble, -338), ADD_ENUM(LongDouble_Decl, Int64 - 100),
-		ADD_ENUM(Implicit_Decl, -599),
+		ADD_ENUM(Implicit_Decl, -499),
 
 		// Flow-Control
 		ADD_ENUM(If, -600),

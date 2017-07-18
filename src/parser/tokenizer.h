@@ -20,6 +20,7 @@
 #include <string>
 #include <map>
 #include <vector>
+#include <functional>
 #include "Intent.h"
 
 
@@ -30,6 +31,7 @@ struct Term {
 
 
 #define USE_YACC
+#define USE_LEX
 
 struct FlexState {
 	// ´Ê·¨·ÖÎö
@@ -47,7 +49,11 @@ struct FlexContext {
 	std::vector<std::tuple<int, Term>> terminal_cache;
 	// return after the whole line ends
 	std::vector<std::tuple<int, Term>> terminal_cache_line;
+	// Cumulative comments
 	std::vector<std::string> comments;
+	//
+	std::function<void(const std::string &)> load_code;
+	std::function<void()> unload_code;
 };
 FlexContext & get_flex_context();
 
@@ -61,7 +67,6 @@ std::string CutString(std::string::iterator & b, std::string::iterator e, bool s
 
 int pure_yylex(void);
 int yylex(void);
+void update_yylval(Term & current_term); // defined in for90.y
 
-// for90.l
-#include <stdint.h>
 

@@ -20,6 +20,7 @@
 #include <iostream>
 #include <sstream>
 #include <array>
+
 #ifndef _DEBUG
 char codegen_buf[MAX_CODE_LENGTH];
 #endif
@@ -37,7 +38,6 @@ TranslateContext & get_context() {
 void do_trans(const std::string & src) {
 	get_context().global_code = src;
 	parse(get_context().global_code);
-	//program_tree.addchild(gen_header(), false);
 	get_context().program_tree.get_what() = gen_header().to_string() + get_context().program_tree.to_string();
 }
 
@@ -53,14 +53,14 @@ FlexState gen_flex(Term term) {
 }
 
 ParseNode flattern_bin(ARG_IN pn, bool recursion_direction_right) {
-	/* it cant work well because it create a whole new tree copy too much */
-	/* THIS ALGORITHM FLATTERNS A LEFT/RIGHT-RECURSIVE BINARY TREE */
+	// it cant work well because it create a whole new tree copy too much 
+	// THIS ALGORITHM FLATTERNS A LEFT/RIGHT-RECURSIVE BINARY TREE
 	if (pn.length() == 2) {
 		ParseNode newp = ParseNode();
-		/* child[0] is the only data node */
+		// child[0] is the only data node
 		if (recursion_direction_right)
 		{
-			/* pn.child[1] is a **list** of ALREADY flatterned elements */
+			// pn.child[1] is a **list** of ALREADY flatterned elements
 			// child[0] is 1 
 			// child[1] is [2, 3, 4, 5]
 			newp.addchild(pn.get(0));
@@ -70,7 +70,7 @@ ParseNode flattern_bin(ARG_IN pn, bool recursion_direction_right) {
 			}
 		}
 		else {
-			/* pn.child[0] is a **list** of ALREADY flatterned elements */
+			// pn.child[0] is a **list** of ALREADY flatterned elements 
 			// child[0] is [2, 3, 4, 5]
 			// child[1] is 1 
 			for (int i = 0; i < pn.get(0).length(); i++)
@@ -119,7 +119,7 @@ void flattern_bin_inplace(ParseNode & pn, bool recursion_direction_right) {
 		{
 			pn.child.push_back(item);
 		}
-		/* pn.child[1] is a **list** of ALREADY flatterned elements */
+		// pn.child[1] is a **list** of ALREADY flatterned elements
 		//	e.g
 		//	child[0] is 1 
 		//	child[1] is [2, 3, 4, 5]
@@ -159,11 +159,11 @@ ParseNode gen_flattern(ARG_IN item, ARG_IN list, std::string merge_rule, TokenMe
 ParseNode gen_merge(ARG_IN list1, ARG_IN list2, std::string merge_rule, TokenMeta_T merged_token_meta) {
 	sprintf(codegen_buf, merge_rule.c_str(), list1.to_string().c_str(), list2.to_string().c_str());
 	ParseNode nn = gen_token(Term{ merged_token_meta, string(codegen_buf) });
-	for (auto i = 0; i < list1.length(); i++)
+	for (int i = 0; i < list1.length(); i++)
 	{
 		nn.addchild(list1.get(i));
 	}
-	for (auto i = 0; i < list2.length(); i++)
+	for (int i = 0; i < list2.length(); i++)
 	{
 		nn.addchild(list2.get(i));
 	}

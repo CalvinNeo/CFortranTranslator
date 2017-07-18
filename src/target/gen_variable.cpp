@@ -117,19 +117,19 @@ VariableInfo * check_implicit_variable(FunctionInfo * finfo, const std::string &
 	{
 		vinfo = add_variable(get_context().current_module, finfo->local_name, name, VariableInfo{});
 		ParseNode implicit_type = gen_implicit_type(finfo, name);
-		vinfo->commonblock_index = 0; // set in regen_suite and gen_common
-		vinfo->commonblock_name = ""; // set in regen_suite and gen_common
-		vinfo->desc = VariableDesc(); // set in regen_vardef
-		vinfo->implicit_defined = true; // set in regen_suite and regen_common
-		vinfo->type = implicit_type; // set in regen_vardef
-		vinfo->entity_variable = gen_keyvalue_from_name(name); // set in regen_vardef
+		vinfo->commonblock_index = 0; 
+		vinfo->commonblock_name = ""; 
+		vinfo->desc = VariableDesc(); 
+		vinfo->implicit_defined = true; 
+		vinfo->type = implicit_type; 
+		vinfo->entity_variable = gen_keyvalue_from_name(name); 
 		// vardef_node's value is finally determined by `regen_vardef` in `gen_joined_declarations`
 		ParseNode vardef_node = gen_vardef_from_default(implicit_type, name);
-		vinfo->vardef_node = new ParseNode(vardef_node); // set in regen_suite and gen_common
+		vinfo->vardef_node = new ParseNode(vardef_node); 
 	}
 	else if (vinfo->type.get_token() == TokenMeta::Implicit_Decl )
 	{
-		vinfo->type = gen_implicit_type(finfo, name); // set in regen_vardef
+		vinfo->type = gen_implicit_type(finfo, name); 
 	}
 	return vinfo;
 }

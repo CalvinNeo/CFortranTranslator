@@ -12,6 +12,7 @@ This translator is not intended to improve existing codes, but to make convenien
 2. Parse codes mixed with fixed form and free form automaticlly
 3. C++ implemetation of some Fortran's type and functions
 4. Generated C++ code remains abstract level of the origin code
+
     e.g. implied-do will not expand to a for-loop directly, but to a `IOLambda` struct
 
 
@@ -44,7 +45,7 @@ The whole project, including both the translator itself and fortran standrad lib
 My Configuration:
 
 - translator
-    1. vs2015(Update 3) 
+    1. Visual Studio 2015(Update 3) 
     2. win\_flex(win\_flex\_bison 2.4.5, flex 2.5.37)
     3. win\_bison(win\_flex\_bison 2.4.5, bison 2.7)
     4. boost(1.60)
@@ -80,7 +81,7 @@ Debug origin fortran code or generated C++ code is recommended.
 ## Demo
 several demos are provided in [demos](/demos)
 
-## fortran standard library
+## usage of fortran standard library
 include [for90std/for90std.h](/for90std/for90std.h) to use C++ implementation of intrinsic fortran functions and language features
 
 ### inherit function
@@ -150,7 +151,7 @@ Inside `IOStuff` is a `std::tuple`, use `foreach_tupe(iostuff.tup)` to enumerate
 
 ## target code and restrictions
 refer to [/src/grammar/for90.y](/src/grammar/for90.y) for all accepted grammar
-### grammar
+### general grammar
 
 1. you can rename keyword parameter in `interface` block
 2. you can use anonymous grammar structures
@@ -338,8 +339,8 @@ ref io-implied-do
 |`f1a_flatmap(array, begin_iterator, end_iterator, lambda)`|return a vector of all elements mapped by function `lambda` in fortran/C++ order|
 
 ### variables
-1. variable names in fortran is **case-insensitive**, and their names will be translated into lower case.
-2. variable names that conflicts with C++ keywords and std functions will be renamed with a `R_` surffix
+1. variable names in fortran are **case-insensitive**, and their names will be translated into lower case.
+2. variable names that conflictswith C++ keywords and standard library functions will be renamed with a `R_` surfix
 
 #### common block
 
@@ -459,4 +460,4 @@ fortran77 do not specify intent, target code will follow the strategy:
 |left value|`T &`|
 
 # Develop
-refer to [/Develop.md](/Develop.md)
+refer to [/Develop.md](/Develop.md) to have an general understanding of implementation of this project

@@ -152,8 +152,8 @@ std::string regen_stmt(FunctionInfo * finfo, ParseNode & stmt) {
 					else if(vinfo == nullptr){
 						// `regen_vardef` will be called in `gen_joined_declarations`
 						vinfo = add_variable(get_context().current_module, finfo->local_name, name, VariableInfo{});
-						vinfo->commonblock_index = 0; // set in regen_suite and gen_common
-						vinfo->commonblock_name = ""; // set in regen_suite and gen_common
+						vinfo->commonblock_index = 0; 
+						vinfo->commonblock_name = ""; 
 					}
 					if (is_function_array(entity_variable))
 					{
@@ -240,13 +240,13 @@ std::string regen_stmt(FunctionInfo * finfo, ParseNode & stmt) {
 				{
 					ParseNode t = gen_type(Term{ TokenMeta::Function_Decl, "" });
 					vinfo = add_variable(get_context().current_module, finfo->local_name, name, VariableInfo{});
-					vinfo->commonblock_index = 0; // set in regen_suite and gen_common
-					vinfo->commonblock_name = ""; // set in regen_suite and gen_common
-					vinfo->desc = VariableDesc(); // set in regen_vardef
-					vinfo->implicit_defined = false; // set in regen_suite and regen_common
-					vinfo->type = t; // set in regen_vardef
-					vinfo->entity_variable = gen_vardef_from_default(t, ""); // set in regen_vardef
-					vinfo->vardef_node = &wrapper; // set in regen_vardef
+					vinfo->commonblock_index = 0; 
+					vinfo->commonblock_name = ""; 
+					vinfo->desc = VariableDesc(); 
+					vinfo->implicit_defined = false; 
+					vinfo->type = t; 
+					vinfo->entity_variable = gen_vardef_from_default(t, ""); 
+					vinfo->vardef_node = &wrapper;
 				}
 				else {
 					print_error("repeated declaration of interface");
@@ -355,7 +355,7 @@ std::string regen_stmt(FunctionInfo * finfo, ParseNode & stmt) {
 			sprintf(codegen_buf, "%s.reset_array({%s})", arr_name.get_what().c_str(), slice_info_str.c_str());
 			stmt.get_what() = string(codegen_buf);
 			newsuitestr += stmt.get_what();
-			newsuitestr += ';\n';
+			newsuitestr += ";\n";
 		}
 	}
 	else {

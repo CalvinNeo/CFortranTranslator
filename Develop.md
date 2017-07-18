@@ -6,26 +6,32 @@
 2. the **Develop** mode invoke the function `void debug()` which is defined in [develop.cpp](/develop.cpp)
 3. the **Release** is same as the **Debug** mode except for default values which is not set
 
-## extend grammar
+## grammar
+### .l and .y
+Currently, grammar are defined in [/src/grammar/for90.l](/src/grammar/for90.l) (and it will be replaced by a simpler non-flex-generated [/src/grammar/simple_lexer.cpp](/src/grammar/simple_lexer.cpp) ) and [/src/grammar/for90.y](/src/grammar/for90.y)
+
+### extend grammar
+
 1. declare new %token in [/src/grammar/for90.y](/src/grammar/for90.y)
 2. add pattern of this %token in [/src/grammar/for90.l](/src/grammar/for90.l)
 3. add rules related to the %token in [/src/grammar/for90.y](/src/grammar/for90.y)
 4. update bytecodes and grammar tokens in [/src/parser/Intent.h](/src/parser/Intent.h)
-6. register keyword in [/src/parser/tokenizer.cpp](/src/parser/tokenizer.cpp)(if this token is keyword)
-7. if this keyword are made up of more than 1 word, reduction conflicts may be caused between the keyword and its prefix,
-    - if rules keywords are all charaters like `(/`, just add a regex to for90.l
-    - if rules keywords are all words like `else if`, update forward1 in [/src/parser/tokenizer.cpp](/src/parser/tokenizer.cpp)
+5. register keyword in [/src/parser/tokenizer.cpp](/src/parser/tokenizer.cpp)(if this token is keyword)
+6. if this keyword are made up of more than 1 word, reduction conflicts may be caused between the keyword and its prefix,
+    - if rule's keyword are all charaters like `(/`, just add a regex to for90.l
+    - if rule's keyword are all words like `else if`, update forward1 in [/src/parser/tokenizer.cpp](/src/parser/tokenizer.cpp)
 
         the first part don't need to be registered to keyword
-8. update translation rules in [/src/target/gen_config.h](/src/target/gen_config.h.h)
+7. update translation rules in [/src/target/gen_config.h](/src/target/gen_config.h.h)
 
-## extend new intrinsic function
+### extend new intrinsic function
+
 1. implement this function and included it in [for90std/for90std.h](/for90std/for90std.h)
 	- if a parameter is **optional** in fortran, wrap it with `foroptional`, and log all parameters of this function in [/gen_config.cpp](/gen_config.cpp)
     - if the parameter is the **only** optional parameter, can omit `foroptional` wrapper
 2. update `funcname_map` in [/src/target/gen_config.cpp](/src/target/gen_config.cpp) if necessary
 
-## C++ code generate
+## C++ target code
 ### lazy generate
 when using immediate code generate(or using lazy gen), upper level non-terminal can channge generated codes by low level non-terminal, so `gen_` functions pass `ParseNode &` other than `const ParseNode &`:
 
@@ -96,7 +102,7 @@ their replacement occur in following stages:
 
     join generated codes of Step 2, depending whether this variable is common block
 
-## Parse Tree
+## Parse Tree(AST)
 all parse tree nodes are defined in [/src/Intent.h](/src/Intent.h) with an `NT_` prefix
 ### struct ParseNode
 1. fs:
@@ -151,7 +157,7 @@ To specify, `type_name` is like `INTEGER` and a `type_spec` is like `INTEGER(kin
 - `suite` is set of `stmt`
 
 
-### Parse Tree Layers
+### production rules illustration
 
 |rules|left NT|right(included)|
 |:-:|:-:|:-:|

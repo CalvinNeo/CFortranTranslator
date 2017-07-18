@@ -76,6 +76,7 @@ void gen_fortran_program(ARG_IN wrappers) {
 		{
 			get_context().current_module = "";
 			ParseNode & variable_function = wrapper.get(1);
+			//printf("==================function: %s \n", variable_function.get_what().c_str());
 			FunctionInfo * finfo = get_function(get_context().current_module, variable_function.get_what());
 			regen_function(finfo, wrapper);
 			codes += wrapper.get_what();

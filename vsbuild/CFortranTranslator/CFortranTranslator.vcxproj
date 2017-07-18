@@ -36,6 +36,7 @@
     <ClCompile Include="..\..\src\getopt.cpp" />
     <ClCompile Include="..\..\src\grammar\for90.flex.cpp" />
     <ClCompile Include="..\..\src\grammar\for90.tab.cpp" />
+    <ClCompile Include="..\..\src\grammar\simple_lexer.cpp" />
     <ClCompile Include="..\..\src\main.cpp" />
     <ClCompile Include="..\..\src\parser\attribute.cpp" />
     <ClCompile Include="..\..\src\parser\Function.cpp" />

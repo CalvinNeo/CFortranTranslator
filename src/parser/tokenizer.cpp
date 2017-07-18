@@ -32,6 +32,10 @@ FlexContext & get_flex_context() {
 	static FlexContext fc;
 	return fc;
 }
+
+
+
+
 const vector<KeywordMeta> keywords = {
 	// .what keyword
 	// .token keyword as intent
@@ -378,6 +382,52 @@ const vector<KeywordMeta> keywords = {
 	, KeywordMeta{ "pointer"
 		, TokenMeta::META_ANY
 		, YY_POINTER
+	}
+
+	// 11 operators
+	, KeywordMeta{ "(/"
+		, TokenMeta::META_ANY
+		, YY_ARRAYBUILDER_START
+	}
+	, KeywordMeta{ "/)"
+		, TokenMeta::META_ANY
+		, YY_ARRAYBUILDER_END
+	}
+	, KeywordMeta{ "::"
+		, TokenMeta::DoubleColon
+		, YY_DOUBLECOLON
+	}
+	, KeywordMeta{ "**"
+		, TokenMeta::Power
+		, YY_POWER
+	}
+	, KeywordMeta{ ">"
+		, TokenMeta::GT
+		, YY_GT
+	}
+	, KeywordMeta{ ">="
+		, TokenMeta::GE
+		, YY_GE
+	}
+	, KeywordMeta{ "<"
+		, TokenMeta::LT
+		, YY_LT
+	}
+	, KeywordMeta{ "<="
+		, TokenMeta::LE
+		, YY_LE
+	}
+	, KeywordMeta{ "=="
+		, TokenMeta::EQ
+		, YY_EQ
+	}
+	, KeywordMeta{ "/="
+		, TokenMeta::NEQ
+		, YY_NEQ
+	}
+	, KeywordMeta{ "//"
+		, TokenMeta::Add
+		, '+'
 	}
 };
 

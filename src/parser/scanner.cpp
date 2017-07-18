@@ -21,11 +21,11 @@
 #include <iostream>
 using namespace std;
 
-bool isNumeric(char asc)
+static bool isNumeric(char asc)
 {
 	return ((asc >= '0' && asc <= '9') || asc == '.');
 }
-string::iterator Jump(string & src, string::iterator c, int flag, char lb, char rb)
+static std::string::iterator Jump(std::string & src, std::string::iterator c, int flag, char lb, char rb)
 {
 	int k = 0;
 	bool inStr = false;
@@ -45,14 +45,14 @@ string::iterator Jump(string & src, string::iterator c, int flag, char lb, char 
 	}return c;
 }
 
-string CutString(string::iterator & b, string::iterator e, bool save, char jmp)
+std::string CutString(std::string::iterator & b, std::string::iterator e, bool save, char jmp)
 {
 	if (b == e)
 	{
 		return "";
 	}
-	string rt;
-	string::iterator pre = b;
+	std::string rt;
+	std::string::iterator pre = b;
 
 	if (*b == jmp)
 	{
@@ -65,7 +65,7 @@ string CutString(string::iterator & b, string::iterator e, bool save, char jmp)
 		}
 	}
 
-	string::iterator lb = b;
+	std::string::iterator lb = b;
 	bool flag = false;
 
 LABEL_BEGIN:
@@ -180,21 +180,21 @@ LABEL_BEGIN:
 		{
 		case '>':
 			//=>
-			rt =  string(b, b + 2);
+			rt = string(b, b + 2);
 			b += 2;
 			break;
 		case '=':
 			//==
-			rt =  string(b, b + 2);
+			rt = string(b, b + 2);
 			b += 2;
 			break;
 		case '<':
 			//=<
-			rt =  string(b, b + 2);
+			rt = string(b, b + 2);
 			b += 2;
 			break;
 		default:
-			rt =  string(b, b + 1);
+			rt = string(b, b + 1);
 			b++;
 			break;
 		}
@@ -207,35 +207,35 @@ LABEL_BEGIN:
 			//>>
 			if (*(b + 2) == '=')
 			{
-				rt =  string(b, b + 3);
+				rt = string(b, b + 3);
 				b += 3;
 				break;
 			}
 			else
 			{
-				rt =  string(b, b + 2);
+				rt = string(b, b + 2);
 				b += 2;
 				break;
 			}
 		case '=':
 			//>=
-			rt =  string(b, b + 2);
+			rt = string(b, b + 2);
 			b += 2;
 			break;
 		case '<':
 			//><
-			rt =  string(b, b + 2);
+			rt = string(b, b + 2);
 			b += 2;
 			break;
 		default:
-			rt =  string(b, b + 1);
+			rt = string(b, b + 1);
 			b++;
 			break;
 		}
 	}
 	else if (*b == '+' || *b == '-')
 	{
-		rt =  string(b, b + 1);
+		rt = string(b, b + 1);
 		for (b++; b != e; b++)
 		{
 			switch (*b)
@@ -307,7 +307,7 @@ LABEL_BEGIN:
 			}
 		}
 
-		rt =  string(lb, b);
+		rt = string(lb, b);
 	}
 	else if ((*b >= 'A' && *b <= 'Z') || (*b >= 'a' && *b <= 'z'))
 	{
@@ -317,24 +317,24 @@ LABEL_BEGIN:
 			if (!((*b >= 'A' && *b <= 'Z')
 				|| (*b >= 'a' && *b <= 'z')
 				|| (*b >= '0' && *b <= '9'))){
-				rt =  string(lb, b);
+				rt = string(lb, b);
 				break;
 			}
 		}
 	}
 	else if (*b == '\n' || *b == '\r' || *b == '\t')
 	{
-		rt =  string(b, b + 1);
+		rt = string(b, b + 1);
 		b++;
 	}
 	else
 	{
-		rt =  string(b, b + 1);
+		rt = string(b, b + 1);
 		b++;
 	}
 	if (rt == "" && b == e)
 	{
-		rt =  string(lb, e);
+		rt = string(lb, e);
 	}
 Ret:
 	if (!save)

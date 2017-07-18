@@ -27,7 +27,9 @@ using namespace std;
 
 // use static instead of extern will make build fast
 #ifdef _DEBUG
+// static is necessary, or will cause lnk
 static char codegen_buf[MAX_CODE_LENGTH]; 
 #else
+// defined in for90.y and codegen.cpp
 extern char codegen_buf[MAX_CODE_LENGTH];
 #endif

@@ -34,8 +34,9 @@
 
 static char * iter_buff = nullptr;
 static YY_BUFFER_STATE yy_buffer = nullptr;
+static bool abandon = false;
 
-void update_flex(int len) {
+static void update_flex(int len) {
 	// do not update CurrentTerm
 	bool newline = std::string(yytext) == "\n";
 	if (newline) {
@@ -46,17 +47,16 @@ void update_flex(int len) {
 		get_flex_state().parse_pos += len; get_flex_state().line_pos += get_flex_state().parse_len; get_flex_state().parse_len = len;
 	}
 }
-void update_flex() {
+static void update_flex() {
 	// do not update CurrentTerm
 	update_flex(yyleng);
 }
-void update_yylval(Term & current_term) {
-	get_flex_state().CurrentTerm = current_term;
-	ParseNode newnode{ FlexState(get_flex_state()) , nullptr, nullptr};
-	yylval = RETURN_NT(newnode);
-}
 
 int yylex(void) {
+	/****************
+	*	bison calls this function directly
+	*	pure_yylex is flex's generated function, by `#define YY_DECL int pure_yylex(void)`
+	****************/
 	int p;
 	Term term;
 	AGAIN:
@@ -84,11 +84,12 @@ int yylex(void) {
 	}
 	return p;
 }
-struct FlexScannerContext {
+
+struct FlexCondition {
 	std::string trigger;
 	int condition;
 	std::string code;
-	FlexScannerContext(std::string trigger, int condition) {
+	FlexCondition(std::string trigger, int condition) {
 		this->trigger = trigger;
 		this->condition = condition;
 		code = "";
@@ -98,25 +99,25 @@ struct FlexScannerContext {
 	};
 };
 
-std::vector<FlexScannerContext *> & get_flex_scanner_context_stack() {
-	static std::vector<FlexScannerContext *> st;
+static std::vector<FlexCondition *> & get_flex_scanner_context_stack() {
+	static std::vector<FlexCondition *> st;
 	return st;
 }
-FlexScannerContext * get_current_scanner() {
+static FlexCondition * get_current_scanner() {
 	return get_flex_scanner_context_stack().back();
 }
-void reset_condition() {
+static void reset_condition() {
 
 }
-void enter_condition(FlexScannerContext * fsc) {
+static void enter_condition(FlexCondition * fsc) {
 	get_flex_scanner_context_stack().push_back(fsc);
 	BEGIN(fsc->condition);
 }
-int yield_condition(int yy_token, Term term) {
+static int yield_condition(int yy_token, Term term) {
 	update_yylval(term);
 	return yy_token;
 }
-void abort_condition() {
+static void abort_condition() {
 	delete get_flex_scanner_context_stack().back();
 	get_flex_scanner_context_stack().pop_back();
 	if (get_flex_scanner_context_stack().empty())
@@ -127,18 +128,18 @@ void abort_condition() {
 		BEGIN(get_flex_scanner_context_stack().back()->condition);
 	}
 }
-int quit_condition(int yy_token, Term term) {
+static int quit_condition(int yy_token, Term term) {
 	int p = yield_condition(yy_token, term);
 	abort_condition();
 	return p;
 }
 
-struct FlexExternalContext : public FlexScannerContext {
+struct FlexExternalCondition : public FlexCondition {
 	int left_brackets = 0;
 	int len; // len != code.size(), because of special editing like H-editing
-	bool in_str = false;
+	int in_str = 0;
 	int h_editing_count = 0;
-	FlexExternalContext(std::string trigger, int condition) : FlexScannerContext(trigger, condition) {
+	FlexExternalCondition(std::string trigger, int condition) : FlexCondition(trigger, condition) {
 		left_brackets = 0;
 		len = 0;
 	}
@@ -176,7 +177,24 @@ struct FlexExternalContext : public FlexScannerContext {
 			else{
 				if (!h_editing_count && (text[0] == '\"' || text[0] == '\''))
 				{
-					in_str = !in_str;
+					/****************
+					*	e.g.
+					*>	"aaa'bbb"
+					*	aaa'bbb is in_str
+					*>	'aaa"bbb'
+					*	aaa"bbb is also in_str
+					*================
+					*	inside a pair of quotes(either " or '), the other pair of quotes do not function as string border
+					****************/
+					if (in_str == text[0])
+					{
+
+						in_str = 0;
+					}
+					else if(in_str == 0)
+					{
+						in_str = text[0];
+					}
 				}
 				else if(text[0] == '\n')
 				{
@@ -197,16 +215,15 @@ struct FlexExternalContext : public FlexScannerContext {
 	}
 };
 
-struct FlexLabelEndContext : public FlexScannerContext {
+struct FlexLabelEndCondition : public FlexCondition {
 	bool end_label_hit = false;
 	bool int_is_label = false;
 	
-	FlexLabelEndContext(std::string trigger, int condition) : FlexScannerContext(trigger, condition){
+	FlexLabelEndCondition(std::string trigger, int condition) : FlexCondition(trigger, condition){
 		end_label_hit = false;
 	}
 };
 
-static bool abandon = false;
 
 int else_parse(const char * origin_yytext);
 int comment_parse(const char * origin_yytext);
@@ -214,8 +231,8 @@ int label_parse(const char * origin_yytext);
 int literal_parse(const char * origin_yytext, TokenMeta_T token, int yytoken);
 int nop_parse();
 int crlf_parse(const char * origin_yytext);
-int word_parse(const char * origin_yytext);
 int operator_parse(const char * origin_yytext, TokenMeta_T token, int yytoken);
+static int word_parse(const char * origin_yytext);
 
 #define DORET(YYTOKEN) if(YYTOKEN == YY_IGNORE_THIS){/* do not return */}else{ return YYTOKEN; }
 
@@ -282,20 +299,20 @@ string ({string1}|{string2})
 	DORET(p);
 }
 
-{newline}([ ][ ][ ][ ][ ])({digit}|[*&]) {
+{newline}([ ][ ][ ][ ][ ])({digit}|[*#&]) {
 	// continuation line
 	// {newline}{ws}\*
 	int p = nop_parse();
-	get_flex_state().parse_line++;
 	update_flex();
+	get_flex_state().parse_line++;
 	DORET(p);
 }
-{newline}\t({digit}|[*&]) {
+{newline}\t({digit}|[*#&]) {
 	// continuation line
-	// {newline}{ws}\*
+	// THIS IS A COMPROMISE TO SOME WRONG CODE IN FORTRAN POWERED STATION
 	int p = nop_parse();
-	get_flex_state().parse_line++;
 	update_flex();
+	get_flex_state().parse_line++;
 	DORET(p);
 }
 {newline} {
@@ -318,10 +335,10 @@ string ({string1}|{string2})
 	sscanf(yytext, "%d", &label_index);
 	auto end_label_iter = get_context().end_labels.find(std::to_string(label_index));
 	if (end_label_iter != get_context().end_labels.end()) {
-		FlexLabelEndContext * fec;
+		FlexLabelEndCondition * fec;
 		bool first = true;
 		while (!end_label_iter->second.empty()) {
-			fec = dynamic_cast<FlexLabelEndContext*> (get_current_scanner());
+			fec = dynamic_cast<FlexLabelEndCondition*> (get_current_scanner());
 			end_label_iter->second.pop_back();
 			quit_condition(YY_IGNORE_THIS, Term{ TokenMeta::Nop, "" });
 			get_flex_context().terminal_cache_line.push_back(std::make_tuple(YY_ENDDO, Term{ TokenMeta::RBrace, std::string("enddo") }));
@@ -408,8 +425,8 @@ int else_parse(const char * origin_yytext) {
 	return origin_yytext[0];
 }
 int comment_parse(const char * origin_yytext) {
-	/* do not update yylval */  
-	get_flex_context().comments.push_back(std::string(yytext));
+	/* do not update yylval */
+	get_flex_context().comments.push_back(std::string(origin_yytext));
 	return YY_IGNORE_THIS; /* do not return */
 }
 int label_parse(const char * origin_yytext) {
@@ -424,7 +441,7 @@ int literal_parse(const char * origin_yytext, TokenMeta_T token, int yytoken) {
 	return yytoken;
 }
 int nop_parse() {
-	/* do not update yylval */  
+	/* do not update yylval */
 	return YY_IGNORE_THIS; /* do not return */
 }
 
@@ -434,11 +451,11 @@ int crlf_parse(const char * origin_yytext) {
 }
 
 int operator_parse(const char * origin_yytext, TokenMeta_T token, int yytoken) {
-	update_yylval(Term{ token, std::string(origin_yytext) });  
+	update_yylval(Term{ token, std::string(origin_yytext) });
 	return yytoken;
 }
 
-int word_parse(const char * origin_yytext) {
+static int word_parse(const char * origin_yytext) {
 	using namespace std;
 	/* MUST NOT call update_flex at beginning because CutString */
 	const FlexState & fs = get_flex_state();
@@ -448,19 +465,21 @@ int word_parse(const char * origin_yytext) {
 		return YY_IGNORE_THIS;
 	}
 	string lowercase_name = string(origin_yytext);
+	int len = lowercase_name.size();
+	//assert(yyleng == len);
 	transform(lowercase_name.begin(), lowercase_name.end(), lowercase_name.begin(), tolower); 
 FIND_CONCAT:
 	if (lowercase_name == "format")
 	{
-		enter_condition(new FlexExternalContext("format", external_scanner));		
+		enter_condition(new FlexExternalCondition("format", external_scanner));		
 		return YY_IGNORE_THIS;
 	}
 	else if (lowercase_name == "do") {
-		std::string next = CutString(get_context().global_code.begin() + fs.parse_pos + yyleng , get_context().global_code.end(), false);
+		std::string next = CutString(get_context().global_code.begin() + fs.parse_pos + len, get_context().global_code.end(), false);
 		if (next[0] >= '0' && next[0] <= '9') {
 			// label-do-stmt is [ do-construct-name : ] DO label [ loop-control ]
 			get_context().end_labels[next].push_back("do");
-			enter_condition(new FlexLabelEndContext("do", label_end_scanner));
+			enter_condition(new FlexLabelEndCondition("do", label_end_scanner));
 			update_yylval(Term{ TokenMeta::Do, "do" });
 			return YY_DO;
 		}
@@ -474,7 +493,7 @@ NORMAL_CONDITION:
 		// if fortran keyword
 		if (forward1_iter != forward1.end()) {
 			// not a valid yylval
-			std::string next = CutString(get_context().global_code.begin() + fs.parse_pos + yyleng , get_context().global_code.end(), false);
+			std::string next = CutString(get_context().global_code.begin() + fs.parse_pos + len, get_context().global_code.end(), false);
 			transform(next.begin(), next.end(), next.begin(), tolower);
 			auto next_iter = find_if(forward1_iter->second.begin(), forward1_iter->second.end(), [&](const auto & x) {return x == next; });
 			if (next_iter != forward1_iter->second.end()) {

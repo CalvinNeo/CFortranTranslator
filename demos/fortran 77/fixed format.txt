@@ -1,5 +1,7 @@
 	dimension a(1)
 	* , b(2) ! 续行
+		  IF ((KNN(IE).EQ.M1.or.KNN(IE).EQ.M2.or.KNN(IE).EQ.M3).
+	*  AND.KNN(JE).EQ.M4) THEN		!fuck
 	do i = 1, 1
 	
 	

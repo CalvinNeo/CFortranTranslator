@@ -5,5 +5,7 @@
 		write(*,196) D
 197		FORMAT(5HCOLOR,' ',I1)
 		write(*,197) D
+201     FORMAT('PS ',2F10.3,' 0.06 0.0  "(',I1,2H)")
+		write(*,201) D
 READ(1,*) (I + 1,I=1,M)
 WRITE(1,*) (a,b,J=1,2)
