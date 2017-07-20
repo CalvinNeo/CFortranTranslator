@@ -19,16 +19,17 @@
 
 #include "develop.h"
 #include <iostream>  
-#include <sstream>  
+#include <sstream>
 #include "parser/parser.h"
 #include <stdio.h>
 #include "target/codegen.h"
 #include "../for90std/for90std.h"
 #include <numeric>
+#include "grammar/simple_lexer.h"
 
 using namespace std;
 
-char errlog[128];
+int simpler_yylex(void);
 
 void debug() {
 	//istringstream istr;
@@ -149,10 +150,19 @@ void debug() {
 	//vector<fsize_t> size = f1a_getsize(b);
 	// // forstyle should return 1, 2, 3, 4, 5, 6, 7, 8
 
-	parse(get_context().global_code);
-	while (fscanf(stderr, "%s", errlog) != EOF) {
-		printf("%s\n", errlog);
-		
+	// static char errlog[128];
+	//parse(get_context().global_code);
+	//while (fscanf(stderr, "%s", errlog) != EOF) {
+	//	printf("%s\n", errlog);
+	//	
+	//}
+
+	//preorder(&get_context().program_tree);
+
+	get_simpler_context().code = "program \n kwargs(1, b = 3, c = 3) \n end program";
+	int tok;
+	while (tok = simpler_yylex()) {
+		Term & t = get_tokenizer_state().CurrentTerm;
+		cout << t.what << endl;
 	}
-	preorder(&get_context().program_tree);
 }

@@ -31,9 +31,10 @@ struct Term {
 
 
 #define USE_YACC
-#define USE_LEX
+#undef USE_LEX
+//#define USE_LEX
 
-struct FlexState {
+struct TokenizerState {
 	// ´Ê·¨·ÖÎö
 	Term CurrentTerm;
 	int parse_pos = 0;
@@ -42,9 +43,9 @@ struct FlexState {
 	int line_pos = 0;
 	bool isnull = false;
 };
-FlexState & get_flex_state();
+TokenizerState & get_tokenizer_state();
 
-struct FlexContext {
+struct TokenizerContext {
 	// return immediately
 	std::vector<std::tuple<int, Term>> terminal_cache;
 	// return after the whole line ends
@@ -55,17 +56,11 @@ struct FlexContext {
 	std::function<void(const std::string &)> load_code;
 	std::function<void()> unload_code;
 };
-FlexContext & get_flex_context();
+TokenizerContext & get_tokenizer_context();
 
 extern const std::vector<KeywordMeta> keywords;
 extern const std::map<std::string, std::vector<std::string> > forward1;
 
-// because we use yacc, so this is not necessary
-//FlexState next_token(const std::string & in_str, int start = 0); 
-//FlexState iter_token(const std::string & in_str, int start);
-std::string CutString(std::string::iterator & b, std::string::iterator e, bool save, char jmp = ' ');
-
-int pure_yylex(void);
 int yylex(void);
 void update_yylval(Term & current_term); // defined in for90.y
 

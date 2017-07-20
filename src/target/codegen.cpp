@@ -45,8 +45,8 @@ ParseNode gen_dummy() {
 	return gen_token(Term{ TokenMeta::NT_DUMMY, "" });
 }
 
-FlexState gen_flex(Term term) {
-	FlexState f;
+TokenizerState gen_flex(Term term) {
+	TokenizerState f;
 	f.CurrentTerm = term;
 	f.line_pos = f.parse_len = f.parse_line = f.parse_pos = 0;
 	return f;

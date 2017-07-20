@@ -7,8 +7,20 @@
 3. the **Release** is same as the **Debug** mode except for default values which is not set
 
 ## grammar
-### .l and .y
 Currently, grammar are defined in [/src/grammar/for90.l](/src/grammar/for90.l) (and it will be replaced by a simpler non-flex-generated [/src/grammar/simple_lexer.cpp](/src/grammar/simple_lexer.cpp) ) and [/src/grammar/for90.y](/src/grammar/for90.y)
+
+### tokenizer(by flex)
+`#define USE_LEX` to enable
+parser calls `int yylex(void)` to get one token at a time. 
+
+### tokenizer(by simple_lexer)
+`#undef USE_LEX` to enable
+because can be continued in tokenizer's level, now a non-generated lexer simple_lexer substitute for flex tokenizer(for90.l).
+
+### parser
+1. `YY2ARG` get a `ParseNode &` from bison's arguments `$n`(namely `ParseNode *`)
+2. `RETURN_NT` generates a bison's result `$$`(namely `ParseNode *`) from  `ParseNode`, `RETURN_NT` does opposite work of `YY2ARG`
+3. `CLEAN_RIGHT` clear all bison's arguments
 
 ### extend grammar
 

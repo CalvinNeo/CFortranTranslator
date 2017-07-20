@@ -27,7 +27,7 @@
 
 #define WHENDEBUG_OREMPTYSTR(STR) WHENDEBUG(STR, "")
 
-FlexState gen_flex(Term term);
+TokenizerState gen_flex(Term term);
 /****************
 * `gen_token` generate token from several or none childs by given **Term**
 * Usage:

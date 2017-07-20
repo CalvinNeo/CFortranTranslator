@@ -15,3 +15,9 @@ KKK.GT.1..OR.KKK.EQ.2.
      4   '**')
 
       COMMON /GO/ KFM ! must distinguish with goto-stmt
+      
+204     FORMAT(' 0.06 0.0  "(',I4,2H)")
+	  IF (X) THEN		!comment with comma,
+	  endif
+	  
+	  185      FORMAT(1X,'ERROR! THE GOODMAN NO.=',I5) ! `!` in format-stmt shouldn't be translated into comment start

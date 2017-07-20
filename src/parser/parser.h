@@ -50,7 +50,7 @@ private:
 
 
 struct ParseNode {
-	FlexState fs;
+	TokenizerState fs;
 	std::vector<ParseNode *> child;
 	struct ParseNode * father;
 	struct ParseAttr * attr = nullptr;
@@ -86,14 +86,14 @@ struct ParseNode {
 	ParseNode(const ParseNode &);
 	ParseNode & operator= (const ParseNode &) ;
 	ParseNode() : attr(nullptr), father(nullptr) {};
-	ParseNode(const FlexState & s, ParseNode * fa, struct ParseAttr * att = nullptr) : father(fa), attr(att), fs(s) {}
+	ParseNode(const TokenizerState & s, ParseNode * fa, struct ParseAttr * att = nullptr) : father(fa), attr(att), fs(s) {}
 	~ParseNode();
 };
 
 
 int parse(std::string code);
 void preorder(ParseNode * ptree);
-FlexState & get_flex_state();
+TokenizerState & get_tokenizer_state();
 void print_error(const std::string & error_info, const ParseNode & node);
 void print_error(const std::string & error_info);
 void fatal_error(const std::string & error_info, const ParseNode & node);
@@ -110,6 +110,7 @@ inline ParseNode & YY2ARG(YYSTYPE X) {
 	if (X == nullptr)
 	{
 		fatal_error("null ParseNode during parsing");
+		return *X;
 	}
 	else {
 		return *X;

@@ -21,20 +21,60 @@
 #include "../grammar/for90.tab.h"
 #include "../target/gen_config.h"
 
+#ifdef USE_LEX
+int pure_yylex();
+#else
+int simpler_yylex();
+#endif
+
 using namespace std;
 
-FlexState & get_flex_state() {
-	static FlexState flex_state;
+TokenizerState & get_tokenizer_state() {
+	static TokenizerState flex_state;
 	return flex_state;
 }
 
-FlexContext & get_flex_context() {
-	static FlexContext fc;
+TokenizerContext & get_tokenizer_context() {
+	static TokenizerContext fc;
 	return fc;
 }
 
-
-
+int yylex(void) {
+	/****************
+	*	bison calls this function directly
+	*	pure_yylex is flex's generated function, by `#define YY_DECL int pure_yylex(void)`
+	****************/
+	int p;
+	Term term;
+AGAIN:
+	if (!get_tokenizer_context().terminal_cache.empty())
+	{
+		std::tie(p, term) = get_tokenizer_context().terminal_cache.back();
+		update_yylval(term);
+		get_tokenizer_context().terminal_cache.pop_back();
+		return p;
+	}
+#ifdef USE_LEX
+	p = pure_yylex();
+#else
+	p = simpler_yylex();
+#endif
+	term = get_tokenizer_state().CurrentTerm;
+	if (p == YY_CRLF || (p == NULL))
+	{
+		if (get_tokenizer_context().terminal_cache_line.size() != 0)
+		{
+			get_tokenizer_context().terminal_cache.push_back(std::make_tuple(p, get_tokenizer_state().CurrentTerm));
+			for (int i = 0; i < get_tokenizer_context().terminal_cache_line.size(); i++)
+			{
+				get_tokenizer_context().terminal_cache.push_back(get_tokenizer_context().terminal_cache_line[i]);
+			}
+			get_tokenizer_context().terminal_cache_line.clear();
+			goto AGAIN;
+		}
+	}
+	return p;
+}
 
 const vector<KeywordMeta> keywords = {
 	// .what keyword

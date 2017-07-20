@@ -31,13 +31,14 @@
 #include "../parser/Function.h"
 
 
-// 前置声明, 不然编译不过
 void yyerror(const char* s); 
-extern int yylex();
 
 #ifdef USE_LEX
+int pure_yylex(void);
 void set_buff(const std::string & code);
 void release_buff();
+#else
+#include "simple_lexer.h"
 #endif
 
 #define YYDEBUG 1
@@ -347,15 +348,24 @@ using namespace std;
 				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($3));
 				CLEAN_RIGHT($1, $2, $3);
 			}
+	
+	//operator : '.' YY_WORD '.'
+	//		{
+	//			ARG_IN op_name = YY2ARG($2);
+	//			$$ = RETURN_NT(gen_token(Term{ TokenMeta::NT_DEFINED_OPERATOR, "." + op_name.get_what() + "." })); // float number
+	//			update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($3));
+	//			CLEAN_RIGHT($1, $2, $3);
+	//		}
 
 	literal : YY_FLOAT
 			{
-				/* 该条目下的右部全部为单个终结符号(语法树的叶子节点), 因此YY2ARG($1)全部来自lex程序 */
+				// all arguments under `literal` rule is directly from tokenizer
 				ARG_IN lit = YY2ARG($1);
 				$$ = RETURN_NT(gen_token(Term{ TokenMeta::Float, lit.get_what() })); // float number
 				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($1));
 				CLEAN_RIGHT($1);
 			}
+
 		| YY_INTEGER '.'
 			{
 				ARG_IN lit = YY2ARG($1);
@@ -363,6 +373,7 @@ using namespace std;
 				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($1));
 				CLEAN_RIGHT($1, $2);
 			}
+
 		| YY_INTEGER
 			{
 				ARG_IN lit = YY2ARG($1);
@@ -800,6 +811,16 @@ using namespace std;
 				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($3));
 				CLEAN_RIGHT($1, $2, $3);
 			}
+		//| exp operator exp
+		//	{
+		//		ARG_IN exp1 = YY2ARG($1);
+		//		ARG_IN op = YY2ARG($2);
+		//		ARG_IN exp2 = YY2ARG($3);
+		//		ParseNode opnew = gen_token(Term{ TokenMeta::LT, "%s ?? %s" });
+		//		$$ = RETURN_NT(gen_promote(opnew.get_what(), TokenMeta::NT_EXPRESSION, exp1, exp2, opnew));
+		//		update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($3));
+		//		CLEAN_RIGHT($1, $2, $3);
+		//	}
 		| hidden_do
 			{
 				ARG_IN hidden_do = YY2ARG($1);
@@ -1832,8 +1853,8 @@ using namespace std;
 
 %%
 void update_yylval(Term & current_term) {
-	get_flex_state().CurrentTerm = current_term;
-	ParseNode newnode{ FlexState(get_flex_state()) , nullptr, nullptr };
+	get_tokenizer_state().CurrentTerm = current_term;
+	ParseNode newnode{ TokenizerState(get_tokenizer_state()) , nullptr, nullptr };
 	yylval = RETURN_NT(newnode);
 }
 static void yyerror(const char* s)
@@ -1844,14 +1865,20 @@ static void yyerror(const char* s)
 int parse(std::string code) {
 #ifdef USE_YACC
 #ifdef USE_LEX
-	get_flex_context().load_code = set_buff;
-	get_flex_context().unload_code = release_buff;
+	get_tokenizer_context().load_code = set_buff;
+	get_tokenizer_context().unload_code = release_buff;
 #else
-
+	get_tokenizer_context().load_code = [&](const std::string & _code) {
+		get_simpler_context().reset();
+		get_simpler_context().code = _code;
+	};
+	get_tokenizer_context().unload_code = []() {
+	
+	};
 #endif
-	get_flex_context().load_code(code);
+	get_tokenizer_context().load_code(code);
 	yyparse();
-	get_flex_context().unload_code();
+	get_tokenizer_context().unload_code();
 #endif
 	return 0;
 }

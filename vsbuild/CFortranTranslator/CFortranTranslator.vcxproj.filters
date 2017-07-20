@@ -132,13 +132,13 @@
     <ClCompile Include="..\..\src\develop.cpp" />
     <ClCompile Include="..\..\src\getopt.cpp" />
     <ClCompile Include="..\..\src\main.cpp" />
-    <ClCompile Include="..\..\src\grammar\for90.flex.cpp">
-      <Filter>grammar</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\grammar\for90.tab.cpp">
       <Filter>grammar</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\grammar\simple_lexer.cpp">
+      <Filter>grammar</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\grammar\for90.flex.cpp">
       <Filter>grammar</Filter>
     </ClCompile>
   </ItemGroup>
@@ -197,9 +197,6 @@
     <ClInclude Include="..\..\src\parser\Variable.h">
       <Filter>NuclearLang</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\grammar\for90.flex.h">
-      <Filter>grammar</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\src\grammar\for90.tab.h">
       <Filter>grammar</Filter>
     </ClInclude>
@@ -216,6 +213,9 @@
     <ClInclude Include="..\..\src\general_config.h" />
     <ClInclude Include="..\..\src\getopt.h" />
     <ClInclude Include="..\..\src\utf8.h" />
+    <ClInclude Include="..\..\src\grammar\simple_lexer.h">
+      <Filter>grammar</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\README.md" />
@@ -224,13 +224,13 @@
     <None Include="..\..\Develop.md" />
   </ItemGroup>
   <ItemGroup>
-    <Flex Include="..\..\src\grammar\for90.l">
-      <Filter>grammar</Filter>
-    </Flex>
-  </ItemGroup>
-  <ItemGroup>
     <Bison Include="..\..\src\grammar\for90.y">
       <Filter>grammar</Filter>
     </Bison>
+  </ItemGroup>
+  <ItemGroup>
+    <Flex Include="..\..\src\grammar\for90.l">
+      <Filter>grammar</Filter>
+    </Flex>
   </ItemGroup>
 </Project>

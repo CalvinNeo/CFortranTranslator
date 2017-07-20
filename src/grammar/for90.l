@@ -29,61 +29,28 @@
 #include "../target/gen_config.h"
 #include "for90.tab.h"
 #include <tuple>
+/****************
+*	this mean flex generated function is of name `pure_yylex`, not originally `yylex`
+****************/
+
 #define YY_DECL int pure_yylex(void)
-
-
-static char * iter_buff = nullptr;
-static YY_BUFFER_STATE yy_buffer = nullptr;
-static bool abandon = false;
-
+	
 static void update_flex(int len) {
 	// do not update CurrentTerm
 	bool newline = std::string(yytext) == "\n";
 	if (newline) {
-		get_flex_state().parse_line++;
-		get_flex_state().parse_pos += len; get_flex_state().line_pos = 0; get_flex_state().parse_len = len;
+		get_tokenizer_state().parse_line++;
+		get_tokenizer_state().parse_pos += len; get_tokenizer_state().line_pos = 0; get_tokenizer_state().parse_len = len;
 	}
 	else {
-		get_flex_state().parse_pos += len; get_flex_state().line_pos += get_flex_state().parse_len; get_flex_state().parse_len = len;
+		get_tokenizer_state().parse_pos += len; get_tokenizer_state().line_pos += get_tokenizer_state().parse_len; get_tokenizer_state().parse_len = len;
 	}
 }
 static void update_flex() {
 	// do not update CurrentTerm
 	update_flex(yyleng);
 }
-
-int yylex(void) {
-	/****************
-	*	bison calls this function directly
-	*	pure_yylex is flex's generated function, by `#define YY_DECL int pure_yylex(void)`
-	****************/
-	int p;
-	Term term;
-	AGAIN:
-	if (!get_flex_context().terminal_cache.empty())
-	{
-		std::tie(p, term) = get_flex_context().terminal_cache.back();
-		update_yylval(term);
-		get_flex_context().terminal_cache.pop_back();
-		return p;
-	}
-	p = pure_yylex();
-	term = get_flex_state().CurrentTerm;
-	if (p == YY_CRLF || (p == NULL))
-	{
-		if (get_flex_context().terminal_cache_line.size() != 0)
-		{
-			get_flex_context().terminal_cache.push_back(std::make_tuple(p, get_flex_state().CurrentTerm));
-			for (int i = 0; i < get_flex_context().terminal_cache_line.size(); i++)
-			{
-				get_flex_context().terminal_cache.push_back(get_flex_context().terminal_cache_line[i]);
-			}
-			get_flex_context().terminal_cache_line.clear();
-			goto AGAIN;
-		}
-	}
-	return p;
-}
+std::string CutString(std::string::iterator & b, std::string::iterator e, bool save, char jmp = ' ');
 
 struct FlexCondition {
 	std::string trigger;
@@ -99,18 +66,25 @@ struct FlexCondition {
 	};
 };
 
-static std::vector<FlexCondition *> & get_flex_scanner_context_stack() {
-	static std::vector<FlexCondition *> st;
-	return st;
+struct FlexContext {
+	std::vector<FlexCondition *> conditions;
+	char * iter_buff = nullptr;
+	YY_BUFFER_STATE yy_buffer = nullptr;
+	bool abandon = false;
+};
+
+static FlexContext & get_flex_context() {
+	static FlexContext fc;
+	return fc;
 }
 static FlexCondition * get_current_scanner() {
-	return get_flex_scanner_context_stack().back();
+	return get_flex_context().conditions.back();
 }
 static void reset_condition() {
 
 }
 static void enter_condition(FlexCondition * fsc) {
-	get_flex_scanner_context_stack().push_back(fsc);
+	get_flex_context().conditions.push_back(fsc);
 	BEGIN(fsc->condition);
 }
 static int yield_condition(int yy_token, Term term) {
@@ -118,14 +92,14 @@ static int yield_condition(int yy_token, Term term) {
 	return yy_token;
 }
 static void abort_condition() {
-	delete get_flex_scanner_context_stack().back();
-	get_flex_scanner_context_stack().pop_back();
-	if (get_flex_scanner_context_stack().empty())
+	delete get_flex_context().conditions.back();
+	get_flex_context().conditions.pop_back();
+	if (get_flex_context().conditions.empty())
 	{
 		BEGIN(0);
 	}
 	else {
-		BEGIN(get_flex_scanner_context_stack().back()->condition);
+		BEGIN(get_flex_context().conditions.back()->condition);
 	}
 }
 static int quit_condition(int yy_token, Term term) {
@@ -198,7 +172,7 @@ struct FlexExternalCondition : public FlexCondition {
 				}
 				else if(text[0] == '\n')
 				{
-					get_flex_state().parse_line++;
+					get_tokenizer_state().parse_line++;
 				}
 				if (h_editing_count >0)
 				{
@@ -304,7 +278,7 @@ string ({string1}|{string2})
 	// {newline}{ws}\*
 	int p = nop_parse();
 	update_flex();
-	get_flex_state().parse_line++;
+	get_tokenizer_state().parse_line++;
 	DORET(p);
 }
 {newline}\t({digit}|[*#&]) {
@@ -312,7 +286,7 @@ string ({string1}|{string2})
 	// THIS IS A COMPROMISE TO SOME WRONG CODE IN FORTRAN POWERED STATION
 	int p = nop_parse();
 	update_flex();
-	get_flex_state().parse_line++;
+	get_tokenizer_state().parse_line++;
 	DORET(p);
 }
 {newline} {
@@ -331,8 +305,7 @@ string ({string1}|{string2})
 	DORET(p);
 }
 <label_end_scanner>^{delim}*[0-9]+ {
-	int label_index;
-	sscanf(yytext, "%d", &label_index);
+	int label_index = std::atoi(yytext);
 	auto end_label_iter = get_context().end_labels.find(std::to_string(label_index));
 	if (end_label_iter != get_context().end_labels.end()) {
 		FlexLabelEndCondition * fec;
@@ -341,7 +314,7 @@ string ({string1}|{string2})
 			fec = dynamic_cast<FlexLabelEndCondition*> (get_current_scanner());
 			end_label_iter->second.pop_back();
 			quit_condition(YY_IGNORE_THIS, Term{ TokenMeta::Nop, "" });
-			get_flex_context().terminal_cache_line.push_back(std::make_tuple(YY_ENDDO, Term{ TokenMeta::RBrace, std::string("enddo") }));
+			get_tokenizer_context().terminal_cache_line.push_back(std::make_tuple(YY_ENDDO, Term{ TokenMeta::RBrace, std::string("enddo") }));
 		}
 		update_flex();
 		DORET(YY_IGNORE_THIS);
@@ -426,7 +399,7 @@ int else_parse(const char * origin_yytext) {
 }
 int comment_parse(const char * origin_yytext) {
 	/* do not update yylval */
-	get_flex_context().comments.push_back(std::string(origin_yytext));
+	get_tokenizer_context().comments.push_back(std::string(origin_yytext));
 	return YY_IGNORE_THIS; /* do not return */
 }
 int label_parse(const char * origin_yytext) {
@@ -458,10 +431,10 @@ int operator_parse(const char * origin_yytext, TokenMeta_T token, int yytoken) {
 static int word_parse(const char * origin_yytext) {
 	using namespace std;
 	/* MUST NOT call update_flex at beginning because CutString */
-	const FlexState & fs = get_flex_state();
-	if (abandon) {
+	const TokenizerState & fs = get_tokenizer_state();
+	if (get_flex_context().abandon) {
 		// Ìø¹ýÕâ¸ö×Ö·û
-		abandon = false;
+		get_flex_context().abandon = false;
 		return YY_IGNORE_THIS;
 	}
 	string lowercase_name = string(origin_yytext);
@@ -499,7 +472,7 @@ NORMAL_CONDITION:
 			if (next_iter != forward1_iter->second.end()) {
 				// concat two string
 				lowercase_name += next;
-				abandon = true; // ignore next
+				get_flex_context().abandon = true; // ignore next
 				goto FIND_CONCAT;
 			}
 		}
@@ -525,22 +498,24 @@ NORMAL_CONDITION:
 void set_buff(const std::string & code) {
 	using namespace std;
 	int slen = (int)code.size();
-	get_flex_state().parse_line = 0;
-	get_flex_state().parse_pos = 0;
-	get_flex_state().parse_len = 0;
-	get_flex_state().line_pos = 0; 
-	if (iter_buff != nullptr) {
-		free(iter_buff); iter_buff = nullptr;
+	get_tokenizer_state().parse_line = 0;
+	get_tokenizer_state().parse_pos = 0;
+	get_tokenizer_state().parse_len = 0;
+	get_tokenizer_state().line_pos = 0; 
+	if (get_flex_context().iter_buff != nullptr) {
+		free(get_flex_context().iter_buff); 
+		get_flex_context().iter_buff = nullptr;
 	}
-	iter_buff = (char *)malloc(slen + 2);
+	get_flex_context().iter_buff = (char *)malloc(slen + 2);
 	// must have 2 '\0's at the end of the string
-	memset(iter_buff, 0, slen + 2);
-	strcpy(iter_buff, code.c_str());
-	yy_buffer = yy_scan_buffer(iter_buff, slen + 2);
+	memset(get_flex_context().iter_buff, 0, slen + 2);
+	strcpy(get_flex_context().iter_buff, code.c_str());
+	get_flex_context().yy_buffer = yy_scan_buffer(get_flex_context().iter_buff, slen + 2);
 }
 void release_buff() {
-	yy_delete_buffer(yy_buffer);
-	free(iter_buff); iter_buff = nullptr;
+	yy_delete_buffer(get_flex_context().yy_buffer);
+	free(get_flex_context().iter_buff);
+	get_flex_context().iter_buff = nullptr;
 }
 
 int yywrap()

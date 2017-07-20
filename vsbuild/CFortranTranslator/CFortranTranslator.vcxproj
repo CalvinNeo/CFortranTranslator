@@ -84,8 +84,8 @@
     <ClInclude Include="..\..\src\develop.h" />
     <ClInclude Include="..\..\src\general_config.h" />
     <ClInclude Include="..\..\src\getopt.h" />
-    <ClInclude Include="..\..\src\grammar\for90.flex.h" />
     <ClInclude Include="..\..\src\grammar\for90.tab.h" />
+    <ClInclude Include="..\..\src\grammar\simple_lexer.h" />
     <ClInclude Include="..\..\src\parser\attribute.h" />
     <ClInclude Include="..\..\src\parser\context.h" />
     <ClInclude Include="..\..\src\parser\enum_reflect.h" />
@@ -106,10 +106,10 @@
     <None Include="..\..\todolist.md" />
   </ItemGroup>
   <ItemGroup>
-    <Flex Include="..\..\src\grammar\for90.l" />
+    <Bison Include="..\..\src\grammar\for90.y" />
   </ItemGroup>
   <ItemGroup>
-    <Bison Include="..\..\src\grammar\for90.y" />
+    <Flex Include="..\..\src\grammar\for90.l" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{EEFFE8C1-37FF-4F41-9113-5996FEA58436}</ProjectGuid>

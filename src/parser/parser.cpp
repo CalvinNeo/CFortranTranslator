@@ -221,9 +221,9 @@ std::string compose_error_piece() {
 	using namespace std;
 	char buf[255];
 	const int extend_length = 20; // print `length * 2 + len(parse_len)` context characters if possible
-	int error_start = get_flex_state().parse_pos - get_flex_state().parse_len;
-	int error_end = get_flex_state().parse_pos;
-	int error_len = get_flex_state().parse_len;
+	int error_start = get_tokenizer_state().parse_pos - get_tokenizer_state().parse_len;
+	int error_end = get_tokenizer_state().parse_pos;
+	int error_len = get_tokenizer_state().parse_len;
 	int left = max(0, error_start - extend_length); // left-most character index
 	int left_length = error_start - left;
 	int right = min((int)get_context().global_code.size(), error_end + extend_length); // right-most character index
