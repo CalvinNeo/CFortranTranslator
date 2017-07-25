@@ -113,7 +113,7 @@ void regen_function_array(FunctionInfo * finfo, ParseNode & callable) {
 					// kwarg
 					regen_exp(finfo, elem.get(1));
 					if (map_func == get_context().func_kwargs.end()) {
-						print_error("this function don't have keyword paramters" + head_name, argtable);
+						print_error("function " + head_name + " don't have keyword paramters: " , argtable);
 					}
 					else {
 						string argname = elem.get(0).to_string();

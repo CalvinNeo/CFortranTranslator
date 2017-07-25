@@ -173,8 +173,6 @@ VariableDesc & get_variabledesc_attr(ParseNode & vardescattr_node);
 ParseNode gen_variabledesc_from_dimenslice(ARG_IN dimen_slice);
 ParseNode gen_variabledesc_from_dimenslice();
 
-void add_function_forward(ARG_IN function_decl);
-
 void log_format_index(std::string format_index, ARG_IN format);
 ParseNode require_format_index(std::string format_index);
 
@@ -190,6 +188,7 @@ ParseNode gen_suite(ARG_IN item, ARG_IN list);
 void get_full_paramtable(FunctionInfo * finfo);
 
 std::string get_mapped_function_name(std::string origin_name);
+std::string gen_function_signature(FunctionInfo * finfo);
 
 void gen_fortran_program(ARG_IN wrappers);
 

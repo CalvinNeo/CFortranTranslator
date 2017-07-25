@@ -46,7 +46,7 @@ VariableInfo * add_variable(std::string module_name, std::string function_name, 
 	else {
 		std::string fullname = module_name + "::" + function_name + "::" + variable_name;
 		if (get_context().variables.find(fullname) != get_context().variables.end()) {
-			print_error("Variable already exists");
+			fatal_error("Variable " + fullname + " already exists");
 			return nullptr;
 		}
 		else {
@@ -62,14 +62,17 @@ void clear_variables() {
 
 }
 
-void forall_variable_in_function(std::string module_name, std::string function_name, std::function<void(const std::pair<std::string, VariableInfo *> &)> func) {
+void forall_variable_in_function(std::string module_name, std::string function_name, std::function<void(std::pair<std::string, VariableInfo *> )> func) {
 	if (function_name == "@") {
 		fatal_error("@ function name is removed: " + function_name);
 	}
 	else {
 		for (std::map < std::string, VariableInfo* >::iterator iter = get_context().variables.begin(); iter != get_context().variables.end(); iter++)
 		{
-			if (boost::starts_with(iter->first, module_name + "::" + function_name))
+			// the last `::` is ery important
+			// consider
+			// variable in the same function `suf` and `suffix`
+			if (boost::starts_with(iter->first, module_name + "::" + function_name + "::"))
 			{
 				func(*iter);
 			}

@@ -127,7 +127,7 @@ namespace for90std {
 	}
 
 
-	/* general type cast */
+	// type cast from general type
 	template<typename T>
 	int to_int(T x, foroptional<int> kind = foroptional<int>()) {
 		return (int)x;
@@ -144,11 +144,11 @@ namespace for90std {
 	double to_double(T x, foroptional<int> kind = foroptional<int>()) {
 		return (double)x;
 	}
-	/* string type cast */
-	extern /* using static/inline/extern to avoid repeated definition */ int to_int(std::string x, foroptional<int> kind);
-	extern long long to_longlong(std::string x, foroptional<int> kind);
-	extern double to_double(std::string x, foroptional<int> kind);
-	extern long double to_longdouble(std::string x, foroptional<int> kind);
+	// type cast from string
+	inline int to_int(std::string x, foroptional<int> kind);
+	inline long long to_longlong(std::string x, foroptional<int> kind);
+	inline double to_double(std::string x, foroptional<int> kind);
+	inline long double to_longdouble(std::string x, foroptional<int> kind);
 
 	inline int8_t forhuge(int8_t x) {
 		return INT8_MAX;
@@ -193,5 +193,12 @@ namespace for90std {
 
 	inline void nop() {
 		
+	}
+	template <typename T>
+	void stop(T t) {
+		std::system("pause");
+	}
+	inline void stop() {
+		std::system("pause");
 	}
 }

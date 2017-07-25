@@ -13,7 +13,7 @@
 - ~~reference in parameter list~~
 - ~~rewrite paramtable and var_def(simplify right-recursive rules, move dimension to dummy_variale_iden)~~
 - ~~more elegant multi-word keyword handler(instead of defined in regular expression)~~
-- replace interface with function forward declaration(if necessary)
+- ~~function forward declaration(if necessary)~~
 - c-style array(partial)
 - variable with type
 - ~~enable crlf rule~~(may cause bugs)

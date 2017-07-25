@@ -154,5 +154,5 @@ struct CommonBlockInfo {
 
 VariableInfo * get_variable(std::string module_name, std::string function_name, std::string variable_name);
 VariableInfo * add_variable(std::string module_name, std::string function_name, std::string variable_name, const VariableInfo & variable);
-void forall_variable_in_function(std::string module_name, std::string function_name, std::function<void(const std::pair<std::string, VariableInfo *> &)> func);
+void forall_variable_in_function(std::string module_name, std::string function_name, std::function<void(std::pair<std::string, VariableInfo *>)> func);
 void clear_variables();

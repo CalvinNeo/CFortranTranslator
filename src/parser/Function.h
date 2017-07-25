@@ -26,7 +26,7 @@ struct FunctionDesc {
 	* record all variables declared in the function
 	* because variables passed in parameter list are also declared in function body, so they are included in `declared_variables`
 	*******************/
-	std::vector<VariableInfo *> declared_variables;
+	std::vector<struct VariableInfo *> declared_variables;
 	/******************
 	* fortran's parameter list provides every parameter(called dummy arguments)'s name without their type
 	*	which are given in the function body as a normal variable decl statement
@@ -42,6 +42,7 @@ struct FunctionDesc {
 };
 struct FunctionInfo {
 	std::string local_name; // name can only set by add_function
+	std::string result_name;
 	FunctionDesc funcdesc;
 	TokenMeta_T implicit_type_config[256];
 	FunctionInfo() {
@@ -62,6 +63,6 @@ typedef std::tuple<std::string, std::string, std::string> KeywordParamInfo;
 
 FunctionInfo * get_function(std::string module_name, std::string function_name);
 FunctionInfo * add_function(std::string module_name, std::string function_name, const FunctionInfo & func);
-void forall_function_in_module(std::string module_name, std::function<void(const std::pair<std::string, FunctionInfo *> &)> func);
+void forall_function_in_module(std::string module_name, std::function<void(std::pair<std::string, FunctionInfo *>)> func);
 void insert_temporary_functions(std::string module_name);
 void clear_functions();

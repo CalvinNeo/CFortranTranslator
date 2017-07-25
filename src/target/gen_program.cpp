@@ -26,6 +26,9 @@ R202 program-unit is main-program
 	or block-data
 */
 
+
+void add_function_forward(ARG_IN function_decl);
+
 void gen_fortran_program(ARG_IN wrappers) {
 	std::string codes;
 	std::string main_code;
@@ -90,11 +93,27 @@ void gen_fortran_program(ARG_IN wrappers) {
 	sprintf(codegen_buf, "int main()\n{\n%s\treturn 0;\n}", main_code.c_str());
 	codes += string(codegen_buf);
 
+	// forward declarations
+	std::string forward_decls;
+	forall_function_in_module("", [&](std::pair<std::string , FunctionInfo * > pr) {
+		FunctionInfo * finfo;
+		std::tie(std::ignore, finfo) = pr;
+		std::string name = finfo->local_name;
+		if (name != "program")
+		{
+			forward_decls += gen_function_signature(finfo);
+			forward_decls += ";\n";
+		}
+	});
+	codes = forward_decls + codes;
+
 	// common definition
+	std::string common_decls;
 	for (std::map<std::string, CommonBlockInfo>::iterator iter = get_context().commonblocks.begin(); iter != get_context().commonblocks.end(); iter++)
 	{
 		string s = gen_common_definition(iter->first).get_what();
-		codes = s + codes;
+		common_decls += s;
 	}
+	codes = common_decls + codes;
 	get_context().program_tree.get_what() = codes;
 }

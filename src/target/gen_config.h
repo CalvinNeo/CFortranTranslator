@@ -57,8 +57,8 @@ const std::map<std::string, std::string> funcname_map{
 	// cast
 	, {"int", "to_int"}
 	, { "bool", "to_bool" }
-	, { "string", "to_string" }
-	, { "double", "to_double" }
+	, { "char", "to_string" }
+	, { "float", "to_double" }
 	, { "doubleprecision", "to_double" }
 	, { "forcomplex", "to_forcomplex" }
 
@@ -135,7 +135,6 @@ const std::map<std::string, std::vector<KeywordParamInfo>> sysfunc_args{
 	, { "to_int",{} }
 	, { "to_bool",{} }
 	, { "to_string",{} }
-	, { "to_double",{} }
 	, { "to_double",{} }
 	, { "to_forcomplex", {} }
 

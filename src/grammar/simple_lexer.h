@@ -24,11 +24,13 @@
 #include "../parser/parser.h"
 #include "../parser/context.h"
 
+
+#define FORTRAN_CONTINUATION_SPACE 5
 struct SimplerContext {
 	std::string code;
 	int pos;
-	std::queue <char> char_cache;
-	std::queue <std::string> item_cache;
+	std::vector <char> char_cache;
+	std::vector <std::string> item_cache;
 	/****************
 	*	true if the previous token is CRLF
 	*	if `crlf_marker` = `true`, current token is the first token of the current line
@@ -36,8 +38,9 @@ struct SimplerContext {
 	bool crlf_marker = true; // initial is true not false
 	/****************
 	*	true if tokens other than blanks(` `, `\t`) appears in this line
+	*	and thee cursor within label area(the first FORTRAN_CONTINUATION_SPACE chars)
 	****************/
-	bool valid_token_marker = false;
+	int label_border = FORTRAN_CONTINUATION_SPACE + 1;
 	char inStr = 0;
 	bool in_format_stmt = false;
 	void reset() {

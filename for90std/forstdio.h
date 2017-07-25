@@ -424,9 +424,7 @@ RETURN_FRONT:
 		fprintf(f, "\t");
 		forwritefree(f, std::forward<Args>(args)...);
 	};
-	template <typename T>
-	void forwritefree(FILE * f, const T & x) {
-		_forwritefree_dispatch(f, x);
+	inline void forwritefree(FILE * f) {
 		fprintf(f, "\n");
 	};
 
@@ -436,9 +434,8 @@ RETURN_FRONT:
 		// no format
 		forwritefree(stdout, x, std::forward<Args>(args)...);
 	};
-	template <typename T>
-	void forprintfree(const T & x) {
-		forwritefree(stdout, x);
+	inline void forprintfree() {
+		forwritefree(stdout, "\n");
 	};
 	template <typename T, typename... Args>
 	void forprint(IOFormat & format, const T & x, Args... args) {

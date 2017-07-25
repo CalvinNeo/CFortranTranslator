@@ -65,13 +65,20 @@ void regen_read(FunctionInfo * finfo, ParseNode & stmt) {
 	regen_paramtable(finfo, argtable);
 	bool is_stdio = (device == "-1" || device == "");
 	std::string argtable_str =  gen_io_argtable_str(finfo, argtable, "read", io_info.get(1).get_token() == TokenMeta::NT_AUTOFORMATTER);
-	if (io_info.get(1).get_token() == TokenMeta::NT_AUTOFORMATTER) {
+
+	if (argtable.length() == 0)
+	{
+		// a read-stmt without args are intented to pause
+		// e.g. `read(*,*)`
+		sprintf(codegen_buf, "system(\"pause\");\n");
+	}
+	else if (io_info.get(1).get_token() == TokenMeta::NT_AUTOFORMATTER) {
 		if (is_stdio) {
 			// device = "5"; // stdin
-			sprintf(codegen_buf, "forreadfree(stdin, %s);\n", argtable_str.c_str());
+			sprintf(codegen_buf, "forreadfree(stdin%s %s);\n", (argtable_str==""?"":","), argtable_str.c_str());
 		}
 		else {
-			sprintf(codegen_buf, "forreadfree(get_file(%s), %s);\n", device.c_str(), argtable_str.c_str());
+			sprintf(codegen_buf, "forreadfree(get_file(%s)%s %s);\n", device.c_str(), (argtable_str == "" ? "" : ","), argtable_str.c_str());
 		}
 	}
 	else {
@@ -87,10 +94,12 @@ void regen_read(FunctionInfo * finfo, ParseNode & stmt) {
 		for90std::IOFormat ioformat = parse_ioformatter(fmt);
 		if (is_stdio) {
 			// device = "5"; // stdin
-			sprintf(codegen_buf, "forread(stdin, IOFormat{\"%s\", %d}, %s);\n", ioformat.fmt.c_str(), ioformat.reversion_start, argtable_str.c_str());
+			sprintf(codegen_buf, "forread(stdin, IOFormat{\"%s\", %d}%s %s);\n", ioformat.fmt.c_str()
+				, ioformat.reversion_start, (argtable_str == "" ? "" : ","), argtable_str.c_str());
 		}
 		else {
-			sprintf(codegen_buf, "forread(get_file(%s), IOFormat{\"%s\", %d}, %s);\n", device.c_str(), ioformat.fmt.c_str(), ioformat.reversion_start, argtable_str.c_str());
+			sprintf(codegen_buf, "forread(get_file(%s), IOFormat{\"%s\", %d}%s %s);\n", device.c_str()
+				, ioformat.fmt.c_str(), ioformat.reversion_start, (argtable_str == "" ? "" : ","), argtable_str.c_str());
 		}
 	}
 	stmt.fs.CurrentTerm = Term{ TokenMeta::NT_READ_STMT, string(codegen_buf) };
@@ -109,10 +118,10 @@ void regen_write(FunctionInfo * finfo, ParseNode & stmt) {
 	if (io_info.get(1).get_token() == TokenMeta::NT_AUTOFORMATTER) {
 		if (is_stdio) {
 			// device = "6"; // stdout
-			sprintf(codegen_buf, "forwritefree(stdout, %s);\n", argtable_str.c_str());
+			sprintf(codegen_buf, "forwritefree(stdout%s %s);\n", (argtable_str == "" ? "" : ","), argtable_str.c_str());
 		}
 		else {
-			sprintf(codegen_buf, "forwritefree(get_file(%s), %s);\n", device.c_str(), argtable_str.c_str());
+			sprintf(codegen_buf, "forwritefree(get_file(%s)%s %s);\n", device.c_str(), (argtable_str == "" ? "" : ","), argtable_str.c_str());
 		}
 	}
 	else {
@@ -126,10 +135,12 @@ void regen_write(FunctionInfo * finfo, ParseNode & stmt) {
 		for90std::IOFormat ioformat = parse_ioformatter(fmt);
 		if (is_stdio) {
 			// device = "6"; // stdout
-			sprintf(codegen_buf, "forwrite(stdout, IOFormat{\"%s\", %d}, %s);\n", ioformat.fmt.c_str(), ioformat.reversion_start, argtable_str.c_str());
+			sprintf(codegen_buf, "forwrite(stdout, IOFormat{\"%s\", %d}%s %s);\n", ioformat.fmt.c_str()
+				, ioformat.reversion_start, (argtable_str == "" ? "" : ","), argtable_str.c_str());
 		}
 		else {
-			sprintf(codegen_buf, "forwrite(get_file(%s), IOFormat{\"%s\", %d}, %s);\n", device.c_str(), ioformat.fmt.c_str(), ioformat.reversion_start, argtable_str.c_str());
+			sprintf(codegen_buf, "forwrite(get_file(%s), IOFormat{\"%s\", %d}%s %s);\n", device.c_str()
+				, ioformat.fmt.c_str(), ioformat.reversion_start, (argtable_str == "" ? "" : ","), argtable_str.c_str());
 		}
 	}
 	stmt.fs.CurrentTerm = Term{ TokenMeta::NT_WRITE_STMT, string(codegen_buf) };
@@ -153,7 +164,7 @@ void regen_print(FunctionInfo * finfo, ParseNode & stmt) {
 		else {
 			fmt = io_info.get(1).to_string().substr(1, io_info.get(1).to_string().size() - 1); // strip " 
 		}
-		sprintf(codegen_buf, "forprint(\"%s\", %s);\n", parse_ioformatter(fmt).c_str(), argtable.to_string().c_str());
+		sprintf(codegen_buf, "forprint(\"%s\"%s %s);\n", parse_ioformatter(fmt).c_str(), (argtable_str == "" ? "" : ","), argtable.to_string().c_str());
 	}
 	stmt.fs.CurrentTerm = Term{ TokenMeta::NT_PRINT_STMT, string(codegen_buf) };
 	return;

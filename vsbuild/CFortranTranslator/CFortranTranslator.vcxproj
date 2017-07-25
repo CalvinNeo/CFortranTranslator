@@ -55,7 +55,6 @@
     <ClCompile Include="..\..\src\target\gen_doc.cpp" />
     <ClCompile Include="..\..\src\target\gen_exp.cpp" />
     <ClCompile Include="..\..\src\target\gen_feature.cpp" />
-    <ClCompile Include="..\..\src\target\gen_forwarddecl.cpp" />
     <ClCompile Include="..\..\src\target\gen_function.cpp" />
     <ClCompile Include="..\..\src\target\gen_if.cpp" />
     <ClCompile Include="..\..\src\target\gen_io.cpp" />

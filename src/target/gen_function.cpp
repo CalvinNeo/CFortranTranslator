@@ -117,12 +117,13 @@ void regen_function(FunctionInfo * finfo, ParseNode & functiondecl_node) {
 	*	fortran90 does not declare type of arguments in function declaration statement
 	*****************/
 	ParseNode & variable_function = functiondecl_node.get(1);
+	assert(variable_function.get_what() == finfo->local_name);
 	ParseNode & kvparamtable = functiondecl_node.get(2);
 	ParseNode & result_variable = functiondecl_node.get(3);
 	ParseNode & suite = functiondecl_node.get(4);
 	ParseNode & oldsuite = suite;
-	string result_name = result_variable.get_what();
-	bool is_subroutine = result_name == "";
+	finfo->result_name = result_variable.get_what();
+	bool is_subroutine = finfo->result_name == "";
 	
 	/****************
 	* compose parameter list
@@ -136,9 +137,10 @@ void regen_function(FunctionInfo * finfo, ParseNode & functiondecl_node) {
 		*	a variable is only used in parameter list, 
 		*	and not appear in function body(so it will not checked by `regen_exp`)
 		*****************/
-		check_implicit_variable(finfo, (*iter)->get_what());
+		ParseNode & p = *(*iter);
+		check_implicit_variable(finfo, p.get_what());
 		// refer to function suite and determine type of params
-		paramtable_info.push_back((*iter)->get_what());
+		paramtable_info.push_back(p.get_what());
 	}
 	/****************
 	* create a placeholder for return variable
@@ -162,33 +164,43 @@ void regen_function(FunctionInfo * finfo, ParseNode & functiondecl_node) {
 
 	// regen_suite
 	regen_suite(finfo, oldsuite);
-	// make newnode
-	string paramtblstr = gen_paramtable_str(finfo, paramtable_info);
 
-	VariableInfo * result_vinfo = get_variable(get_context().current_module, finfo->local_name, result_name);
-	std::string result_type_str;
-	if (is_subroutine)
-	{
-		// subroutine
-		result_type_str = "void";
-	}else{
-		result_type_str = gen_qualified_typestr( result_vinfo->type, result_vinfo->desc, false);
-	}
+	// gen signature
+	std::string signature = gen_function_signature(finfo);
+	
 	// generate function code 
-	sprintf(codegen_buf, "%s %s(%s)\n{\n%s\treturn %s;\n}\n"
-		, result_type_str.c_str() // return value type, "void" if subroutine
-		, variable_function.to_string().c_str() // function name
-		, paramtblstr.c_str() // parameter list
+	sprintf(codegen_buf, "%s\n{\n%s\treturn %s;\n}\n"
+		, signature.c_str()
 		, tabber(oldsuite.to_string()).c_str() // code
-		, (is_subroutine ? "" : result_name.c_str()) // add return stmt if not function
+		, (is_subroutine ? "" : finfo->result_name.c_str()) // add return stmt if not function
 	);
 	functiondecl_node.get_what() = string(codegen_buf);
 
 	// log function and set attr 
 	functiondecl_node.setattr(new FunctionAttr(finfo));
 
-	// cleaning
-	return ;
+	return;
+}
+
+std::string gen_function_signature(FunctionInfo * finfo) {
+	bool is_subroutine = finfo->result_name == "";
+	std::string result_type_str;
+	string paramtblstr = gen_paramtable_str(finfo, finfo->funcdesc.paramtable_info);
+	VariableInfo * result_vinfo = get_variable(get_context().current_module, finfo->local_name, finfo->result_name);
+	if (is_subroutine)
+	{
+		// subroutine
+		result_type_str = "void";
+	}
+	else {
+		result_type_str = gen_qualified_typestr(result_vinfo->type, result_vinfo->desc, false);
+	}
+	sprintf(codegen_buf, "%s %s(%s)"
+		, result_type_str.c_str() // return value type, "void" if subroutine
+		, finfo->local_name.c_str() // function name
+		, paramtblstr.c_str() // parameter list
+	);
+	return string(codegen_buf);
 }
 
 FunctionInfo * check_implicit_function(FunctionInfo * finfo, const std::string & name) {

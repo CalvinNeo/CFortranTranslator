@@ -103,7 +103,7 @@ using namespace std;
 //%define api.value.type union
 
 %token /*_YY_VOID*/ YY_IGNORE_THIS YY_CRLF
-%token /*_YY_OP*/ YY_GT YY_GE YY_EQ YY_LE YY_LT YY_NEQ YY_NEQV YY_EQV YY_ANDAND YY_OROR YY_NOT YY_POWER YY_DOUBLECOLON YY_NEG YY_POS
+%token /*_YY_OP*/ YY_GT YY_GE YY_EQ YY_LE YY_LT YY_NEQ YY_NEQV YY_EQV YY_ANDAND YY_OROR YY_NOT YY_POWER YY_DOUBLECOLON YY_NEG YY_POS YY_EXPONENT 
 %token /*_YY_TYPE*/ YY_INTEGER YY_FLOAT YY_WORD YY_OPERATOR YY_STRING YY_ILLEGAL YY_COMPLEX YY_TRUE YY_FALSE YY_FORMAT_STMT YY_COMMENT
 %token /*_YY_CONTROL_FLOW*/ YY_LABEL YY_END YY_IF YY_THEN YY_ELSE YY_ELSEIF YY_ENDIF YY_DO YY_ENDDO YY_CONTINUE YY_BREAK YY_EXIT YY_CYCLE YY_WHILE YY_ENDWHILE YY_WHERE YY_ENDWHERE YY_CASE YY_ENDCASE YY_SELECT YY_ENDSELECT YY_GOTO YY_DOWHILE YY_DEFAULT 
 %token /*_YY_DELIM*/ YY_PROGRAM YY_ENDPROGRAM YY_FUNCTION YY_ENDFUNCTION YY_RECURSIVE YY_RESULT YY_SUBROUTINE YY_ENDSUBROUTINE YY_MODULE YY_ENDMODULE YY_BLOCK YY_ENDBLOCK YY_INTERFACE YY_ENDINTERFACE YY_COMMON YY_DATA
@@ -352,10 +352,25 @@ using namespace std;
 	//operator : '.' YY_WORD '.'
 	//		{
 	//			ARG_IN op_name = YY2ARG($2);
-	//			$$ = RETURN_NT(gen_token(Term{ TokenMeta::NT_DEFINED_OPERATOR, "." + op_name.get_what() + "." })); // float number
+	//			$$ = RETURN_NT(gen_token(Term{ TokenMeta::NT_DEFINED_OPERATOR, "." + op_name.get_what() + "." })); 
 	//			update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($3));
 	//			CLEAN_RIGHT($1, $2, $3);
 	//		}
+
+	//integer_promoted : '.' YY_INTEGER
+	//		{
+	//			ARG_IN lit = YY2ARG($1);
+	//			$$ = RETURN_NT(gen_token(Term{ TokenMeta::Float,  "0." + lit.get_what() })); // float number
+	//			update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($2));
+	//			CLEAN_RIGHT($1, $2);
+	//		}
+		//| YY_INTEGER '.'
+		//	{
+		//		ARG_IN lit = YY2ARG($1);
+		//		$$ = RETURN_NT(gen_token(Term{ TokenMeta::Float, lit.get_what() + ".0" })); // float number
+		//		update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($2));
+		//		CLEAN_RIGHT($1, $2);
+		//	}
 
 	literal : YY_FLOAT
 			{
@@ -365,13 +380,13 @@ using namespace std;
 				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($1));
 				CLEAN_RIGHT($1);
 			}
-
-		| YY_INTEGER '.'
+		| YY_INTEGER YY_EXPONENT YY_INTEGER
 			{
-				ARG_IN lit = YY2ARG($1);
-				$$ = RETURN_NT(gen_token(Term{ TokenMeta::Float, lit.get_what() + ".0" })); // float number
-				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($1));
-				CLEAN_RIGHT($1, $2);
+				ARG_IN base = YY2ARG($1);
+				ARG_IN expo = YY2ARG($3);
+				$$ = RETURN_NT(gen_token(Term{ TokenMeta::Float,  base.get_what() + "e" + expo.get_what() })); // float number
+				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($3));
+				CLEAN_RIGHT($1, $2, $3);
 			}
 
 		| YY_INTEGER
@@ -811,16 +826,26 @@ using namespace std;
 				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($3));
 				CLEAN_RIGHT($1, $2, $3);
 			}
-		//| exp operator exp
-		//	{
-		//		ARG_IN exp1 = YY2ARG($1);
-		//		ARG_IN op = YY2ARG($2);
-		//		ARG_IN exp2 = YY2ARG($3);
-		//		ParseNode opnew = gen_token(Term{ TokenMeta::LT, "%s ?? %s" });
-		//		$$ = RETURN_NT(gen_promote(opnew.get_what(), TokenMeta::NT_EXPRESSION, exp1, exp2, opnew));
-		//		update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($3));
-		//		CLEAN_RIGHT($1, $2, $3);
-		//	}
+		| exp YY_OPERATOR exp
+			{
+				// TODO may have error priority 
+				ARG_IN exp1 = YY2ARG($1);
+				ARG_IN op = YY2ARG($2);
+				ARG_IN exp2 = YY2ARG($3);
+				const string & op_name = op.get_what();
+				auto keyword_iter = find_if(keywords.begin(), keywords.end(), [&](const auto & x) {return x.what == op_name; });
+				if (keyword_iter != keywords.end())
+				{
+					// this is a keyword
+				}
+				else {
+					fatal_error("self-defined operator is not supported", op);
+				}
+				ParseNode opnew = gen_token(Term{ keyword_iter->token, "%s " + op_name + " %s" });
+				$$ = RETURN_NT(gen_promote(opnew.get_what(), TokenMeta::NT_EXPRESSION, exp1, exp2, opnew));
+				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($3));
+				CLEAN_RIGHT($1, $2, $3);
+			}
 		| hidden_do
 			{
 				ARG_IN hidden_do = YY2ARG($1);
@@ -843,6 +868,11 @@ using namespace std;
 				$$ = $1;
 				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($1));
 			}
+		//| integer_promoted
+		//	{
+		//		$$ = $1;
+		//		update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($1));
+		//	}
 		| variable
 			{
 				$$ = $1;
@@ -852,9 +882,9 @@ using namespace std;
 	stmt : exp 
 			{
 				/******************
-					一般来说, 可以不单独建立stmt的ParseNode, 再添加唯一的child(exp, var_def, compound_stmt等).
-					但是考虑到在cpp等语言中可能出现使用,分隔多个语句的情况(这种情况是有作用的, 表明编译器可以按照自己的顺序求值)
-					所以单独建立stmt节点兵添加YY2ARG($1)位stmt节点的唯一的儿子
+				* formerly, considering `stmt` are completed by `\n` or certain mark like `end do(enddo)`
+				* so `stmt` is used to have a list of children
+				* however, now,
 				******************/
 				$$ = RETURN_NT(gen_promote("%s;", TokenMeta::NT_STATEMENT, YY2ARG($1)));
 				insert_comments(YY2ARG($$));
@@ -863,7 +893,6 @@ using namespace std;
 			}
 		| var_def 
 			{
-				/* 因为var_def本身可能生成多行代码, 因此此处生成代码不应当带分号`;` */
 				$$ = $1;
 				insert_comments(YY2ARG($$));
 				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($1));
@@ -1029,13 +1058,13 @@ using namespace std;
 	stop_stmt : YY_STOP literal
 			{
 				ARG_IN lit = YY2ARG($2);
-				$$ = RETURN_NT(gen_token(Term{ TokenMeta::Stop, "printf(" + lit.get_what() + ");\nsystem(\"pause\")" }));
+				$$ = RETURN_NT(gen_token(Term{ TokenMeta::Stop, "stop(" + lit.get_what() + ");" }));
 				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($2));
 				CLEAN_RIGHT($1, $2);
 			}
 		| YY_STOP
 			{
-				$$ = RETURN_NT(gen_token(Term{ TokenMeta::Stop, "system(\"pause\")" }));
+				$$ = RETURN_NT(gen_token(Term{ TokenMeta::Stop, "stop();" }));
 				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($1));
 				CLEAN_RIGHT($1);
 			}
@@ -1871,6 +1900,7 @@ int parse(std::string code) {
 	get_tokenizer_context().load_code = [&](const std::string & _code) {
 		get_simpler_context().reset();
 		get_simpler_context().code = _code;
+		get_tokenizer_state().parse_line = 1;
 	};
 	get_tokenizer_context().unload_code = []() {
 	

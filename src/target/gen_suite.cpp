@@ -183,6 +183,7 @@ std::string gen_joined_declarations(FunctionInfo * finfo, ParseNode & oldsuite) 
 		ParseNode & entity_variable = vinfo->entity_variable;
 		VariableDesc & desc = vinfo->desc;
 		ParseNode & local_type = vinfo->type;
+
 		if (p.second->declared)
 		{
 			// this variable is in paramtable, do not need to generate declaration for it in function body

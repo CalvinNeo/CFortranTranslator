@@ -69,7 +69,7 @@ void insert_temporary_functions(std::string module_name) {
 	get_context().temporary_functions.clear();
 }
 
-void forall_function_in_module(std::string module_name, std::function<void(const std::pair<std::string, FunctionInfo *> &)> func) {
+void forall_function_in_module(std::string module_name, std::function<void(std::pair<std::string, FunctionInfo *>)> func) {
 
 	if (module_name == "@") {
 		for (std::map < std::string, FunctionInfo* >::iterator iter = get_context().temporary_functions.begin(); iter != get_context().temporary_functions.end(); iter++)
@@ -80,7 +80,7 @@ void forall_function_in_module(std::string module_name, std::function<void(const
 	else {
 		for (std::map < std::string, FunctionInfo* >::iterator iter = get_context().functions.begin(); iter != get_context().functions.end(); iter++)
 		{
-			if (boost::starts_with(iter->first, module_name))
+			if (boost::starts_with(iter->first, module_name + "::"))
 			{
 				func(*iter);
 			}

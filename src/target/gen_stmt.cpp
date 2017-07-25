@@ -144,8 +144,8 @@ std::string regen_stmt(FunctionInfo * finfo, ParseNode & stmt) {
 					// for every variable, generate independent definition
 					VariableInfo * vinfo = get_variable(get_context().current_module, finfo->local_name, name);
 					bool new_variable = vinfo == nullptr;
-					bool belong_to_common_block = (!new_variable && vinfo->commonblock_name == "");
-					if (belong_to_common_block)
+					bool belong_to_common_block_or_interface = (!new_variable && vinfo->commonblock_name == "");
+					if (belong_to_common_block_or_interface)
 					{
 						vinfo->desc.merge(get_variabledesc_attr(vardescattr));
 					}
@@ -249,7 +249,8 @@ std::string regen_stmt(FunctionInfo * finfo, ParseNode & stmt) {
 					vinfo->vardef_node = &wrapper;
 				}
 				else {
-					print_error("repeated declaration of interface");
+					sprintf(codegen_buf, "in interface, function `%s` have repeated declaration", name.c_str());
+					print_error(string(codegen_buf), stmt);
 				}
 			}
 		}

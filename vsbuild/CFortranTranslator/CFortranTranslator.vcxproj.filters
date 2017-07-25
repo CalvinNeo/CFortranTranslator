@@ -123,9 +123,6 @@
     <ClCompile Include="..\..\src\target\gen_program.cpp">
       <Filter>target</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\target\gen_forwarddecl.cpp">
-      <Filter>target</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\target\gen_config.cpp">
       <Filter>target</Filter>
     </ClCompile>

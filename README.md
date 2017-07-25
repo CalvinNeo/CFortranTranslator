@@ -92,7 +92,7 @@ include [for90std/for90std.h](/for90std/for90std.h) to use C++ implementation of
 |`REAL()`|`to_double`|
 |`LOGICAL()`|`to_bool`|
 |`COMPLEX()`|`to_forcomplex`|
-|`CHARACTER()`|`to_string`|
+|`CHAR()`|`to_string`|
 
 #### mathematical
 |fortran|C++|
@@ -404,7 +404,9 @@ actual argument (12.5.2.1, 12.5.2.2, 12.5.2.3).
 
 
 ### operators
-1. defined operators is not supported yet
+1. according to R311, defined operators shouldd have NO digits in their names
+
+    this rule is necessary, considering `2.e2.0` is float, not a operator `e2` with two operands `2` and `0`
 
 #### intrinsic operators
 
@@ -436,8 +438,8 @@ CFortranTranslator **WON'T** handle fixed/free part of the code respectively
     THIS DO NOT CONFORM TO FORTRAN90 STANDARD
 
     under any condition lines is continuation when
-    1. begin with **5** **BLANKS**(not in standard) and position 6 is not blank, or,
-    2. (not in standard)begin with **1** TAB and the next character is not blank
+    1. begin with **5** **BLANKS**(not in standard) and position 6 is not blank, **or**,
+    2. (not in standard)begin with **1** **TAB**(in this case 1 TAB can consider to be equal to 5 blanks) and the next character is not blank or TAB
 
 ### implicit variables
 All implicit variables will have their definitions generated in target code.
@@ -446,8 +448,10 @@ Because of the [3-phase strategy](/Develop.md)
 #### implicit variables in parameters list
 Not all parameters in a `paramtable` need to be declared explicitly in the function body, if the parameter
 1. used in both `paramtable` and the function body
+
     fortran 90 standard
 2. used only in `paramtable`
+
     implicit definition conforming to fortran 77 standard
 
 ### subprogram
