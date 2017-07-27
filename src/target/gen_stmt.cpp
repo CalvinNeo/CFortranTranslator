@@ -143,11 +143,15 @@ std::string regen_stmt(FunctionInfo * finfo, ParseNode & stmt) {
 				if (vardef_node.get_token() == TokenMeta::NT_VARIABLEDEFINE) {
 					// for every variable, generate independent definition
 					VariableInfo * vinfo = get_variable(get_context().current_module, finfo->local_name, name);
-					bool new_variable = vinfo == nullptr;
-					bool belong_to_common_block_or_interface = (!new_variable && vinfo->commonblock_name == "");
-					if (belong_to_common_block_or_interface)
+					bool new_variable = (vinfo == nullptr);
+					if (!new_variable && vinfo->commonblock_name != "")
 					{
+						// actually use common block decl
 						vinfo->desc.merge(get_variabledesc_attr(vardescattr));
+					}
+					else if (!new_variable)
+					{
+						// actually use interface decl
 					}
 					else if(vinfo == nullptr){
 						// `regen_vardef` will be called in `gen_joined_declarations`
@@ -229,6 +233,7 @@ std::string regen_stmt(FunctionInfo * finfo, ParseNode & stmt) {
 		for (int i = 0; i < wrappers.length(); i++)
 		{
 			ParseNode & wrapper = wrappers.get(i);
+			// wrapper is `NT_FUNCTION_DECLARE`
 			if (wrapper.get_token() == TokenMeta::NT_PROGRAM) {
 				fatal_error("illegal program struct in interface");
 			}
@@ -238,20 +243,21 @@ std::string regen_stmt(FunctionInfo * finfo, ParseNode & stmt) {
 				VariableInfo * vinfo = get_variable(get_context().current_module, finfo->local_name, name);
 				if (vinfo == nullptr)
 				{
-					ParseNode t = gen_type(Term{ TokenMeta::Function_Decl, "" });
-					vinfo = add_variable(get_context().current_module, finfo->local_name, name, VariableInfo{});
-					vinfo->commonblock_index = 0; 
-					vinfo->commonblock_name = ""; 
-					vinfo->desc = VariableDesc(); 
-					vinfo->implicit_defined = false; 
-					vinfo->type = t; 
-					vinfo->entity_variable = gen_vardef_from_default(t, ""); 
-					vinfo->vardef_node = &wrapper;
 				}
 				else {
-					sprintf(codegen_buf, "in interface, function `%s` have repeated declaration", name.c_str());
-					print_error(string(codegen_buf), stmt);
+					// this interface Function_Decl variable is declared by `check_implicit_variable`
+					// overwrite previous node
+					delete_variable(get_context().current_module, finfo->local_name, name);
+					vinfo = add_variable(get_context().current_module, finfo->local_name, name, VariableInfo{});
 				}
+				ParseNode t = gen_type(Term{ TokenMeta::Function_Decl, "" });
+				vinfo->commonblock_index = 0;
+				vinfo->commonblock_name = "";
+				vinfo->desc = VariableDesc();
+				vinfo->implicit_defined = false;
+				vinfo->type = t;
+				vinfo->entity_variable = gen_vardef_from_default(t, "");
+				vinfo->vardef_node = &wrapper; 
 			}
 		}
 	}

@@ -114,6 +114,18 @@ their replacement occur in following stages:
 
     join generated codes of Step 2, depending whether this variable is common block
 
+#### interface
+1. all items in interface are firstly variables, so it will be
+    1. registered by `add_variable` under `finfo->local_name`
+    2. its `local_name` will be exactly the item's name
+
+2. all items in interface can also considered to be function(with no function body), so it will be
+    1. registered by `add_function` under `get_context().current_module`
+    2. its `local_name` will be `finfo->local_name + "@" + the item's name`
+
+### function declaration
+
+
 ## Parse Tree(AST)
 all parse tree nodes are defined in [/src/Intent.h](/src/Intent.h) with an `NT_` prefix
 ### struct ParseNode
@@ -207,6 +219,4 @@ all variables(including `commom` block) and functions is now logged in [/src/Var
 | `VariableDescAttr` | NT_DECLAREDVARIABLE or NT_VARIABLEDEFINE or NT_VARIABLEINTIAL nodes of NT_VARIABLEDEFINE.NT_PARAMTABLE_PURE |
 | `FunctionAttr` | NT_FUNCTIONDECLARE |
 | `VarialbeAttr` | NT_FUNCTIONDECLARE |
-
-
 

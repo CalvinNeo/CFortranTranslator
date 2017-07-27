@@ -80,9 +80,10 @@ const std::map<std::string, std::string> funcname_map{
 	, { "close", "forclosefile" }
 
 	// io
-	, { "read", "forread" }
-	, { "print", "forprint" }
-	, { "write", "forwrite" }
+	// read, write, print is specially handled in `gen_io.cpp`
+	, { "rewind", "forrewind" }
+	, { "backspace", "forbackspace" }
+
 
 	// intrinsic
 	, { "present", "forpresent" }
@@ -98,6 +99,8 @@ const std::map<std::string, std::vector<KeywordParamInfo>> sysfunc_args{
 	, { "forread", { { "unit", "int" , "" }, { "fmt", "string", "" }, { "iostat", "int", "" } } }
 	, { "forwrite", { { "unit", "int" , "" }, { "fmt", "string", "" }, { "iostat", "int", "" } } }
 	, { "forprint", { { "unit", "int" , "" }, { "fmt", "string", "" }, { "iostat", "int", "" } } }
+	, { "forrewind", { { "unit", "int" , "" }, { "iostat", "int", "" }, { "err", "forlabel", "" } } }
+	, { "forbackspace", { { "unit", "int" , "" }, { "iostat", "int", "" }, { "err", "forlabel", "" } } }
 
 	,{ "forreshape",{ } }
 	, { "forsum", { { "dim", "int", "" }, { "mask", "mask_wrapper_t", "" } } }

@@ -143,9 +143,6 @@ SliceBoundInfo get_lbound_size_from_hiddendo(FunctionInfo * finfo, ParseNode & h
 void regen_hiddendo_expr(FunctionInfo * finfo, ParseNode & hiddendo);
 void regen_hiddendo_expr(FunctionInfo * finfo, ParseNode & hiddendo, std::function<void(ParseNode &)> regen_innermost);
 
-ParseNode gen_function_array(ARG_IN callable_head, ARG_IN argtable); 
-
-
 ParseNode promote_exp_to_slice(ARG_IN exp);
 ParseNode promote_argtable_to_dimenslice(ARG_IN argtable);
 
@@ -188,9 +185,12 @@ ParseNode gen_suite(ARG_IN item, ARG_IN list);
 void get_full_paramtable(FunctionInfo * finfo);
 
 std::string get_mapped_function_name(std::string origin_name);
-std::string gen_function_signature(FunctionInfo * finfo);
+std::string gen_function_signature(FunctionInfo * finfo, int style = 0);
+
+std::string gen_paramtable_str(FunctionInfo * finfo, const std::vector<std::string> & paramtable_info, bool with_name = true);
 
 void gen_fortran_program(ARG_IN wrappers);
+void regen_type(ParseNode & type_nospec, FunctionInfo * finfo, VariableInfo * vinfo);
 
 void do_trans(const std::string & src);
 

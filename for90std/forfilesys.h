@@ -22,9 +22,6 @@
 #include "forlang.h"
 
 namespace for90std {
-	struct forlabel {
-
-	};
 	void foropenfile(int unit, foroptional<int> iostat, foroptional<forlabel> err, foroptional<std::string> file, foroptional<std::string> status = None, foroptional<std::string> access = None
 		, foroptional<std::string> form = None, foroptional<int> recl = None, foroptional<std::string> blank = None, foroptional<std::string> position = None, foroptional<std::string> action = None
 		, foroptional<std::string> delim = None, foroptional<std::string> pad = None);

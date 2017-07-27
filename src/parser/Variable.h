@@ -145,6 +145,10 @@ struct VariableInfo
 		: local_name(""), implicit_defined(true), commonblock_index(0), commonblock_name(""), vardef_node(nullptr), declared(false), generated(false) {
 
 	}
+
+	~VariableInfo() {
+		//delete vardef_node;
+	}
 };
 
 struct CommonBlockInfo {
@@ -154,5 +158,6 @@ struct CommonBlockInfo {
 
 VariableInfo * get_variable(std::string module_name, std::string function_name, std::string variable_name);
 VariableInfo * add_variable(std::string module_name, std::string function_name, std::string variable_name, const VariableInfo & variable);
+void delete_variable(std::string module_name, std::string function_name, std::string variable_name);
 void forall_variable_in_function(std::string module_name, std::string function_name, std::function<void(std::pair<std::string, VariableInfo *>)> func);
 void clear_variables();

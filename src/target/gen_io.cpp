@@ -35,6 +35,7 @@ std::string gen_io_argtable_str(FunctionInfo * finfo, ParseNode & argtable, std:
 					regen_exp(finfo, return_item);
 					if (iofunc == "read")
 					{
+						// read use pointer
 						return "&" + return_item.get_what();
 					}
 					else {

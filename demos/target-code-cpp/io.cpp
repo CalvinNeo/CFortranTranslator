@@ -41,6 +41,31 @@ void test_ioformat(){
 	forprintfree(a, b, c);
 }
 
+void rewind_backspace(){
+	/***************
+	*  file content
+	*===============
+		1
+		2
+		3
+	****************/
+	foropenfile(1, None, None, SS("D:/11.txt"), SS("unkonwn"), SS("sequential"), None, None, None, SS("rewind"), SS("readwrite"), None, None);
+	int x;
+	forreadfree(get_file(1), x);
+	forprintfree(x); // 1
+	forreadfree(get_file(1), x);
+	forprintfree(x); // 2 
+	forrewind(get_file(1), None, None);
+	forreadfree(get_file(1), x);
+	forprintfree(x); // 1
+
+
+	forbackspace(get_file(1), None, None);
+	forreadfree(get_file(1), x);
+	forprintfree(x);  // 1
+	stop();
+}
+
 void test_error(){
 	//auto f = [&](const fsize_t * current) {
 	//	const IOStuff<int, int> & iost = [&](fsize_t j) {

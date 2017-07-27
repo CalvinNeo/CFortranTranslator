@@ -90,6 +90,7 @@ include [for90std/for90std.h](/for90std/for90std.h) to use C++ implementation of
 |:-:|:-:|
 |`INTEGER()`|`to_int`|
 |`REAL()`|`to_double`|
+|`FLOAT()`|`to_double`|
 |`LOGICAL()`|`to_bool`|
 |`COMPLEX()`|`to_forcomplex`|
 |`CHAR()`|`to_string`|
@@ -101,7 +102,7 @@ include [for90std/for90std.h](/for90std/for90std.h) to use C++ implementation of
 |`max`|`max_n`|
 
 #### array
-refer types:array
+ref target code and restrictions:types:array
 
 ### IO function
 #### unit id mapping
@@ -147,7 +148,17 @@ For output function like `forwritefree` and `forwrite`, the `io-implied-do-objec
 #### IOStuff
 `IOStuff` wraps a list of `input-item-list` or `output-item-list` inside an io-implied-do. 
 
-Inside `IOStuff` is a `std::tuple`, use `foreach_tupe(iostuff.tup)` to enumerate content of `IOStuff`
+Inside `IOStuff` is a `std::tuple`, `foreach_tupe(iostuff.tup)` can enumerate content of `IOStuff`
+
+read/write a `IOStuff` is to read/write every element of `IOStuff` in order
+
+#### IOFormat
+``IOFormat{std::string formatter, int reversion_start}`
+
+`formatter` is generate from fortran's format
+`reversion_start` is a value computed by compiler, it shows index of char when the whole length of format is proceeded(ref. 10.3)
+
+#### IOLambda
 
 ## target code and restrictions
 refer to [/src/grammar/for90.y](/src/grammar/for90.y) for all accepted grammar
@@ -372,7 +383,31 @@ if this common block is an unamed block, `COMMON_NAME` is by default `G`
 3. keyword/named parameter: C++ don't support keyword parameters, all keyword parameter will be reorganized in normal paramtable
 
 #### interface
-1. replace all interface with forward declaration when necessary
+"functions" delcared in interface will be generated as a `std::function<...>` clause
+
+for example
+```
+subroutine proc(a, b, fun)
+	interface
+		function fun(x,y) result (fun_result)
+			integer,intent(in)::x, y
+			integer::fun_result
+		end function
+	end interface
+	integer,intent(in)::a, b
+	print *, fun(a, b) 
+end subroutine
+```
+will be translated to
+
+```
+void proc(const int & a, const int & b, std::function<int(const int &, const int &)> fun)
+{
+        forprintfree(fun(FW(a), FW(b)));
+        return ;
+}
+
+```
 
 #### attribute specification statements
 
@@ -402,6 +437,9 @@ actual argument (12.5.2.1, 12.5.2.2, 12.5.2.3).
 |out|ignore|/|`T &`|
 |inout|ignore|/|`T &`|
 
+
+#### associate arguments and parameters
+when passing paramters, wrap them by `FW(arg)`
 
 ### operators
 1. according to R311, defined operators shouldd have NO digits in their names

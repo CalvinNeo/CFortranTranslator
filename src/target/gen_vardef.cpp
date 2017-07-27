@@ -221,28 +221,6 @@ ParseNode gen_vardef(ARG_IN type_nospec, ARG_IN variable_desc, ARG_IN paramtable
 	return newnode;
 }
 
-void regen_type(ParseNode & type_nospec, FunctionInfo * finfo, VariableInfo * vinfo) {
-	if (type_nospec.get_token() == TokenMeta::Implicit_Decl)
-	{
-		/*****************
-		* type is implicit
-		* if an variable is implicit defined, its type will be induced from its first letter
-		* if an variable's type is deduced, it can be explicitly declared, e.g. `dimension a(10)`
-		*=================
-		* though `check_implicit_variable` will deduce all implicit variable's type and all Implicit_Decl type,
-		*	it can't handle vardef nodes
-		*****************/
-		ParseNode deduced_type = gen_implicit_type(finfo, get_variable_name(vinfo->entity_variable));
-		type_nospec.fs.CurrentTerm = deduced_type.fs.CurrentTerm;
-		type_nospec.setattr(new VariableDescAttr());
-	}
-	else {
-		// X_Decl -> X
-		type_nospec.get_token() = type_nospec.get_token() + 100;
-	}
-	promote_type(type_nospec, vinfo->desc);
-}
-
 void regen_vardef(FunctionInfo * finfo, VariableInfo * vinfo) {
 	VariableDesc & desc = vinfo->desc;
 	ParseNode & entity_variable = vinfo->entity_variable;
@@ -257,6 +235,10 @@ void regen_vardef(FunctionInfo * finfo, VariableInfo * vinfo) {
 	*****************/
 	bool do_arr = vinfo->is_array();
 	string var_decl, type_str;
+	/*****************
+	* IMPORTANT
+	* this function should handle `Function_Decl`(function variables which are often declared by `interface`)
+	*****************/
 	regen_type(type_nospec, finfo, vinfo);
 	// entity_variable is NT_VARIABLE_ENTITY
 	if(desc.slice.is_initialized()){
@@ -282,6 +264,17 @@ void regen_vardef(FunctionInfo * finfo, VariableInfo * vinfo) {
 		var_decl = gen_vardef_array_str(finfo, vinfo, entity_variable, type_str, desc.slice.value());
 		vinfo->vardef_node->fs.CurrentTerm = Term{ TokenMeta::NT_VARIABLEDEFINE, var_decl };
 	}
+	else if (type_nospec.get_token() == TokenMeta::Function)
+	{
+		type_str = gen_qualified_typestr(type_nospec, desc, false);
+		var_decl = type_str + " " + vinfo->local_name;
+		if (vinfo->vardef_node == nullptr)
+		{
+			// considered to be implicitly defined
+			fatal_error("variable not defined: " + vinfo->local_name);
+		}
+		vinfo->vardef_node->get_what() = var_decl;
+	}
 	else {
 		// SCALAR
 		type_str = gen_qualified_typestr(type_nospec, desc, false);
@@ -293,10 +286,10 @@ void regen_vardef(FunctionInfo * finfo, VariableInfo * vinfo) {
 		}
 		vinfo->vardef_node->fs.CurrentTerm = Term{ TokenMeta::NT_VARIABLEDEFINE, var_decl };
 	} 
-	vinfo->commonblock_index; // set in regen_suite and gen_common
-	vinfo->commonblock_name; // set in regen_suite and gen_common
-	vinfo->desc = desc; // set in regen_vardef
-	vinfo->implicit_defined; // set in regen_suite
-	vinfo->type = type_nospec; // set in regen_vardef
-	vinfo->entity_variable = entity_variable; // set in regen_vardef
+	vinfo->commonblock_index;
+	vinfo->commonblock_name;
+	vinfo->desc = desc; 
+	vinfo->implicit_defined;
+	vinfo->type = type_nospec;
+	vinfo->entity_variable = entity_variable; 
 }

@@ -96,46 +96,82 @@ void regen_hiddendo_expr(FunctionInfo * finfo, ParseNode & hiddendo, std::functi
 	* 2) ac-implied-do
 	*	passed to `make_init_list` its 3rd argument
 	*======================================
-	*	A a; B b; C c;
+	*	A a0; B b0; C c0;
 	*	auto result = [](const fsize_t * current) {
-	*		return [](A a, B b, C c){
-	*			// ac/data/io-implied-do-control
+	*		return [](A a, B b, C c){ 
+	*			// actual ac/data/io-implied-do-control codes
 	*		}(current[0], current[1], ...);
 	*	}
-	*	({a, b, c}) // call with args
-	****************************************/
+	*	({a0, b0, c0}) // call with args
+	***************************************/
 	if (get_context().parse_config.usefarray)
 	{
 		std::vector<ParseNode *> hiddendo_layer = get_nested_hiddendo_layers(hiddendo);
+
+		/**************************************
+		* generate indexer for each dimension(nested implied-do layers)
+		*======================================
+		*	e.g.
+		*	```
+		*	((F(I,J),J=1,2),I=3,4)
+		*	```
+		*	the indexer is
+		*	`fsize_t i, fsize_t j`
+		***************************************/
 		string indexer_str = make_str_list(hiddendo_layer.begin(), hiddendo_layer.end(), [](auto x)->string {
 			return "fsize_t " + (x)->get(1).get_what();
 		});
 
-		/***************
-		*	refer rule `hidden_do` and found NT_HIDDENDO have 4 children
+		/**************************************
+		* IMPORTANT
+		*	refer rule `hidden_do` and found NT_HIDDENDO have EXACTLY **4** children
 		*	the first child is argtable(because a hidden_do can contain several exps)
-		****************/
+		* can't handle following code
+		*======================================
+		*	WRITE(2,*) (A(I),(B(I,J),J=1,i),I=2,10)
+		***************************************/
 		ParseNode & innermost_argtable = hiddendo_layer.back()->get(0);
 		regen_innermost(innermost_argtable);
-		string body1 = innermost_argtable.get_what();
-		sprintf(codegen_buf, "[&](%s){\n%s}", indexer_str.c_str(), tabber(body1).c_str());
-		string lambda = string(codegen_buf);
+		string innermost_code = innermost_argtable.get_what();
+		/**************************************
+		* generate the following lambda
+		*======================================
+		*		return [](fsize_t a, fsize_t b, fsize_t c){
+		*			// actual codes
+		*		}(current[0], current[1], ...);
+		*======================================
+		*	`current` is a `fsize_t *` array.
+		*	length of `current` = dimension
+		*	count of parameter of this lambda = dimension
+		*======================================
+		*	usage of this lambda is to
+		*	feed current to each parameters:
+		*	current[0] -> a
+		*	current[1] -> b
+		*	current[2] -> c
+		*	so actual codes can directly use names, not a `fsize_t *` array
+		*======================================
+		*	WHY NEED THIS WORKAROUND?
+		*	because we need a iterative function, not a deep for-loop
+		***************************************/
+		sprintf(codegen_buf, "[&](%s){\n%s}", indexer_str.c_str(), tabber(innermost_code).c_str());
+		string lambda_def = string(codegen_buf);
 		int j = 0;
-		string args = make_str_list(hiddendo_layer.begin(), hiddendo_layer.end(), [&](auto x) {
+		string lambda_args = make_str_list(hiddendo_layer.begin(), hiddendo_layer.end(), [&](auto x) {
 			sprintf(codegen_buf, "current[%d]", j++);
 			return string(codegen_buf);
 		}, ", ");
 
 		// map array to parameter
-		sprintf(codegen_buf, "return %s(%s);", lambda.c_str(), args.c_str());
-		string body2 = string(codegen_buf);
-		sprintf(codegen_buf, "[&](const fsize_t * current){\n%s\n}", tabber(body2, false).c_str());
+		sprintf(codegen_buf, "return %s(%s);", lambda_def.c_str(), lambda_args.c_str());
+		string lambda_call = string(codegen_buf);
+		sprintf(codegen_buf, "[&](const fsize_t * current){\n%s\n}", tabber(lambda_call, false).c_str());
 	}
 	else {
-		ARG_IN exp = hiddendo.get(0);
-		ARG_IN index = hiddendo.get(1);
-		ARG_IN from = hiddendo.get(2);
-		ARG_IN to = hiddendo.get(3);
+		const ParseNode & exp = hiddendo.get(0);
+		const ParseNode & index = hiddendo.get(1);
+		const ParseNode & from = hiddendo.get(2);
+		const ParseNode & to = hiddendo.get(3);
 		sprintf(codegen_buf, "[&](int %s){return %s ;}", index.get_what().c_str(), exp.get_what().c_str());
 		string str_lambda_body = string(codegen_buf);
 		sprintf(codegen_buf, "f1a_init_hiddendo(%s, %s, %s)", from.get_what().c_str(), to.get_what().c_str(), str_lambda_body.c_str());
@@ -161,9 +197,7 @@ ParseNode gen_hiddendo(ARG_IN argtable, ARG_IN index, ARG_IN from, ARG_IN to, To
 	****************************************/
 	ParseNode newnode = gen_token(Term{ TokenMeta::NT_HIDDENDO, "" });
 	newnode.addlist(argtable, index, from, to);
-	std::string stuff;
-
-	stuff = make_str_list(argtable.begin(), argtable.end(), [&](ParseNode * iter) {
+	std::string stuff = make_str_list(argtable.begin(), argtable.end(), [&](ParseNode * iter) {
 		if (iter->length() > 0 && (iter)->get(0).get_token() == TokenMeta::NT_HIDDENDO)
 		{
 			return (iter)->get_what();
@@ -172,7 +206,8 @@ ParseNode gen_hiddendo(ARG_IN argtable, ARG_IN index, ARG_IN from, ARG_IN to, To
 			return (iter)->get_what() + ";";
 		}
 	}, "");
-	sprintf(codegen_buf, "for(int %s = %s; %s <= %s; %s++){\n%s}", index.get_what().c_str(), from.get_what().c_str(), index.get_what().c_str(), to.get_what().c_str(), index.get_what().c_str(), tabber(stuff).c_str());
+	sprintf(codegen_buf, "for(int %s = %s; %s <= %s; %s++){\n%s}", index.get_what().c_str(), from.get_what().c_str()
+		, index.get_what().c_str(), to.get_what().c_str(), index.get_what().c_str(), tabber(stuff).c_str());
 	newnode.fs.CurrentTerm = Term{ TokenMeta::NT_HIDDENDO, string(codegen_buf) };
 	return newnode;
 }

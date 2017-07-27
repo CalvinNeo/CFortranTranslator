@@ -63,7 +63,7 @@ ParseNode gen_implicit_type(FunctionInfo * finfo, std::string name) {
 
 void promote_type(ParseNode & type_nospec, VariableDesc & vardesc) {
 	// reset type according to kind
-	/* merge type_spec and variable_desc attr */
+	// merge type_spec and variable_desc attr
 	vardesc.merge(dynamic_cast<VariableDescAttr *>(type_nospec.attr)->desc);
 	if (vardesc.kind.isdirty()) {
 		if (type_nospec.get_token() == TokenMeta::Int) {
@@ -162,3 +162,35 @@ std::string gen_qualified_typestr(const ParseNode & type_spec, VariableDesc & va
 	return string(codegen_buf);
 }
 
+
+void regen_type(ParseNode & type_decl, FunctionInfo * finfo, VariableInfo * vinfo) {
+	/*****************
+	* this function deduce type of a variable, by type decl, it will generate X_Decl -> X, where
+	* type decl: X_Decl
+	* type name: X
+	*****************/
+	if (type_decl.get_token() == TokenMeta::Implicit_Decl)
+	{
+		/*****************
+		* type is implicit
+		* if an variable is implicit defined, its type will be induced from its first letter
+		* if an variable's type is deduced, it can be explicitly declared, e.g. `dimension a(10)`
+		*=================
+		* though `check_implicit_variable` will deduce all implicit variable's type and all Implicit_Decl type,
+		*	it can't handle vardef nodes
+		*****************/
+		ParseNode deduced_type = gen_implicit_type(finfo, get_variable_name(vinfo->entity_variable));
+		type_decl.fs.CurrentTerm = deduced_type.fs.CurrentTerm;
+		type_decl.setattr(new VariableDescAttr());
+	}
+	else if (type_decl.get_token() == TokenMeta::Function_Decl)
+	{
+		// generate `std::function`
+		type_decl.get_what() = gen_function_signature(finfo, 1);
+		type_decl.get_token() = TokenMeta::Function;
+	}
+	else {
+		type_decl.get_token() = type_decl.get_token() + 100;
+	}
+	promote_type(type_decl, vinfo->desc);
+}

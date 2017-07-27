@@ -23,39 +23,35 @@
 #include <boost/algorithm/string/predicate.hpp>
 
 VariableInfo * get_variable(std::string module_name, std::string function_name, std::string variable_name) {
-	if (function_name == "@") {
-		fatal_error("@ function name is removed: " + variable_name);
-		return nullptr;
+	std::string fullname = module_name + "::" + function_name + "::" + variable_name;
+	if (get_context().variables.find(fullname) != get_context().variables.end()) {
+		return get_context().variables[fullname];
 	}
 	else {
-		std::string fullname = module_name + "::" + function_name + "::" + variable_name;
-		if (get_context().variables.find(fullname) != get_context().variables.end()) {
-			return get_context().variables[fullname];
-		}
-		else {
-			return nullptr;
-		}
+		return nullptr;
 	}
 }
 
 VariableInfo * add_variable(std::string module_name, std::string function_name, std::string variable_name, const VariableInfo & variable) {
-	if (function_name == "@") {
-		fatal_error("@ function name is removed: " + variable_name);
+	std::string fullname = module_name + "::" + function_name + "::" + variable_name;
+	if (get_context().variables.find(fullname) != get_context().variables.end()) {
+		fatal_error("Variable " + fullname + " already exists");
 		return nullptr;
 	}
 	else {
-		std::string fullname = module_name + "::" + function_name + "::" + variable_name;
-		if (get_context().variables.find(fullname) != get_context().variables.end()) {
-			fatal_error("Variable " + fullname + " already exists");
-			return nullptr;
-		}
-		else {
-			VariableInfo * ninfo = new VariableInfo(variable);
-			ninfo->local_name = variable_name;
-			get_context().variables[fullname] = ninfo;
-			return get_context().variables[fullname];
-		}
+		VariableInfo * ninfo = new VariableInfo(variable);
+		ninfo->local_name = variable_name;
+		get_context().variables[fullname] = ninfo;
+		return get_context().variables[fullname];
 	}
+}
+
+
+void delete_variable(std::string module_name, std::string function_name, std::string variable_name) {
+	VariableInfo * vinfo = get_variable(module_name, function_name, variable_name);
+	delete vinfo;
+	std::string fullname = module_name + "::" + function_name + "::" + variable_name;
+	get_context().variables.erase(fullname);
 }
 
 void clear_variables() {

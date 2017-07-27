@@ -394,7 +394,7 @@ namespace for90std {
 			***************/
 			// implicitly use a scalr to initialize an array, so shape of array is undetermined
 			reset_array({ 1 }, { 1 });
-			narr.reset_value(scalar);
+			reset_value(scalar);
 		}
 		//explicit farray(int dim)  noexcept: is_view(false) {
 		// 

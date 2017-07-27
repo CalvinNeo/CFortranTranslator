@@ -129,13 +129,13 @@
     <ClCompile Include="..\..\src\develop.cpp" />
     <ClCompile Include="..\..\src\getopt.cpp" />
     <ClCompile Include="..\..\src\main.cpp" />
-    <ClCompile Include="..\..\src\grammar\for90.tab.cpp">
-      <Filter>grammar</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\grammar\simple_lexer.cpp">
       <Filter>grammar</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\grammar\for90.flex.cpp">
+      <Filter>grammar</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\grammar\for90.tab.cpp">
       <Filter>grammar</Filter>
     </ClCompile>
   </ItemGroup>

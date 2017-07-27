@@ -201,4 +201,8 @@ namespace for90std {
 	inline void stop() {
 		std::system("pause");
 	}
+
+	struct forlabel {
+
+	};
 }

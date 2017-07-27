@@ -19,10 +19,11 @@
 
 #include "gen_common.h"
 
-std::string gen_paramtable_str(FunctionInfo * finfo, const vector<string> & paramtable_info) {
+std::string gen_paramtable_str(FunctionInfo * finfo, const vector<string> & paramtable_info, bool with_name) {
 	// generate C++ style parameter list
 	string paramtblstr;
-	paramtblstr = make_str_list(paramtable_info.begin(), paramtable_info.end() - 1/* exclude return value */, [&](const string & param_name) -> std::string {
+	vector<string>::const_iterator end_except_result = paramtable_info.end() - 1;
+	paramtblstr = make_str_list(paramtable_info.begin(), end_except_result, [&](const string & param_name) -> std::string {
 		VariableInfo * vinfo = get_variable(get_context().current_module, finfo->local_name, param_name);
 		const ParseNode & type = vinfo->type;
 		ParseNode * vardef_node = vinfo->vardef_node;
@@ -32,17 +33,23 @@ std::string gen_paramtable_str(FunctionInfo * finfo, const vector<string> & para
 		/****************
 		* IMPORTANT
 		* it's wrong to use `get_variabledesc_attr(*vardef_node)`, it will fail when `dimension arr(10)`
+		* because `vardef_node` is raw
 		*****************/
 		VariableDesc desc = vinfo->desc;
 		std::string typestr = gen_qualified_typestr(type, desc, true);
-		sprintf(codegen_buf, "%s %s", typestr.c_str(), param_name.c_str());
+		if (with_name)
+		{
+			sprintf(codegen_buf, "%s %s", typestr.c_str(), param_name.c_str());
+		}
+		else {
+			sprintf(codegen_buf, "%s", typestr.c_str());
+		}
 		return string(codegen_buf);
 	});
 	return paramtblstr;
 }
 
 void get_full_paramtable(FunctionInfo * finfo) {
-	const vector<VariableInfo *> & declared_variables = finfo->funcdesc.declared_variables;
 	vector<string> & paramtable_info = finfo->funcdesc.paramtable_info;
 	// find by finfo
 	for (int i = 0; i < (int)paramtable_info.size(); i++) 
@@ -64,17 +71,11 @@ void get_full_paramtable(FunctionInfo * finfo) {
 			if (vinfo->type.get_token() == TokenMeta::Function) {
 				// function declared in an interface block
 				ParseNode * funcdef_node = vinfo->vardef_node;
-				FunctionInfo * interface_finfo = add_function("@", "", FunctionInfo{});
+				FunctionInfo * interface_finfo = add_function(get_context().current_module, finfo->local_name + "@" + vinfo->local_name, FunctionInfo{});
+				interface_finfo->local_name = vinfo->local_name;
 				regen_function(interface_finfo, *funcdef_node); // regen interface function
 				if (funcdef_node->attr != nullptr) {
-					std::vector<std::string> & interface_paramtable_info = interface_finfo->funcdesc.paramtable_info;
-					string interface_paramtable_str = gen_paramtable_str(interface_finfo, interface_paramtable_info);
-					string interface_result_name = interface_paramtable_info.back();
-					VariableInfo * interface_return_vinfo = get_variable(get_context().current_module, interface_finfo->local_name, interface_result_name);
-					sprintf(codegen_buf, "std::function<%s(%s)>", interface_return_vinfo->type.get_what().c_str(), interface_paramtable_str.c_str());
-					
-					// set param_info for `regen_paramtable`
-					vinfo->type = gen_type(Term{ TokenMeta::Function, string(codegen_buf) });
+					vinfo->type = gen_type(Term{ TokenMeta::Function, gen_function_signature(interface_finfo, 1) });
 
 					if (i != paramtable_info.size() - 1) {
 						// `delete` ParseNode except return value 
@@ -182,10 +183,9 @@ void regen_function(FunctionInfo * finfo, ParseNode & functiondecl_node) {
 	return;
 }
 
-std::string gen_function_signature(FunctionInfo * finfo) {
+std::string gen_function_signature(FunctionInfo * finfo, int style) {
 	bool is_subroutine = finfo->result_name == "";
 	std::string result_type_str;
-	string paramtblstr = gen_paramtable_str(finfo, finfo->funcdesc.paramtable_info);
 	VariableInfo * result_vinfo = get_variable(get_context().current_module, finfo->local_name, finfo->result_name);
 	if (is_subroutine)
 	{
@@ -195,11 +195,25 @@ std::string gen_function_signature(FunctionInfo * finfo) {
 	else {
 		result_type_str = gen_qualified_typestr(result_vinfo->type, result_vinfo->desc, false);
 	}
-	sprintf(codegen_buf, "%s %s(%s)"
-		, result_type_str.c_str() // return value type, "void" if subroutine
-		, finfo->local_name.c_str() // function name
-		, paramtblstr.c_str() // parameter list
-	);
+	if (style == 0)
+	{
+		// forward declaration
+		std::string paramtblstr = gen_paramtable_str(finfo, finfo->funcdesc.paramtable_info, true);
+		sprintf(codegen_buf, "%s %s(%s)"
+			, result_type_str.c_str() // return value type, "void" if subroutine
+			, finfo->local_name.c_str() // function name
+			, paramtblstr.c_str() // parameter list
+		);
+	}
+	else if (style == 1)
+	{
+		// std::function<> declaration
+		std::string paramtblstr = gen_paramtable_str(finfo, finfo->funcdesc.paramtable_info, false);
+		sprintf(codegen_buf, "std::function<%s(%s)>"
+			, result_type_str.c_str() // return value type, "void" if subroutine
+			, paramtblstr.c_str() // parameter list
+		);
+	} 
 	return string(codegen_buf);
 }
 

@@ -615,4 +615,10 @@ RETURN_FRONT:
 	void forreadfree(FILE * f, T & x) {
 		_forreadfree_dispatch(f, x);
 	};
+
+
+	void forrewind(int unit, foroptional<int> iostat, foroptional<forlabel> err);
+	void forbackspace(int unit, foroptional<int> iostat, foroptional<forlabel> err);	
+	void forrewind(FILE * f, foroptional<int> iostat, foroptional<forlabel> err);
+	void forbackspace(FILE * f, foroptional<int> iostat, foroptional<forlabel> err);
 }
