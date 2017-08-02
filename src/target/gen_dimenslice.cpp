@@ -92,6 +92,6 @@ void regen_slice(FunctionInfo * finfo, ParseNode & slice) {
 ParseNode gen_dimenslice(ARG_IN dimen_slice) {
 	// all promoted to dimen_slice
 	ParseNode newnode = dimen_slice;
-	newnode.fs.CurrentTerm = Term{ TokenMeta::NT_DIMENSLICE, "LAZY GEN DIMENSLICE" };
+	newnode.fs.CurrentTerm = Term{ TokenMeta::NT_DIMENSLICE, "IF GENERATED IN REGEN_SUITE" };
 	return newnode;
 }

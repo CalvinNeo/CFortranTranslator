@@ -702,13 +702,19 @@ NOP_REPEAT:
 			}
 			else if (lowercase_name == "do") {
 				// label-do-stmt is [ do-construct-name : ] DO label [ loop-control ]
-				std::string cur2;
-				next_nonblank_item(cur2);
-				if (is_int(cur2[0])) {
-					get_context().end_labels[cur2].push_back("do");
+				std::string maybe_label_name;
+				next_nonblank_item(maybe_label_name);
+				if (is_int(maybe_label_name[0])) {
+					auto end_label_iter = get_context().end_labels.find(maybe_label_name);
+					get_context().end_labels[maybe_label_name].push_back("do");
+					if (end_label_iter == get_context().end_labels.end()) {
+					}
+					else {
+						// duplicate label names may exist in different subprograms(function/subroutine)
+					}
 				}
 				else {
-					sc.item_cache.push_back(cur2);
+					sc.item_cache.push_back(maybe_label_name);
 				}
 				return_term = Term{ TokenMeta::Do, "do" };
 				return_token = YY_DO;
@@ -791,17 +797,21 @@ NOP_REPEAT:
 		}
 		else if (cur.size() > 1 && cur[0] == ':' && cur[1] != ':') {
 			// label
-			std::string label_name = cur.substr(1, cur.size() - 1);
+			std::string label_name = cur.substr(1, cur.size() - 1); // strip the first `:`
 			auto end_label_iter = get_context().end_labels.find(label_name);
 			if (end_label_iter != get_context().end_labels.end()) {
+				// if this label is mark previously as a label that can end some construct like `do`
+				// TODO : duplicate label names may exist in different subprograms(function/subroutine)
 				bool first = true;
 				while (!end_label_iter->second.empty()) {
+					// if there is actually some construct to be ended
 					end_label_iter->second.pop_back();
+					// because currently only `do` can be ended by given label
 					get_tokenizer_context().terminal_cache_line.push_back(std::make_tuple(YY_ENDDO, Term{ TokenMeta::RBrace, std::string("enddo") }));
 				}
 			}
 			// remove the leading `:`
-			return_term = Term{ TokenMeta::Label, cur.substr(1, cur.size() - 1) };
+			return_term = Term{ TokenMeta::Label, label_name };
 			return_token = YY_LABEL;
 		}
 		else {

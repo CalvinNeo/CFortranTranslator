@@ -1036,7 +1036,7 @@ using namespace std;
 		| YY_GOTO YY_INTEGER
 			{
 				ARG_IN line = YY2ARG($2);
-				$$ = RETURN_NT(gen_token(Term{TokenMeta::Goto, "goto LABEL_" + line.get_what() + ";\n"}));
+				$$ = RETURN_NT(gen_token(Term{TokenMeta::Goto, line.get_what() }));
 				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($2));
 				CLEAN_RIGHT($1, $2);
 			}
@@ -1044,13 +1044,13 @@ using namespace std;
 	pause_stmt : YY_PAUSE literal
 			{
 				ARG_IN lit = YY2ARG($2);
-				$$ = RETURN_NT(gen_token(Term{ TokenMeta::Stop, "printf(" + lit.get_what() + ");system(\"pause\")" }));
+				$$ = RETURN_NT(gen_token(Term{ TokenMeta::Stop, "printf(" + lit.get_what() + ");stop()" }));
 				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($2));
 				CLEAN_RIGHT($1, $2);
 			}
 		| YY_PAUSE
 			{
-				$$ = RETURN_NT(gen_token(Term{ TokenMeta::Stop, "system(\"pause\")" }));
+				$$ = RETURN_NT(gen_token(Term{ TokenMeta::Stop, "stop()" }));
 				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($1));
 				CLEAN_RIGHT($1);
 			}
@@ -1104,8 +1104,9 @@ using namespace std;
 				ARG_IN stmt = YY2ARG($2);
 				if (stmt.get_token() == TokenMeta::NT_FORMAT)
 				{
-					log_format_index(label.get_what(), stmt.get(0)); 
-					ParseNode newnode = gen_token(Term{ TokenMeta::NT_SUITE , WHENDEBUG_OREMPTYSTR("LABEL FORMAT GENERATED IN REGEN_SUITE") }, label, stmt);// do not print format stmt
+					//log_format_index(label.get_what(), stmt.get(0)); 
+					ParseNode newnode = gen_token(Term{ TokenMeta::NT_SUITE , WHENDEBUG_OREMPTYSTR("LABEL FORMAT GENERATED IN REGEN_SUITE") }, label, stmt);
+					// do not generate target code of format stmt
 					$$ = RETURN_NT(newnode);
 				}
 				else {

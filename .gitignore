@@ -41,6 +41,7 @@ vsbuild/CFortranTranslator/x64/
 vsbuild/cpptest/Debug/
 vsbuild/cpptest/Release/
 vsbuild/cpptest/x64/
+vsbuild/cpptest/*.dat
 vsbuild/.vs/
 vsbuild/x64/
 vsbuild/Debug/

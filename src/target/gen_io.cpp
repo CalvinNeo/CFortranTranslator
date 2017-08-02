@@ -23,6 +23,7 @@
 for90std::IOFormat parse_ioformatter(const std::string & src);
 
 std::string gen_io_argtable_str(FunctionInfo * finfo, ParseNode & argtable, std::string iofunc, bool is_free_format) {
+	regen_paramtable(finfo, argtable);
 	string res = make_str_list(argtable.begin(), argtable.end(), [&](ParseNode * p) {
 		ParseNode & pn = *p;
 		if (pn.get_token() == TokenMeta::NT_HIDDENDO)
@@ -41,15 +42,19 @@ std::string gen_io_argtable_str(FunctionInfo * finfo, ParseNode & argtable, std:
 					else {
 						return return_item.get_what();
 					}
-				});
-				sprintf(codegen_buf, "return make_iostuff(make_tuple(%s));", return_str.c_str());
+				}); 
+				// #define MAKE_IOSTUFF(X) make_iostuff(make_tuple(X)) 
+				sprintf(codegen_buf, "return MAKE_IOSTUFF(%s);", return_str.c_str());
 				innermost_argtable.get_what() = string(codegen_buf);
 				return;
 			});
-			SliceBoundInfo lb_size = get_lbound_size_from_hiddendo(finfo, pn);
-			std::string lb_size_str = gen_lbound_size_str(get<0>(lb_size).begin(), get<0>(lb_size).end(), get<1>(lb_size).begin(), get<1>(lb_size).end());
-			int dim = (int)get<0>(lb_size).size();
-			sprintf(codegen_buf, "make_iolambda(%s, %s)", lb_size_str.c_str(), pn.get_what().c_str());
+
+			vector<ParseNode *> hiddendo_layer = get_nested_hiddendo_layers(pn);
+			SliceBoundInfo lb_ub = get_lbound_ubound_from_hiddendo(finfo, pn, hiddendo_layer);
+			std::string lb_ub_str = gen_sliceinfo_str(get<0>(lb_ub).begin(), get<0>(lb_ub).end(), get<1>(lb_ub).begin(), get<1>(lb_ub).end());
+			//auto make_iolambda(const fsize_t(&_lb)[D], const fsize_t(&_to)[D], F func) {
+			//auto make_iolambda(fsize_t * _lb, fsize_t * _to, F func) {
+			sprintf(codegen_buf, "make_iolambda(%s, %s)", lb_ub_str.c_str(), pn.get_what().c_str());
 			return string(codegen_buf);
 		}
 		else {
@@ -59,13 +64,66 @@ std::string gen_io_argtable_str(FunctionInfo * finfo, ParseNode & argtable, std:
 	return res;
 }
 
+std::string gen_io_argtable_strex(FunctionInfo * finfo, ParseNode & argtable, std::string iofunc, bool is_free_format) {
+	string res = make_str_list(argtable.begin(), argtable.end(), [&](ParseNode * p) {
+		ParseNode & pn = *p;
+		std::string current_index = "";
+		std::function<void(ParseNode &)> handler = [&](ParseNode & innermost) {
+			if (innermost.get_token() == TokenMeta::NT_HIDDENDO)
+			{
+				// wrap with IOLambda
+				regen_hiddendo_exprex(finfo, innermost, handler);
+				//auto make_iolambda(const fsize_t(&_lb)[D], const fsize_t(&_to)[D], F func) {
+				//auto make_iolambda(fsize_t * _lb, fsize_t * _to, F func) {
+
+				vector<ParseNode *> hiddendo_layer = get_parent_hiddendo_layers(innermost);
+				//SliceBoundInfo lb_ub = get_lbound_ubound_from_hiddendo(finfo, pn, hiddendo_layer);
+				SliceBoundInfo lb_ub;
+				for (int i = (int)hiddendo_layer.size() - 1; i >= 0 ; i--)
+				{
+					if (i == 0)
+					{
+						// innermost
+						regen_exp(finfo, hiddendo_layer[i]->get(2));
+						regen_exp(finfo, hiddendo_layer[i]->get(3));
+						get<0>(lb_ub).push_back(hiddendo_layer[i]->get(2).get_what());
+						get<1>(lb_ub).push_back(hiddendo_layer[i]->get(3).get_what());
+					}
+					else {
+						get<0>(lb_ub).push_back(hiddendo_layer[i]->get(1).get_what());
+						get<1>(lb_ub).push_back(hiddendo_layer[i]->get(1).get_what());
+					}
+				}
+				std::string lb_ub_str = gen_sliceinfo_str(get<0>(lb_ub).begin(), get<0>(lb_ub).end(), get<1>(lb_ub).begin(), get<1>(lb_ub).end());
+				sprintf(codegen_buf, "make_iolambda(%s, %s)", lb_ub_str.c_str(), innermost.get_what().c_str());
+
+				innermost.get_what() = string(codegen_buf);
+			}
+			else {
+				regen_exp(finfo, innermost);
+				if (iofunc == "read")
+				{
+					// read use pointer
+					innermost.get_what() = "&" + innermost.get_what();
+				}
+				else {
+				}
+			}
+			return;
+		};
+
+		handler(pn);
+		return pn.get_what();
+	});
+	return res;
+}
+
 void regen_read(FunctionInfo * finfo, ParseNode & stmt) {
 	const ParseNode & io_info = stmt.get(0);
 	ParseNode & argtable = stmt.get(1);
 	string device = io_info.get(0).to_string();
-	regen_paramtable(finfo, argtable);
 	bool is_stdio = (device == "-1" || device == "");
-	std::string argtable_str =  gen_io_argtable_str(finfo, argtable, "read", io_info.get(1).get_token() == TokenMeta::NT_AUTOFORMATTER);
+	std::string argtable_str = gen_io_argtable_strex(finfo, argtable, "read", io_info.get(1).get_token() == TokenMeta::NT_AUTOFORMATTER);
 
 	if (argtable.length() == 0)
 	{
@@ -87,11 +145,11 @@ void regen_read(FunctionInfo * finfo, ParseNode & stmt) {
 		string label_name = io_info.get(1).to_string();
 		if (io_info.get(1).get_token() == TokenMeta::NT_FORMATTER_LOCATION)
 		{
-			fmt = get_context().labels[label_name].to_string();
+			fmt = require_format_index(finfo, label_name).to_string();
 		}
 		else {
-			fmt = label_name.substr(1, label_name.size() - 1); // strip " 
 		}
+		fmt = fmt.substr(1, fmt.size() - 1); // strip " 
 		for90std::IOFormat ioformat = parse_ioformatter(fmt);
 		if (is_stdio) {
 			// device = "5"; // stdin
@@ -113,9 +171,8 @@ void regen_write(FunctionInfo * finfo, ParseNode & stmt) {
 	const ParseNode & io_info = stmt.get(0);
 	ParseNode & argtable = stmt.get(1);
 	string device = io_info.get(0).to_string();
-	regen_paramtable(finfo, argtable);
 	bool is_stdio = (device == "-1" || device == "");
-	std::string argtable_str = gen_io_argtable_str(finfo, argtable, "write", io_info.get(1).get_token() == TokenMeta::NT_AUTOFORMATTER);
+	std::string argtable_str = gen_io_argtable_strex(finfo, argtable, "write", io_info.get(1).get_token() == TokenMeta::NT_AUTOFORMATTER);
 	if (io_info.get(1).get_token() == TokenMeta::NT_AUTOFORMATTER) {
 		if (is_stdio) {
 			// device = "6"; // stdout
@@ -129,10 +186,10 @@ void regen_write(FunctionInfo * finfo, ParseNode & stmt) {
 		string fmt;
 		if (io_info.get(1).get_token() == TokenMeta::NT_FORMATTER_LOCATION)
 		{
-			fmt = get_context().labels[io_info.get(1).to_string()].to_string();
+			fmt = require_format_index(finfo, io_info.get(1).to_string()).to_string();
 		} else{
-			fmt = io_info.get(1).to_string().substr(1, io_info.get(1).to_string().size() - 1); // strip " 
 		}
+		fmt = fmt.substr(1, fmt.size() - 1); // strip " 
 		for90std::IOFormat ioformat = parse_ioformatter(fmt);
 		if (is_stdio) {
 			// device = "6"; // stdout
@@ -151,21 +208,20 @@ void regen_write(FunctionInfo * finfo, ParseNode & stmt) {
 void regen_print(FunctionInfo * finfo, ParseNode & stmt) {
 	const ParseNode & io_info = stmt.get(0);
 	ParseNode & argtable = stmt.get(1);
-	regen_paramtable(finfo, argtable);
-	std::string argtable_str = gen_io_argtable_str(finfo, argtable, "print", io_info.get(1).get_token() == TokenMeta::NT_AUTOFORMATTER);
+	std::string argtable_str = gen_io_argtable_strex(finfo, argtable, "print", io_info.get(1).get_token() == TokenMeta::NT_AUTOFORMATTER);
 	if (io_info.get(1).get_token() == TokenMeta::NT_AUTOFORMATTER) {
-		sprintf(codegen_buf, "forprintfree(%s);\n", argtable.to_string().c_str());
+		sprintf(codegen_buf, "forprintfree(%s);\n", argtable_str.c_str());
 	}
 	else {
 		string fmt;
 		if (io_info.get(1).get_token() == TokenMeta::NT_FORMATTER_LOCATION)
 		{
-			fmt = get_context().labels[io_info.get(1).to_string()].to_string();
+			fmt = require_format_index(finfo, io_info.get(1).to_string()).to_string();
 		}
 		else {
-			fmt = io_info.get(1).to_string().substr(1, io_info.get(1).to_string().size() - 1); // strip " 
 		}
-		sprintf(codegen_buf, "forprint(\"%s\"%s %s);\n", parse_ioformatter(fmt).c_str(), (argtable_str == "" ? "" : ","), argtable.to_string().c_str());
+		fmt = fmt.substr(1, fmt.size() - 1); // strip " 
+		sprintf(codegen_buf, "forprint(\"%s\"%s %s);\n", parse_ioformatter(fmt).c_str(), (argtable_str == "" ? "" : ","), argtable_str.c_str());
 	}
 	stmt.fs.CurrentTerm = Term{ TokenMeta::NT_PRINT_STMT, string(codegen_buf) };
 	return;

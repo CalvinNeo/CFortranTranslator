@@ -1,1 +1,7 @@
-WRITE(2,*) (A(I),(B(I,J),J=1,i),I=2,10)
+subroutine sub()
+	common /cc/ nv
+	dimension nv(100)
+end subroutine
+program
+	common /cc/ nv
+end program

@@ -42,6 +42,8 @@ void regen_suite(FunctionInfo * finfo, ParseNode & oldsuite, bool is_partial) {
 	* 2. regen_vardef
 	****/
 	std::string newsuitestr;
+
+
 	if (oldsuite.get_token() == TokenMeta::NT_SUITE)
 	{
 		for (int i = 0; i < oldsuite.length(); i++)
@@ -55,10 +57,42 @@ void regen_suite(FunctionInfo * finfo, ParseNode & oldsuite, bool is_partial) {
 					ARG_IN next_stmt = oldsuite.get(j);
 					if (next_stmt.get_token() == TokenMeta::NT_FORMAT)
 					{
-						// do not generate code for format stmt
+						/*****************
+						* generate EMPTY code for format stmt
+						* because format stmt will be parsed and substitute for all its occurrence
+						* e.g.
+						* ```
+						* print 11, a
+						* 11   format(1X, I)
+						* ```
+						*****************/
+						sprintf(codegen_buf, "LABEL_%s_%s", finfo->local_name.c_str(), stmt.get_what().c_str());
+						log_format_index(string(codegen_buf), next_stmt);
 					}
 					else {
-						sprintf(codegen_buf, "LABEL_%s:\n", stmt.get_what().c_str());
+					}
+				}
+			}
+		}
+	}
+
+	if (oldsuite.get_token() == TokenMeta::NT_SUITE)
+	{
+		for (int i = 0; i < oldsuite.length(); i++)
+		{
+			ParseNode & stmt = oldsuite.get(i);
+			if (stmt.get_token() == TokenMeta::Label) {
+				int j = i + 1;
+				if (j < oldsuite.length())
+				{
+					// make sure j in within bound
+					ARG_IN next_stmt = oldsuite.get(j);
+					if (next_stmt.get_token() == TokenMeta::NT_FORMAT)
+					{
+						// handled in the prev loop
+					}
+					else {
+						sprintf(codegen_buf, "LABEL_%s_%s:\n", finfo->local_name.c_str(), stmt.get_what().c_str());
 						newsuitestr += string(codegen_buf);
 					}
 				}
@@ -70,7 +104,7 @@ void regen_suite(FunctionInfo * finfo, ParseNode & oldsuite, bool is_partial) {
 	}
 	else
 	{
-		// 有些时候是exp，例如if里面的条件语句
+		// sometimes `oldsuite` is exp, e.g. condition of `if` stmt
 		newsuitestr += regen_stmt(finfo, oldsuite);
 	}
 
@@ -141,18 +175,13 @@ std::string gen_joined_declarations(FunctionInfo * finfo, ParseNode & oldsuite) 
 						regen_vardef(finfo, vinfo);
 
 						// set common
-						auto common_info = get_context().commonblocks.find(vinfo->commonblock_name);
-						if (common_info == get_context().commonblocks.end()) {
-							fatal_error("can't find common block");
-						}
-						else {
-							// set CommonBLockInfo.variable
-							VariableInfo & commonblock_vinfo = common_info->second.variables[vinfo->commonblock_index];
-							// do not set `desc.reference = true;`
-							commonblock_vinfo.desc = desc;
-							commonblock_vinfo.type = local_type;
-							commonblock_vinfo.vardef_node = vinfo->vardef_node;
-						}
+						CommonBlockInfo & common_info = get_commonblock(vinfo->commonblock_name);
+						// set CommonBLockInfo.variable
+						VariableInfo & commonblock_vinfo = common_info.variables[vinfo->commonblock_index];
+						// do not set `desc.reference = true;`, it is later set by `gen_qualified_typestr`
+						commonblock_vinfo.desc = desc;
+						commonblock_vinfo.type = local_type;
+						commonblock_vinfo.vardef_node = vinfo->vardef_node;
 					}
 					else if (vinfo->vardef_node == nullptr) {
 						// implicit definition
@@ -194,11 +223,11 @@ std::string gen_joined_declarations(FunctionInfo * finfo, ParseNode & oldsuite) 
 				std::string common_varname = "_" + to_string(vinfo->commonblock_index + 1);
 				if (vinfo->desc.reference == true)
 				{
-					sprintf(codegen_buf, "%s %s = %s.%s;\n", gen_qualified_typestr(local_type, desc, false).c_str()
+					sprintf(codegen_buf, "%s %s = BLOCK_%s.%s;\n", gen_qualified_typestr(local_type, desc, false).c_str()
 						, local_name.c_str(), vinfo->commonblock_name.c_str(), common_varname.c_str());
 				}
 				else {
-					sprintf(codegen_buf, "%s & %s = %s.%s;\n", gen_qualified_typestr(local_type, desc, false).c_str()
+					sprintf(codegen_buf, "%s & %s = BLOCK_%s.%s;\n", gen_qualified_typestr(local_type, desc, false).c_str()
 						, local_name.c_str(), vinfo->commonblock_name.c_str(), common_varname.c_str());
 				}
 			}

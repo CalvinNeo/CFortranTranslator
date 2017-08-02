@@ -174,7 +174,7 @@ To specify, `type_name` is like `INTEGER` and a `type_spec` is like `INTEGER(kin
 
 #### array builder
 - `NT_FUCNTIONARRAY` and `NT_HIDDENDO` will **NOT** be promote to `NT_EXPRESSION`
-- `NT_HIDDENDO` has 4 child elements: lambda, indexer, from, to. refer `gen_hiddendo` in [/src/target/gen_do.cpp](/src/target/gen_do.cpp)
+- `NT_HIDDENDO` has 4 child elements: argtable(may contain several `,`  splitted exprs), indexer, from, to. refer `gen_hiddendo` in [/src/target/gen_do.cpp](/src/target/gen_do.cpp)
 
 #### stmt, suite
 - `stmt` is statement end with ';' or '\n'

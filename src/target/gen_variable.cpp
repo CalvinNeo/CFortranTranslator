@@ -29,18 +29,21 @@
 //based on storage association(14.6.3).The common blocks specified by the COMMON statement may be named
 //and are called named common blocks, or may be unnamed and are called blank common.
 
+CommonBlockInfo & get_commonblock(std::string commonblock_name) {
+	if (get_context().commonblocks.find(commonblock_name) != get_context().commonblocks.end()) {
+		// already exists
+		return get_context().commonblocks[commonblock_name];
+	}
+	else {
+		get_context().commonblocks[commonblock_name] = CommonBlockInfo{ commonblock_name, std::vector<VariableInfo>() };
+		return get_context().commonblocks[commonblock_name];
+	}
+}
+
 ParseNode gen_common(ARG_IN commonname_node, ARG_IN paramtable) {
 	// the unique blank COMMON block must be declared in the main program.
 	ParseNode kvparamtable = promote_argtable_to_paramtable(paramtable);
-	string common_name = commonname_node.get_what();
-	auto common_info = get_context().commonblocks.find(common_name);
-	if (common_info == get_context().commonblocks.end()) {
-		// add common block to context
-		get_context().commonblocks[common_name] = CommonBlockInfo{ common_name, std::vector<VariableInfo>() };
-		common_info = get_context().commonblocks.find(common_name);
-	}
-	ParseNode newnode = gen_token(Term{ TokenMeta::NT_COMMONBLOCK, "" });
-	newnode.addlist(commonname_node, kvparamtable);
+	ParseNode newnode = gen_token(Term{ TokenMeta::NT_COMMONBLOCK, "" }, commonname_node, kvparamtable);
 	return newnode;
 }
 
@@ -48,12 +51,12 @@ void regen_common(FunctionInfo * finfo, ParseNode & common_block) {
 	ParseNode & commonname_node = common_block.get(0);
 	ParseNode & kvparamtable = common_block.get(1);
 	string common_name = commonname_node.get_what();
-	auto common_info = get_context().commonblocks.find(common_name);
-	if (common_info == get_context().commonblocks.end())
+	if (common_name == "")
 	{
-		print_error("Error Common Block");
+		common_name = "G";
 	}
-	bool new_common = (common_info->second.variables.size() == 0);
+	CommonBlockInfo & common_info = get_commonblock(common_name);
+	bool new_common = (common_info.variables.size() == 0);
 	for (int i = 0; i < kvparamtable.length(); i++)
 	{
 		ParseNode & entity_variable = kvparamtable.get(i);
@@ -68,7 +71,7 @@ void regen_common(FunctionInfo * finfo, ParseNode & common_block) {
 		if (new_common)
 		{
 			VariableInfo global_vinfo(*local_vinfo);
-			common_info->second.variables.push_back(global_vinfo);
+			common_info.variables.push_back(global_vinfo);
 		}
 		local_vinfo->desc.constant = false;
 		/******************
@@ -83,22 +86,20 @@ void regen_common(FunctionInfo * finfo, ParseNode & common_block) {
 }
 
 ParseNode gen_common_definition(std::string common_name) {
-	auto common_info = get_context().commonblocks.find(common_name);
-	if (common_info == get_context().commonblocks.end()) {
-		print_error("Common block without definition");
-	}
+	CommonBlockInfo & common_info = get_commonblock(common_name);
 	int i = 0;
-	string struct_str = make_str_list(common_info->second.variables.begin(), common_info->second.variables.end(), [&](VariableInfo & x) {
+	string struct_str = make_str_list(common_info.variables.begin(), common_info.variables.end(), [&](VariableInfo & vinfo) {
 		std::string common_varname = "_" + to_string(++i);
-		sprintf(codegen_buf, "%s %s;", gen_qualified_typestr(x.type, x.desc, false).c_str(), common_varname.c_str());
-		return string(codegen_buf);
+		//sprintf(codegen_buf, "%s %s;", gen_qualified_typestr(vinfo.type, vinfo.desc, false).c_str(), common_varname.c_str());
+		std::string var_decl = regen_vardef(get_function("", ""), &vinfo, common_varname, false) + ";";
+		return var_decl;
 	}, "\n");
 	if (common_name == "")
 	{
-		sprintf(codegen_buf, "struct{\n%s\n}G;\n", tabber(struct_str).c_str());
+		sprintf(codegen_buf, "struct{\n%s\n}BLOCK_G;\n", tabber(struct_str).c_str());
 	}
 	else {
-		sprintf(codegen_buf, "struct{\n%s\n}%s;\n", tabber(struct_str).c_str(), common_name.c_str());
+		sprintf(codegen_buf, "struct{\n%s\n}BLOCK_%s;\n", tabber(struct_str).c_str(), common_name.c_str());
 	}
 	return gen_token(Term{ TokenMeta::NT_COMMONBLOCKDEFINE, string(codegen_buf) });
 }
@@ -133,3 +134,4 @@ VariableInfo * check_implicit_variable(FunctionInfo * finfo, const std::string &
 	}
 	return vinfo;
 }
+

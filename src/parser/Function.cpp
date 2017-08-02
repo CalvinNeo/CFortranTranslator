@@ -23,39 +23,26 @@
 #include <boost/algorithm/string/predicate.hpp>
 
 FunctionInfo * get_function(std::string module_name, std::string function_name) {
-	if (module_name == "@" ) {
-		if (get_context().temporary_functions.find(function_name) != get_context().temporary_functions.end()) {
-			return get_context().temporary_functions[function_name];
-		}
-		else {
-			return nullptr;
-		}
+
+	std::string fullname = module_name + "::" + function_name;
+	if (get_context().functions.find(fullname) != get_context().functions.end()) {
+		return get_context().functions[fullname];
 	}
 	else {
-		std::string fullname = module_name + "::" + function_name;
-		if (get_context().functions.find(fullname) != get_context().functions.end()) {
-			return get_context().functions[fullname];
-		}
-		else {
-			return nullptr;
-		}
+		return nullptr;
 	}
 }
 
 FunctionInfo * add_function(std::string module_name, std::string function_name, const FunctionInfo & func) {
 	FunctionInfo * finfo = new FunctionInfo(func);
-	if (module_name == "@") {
-		get_context().temporary_functions[function_name] = finfo;
+
+	std::string fullname = module_name + "::" + function_name;
+	if (get_context().functions.find(fullname) != get_context().functions.end()) {
+		fatal_error("function name conflict");
+		return nullptr;
 	}
 	else {
-		std::string fullname = module_name + "::" + function_name;
-		if (get_context().functions.find(fullname) != get_context().functions.end()) {
-			fatal_error("function name conflict");
-			return nullptr;
-		}
-		else {
-			get_context().functions[fullname] = finfo;
-		}
+		get_context().functions[fullname] = finfo;
 	}
 	finfo->local_name = function_name;
 	return finfo;
@@ -70,20 +57,11 @@ void insert_temporary_functions(std::string module_name) {
 }
 
 void forall_function_in_module(std::string module_name, std::function<void(std::pair<std::string, FunctionInfo *>)> func) {
-
-	if (module_name == "@") {
-		for (std::map < std::string, FunctionInfo* >::iterator iter = get_context().temporary_functions.begin(); iter != get_context().temporary_functions.end(); iter++)
+	for (std::map < std::string, FunctionInfo* >::iterator iter = get_context().functions.begin(); iter != get_context().functions.end(); iter++)
+	{
+		if (boost::starts_with(iter->first, module_name + "::"))
 		{
 			func(*iter);
-		}
-	}
-	else {
-		for (std::map < std::string, FunctionInfo* >::iterator iter = get_context().functions.begin(); iter != get_context().functions.end(); iter++)
-		{
-			if (boost::starts_with(iter->first, module_name + "::"))
-			{
-				func(*iter);
-			}
 		}
 	}
 }

@@ -132,8 +132,10 @@ void regen_arraybuilder(FunctionInfo * finfo, ParseNode & array_builder) {
 			arr_decl += make_str_list(argtable.begin(), argtable.end(), [&](ParseNode * p) {
 				ParseNode & elem = *p;
 				if (elem.get_token() == TokenMeta::NT_HIDDENDO) {
-					SliceBoundInfo lb_size = get_lbound_size_from_hiddendo(finfo, elem);
-					std::string lb_size_str = gen_lbound_size_str(get<0>(lb_size).begin(), get<0>(lb_size).end(), get<1>(lb_size).begin(), get<1>(lb_size).end());
+
+					vector<ParseNode *> hiddendo_layer = get_nested_hiddendo_layers(elem);
+					SliceBoundInfo lb_size = get_lbound_size_from_hiddendo(finfo, elem, hiddendo_layer);
+					std::string lb_size_str = gen_sliceinfo_str(get<0>(lb_size).begin(), get<0>(lb_size).end(), get<1>(lb_size).begin(), get<1>(lb_size).end());
 					regen_exp(finfo, elem);
 					std::string lambda = elem.get_what();
 					sprintf(codegen_buf, "make_init_list(%s, %s)", lb_size_str.c_str(), lambda.c_str());

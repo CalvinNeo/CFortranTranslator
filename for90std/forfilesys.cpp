@@ -148,6 +148,12 @@ namespace for90std {
 			mode = flag_replace + flag_rw;
 		}
 		filenos[unit] = fopen(file.get().c_str(), mode.c_str());
+		if (filenos[unit] == 0)
+		{
+			// if not exist then create
+			filenos[unit] = fopen(file.get().c_str(), "w+");
+		}
+		nop();
 	}
 	void forclosefile(foroptional<int> unit, foroptional<int> iostat, foroptional<forlabel> err, foroptional<std::string> status) {
 		if (!forfilesys_inited) flush_fileno();

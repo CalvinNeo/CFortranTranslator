@@ -48,7 +48,7 @@ static void update_flex(int len) {
 }
 static void update_flex() {
 	// do not update CurrentTerm
-	update_flex(yyleng);
+	update_flex((int)yyleng);
 }
 std::string CutString(std::string::iterator & b, std::string::iterator e, bool save, char jmp = ' ');
 
@@ -438,7 +438,7 @@ static int word_parse(const char * origin_yytext) {
 		return YY_IGNORE_THIS;
 	}
 	string lowercase_name = string(origin_yytext);
-	int len = lowercase_name.size();
+	int len = (int)lowercase_name.size();
 	//assert(yyleng == len);
 	transform(lowercase_name.begin(), lowercase_name.end(), lowercase_name.begin(), tolower); 
 FIND_CONCAT:

@@ -66,7 +66,7 @@ void regen_exp(FunctionInfo * finfo, ParseNode & exp) {
 	}
 	else if (exp.get_token() == TokenMeta::NT_HIDDENDO)
 	{
-		regen_hiddendo_expr(finfo, exp);
+		regen_hiddendo_exprex(finfo, exp);
 	}
 	else if (exp.get_token() == TokenMeta::Comments)
 	{

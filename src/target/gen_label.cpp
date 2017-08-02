@@ -36,7 +36,8 @@ void log_format_index(std::string format_index, ARG_IN format) {
 	get_context().labels[format_index] = format;
 }
 
-ParseNode require_format_index(std::string format_index) {
+ParseNode require_format_index(FunctionInfo * finfo, std::string format_index) {
 	// read/write 语句可以直接使用format语句的行号作为参数
-	return get_context().labels[format_index];
+	sprintf(codegen_buf, "LABEL_%s_%s", finfo->local_name.c_str(), format_index.c_str());
+	return get_context().labels[string(codegen_buf)];
 }

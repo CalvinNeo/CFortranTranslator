@@ -64,6 +64,21 @@ namespace for90std {
 			std::copy_n(x.sz, dim, sz);
 			std::copy_n(x.cur, dim, cur);
 		}
+		//IOLambda() {
+
+		//}
+		//IOLambda & operator=(const IOLambda & x) {
+		//	if (this == &x) return *this;
+		//	dim = x.dim;
+		//	cur_dim = x.cur_dim;
+		//	lb = new fsize_t[dim];
+		//	sz = new fsize_t[dim];
+		//	cur = new fsize_t[dim];
+		//	std::copy_n(x.lb, dim, lb);
+		//	std::copy_n(x.sz, dim, sz);
+		//	std::copy_n(x.cur, dim, cur);
+		//	return *this;
+		//}
 		~IOLambda() {
 			if (lb != nullptr)
 			{
@@ -85,26 +100,22 @@ namespace for90std {
 			return _map_impl_has_next(cur, dim, lb, sz);
 		}
 		T get_next() const {
-			T ans;
+			std::function<T(void)> cps_retrieve;
 			auto newf = [&](fsize_t * _) {
 				// move from expiring value to `ans`
-				ans = std::move(f(_));
+				//ans = std::move(f(_));
+				T ans = f(_);
+				cps_retrieve = [=]() -> T {
+					return ans;
+				};
 			};
 			_map_impl_next(newf, cur, dim, cur_dim, lb, sz);
-			return ans;
+			return cps_retrieve();
 		}
-		//T & get_next() {
-		//	T * ptr = nullptr;
-		//	auto newf = [&](const fsize_t * _) {
-		//		// f(_) must return left-value
-		//		ptr = & f(_);
-		//	};
-		//	_map_impl_next(newf, cur, dim, cur_dim, lb, sz);
-		//	return *ptr;
-		//}
+		
 		int dim;
 		mutable int cur_dim;
-		fsize_t * lb = nullptr, * sz = nullptr, *cur = nullptr;
+		fsize_t * lb = nullptr, * sz = nullptr, * cur = nullptr;
 		F f;
 	};
 
@@ -138,10 +149,6 @@ namespace for90std {
 	IOStuff<Types...> make_iostuff(const std::tuple<Types...> & _tp) {
 		return IOStuff<Types...>(_tp);
 	}
-	//template<typename ... Types>
-	//IOStuff<Types...> make_iostuff(std::tuple<Types...> & _tp) {
-	//	return IOStuff<Types...>(_tp);
-	//}
 
 	struct IOFormat {
 		IOFormat(const char * ch) : reversion_start(0), p(0) {
@@ -488,16 +495,22 @@ RETURN_FRONT:
 	};
 	// read formatted step 1
 	template <typename T>
-	void _forread_dispatch(FILE * f, IOFormat & format, for1array<T> & x) {
-		_forread_one_arr1(f, format, x);
+	void _forread_dispatch(FILE * f, IOFormat & format, for1array<T> * x) {
+		_forread_one_arr1(f, format, *x);
 	};
 	template <typename T>
-	void _forread_dispatch(FILE * f, IOFormat & format, farray<T> & x) {
-		_forread_one_arrf(f, format, x);
+	void _forread_dispatch(FILE * f, IOFormat & format, farray<T> * x) {
+		_forread_one_arrf(f, format, *x);
 	};
 	template <typename T>
-	void _forread_dispatch(FILE * f, IOFormat & format, T & x) {
-		_forread_one(f, format, x);
+	void _forread_dispatch(FILE * f, IOFormat & format, T * x) {
+		_forread_one(f, format, *x);
+	};
+	template <typename ... Types>
+	void _forread_dispatch(FILE * f, IOFormat & format, typename IOStuff<Types...> & iostuff) {
+		foreach_tuple(iostuff.tp, [&](auto & x) {
+			_forread_dispatch(f, x);
+		});
 	};
 	template <typename T, typename F>
 	void _forread_dispatch(FILE * f, IOFormat & format, IOLambda<T, F> & l) {
@@ -509,24 +522,13 @@ RETURN_FRONT:
 
 	// read formatted step 0
 	template <typename T, typename... Args>
-	void forread(FILE * f, IOFormat & format, T & x, Args&&... args) {
+	void forread(FILE * f, IOFormat & format, T&& x, Args&&... args) {
 		_forread_dispatch(f, format, x);
 		forread(f, format, std::forward<Args>(args)...);
 	};
 
 	inline void forread(FILE * f, IOFormat & format) {
 	};
-	//template <typename T, typename... Args>
-	//void forread(FILE * f, const std::string & format, T & x, Args... args) {
-	//	IOFormat _format(format);
-	//	_forread_dispatch(f, _format, x);
-	//	forread(f, _format, std::forward<Args>(args)...);
-	//};
-	//template <typename T>
-	//void forread(FILE * f, const std::string & format, T & x) {
-	//	IOFormat _format(format);
-	//	_forread_dispatch(f, _format, x);
-	//};
 
 	// free format
 	// read free step 2
@@ -581,25 +583,25 @@ RETURN_FRONT:
 	};
 	// read free step 1
 	template <typename T>
-	void _forreadfree_dispatch(FILE * f, for1array<T> & x) {
-		_forreadfree_one_arr1(f, x);
+	void _forreadfree_dispatch(FILE * f, for1array<T> * x) {
+		_forreadfree_one_arr1(f, *x);
 	};
 	template <typename T>
-	void _forreadfree_dispatch(FILE * f, farray<T> & x) {
-		_forreadfree_one_arrf(f, x);
+	void _forreadfree_dispatch(FILE * f, farray<T> * x) {
+		_forreadfree_one_arrf(f, *x);
 	};
 	template <typename T>
-	void _forreadfree_dispatch(FILE * f, T & x) {
-		_forreadfree_one(f, x);
+	void _forreadfree_dispatch(FILE * f, T * x) {
+		_forreadfree_one(f, *x);
 	};
 	template <typename ... Types>
 	void _forreadfree_dispatch(FILE * f, typename IOStuff<Types...> & iostuff) {
 		foreach_tuple(iostuff.tp, [&](auto & x) {
-			 _forreadfree_dispatch(f, *x);
+			 _forreadfree_dispatch(f, x);
 		});
 	};
 	template <typename T, typename F>
-	void _forreadfree_dispatch(FILE * f, IOLambda<T, F> & l) {
+	void _forreadfree_dispatch(FILE * f, typename IOLambda<T, F> & l) {
 		while (l.has_next())
 		{
 			_forreadfree_dispatch(f, l.get_next());
@@ -607,15 +609,14 @@ RETURN_FRONT:
 	};
 	// read free step 0
 	template <typename T, typename... Args>
-	void forreadfree(FILE * f, T & x, Args &&... args) {
+	void forreadfree(FILE * f, T&& x, Args &&... args) {
 		_forreadfree_dispatch(f, x);
 		forreadfree(f, std::forward<Args>(args)...);
 	};
 	template <typename T>
-	void forreadfree(FILE * f, T & x) {
+	void forreadfree(FILE * f, T&& x) {
 		_forreadfree_dispatch(f, x);
 	};
-
 
 	void forrewind(int unit, foroptional<int> iostat, foroptional<forlabel> err);
 	void forbackspace(int unit, foroptional<int> iostat, foroptional<forlabel> err);	

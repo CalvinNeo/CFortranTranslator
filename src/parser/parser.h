@@ -167,9 +167,18 @@ void flattern_bin_inplace(ParseNode & pn, bool recursion_direction_right); // el
 struct ParseConfig {
 	bool for90 = true;
 	bool isdebug = false;
+	/***************
+	* source code from file/stdin
+	***************/
 	bool hasfile = false;
 	bool usefor = true;
 	bool usefarray = true;
+	/***************
+	* set true to add full qualifier for fortran's intrinsic functions
+	* e.g.
+	* for90std::forwritefree(...)
+	***************/
+	bool full_quali = false;
 };
 
 

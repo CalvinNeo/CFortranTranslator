@@ -94,6 +94,9 @@ std::string regen_stmt(FunctionInfo * finfo, ParseNode & stmt) {
 	*	compound_stmt				NT_IF, ...
 	*	implicit_stmt				ConfigImplicit
 	*	allocate_stmt				NT_ALLOCATE_STMT
+	*===============
+	* control_stmt include:
+	*	pause_stmt, stop_stmt, YY_CONTINUE, YY_RETURN, jump_stmt(YY_CYCLE, YY_EXIT, YY_GOTO)
 	***************/
 	std::string newsuitestr;
 	int comment_start = -1;
@@ -106,8 +109,13 @@ std::string regen_stmt(FunctionInfo * finfo, ParseNode & stmt) {
 	}
 	else if (stmt.get_token() == TokenMeta::NT_CONTROL_STMT) {
 		if (stmt.length() > 0 && stmt.get(0).get_token() == TokenMeta::Return) {
-			//sprintf(codegen_buf, "return %s;", finfo->funcdesc.declared_variables.back()->get_what().c_str());
 			newsuitestr += stmt.get_what();
+			newsuitestr += '\n';
+		}
+		else if (stmt.get(0).get_token() == TokenMeta::Goto)
+		{
+			sprintf(codegen_buf, "goto LABEL_%s_%s;", finfo->local_name.c_str(), stmt.get_what().c_str());
+			newsuitestr += string(codegen_buf);
 			newsuitestr += '\n';
 		}
 		else {

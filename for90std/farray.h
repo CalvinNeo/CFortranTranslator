@@ -263,7 +263,7 @@ namespace for90std {
 			// modify dimension because not all element of tp is slice, probably index instead
 			dimension = 0;
 			int dim;
-			for (auto i = 0; i < X; i++)
+			for (int i = 0; i < X; i++)
 			{
 				if ((tp[i]).isslice)
 				{
@@ -280,7 +280,7 @@ namespace for90std {
 			else {
 				// lower bound of each dimension(new array)
 				dim = 0;
-				for (auto i = 0; i < X; i++)
+				for (int i = 0; i < X; i++)
 				{
 					if ((tp[i]).isslice)
 					{
@@ -290,7 +290,7 @@ namespace for90std {
 			}
 			// size of each dimension(new array)
 			dim = 0;
-			for (auto i = 0; i < X; i++)
+			for (int i = 0; i < X; i++)
 			{
 				if ((tp[i]).isslice)
 				{
@@ -451,19 +451,24 @@ template <typename size_type>
 static bool _map_impl_has_next(size_type * cur, int dimension, const size_type * LBound, const size_type * size) {
 	for (int i = 0; i < dimension; i++)
 	{
-		if (cur[i] < LBound[i] + size[i])
+		fsize_t ub_i = LBound[i] + size[i] - 1;
+		if (cur[i] >= LBound[i] + size[i])
 		{
-			return true;
+			return false;
 		}
 	}
-	return false;
+	return true;
 }
 template <typename F, typename size_type>
 static bool _map_impl_next(F f, size_type * cur, int dimension, int & cur_dim, const size_type * LBound, const size_type * size) {
 	/***************
+	*	cur must be valid
 	*	return false:	the end of iteration
 	*	return true:	continue iteration
 	***************/
+	// perform `f` once
+	f(cur);
+	cur[cur_dim] ++;
 	if (cur[cur_dim] < LBound[cur_dim] + size[cur_dim])
 	{
 		// if index of this deiension haven't touch its upper bound
@@ -487,9 +492,6 @@ static bool _map_impl_next(F f, size_type * cur, int dimension, int & cur_dim, c
 		std::copy_n(LBound, cur_dim, cur); // reset cur before dim
 		cur_dim = 0;
 	}
-	// perform `f` once
-	f(cur);
-	cur[cur_dim] ++;
 	return true;
 }
 template <typename F, typename size_type>
