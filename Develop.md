@@ -104,13 +104,13 @@ their replacement occur in following stages:
 
 2. Step 2:
 
-    the first loop of `gen_joined_declarations`
+    in `regen_all_variables`
 
     enumerate all `VariableInfo` of this suite several times UNTIL ALL VARIABLES ARE GENERATED(`.generate` = true), call `regen_vardef`
 
 3. Step 3:
 
-    the second loop of `gen_joined_declarations`
+    in `regen_all_variables_str`
 
     join generated codes of Step 2, depending whether this variable is common block
 

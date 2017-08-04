@@ -44,6 +44,8 @@ struct FunctionInfo {
 	std::string local_name; // name can only set by add_function
 	std::string result_name;
 	FunctionDesc funcdesc;
+	ParseNode * suite;
+	ParseNode * node;
 	TokenMeta_T implicit_type_config[256];
 	FunctionInfo() {
 		std::fill_n(implicit_type_config, 256, TokenMeta::Double_Decl);
@@ -51,6 +53,9 @@ struct FunctionInfo {
 		{
 			implicit_type_config[i] = TokenMeta::Int_Decl;
 		}
+	}
+	bool is_subroutine() const {
+		return result_name == "";
 	}
 };
 /******************
@@ -64,5 +69,4 @@ typedef std::tuple<std::string, std::string, std::string> KeywordParamInfo;
 FunctionInfo * get_function(std::string module_name, std::string function_name);
 FunctionInfo * add_function(std::string module_name, std::string function_name, const FunctionInfo & func);
 void forall_function_in_module(std::string module_name, std::function<void(std::pair<std::string, FunctionInfo *>)> func);
-void insert_temporary_functions(std::string module_name);
 void clear_functions();

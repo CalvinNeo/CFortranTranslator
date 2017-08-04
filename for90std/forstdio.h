@@ -244,6 +244,13 @@ RETURN_FRONT:
 			return editing;
 		}
 
+		void end_this_line() {
+			size_t st = index();
+			while (st < fmt.size() && fmt[st] != '\n') {
+				index() = index()+1;
+			}
+		}
+
 		int reversion_start;
 		mutable size_t p;
 		std::string fmt;
@@ -272,6 +279,12 @@ RETURN_FRONT:
 		_forwrite_noargs(f, format);
 		std::string ed = format.next_editing();
 		fprintf(f, ed.c_str(), x);
+	};
+	inline void _forwrite_one(FILE * f, IOFormat & format, const std::string & x) {
+		// strip front
+		_forwrite_noargs(f, format);
+		std::string ed = format.next_editing();
+		fprintf(f, ed.c_str(), x.c_str());
 	};
 	template <typename T>
 	void _forwrite_one_arr1(FILE * f, IOFormat & format, const T & x) {
@@ -469,7 +482,8 @@ RETURN_FRONT:
 		fscanf(f, _format.c_str(), &x);
 	}
 	inline void _str_fscanf(FILE * f, const std::string & _format, std::string & x) {
-		std::cin >> x;
+		std::ifstream ifs(f);
+		ifs >> x;
 	}
 
 	// read formatted step 2
@@ -478,6 +492,13 @@ RETURN_FRONT:
 		// strip front
 		_forread_noargs(f, format);
 		fscanf(f, format.next_editing().c_str(), &x);
+	};
+	inline void _forread_one(FILE * f, IOFormat & format, std::string & x) {
+		// strip front
+		_forread_noargs(f, format);
+		format.next_editing();
+		std::ifstream ifs(f);
+		ifs >> x;
 	};
 	template <typename T>
 	void _forread_one_arr1(FILE * f, IOFormat & format, for1array<T> & x) {

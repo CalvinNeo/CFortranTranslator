@@ -113,19 +113,21 @@ ParseNode gen_function(ARG_IN variable_function, ARG_IN paramtable, ARG_IN varia
 	return newnode;
 }
 
-void regen_function(FunctionInfo * finfo, ParseNode & functiondecl_node) {
-	/****************
-	*	fortran90 does not declare type of arguments in function declaration statement
-	*****************/
+void regen_function_1(FunctionInfo * finfo, ParseNode & functiondecl_node) {
 	ParseNode & variable_function = functiondecl_node.get(1);
 	assert(variable_function.get_what() == finfo->local_name);
 	ParseNode & kvparamtable = functiondecl_node.get(2);
 	ParseNode & result_variable = functiondecl_node.get(3);
 	ParseNode & suite = functiondecl_node.get(4);
-	ParseNode & oldsuite = suite;
+
 	finfo->result_name = result_variable.get_what();
-	bool is_subroutine = finfo->result_name == "";
-	
+	finfo->suite = &suite;
+	finfo->node = &functiondecl_node;
+	ParseNode & oldsuite = *finfo->suite;
+
+	// log function and set attr 
+	functiondecl_node.setattr(new FunctionAttr(finfo));
+
 	/****************
 	* compose parameter list
 	*****************/
@@ -133,15 +135,16 @@ void regen_function(FunctionInfo * finfo, ParseNode & functiondecl_node) {
 	for (auto iter = kvparamtable.begin(); iter < kvparamtable.end(); iter++)
 	{
 		/****************
-		* `check_implicit_variable` is IMPORTANT here, 
+		* `check_implicit_variable` is IMPORTANT here,
 		*	to prevent situation that
-		*	a variable is only used in parameter list, 
+		*	a variable is only used in parameter list,
 		*	and not appear in function body(so it will not checked by `regen_exp`)
 		*****************/
-		ParseNode & p = *(*iter);
-		check_implicit_variable(finfo, p.get_what());
+		ParseNode * p = *iter;
+		ParseNode & pn = *p;
+		check_implicit_variable(finfo, pn.get_what());
 		// refer to function suite and determine type of params
-		paramtable_info.push_back(p.get_what());
+		paramtable_info.push_back(pn.get_what());
 	}
 	/****************
 	* create a placeholder for return variable
@@ -151,35 +154,46 @@ void regen_function(FunctionInfo * finfo, ParseNode & functiondecl_node) {
 	*	then error will occurred, code like `double ;` will be generated
 	*================
 	* push result variable to the back of the paramtable_info stack
-	* type of result variable is set by default `void`, 
+	* type of result variable is set by default `void`,
 	*	so if this subprogram is a subroutine with no result variable,
 	*	it'll set by default `void`
 	*****************/
-	if (is_subroutine)
+	if (finfo->is_subroutine())
 	{
 	}
 	else {
 		check_implicit_variable(finfo, result_variable.get_what());
 	}
-	paramtable_info.push_back(result_variable.get_what()); 
+	paramtable_info.push_back(result_variable.get_what());
 
 	// regen_suite
 	regen_suite(finfo, oldsuite);
+}
+
+void regen_function_2(FunctionInfo * finfo) {
+	ParseNode & oldsuite = *finfo->suite;
+	ParseNode & decl_node = *finfo->node;
+
+	regen_all_variables_str(finfo, oldsuite);
 
 	// gen signature
 	std::string signature = gen_function_signature(finfo);
-	
+
 	// generate function code 
 	sprintf(codegen_buf, "%s\n{\n%s\treturn %s;\n}\n"
 		, signature.c_str()
 		, tabber(oldsuite.to_string()).c_str() // code
-		, (is_subroutine ? "" : finfo->result_name.c_str()) // add return stmt if not function
+		, (finfo->is_subroutine() ? "" : finfo->result_name.c_str()) // add return stmt if not function
 	);
-	functiondecl_node.get_what() = string(codegen_buf);
+	decl_node.get_what() = string(codegen_buf);
+}
 
-	// log function and set attr 
-	functiondecl_node.setattr(new FunctionAttr(finfo));
-
+void regen_function(FunctionInfo * finfo, ParseNode & functiondecl_node) {
+	/****************
+	*	fortran90 does not declare type of arguments in function declaration statement
+	*****************/
+	regen_function_1(finfo, functiondecl_node);
+	regen_function_2(finfo);
 	return;
 }
 

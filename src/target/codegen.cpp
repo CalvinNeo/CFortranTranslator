@@ -37,6 +37,7 @@ TranslateContext & get_context() {
 
 void do_trans(const std::string & src) {
 	get_context().global_code = src;
+	reset_parser();
 	parse(get_context().global_code);
 	get_context().program_tree.get_what() = gen_header().to_string() + get_context().program_tree.to_string();
 }

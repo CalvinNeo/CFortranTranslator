@@ -122,14 +122,14 @@ void regen_read(FunctionInfo * finfo, ParseNode & stmt) {
 	const ParseNode & io_info = stmt.get(0);
 	ParseNode & argtable = stmt.get(1);
 	string device = io_info.get(0).to_string();
-	bool is_stdio = (device == "-1" || device == "");
+	bool is_stdio = (device == "-1" || device == "" || device == "0");
 	std::string argtable_str = gen_io_argtable_strex(finfo, argtable, "read", io_info.get(1).get_token() == TokenMeta::NT_AUTOFORMATTER);
 
 	if (argtable.length() == 0)
 	{
 		// a read-stmt without args are intented to pause
 		// e.g. `read(*,*)`
-		sprintf(codegen_buf, "system(\"pause\");\n");
+		sprintf(codegen_buf, "stop();\n");
 	}
 	else if (io_info.get(1).get_token() == TokenMeta::NT_AUTOFORMATTER) {
 		if (is_stdio) {
@@ -171,7 +171,7 @@ void regen_write(FunctionInfo * finfo, ParseNode & stmt) {
 	const ParseNode & io_info = stmt.get(0);
 	ParseNode & argtable = stmt.get(1);
 	string device = io_info.get(0).to_string();
-	bool is_stdio = (device == "-1" || device == "");
+	bool is_stdio = (device == "-1" || device == "" || device == "0");
 	std::string argtable_str = gen_io_argtable_strex(finfo, argtable, "write", io_info.get(1).get_token() == TokenMeta::NT_AUTOFORMATTER);
 	if (io_info.get(1).get_token() == TokenMeta::NT_AUTOFORMATTER) {
 		if (is_stdio) {
@@ -225,10 +225,6 @@ void regen_print(FunctionInfo * finfo, ParseNode & stmt) {
 	}
 	stmt.fs.CurrentTerm = Term{ TokenMeta::NT_PRINT_STMT, string(codegen_buf) };
 	return;
-}
-ParseNode gen_format(ARG_IN format) {
-	ParseNode newnode = gen_token(Term{ TokenMeta::NT_FORMAT, "\"" + format.to_string() + "\"" }, format);
-	return newnode;
 }
 
 //10.1.1 FORMAT statement

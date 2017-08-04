@@ -153,10 +153,11 @@ Inside `IOStuff` is a `std::tuple`, `foreach_tupe(iostuff.tup)` can enumerate co
 read/write a `IOStuff` is to read/write every element of `IOStuff` in order
 
 #### IOFormat
-``IOFormat{std::string formatter, int reversion_start}`
+`IOFormat{std::string formatter, int reversion_start}`
 
-`formatter` is generate from fortran's format
-`reversion_start` is a value computed by compiler, it shows index of char when the whole length of format is proceeded(ref. 10.3)
+- `formatter` is generated from fortran's format
+
+- `reversion_start` is a value computed by compiler, it shows index of char when the whole length of format is proceeded(ref. 10.3)
 
 #### IOLambda
 

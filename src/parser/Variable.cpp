@@ -47,6 +47,13 @@ VariableInfo * add_variable(std::string module_name, std::string function_name, 
 }
 
 
+VariableInfo * redirect_variable(std::string module_name, std::string function_name, std::string variable_name, VariableInfo * dest_vinfo) {
+	std::string fullname = module_name + "::" + function_name + "::" + variable_name;
+	delete_variable(module_name, function_name, variable_name);
+	get_context().variables[fullname] = dest_vinfo;
+	return dest_vinfo;
+}
+
 void delete_variable(std::string module_name, std::string function_name, std::string variable_name) {
 	VariableInfo * vinfo = get_variable(module_name, function_name, variable_name);
 	delete vinfo;

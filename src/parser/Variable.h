@@ -153,11 +153,26 @@ struct VariableInfo
 
 struct CommonBlockInfo {
 	std::string common_name;
-	std::vector<VariableInfo> variables;
+	std::vector<VariableInfo *> variables;
+	bool elsewhere_decl = false;
+	CommonBlockInfo() {
+
+	}
+	CommonBlockInfo(std::string name) : common_name(name) {
+
+	}
+	CommonBlockInfo(std::string name, const std::vector<VariableInfo *> & vars) : common_name(name), variables(vars) {
+
+	}
+	~CommonBlockInfo() {
+		// do not delete variables
+		// they are observer pointers to get_context.variables
+	}
 };
 
 VariableInfo * get_variable(std::string module_name, std::string function_name, std::string variable_name);
 VariableInfo * add_variable(std::string module_name, std::string function_name, std::string variable_name, const VariableInfo & variable);
+VariableInfo * redirect_variable(std::string module_name, std::string function_name, std::string variable_name, VariableInfo * dest_vinfo);
 void delete_variable(std::string module_name, std::string function_name, std::string variable_name);
 void forall_variable_in_function(std::string module_name, std::string function_name, std::function<void(std::pair<std::string, VariableInfo *>)> func);
 void clear_variables();

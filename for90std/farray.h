@@ -84,7 +84,9 @@ namespace for90std {
 			auto it = begin();
 			for (size_type i = 0; i < X; i++)
 			{
-				it += (index[i] - lb[i]) * delta[i];
+				size_type off = index[i] - lb[i];
+				assert(off >= 0);
+				it += (off) * delta[i];
 			}
 			return *it;
 		}
@@ -95,7 +97,9 @@ namespace for90std {
 			auto it = cbegin();
 			for (size_type i = 0; i < X; i++)
 			{
-				it += (index[i] - lb[i]) * delta[i];
+				size_type off = index[i] - lb[i];
+				assert(off >= 0);
+				it += (off) * delta[i];
 			}
 			return *it;
 		}
@@ -107,7 +111,9 @@ namespace for90std {
 			size_t i = 0;
 			for (Iterator iter = index_from; iter < index_to; iter++, i++)
 			{
-				it += (*iter - lb[i]) * delta[i];
+				size_type off = *iter - lb[i];
+				assert(off >= 0);
+				it += (off) * delta[i];
 			}
 			return *it;
 		}
@@ -119,7 +125,9 @@ namespace for90std {
 			size_t i = 0;
 			for (Iterator iter = index_from; iter < index_to; iter++, i++)
 			{
-				it += (*iter - lb[i]) * delta[i];
+				size_type off = *iter - lb[i];
+				assert(off >= 0);
+				it += (off) * delta[i];
 			}
 			return *it;
 		}

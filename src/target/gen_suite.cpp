@@ -19,12 +19,12 @@
 
 #include "gen_common.h"
 
-vector<ParseNode *> get_all_commons(FunctionInfo * finfo, ParseNode & suite) {
+std::vector<ParseNode *> get_all_commons(FunctionInfo * finfo, ParseNode & suite) {
 	/*****
 	* find out all var_def and interface-function nodes
 	* NOT including implicit declared variables
 	*****/
-	vector<ParseNode *> declared_commons;
+	std::vector<ParseNode *> declared_commons;
 	for (int i = 0; i < suite.length(); i++)
 	{
 		ParseNode & stmti = suite.get(i);
@@ -43,7 +43,7 @@ void regen_suite(FunctionInfo * finfo, ParseNode & oldsuite, bool is_partial) {
 	****/
 	std::string newsuitestr;
 
-
+	// regen format
 	if (oldsuite.get_token() == TokenMeta::NT_SUITE)
 	{
 		for (int i = 0; i < oldsuite.length(); i++)
@@ -76,6 +76,7 @@ void regen_suite(FunctionInfo * finfo, ParseNode & oldsuite, bool is_partial) {
 		}
 	}
 
+	// regen other stmt
 	if (oldsuite.get_token() == TokenMeta::NT_SUITE)
 	{
 		for (int i = 0; i < oldsuite.length(); i++)
@@ -122,12 +123,15 @@ void regen_suite(FunctionInfo * finfo, ParseNode & oldsuite, bool is_partial) {
 	}
 	if (!is_partial)
 	{
-		newsuitestr = gen_joined_declarations(finfo, oldsuite) + newsuitestr;
+
+		regen_all_variables(finfo, oldsuite);
+		//newsuitestr = regen_all_variables_str(finfo, oldsuite) + newsuitestr;
 	}
+	// currently without all decls
 	oldsuite.get_what() = newsuitestr;
 }
 
-std::string gen_joined_declarations(FunctionInfo * finfo, ParseNode & oldsuite) {
+void regen_all_variables(FunctionInfo * finfo, ParseNode & oldsuite) {
 	/**********************************
 	*	for all variables used in the subprogram, cal regen_vardef to generate their code
 	*	there're 2 cases:
@@ -172,16 +176,28 @@ std::string gen_joined_declarations(FunctionInfo * finfo, ParseNode & oldsuite) 
 					all_generated = false;
 					if (p.second->commonblock_name != "") {
 						// this variable is defined in common block
-						regen_vardef(finfo, vinfo);
 
 						// set common
-						CommonBlockInfo & common_info = get_commonblock(vinfo->commonblock_name);
+						CommonBlockInfo * common_info = get_commonblock(vinfo->commonblock_name);
+						if (common_info == nullptr)
+						{
+							common_info = add_commonblock(vinfo->commonblock_name);
+						}
 						// set CommonBLockInfo.variable
-						VariableInfo & commonblock_vinfo = common_info.variables[vinfo->commonblock_index];
+						VariableInfo * commonblock_vinfo = common_info->variables[vinfo->commonblock_index];
 						// do not set `desc.reference = true;`, it is later set by `gen_qualified_typestr`
-						commonblock_vinfo.desc = desc;
-						commonblock_vinfo.type = local_type;
-						commonblock_vinfo.vardef_node = vinfo->vardef_node;
+						if (!common_info->elsewhere_decl)
+						{
+							commonblock_vinfo->desc = desc;
+							commonblock_vinfo->type = local_type;
+							commonblock_vinfo->vardef_node = vinfo->vardef_node;
+						}
+						else {
+							// this `vinfo` is actually overwrite by `commonblock_vinfo`
+							// however, we don't do this here. we do this at the end, to cover all occurrence.
+						}
+
+						regen_vardef(finfo, vinfo);
 					}
 					else if (vinfo->vardef_node == nullptr) {
 						// implicit definition
@@ -202,6 +218,11 @@ std::string gen_joined_declarations(FunctionInfo * finfo, ParseNode & oldsuite) 
 	*	it should not have declaration in function body(which is different from fortran)	
 	***********************************/
 	get_full_paramtable(finfo);
+	return ;
+}
+
+void regen_all_variables_str(FunctionInfo * finfo, ParseNode & oldsuite) {
+
 	/**********************************
 	*	join declarations of all variables together
 	***********************************/
@@ -209,9 +230,6 @@ std::string gen_joined_declarations(FunctionInfo * finfo, ParseNode & oldsuite) 
 	forall_variable_in_function(get_context().current_module, finfo->local_name, [&](const std::pair<std::string, VariableInfo *> & p) {
 		VariableInfo * vinfo = p.second;
 		string local_name = vinfo->local_name;
-		ParseNode & entity_variable = vinfo->entity_variable;
-		VariableDesc & desc = vinfo->desc;
-		ParseNode & local_type = vinfo->type;
 
 		if (p.second->declared)
 		{
@@ -220,20 +238,35 @@ std::string gen_joined_declarations(FunctionInfo * finfo, ParseNode & oldsuite) 
 		else {
 			if (p.second->commonblock_name != "") {
 				// this variable is defined in common block
-				std::string common_varname = "_" + to_string(vinfo->commonblock_index + 1);
-				if (vinfo->desc.reference == true)
+				CommonBlockInfo * commonblock = get_commonblock(vinfo->commonblock_name);
+				if (commonblock == nullptr)
 				{
-					sprintf(codegen_buf, "%s %s = BLOCK_%s.%s;\n", gen_qualified_typestr(local_type, desc, false).c_str()
+					commonblock = add_commonblock(vinfo->commonblock_name);
+				}
+				/**********************************
+				* USE commonblock def
+				***********************************/
+				VariableInfo * commonblock_vinfo = commonblock->variables[vinfo->commonblock_index];
+				ParseNode & type = commonblock_vinfo->type;
+				VariableDesc & desc = commonblock_vinfo->desc;
+				ParseNode & entity_variable = commonblock_vinfo->entity_variable;
+				std::string common_varname = "_" + to_string(vinfo->commonblock_index + 1);
+				if (commonblock_vinfo->desc.reference == true)
+				{
+					sprintf(codegen_buf, "%s %s = BLOCK_%s.%s;\n", gen_qualified_typestr(type, desc, false).c_str()
 						, local_name.c_str(), vinfo->commonblock_name.c_str(), common_varname.c_str());
 				}
 				else {
-					sprintf(codegen_buf, "%s & %s = BLOCK_%s.%s;\n", gen_qualified_typestr(local_type, desc, false).c_str()
+					sprintf(codegen_buf, "%s & %s = BLOCK_%s.%s;\n", gen_qualified_typestr(type, desc, false).c_str()
 						, local_name.c_str(), vinfo->commonblock_name.c_str(), common_varname.c_str());
 				}
 			}
 			else {
 				// normal definition and implicit definition
-				if (vinfo->type.get_token() == TokenMeta::Function)
+				ParseNode & local_type = vinfo->type;
+				VariableDesc & desc = vinfo->desc;
+				ParseNode & entity_variable = vinfo->entity_variable;
+				if (local_type.get_token() == TokenMeta::Function)
 				{
 					// interface
 					sprintf(codegen_buf, "");
@@ -245,9 +278,9 @@ std::string gen_joined_declarations(FunctionInfo * finfo, ParseNode & oldsuite) 
 			variable_declarations += string(codegen_buf);
 		}
 	});
-	return variable_declarations;
+	oldsuite.get_what() = variable_declarations + oldsuite.get_what();
+	return;
 }
-
 
 ParseNode gen_suite(ARG_IN item, ARG_IN list) {
 	/*******************

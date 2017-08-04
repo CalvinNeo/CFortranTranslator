@@ -105,6 +105,8 @@ void regen_write(FunctionInfo * finfo, ParseNode & stmt);
 void regen_print(FunctionInfo * finfo, ParseNode & stmt);
 std::string regen_vardef(FunctionInfo * finfo, VariableInfo * vinfo, std::string alias_name = "", bool save_to_node = true);
 void regen_function(FunctionInfo * finfo, ParseNode & functiondecl_node);
+void regen_function_1(FunctionInfo * finfo, ParseNode & functiondecl_node);
+void regen_function_2(FunctionInfo * finfo);
 void regen_select(FunctionInfo * finfo, ParseNode & select_stmt);
 void regen_if(FunctionInfo * finfo, ParseNode & if_stmt);
 void regen_elseif(FunctionInfo * finfo, ParseNode & elseif_stmt);
@@ -112,7 +114,8 @@ void regen_do(FunctionInfo * finfo, ParseNode & do_stmt);
 void regen_do_range(FunctionInfo * finfo, ParseNode & do_stmt);
 void regen_do_while(FunctionInfo * finfo, ParseNode & do_stmt);
 void regen_simple_stmt(FunctionInfo * finfo, ParseNode & stmt);
-std::string gen_joined_declarations(FunctionInfo * finfo, ParseNode & oldsuite);
+void regen_all_variables(FunctionInfo * finfo, ParseNode & oldsuite);
+void regen_all_variables_str(FunctionInfo * finfo, ParseNode & oldsuite);
 void regen_suite(FunctionInfo * finfo, ParseNode & oldsuite, bool is_partial = false);
 std::string regen_stmt(FunctionInfo * finfo, ParseNode & stmt);
 void regen_arraybuilder(FunctionInfo * finfo, ParseNode & arraybuilder);
@@ -198,7 +201,6 @@ std::string gen_qualified_typestr(const ParseNode & type_spec, VariableDesc & va
 // label
 void log_format_index(std::string format_index, ARG_IN format);
 ParseNode require_format_index(FunctionInfo * finfo, std::string format_index);
-ParseNode gen_format(ARG_IN format);
 
 // copyrights
 std::string gen_rights(std::string filename, std::string author);
@@ -209,7 +211,8 @@ ParseNode gen_common_definition(std::string common_name);
 ParseNode gen_common(ARG_IN commonname_node, ARG_IN paramtable);
 VariableInfo * check_implicit_variable(FunctionInfo * finfo, const std::string & name);
 ParseNode gen_comment(std::string comment, bool line_comment = true);
-CommonBlockInfo & get_commonblock(std::string commonblock_name);
+CommonBlockInfo * add_commonblock(std::string commonblock_name);
+CommonBlockInfo * get_commonblock(std::string commonblock_name);
 
 // function decl
 ParseNode gen_function(ARG_IN variable_function, ARG_IN paramtable, ARG_IN variable_result, ARG_IN suite);

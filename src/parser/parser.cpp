@@ -28,9 +28,18 @@
 #include <cstdio>
 
 void reset_parser() {
-	get_context().func_kwargs = sysfunc_args;
-	get_context().labels.clear();
+	get_context().reset_context();
+}
+
+void TranslateContext::reset_context() {
+	// TODO clear_commonblocks
+	labels.clear();
 	clear_variables();
+	// TODO clear_functions
+	func_kwargs = sysfunc_args;
+
+	// global
+	add_function("", "", FunctionInfo{});
 }
 
 void ParseNode::setattr(ParseAttr * pa) {

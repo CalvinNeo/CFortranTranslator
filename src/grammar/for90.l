@@ -139,7 +139,7 @@ struct FlexExternalCondition : public FlexCondition {
 			}
 			else if (tolower( text[0] ) == 'h' && !in_str) {
 				// h-editing
-				int num_s = code.size() - 1;
+				int num_s = (int)code.size() - 1;
 				while (num_s > 0 && !(code[num_s] >= '0' && code[num_s] <= '9')) {
 					num_s--;
 				}

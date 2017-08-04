@@ -138,6 +138,13 @@ void rewind_backspace(){
 	stop();
 }
 
+void test_read_string() {
+	string rr = "";
+	forread(get_file(5), IOFormat{ "%80s\n", 0 }, &rr);
+	forprintfree(rr);
+	stop();
+}
+
 void test_error(){
 	//auto f = [&](const fsize_t * current) {
 	//	const IOStuff<int, int> & iost = [&](fsize_t j) {

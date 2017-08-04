@@ -154,27 +154,34 @@ std::string regen_stmt(FunctionInfo * finfo, ParseNode & stmt) {
 					bool new_variable = (vinfo == nullptr);
 					if (!new_variable && vinfo->commonblock_name != "")
 					{
-						// actually use common block decl
-						vinfo->desc.merge(get_variabledesc_attr(vardescattr));
+						// if this variable is already defined in a common block statement
+						// NT_VARIABLEDEFINE have priority over common block
+						CommonBlockInfo * commonblock_info = get_commonblock(vinfo->commonblock_name);
+						if (commonblock_info == nullptr)
+						{
+							sprintf(codegen_buf, "variable %s require common block %s which is not exist", vinfo->local_name.c_str(), vinfo->commonblock_name.c_str());
+							fatal_error(string(codegen_buf), vardef_node);
+						}
+						VariableInfo * commonblock_vinfo = commonblock_info->variables[vinfo->commonblock_index];
+						//if (!vinfo->implicit_defined)
+						//{
+							commonblock_vinfo->type = type_nospec;
+							commonblock_vinfo->desc.merge(get_variabledesc_attr(vardescattr));
+							commonblock_vinfo->entity_variable = entity_variable;
+							commonblock_info->elsewhere_decl = true;
+						//}
 					}
 					else if (!new_variable)
 					{
 						// actually use interface decl
 					}
 					else if(vinfo == nullptr){
-						// `regen_vardef` will be called in `gen_joined_declarations`
+						// `regen_vardef` will be called in `regen_all_variables`
 						vinfo = add_variable(get_context().current_module, finfo->local_name, name, VariableInfo{});
 						vinfo->commonblock_index = 0; 
 						vinfo->commonblock_name = ""; 
 					}
-					if (is_function_array(entity_variable))
-					{
-						
-					}
-					else if (entity_variable.get_token() == TokenMeta::NT_EXPRESSION)
-					{
 
-					}
 					/*****************
 					* IMPORTANT
 					* must take care of duplicate decl
@@ -264,7 +271,7 @@ std::string regen_stmt(FunctionInfo * finfo, ParseNode & stmt) {
 				vinfo->desc = VariableDesc();
 				vinfo->implicit_defined = false;
 				vinfo->type = t;
-				vinfo->entity_variable = gen_vardef_from_default(t, "");
+				vinfo->entity_variable = gen_vardef_from_default(vinfo->type, "");
 				vinfo->vardef_node = &wrapper; 
 			}
 		}

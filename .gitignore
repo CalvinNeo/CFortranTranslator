@@ -64,3 +64,4 @@ presentation/
 /vsbuild/cpptest/E-S-V.DAT
 /vsbuild/cpptest/1
 ~m4*
+*.diagsession

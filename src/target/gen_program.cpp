@@ -59,7 +59,8 @@ void gen_fortran_program(ARG_IN wrappers) {
 			ParseNode & variable_function = wrapper.get(1);
 			/************
 			* IMPORTANT
-			* MUST call `add_function` to all functions, before call `regen_vardef` to any of the functions
+			* MUST call `add_function` to all functions
+			*	, before actually call `regen_function` or `regen_vardef` to any of the functions
 			*************/
 			FunctionInfo * finfo = add_function(get_context().current_module, variable_function.get_what(), FunctionInfo{});
 		}
@@ -71,25 +72,50 @@ void gen_fortran_program(ARG_IN wrappers) {
 			print_error("Unexpected wrappers");
 		}
 	}
+
+	// regen all subprogram's step 1
 	// subprogram code
+	get_context().current_module = "";
 	for (int i = 0; i < get_context().program_tree.length(); i++)
 	{
 		ParseNode & wrapper = get_context().program_tree.get(i); 
 		if(wrapper.get_token() == TokenMeta::NT_FUNCTIONDECLARE)
 		{
-			get_context().current_module = "";
 			ParseNode & variable_function = wrapper.get(1);
 			//printf("==================function: %s \n", variable_function.get_what().c_str());
 			FunctionInfo * finfo = get_function(get_context().current_module, variable_function.get_what());
-			regen_function(finfo, wrapper);
-			codes += wrapper.get_what();
+			regen_function_1(finfo, wrapper);
+		}
+	}
+	// main program code
+	regen_suite(program_info, script_program);
+
+	// regen common definition 
+	// this must before generate subprogram's code(`regen_function_2`)
+	std::string common_decls;
+	for (std::map<std::string, CommonBlockInfo *>::iterator iter = get_context().commonblocks.begin(); iter != get_context().commonblocks.end(); iter++)
+	{
+		string s = gen_common_definition(iter->first).get_what();
+		common_decls += s;
+	}
+
+	// regen all subprogram's step 2: generate subprogram's code
+	// subprogram code
+	for (int i = 0; i < get_context().program_tree.length(); i++)
+	{
+		ParseNode & wrapper = get_context().program_tree.get(i);
+		if (wrapper.get_token() == TokenMeta::NT_FUNCTIONDECLARE)
+		{
+			ParseNode & variable_function = wrapper.get(1);
+			FunctionInfo * finfo = get_function(get_context().current_module, variable_function.get_what());
+			regen_function_2(finfo);
+			codes += finfo->node->get_what();
 			codes += "\n";
 		}
 	}
 	// main program code
-	get_context().current_module = "";
-	regen_suite(program_info, script_program, false);
-	main_code += tabber(script_program.get_what());
+	regen_all_variables_str(program_info, script_program);
+	main_code = tabber(script_program.get_what());
 	sprintf(codegen_buf, "int main()\n{\n%s\treturn 0;\n}", main_code.c_str());
 	codes += string(codegen_buf);
 
@@ -99,7 +125,7 @@ void gen_fortran_program(ARG_IN wrappers) {
 		FunctionInfo * finfo;
 		std::tie(std::ignore, finfo) = pr;
 		std::string name = finfo->local_name;
-		if (name != "program")
+		if (name != "program" && name != "")
 		{
 			forward_decls += gen_function_signature(finfo);
 			forward_decls += ";\n";
@@ -107,13 +133,7 @@ void gen_fortran_program(ARG_IN wrappers) {
 	});
 	codes = forward_decls + codes;
 
-	// common definition
-	std::string common_decls;
-	for (std::map<std::string, CommonBlockInfo>::iterator iter = get_context().commonblocks.begin(); iter != get_context().commonblocks.end(); iter++)
-	{
-		string s = gen_common_definition(iter->first).get_what();
-		common_decls += s;
-	}
+	
 	codes = common_decls + codes;
 	get_context().program_tree.get_what() = codes;
 }

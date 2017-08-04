@@ -24,18 +24,19 @@
 
 
 struct TranslateContext {
-	std::string current_module = "@";
-	std::map < std::string, CommonBlockInfo> commonblocks;
+	std::string current_module;
+	std::map < std::string, CommonBlockInfo *> commonblocks;
 	std::map < std::string, ParseNode > labels;
 	std::map < std::string, VariableInfo * > variables;
 	std::map < std::string, FunctionInfo * > functions;
-	std::map < std::string, FunctionInfo * > temporary_functions;
 	std::map<std::string, std::vector<KeywordParamInfo>> func_kwargs;
 	ParseNode program_tree;
 	std::string global_code;
 	ParseConfig parse_config;
 	std::map<std::string, std::vector<std::string> > end_labels; // (lineno, blockname)
 	bool inited;
+
+	void reset_context();
 };
 
 

@@ -929,7 +929,9 @@ using namespace std;
 			}
 		| YY_FORMAT_STMT
 			{
-				$$ = RETURN_NT(gen_format(YY2ARG($1)));
+				ARG_IN format = YY2ARG($1);
+				ParseNode newnode = gen_token(Term{ TokenMeta::NT_FORMAT, "\"" + format.to_string() + "\"" }, format);
+				$$ = RETURN_NT(newnode);
 				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($1));
 				CLEAN_RIGHT($1);
 			}
