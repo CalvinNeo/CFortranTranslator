@@ -1,7 +1,4 @@
-subroutine sub()
-	common /cc/ nv
-	dimension nv(100)
-end subroutine
-program
-	common /cc/ nv
-end program
+
+70       FORMAT('FIXED'/6(3I3))
+WRITE(6,70) 1,1,1,1,2,2,2,2,3,3,3,3,4,4,4,4,5,5,5,5,6,6,6,6
+call stop()

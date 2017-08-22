@@ -535,7 +535,7 @@ auto power(const farray<T1> & x, const T2 & y) {
 	return narr; 
 }
 
-#define MAKE_ARITH_OPERATORS_BIN(op) template <typename T> \
+#define _MAKE_ARITH_OPERATORS_BIN(op) template <typename T> \
 	farray<T> operator##op(const farray<T> & x, const farray<T> & y) { \
 		assert(x.flatsize() == y.flatsize()); \
 		farray<T> narr(x); \
@@ -554,12 +554,12 @@ auto power(const farray<T1> & x, const T2 & y) {
 		narr op ## = y; \
 		return narr; \
 	}
-	MAKE_ARITH_OPERATORS_BIN(+);
-	MAKE_ARITH_OPERATORS_BIN(-);
-	MAKE_ARITH_OPERATORS_BIN(*);
-	MAKE_ARITH_OPERATORS_BIN(/ );
+	_MAKE_ARITH_OPERATORS_BIN(+);
+	_MAKE_ARITH_OPERATORS_BIN(-);
+	_MAKE_ARITH_OPERATORS_BIN(*);
+	_MAKE_ARITH_OPERATORS_BIN(/ );
 
-#define MAKE_CMP_OPERATORS(op) template <typename T> \
+#define _MAKE_CMP_OPERATORS(op) template <typename T> \
 	farray<bool> operator##op(const farray<T> & x, const farray<T> & y) { \
 		assert(x.flatsize() == y.flatsize()); \
 		farray<bool> narr(x.dimension, x.LBound(), x.size()); \
@@ -585,15 +585,15 @@ auto power(const farray<T1> & x, const T2 & y) {
 		return narr;  \
 	}
 
-	MAKE_CMP_OPERATORS(< );
-	MAKE_CMP_OPERATORS(<= );
-	MAKE_CMP_OPERATORS(> );
-	MAKE_CMP_OPERATORS(>= );
-	MAKE_CMP_OPERATORS(== );
-	MAKE_CMP_OPERATORS(!= );
-	MAKE_CMP_OPERATORS(&& );
-	MAKE_CMP_OPERATORS(|| );
-	MAKE_CMP_OPERATORS(^ );
+	_MAKE_CMP_OPERATORS(< );
+	_MAKE_CMP_OPERATORS(<= );
+	_MAKE_CMP_OPERATORS(> );
+	_MAKE_CMP_OPERATORS(>= );
+	_MAKE_CMP_OPERATORS(== );
+	_MAKE_CMP_OPERATORS(!= );
+	_MAKE_CMP_OPERATORS(&& );
+	_MAKE_CMP_OPERATORS(|| );
+	_MAKE_CMP_OPERATORS(^ );
 
 	template <typename T>
 	farray<bool> operator!(const farray<T> & x) {

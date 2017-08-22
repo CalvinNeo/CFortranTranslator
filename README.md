@@ -13,7 +13,7 @@ This translator is not intended to improve existing codes, but to make convenien
 3. C++ implemetation of some Fortran's type and functions
 4. Generated C++ code remains abstract level of the origin code
 
-    e.g. implied-do will not expand to a for-loop directly, but to a `IOLambda` struct
+    e.g. implied-do will not expand to a for-loop directly, but to a `ImpliedDo` struct
 
 
 ## License
@@ -113,6 +113,7 @@ ref target code and restrictions:types:array
 |5|`stdin`|
 |6|`stdout`|
 |id|`get_file(id)`|
+|string|` `|
 
 #### file function
 
@@ -130,21 +131,6 @@ ref target code and restrictions:types:array
 |`(device_id,*)`|`forreadfree`/`forwritefree`|
 |`(device_id,formatter)`|`forread`/`forwrite`|
 
-#### io-implied-do
-
-> R916 io-implied-do is ( io-implied-do-object-list , io-implied-do-control )
-> R917 io-implied-do-object is input-item or output-item
-> R918 io-implied-do-control is do-variable = scalar-numeric-expr , scalar-numeric-expr [ , scalar-numeric-expr ]
-
-io-implied-do will be translated into a `IOLambda`, refer [/src/target/gen_io.cpp](/src/target/gen_io.cpp)
-```
-auto make_iolambda(const fsize_t(&_lb)[D], const fsize_t(&_to)[D], F func);
-auto make_iolambda(fsize_t * _lb, fsize_t * _to, F func);
-```
-For input function like `forreadfree` and `forread`, the `io-implied-do-object-list` must be a *variable*(R914), so `F f` must return left-value.
-
-For output function like `forwritefree` and `forwrite`, the `io-implied-do-object-list` must be a *expr*(R915), so `F f` can return anything.
-
 #### IOStuff
 `IOStuff` wraps a list of `input-item-list` or `output-item-list` inside an io-implied-do. 
 
@@ -153,26 +139,47 @@ Inside `IOStuff` is a `std::tuple`, `foreach_tupe(iostuff.tup)` can enumerate co
 read/write a `IOStuff` is to read/write every element of `IOStuff` in order
 
 #### IOFormat
-`IOFormat{std::string formatter, int reversion_start}`
+`IOFormat(const char * ch, int rev_start)`, `IOFormat(const std::string & s, int rev_start)`
 
 - `formatter` is generated from fortran's format
 
 - `reversion_start` is a value computed by compiler, it shows index of char when the whole length of format is proceeded(ref. 10.3)
 
-#### IOLambda
+#### io-implied-do
 
-## target code and restrictions
-refer to [/src/grammar/for90.y](/src/grammar/for90.y) for all accepted grammar
+ref [/src/target/gen_io.cpp](/src/target/gen_io.cpp)
+
+> R916 io-implied-do is ( io-implied-do-object-list , io-implied-do-control )
+> R917 io-implied-do-object is input-item or output-item
+> R918 io-implied-do-control is do-variable = scalar-numeric-expr , scalar-numeric-expr [ , scalar-numeric-expr ]
+
+io-implied-do will be translated into a `ImpliedDo`, for details of this struct ref implied-do
+```
+auto make_implieddo(const fsize_t(&_lb)[D], const fsize_t(&_to)[D], F func);
+auto make_implieddo(fsize_t * _lb, fsize_t * _to, F func);
+```
+For input function like `forreadfree` and `forread`, the `io-implied-do-object-list` must be a *variable*(R914), so `F f` must return left-value.
+
+For output function like `forwritefree` and `forwrite`, the `io-implied-do-object-list` must be a *expr*(R915), so `F f` can return anything.
+
+
+## target code
+ref [/src/grammar/for90.y](/src/grammar/for90.y) for all accepted grammar
 ### general grammar
 
 1. you can rename keyword parameter in `interface` block
 2. you can use anonymous grammar structures
 3. declaration/specification is not forced before any other statements
-    by fortran standard, declaration/specification(sudh as variable declarations and interfaces) statements must before all executable constructs(2.3.1)
+    according to fortran standard, declaration/specification(sudh as variable declarations and interfaces) statements must before all executable constructs(2.3.1)
     however, there's no such restriction in this translator 
 
 #### implied-do
-ref io-implied-do
+all implied-do will be translated in to struct `ImpliedDo`, 
+`ImpliedDo(int D, fsize_t * fr, fsize_t * to, F func )`
+
+- this implied-do loop has `D` layers, the outmost layer is layer 0, the innermost layer is layer (D - 1)
+- layer `i` loops in range `[fr[i], to[i]]`
+- `F func` should have signature like `[&](fsize_t * current){return X}`, where `current` points to a size `D` array giving current index of each loop layer
 
 ### types
 #### type mapping

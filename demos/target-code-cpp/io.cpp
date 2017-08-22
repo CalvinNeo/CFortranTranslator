@@ -11,8 +11,8 @@ void test_iostuff() {
 	forwritefree(stdout, tup);
 }
 
-void test_iolambda(){
-	auto iol = make_iolambda({ 1, 1 }, { 3, 3 }, [](fsize_t * i) {
+void test_implieddo(){
+	auto iol = make_implieddo({ 1, 1 }, { 3, 3 }, [](fsize_t * i) {
 		return i[0] + i[1];
 	});
 	int x;
@@ -20,20 +20,20 @@ void test_iolambda(){
 		cout << x << endl;
 	}
 	
-	forwrite(stdout, "%d%d%d", make_iolambda({ 1 }, { 2 }, [](fsize_t * current) {
+	forwrite(stdout, "%d%d%d", make_implieddo({ 1 }, { 2 }, [](fsize_t * current) {
 		return [](int i) {
 			return i + 1;
 		}(current[0]);
 	}));
 	
-	forwrite(stdout, "%d", make_iolambda({ 1 }, { 2 }, [&](const fsize_t * current) {
+	forwrite(stdout, "%d", make_implieddo({ 1 }, { 2 }, [&](const fsize_t * current) {
 		return [&](fsize_t j) {
 			return make_iostuff(make_tuple(j + 1, j + 2));
 		}(current[0]);
 	}));
 }
 
-void test_iolambda_ex(){
+void test_implieddo_ex(){
 	farray<double> a{ { 1 },{ 2 } };
 	farray<double> b{ { 1, 1 },{ 2, 2 } };
 
@@ -42,9 +42,9 @@ void test_iolambda_ex(){
 	b(1, 1) = 4; b(1, 2) = 5;
 	b(2, 1) = 6; b(2, 2) = 7;
 	// generated 1d write
-	forwritefree(stdout, make_iolambda({ 1 }, { 2 }, [&](const fsize_t * current_i) {
+	forwritefree(stdout, make_implieddo({ 1 }, { 2 }, [&](const fsize_t * current_i) {
 		return [&](fsize_t i) {
-			return make_iostuff(make_tuple(make_iolambda({ 1 }, { 2 }, [&](const fsize_t * current_j) {
+			return make_iostuff(make_tuple(make_implieddo({ 1 }, { 2 }, [&](const fsize_t * current_j) {
 				return [&](fsize_t j) {
 					return b(FW(j), FW(j));
 				}(current_j[0]);
@@ -53,9 +53,9 @@ void test_iolambda_ex(){
 	}));
 	
 	// generated 2d write
-	forwritefree(stdout, make_iolambda({ 1 }, { 2 }, [&](const fsize_t * current_i) {
+	forwritefree(stdout, make_implieddo({ 1 }, { 2 }, [&](const fsize_t * current_i) {
 		return [&](fsize_t i) {
-			return make_iostuff(make_tuple(a(FW(i)), make_iolambda({ i, 1 }, { i, 2 }, [&](const fsize_t * current_j) {
+			return make_iostuff(make_tuple(a(FW(i)), make_implieddo({ i, 1 }, { i, 2 }, [&](const fsize_t * current_j) {
 				return [&](fsize_t i, fsize_t j) {
 					return b(FW(i), FW(j));
 				}(current_j[0], current_j[1]);
@@ -65,14 +65,14 @@ void test_iolambda_ex(){
 
 	// read 
 	// parted
-	auto xx = make_iolambda({ 1 }, { 2 }, [&](const fsize_t * current_j) {
+	auto xx = make_implieddo({ 1 }, { 2 }, [&](const fsize_t * current_j) {
 		return [&](fsize_t j) {
 			printf("=====b(%d,%d)\n", j, j);
 			return &b(FW(j), FW(j));
 		}(current_j[0]);
 	});
 	auto yy = make_iostuff(make_tuple(xx));
-	auto zz = make_iolambda({ 1 }, { 2 }, [&](const fsize_t * current_i) {
+	auto zz = make_implieddo({ 1 }, { 2 }, [&](const fsize_t * current_i) {
 		return [&](fsize_t i) {
 			return yy;
 		}(current_i[0]);
@@ -80,9 +80,9 @@ void test_iolambda_ex(){
 	forreadfree(stdin, zz);
 
 	// generated 2d read
-	forreadfree(stdin, make_iolambda({ 1 }, { 2 }, [&](const fsize_t * current_i) {
+	forreadfree(stdin, make_implieddo({ 1 }, { 2 }, [&](const fsize_t * current_i) {
 		return [&](fsize_t i) {
-			return make_iostuff(make_tuple(&a(FW(i)), make_iolambda({ i, 1 }, { i, 2 }, [&](const fsize_t * current_j) {
+			return make_iostuff(make_tuple(&a(FW(i)), make_implieddo({ i, 1 }, { i, 2 }, [&](const fsize_t * current_j) {
 				return [&](fsize_t i, fsize_t j) {
 					return &b(FW(i), FW(j));
 				}(current_j[0], current_j[1]);
@@ -91,13 +91,13 @@ void test_iolambda_ex(){
 	}));
 	
 	// test _map_impl_next
-	forwritefree(stdout, make_iolambda({ 1 }, { 10 }, [&](const fsize_t * current_i) {
+	forwritefree(stdout, make_implieddo({ 1 }, { 10 }, [&](const fsize_t * current_i) {
 		return [&](fsize_t i) {
 			printf("---------%d \n", i);
 			return 0;
 		}(current_i[0]);
 	}));
-	forwritefree(stdout, make_iolambda({ 1, 1 }, { 1, 2 }, [&](const fsize_t * current_i) {
+	forwritefree(stdout, make_implieddo({ 1, 1 }, { 1, 2 }, [&](const fsize_t * current_i) {
 			return [&](fsize_t i, fsize_t j) {
 				printf("---------%d %d\n", i, j);
 				return 0;

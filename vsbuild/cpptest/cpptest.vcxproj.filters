@@ -62,5 +62,8 @@
     <ClInclude Include="..\..\for90std\utils.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\for90std\forstring.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

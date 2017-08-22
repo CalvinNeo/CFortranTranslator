@@ -28,7 +28,7 @@ std::string gen_io_argtable_str(FunctionInfo * finfo, ParseNode & argtable, std:
 		ParseNode & pn = *p;
 		if (pn.get_token() == TokenMeta::NT_HIDDENDO)
 		{
-			// wrap with IOLambda
+			// wrap with ImpliedDo
 			regen_hiddendo_expr(finfo, pn, [&](ParseNode & innermost_argtable) {
 				string return_str;
 				return_str = make_str_list(innermost_argtable.begin(), innermost_argtable.end(), [&](ParseNode * p2) {
@@ -52,9 +52,9 @@ std::string gen_io_argtable_str(FunctionInfo * finfo, ParseNode & argtable, std:
 			vector<ParseNode *> hiddendo_layer = get_nested_hiddendo_layers(pn);
 			SliceBoundInfo lb_ub = get_lbound_ubound_from_hiddendo(finfo, pn, hiddendo_layer);
 			std::string lb_ub_str = gen_sliceinfo_str(get<0>(lb_ub).begin(), get<0>(lb_ub).end(), get<1>(lb_ub).begin(), get<1>(lb_ub).end());
-			//auto make_iolambda(const fsize_t(&_lb)[D], const fsize_t(&_to)[D], F func) {
-			//auto make_iolambda(fsize_t * _lb, fsize_t * _to, F func) {
-			sprintf(codegen_buf, "make_iolambda(%s, %s)", lb_ub_str.c_str(), pn.get_what().c_str());
+			//auto make_implieddo(const fsize_t(&_lb)[D], const fsize_t(&_to)[D], F func) {
+			//auto make_implieddo(fsize_t * _lb, fsize_t * _to, F func) {
+			sprintf(codegen_buf, "make_implieddo(%s, %s)", lb_ub_str.c_str(), pn.get_what().c_str());
 			return string(codegen_buf);
 		}
 		else {
@@ -68,45 +68,67 @@ std::string gen_io_argtable_strex(FunctionInfo * finfo, ParseNode & argtable, st
 	string res = make_str_list(argtable.begin(), argtable.end(), [&](ParseNode * p) {
 		ParseNode & pn = *p;
 		std::string current_index = "";
-		std::function<void(ParseNode &)> handler = [&](ParseNode & innermost) {
-			if (innermost.get_token() == TokenMeta::NT_HIDDENDO)
+		int hidden_level = 0;
+		std::function<void(ParseNode &)> handler = [&](ParseNode & argtable_item) {
+			if (argtable_item.get_token() == TokenMeta::NT_HIDDENDO)
 			{
-				// wrap with IOLambda
-				regen_hiddendo_exprex(finfo, innermost, handler);
-				//auto make_iolambda(const fsize_t(&_lb)[D], const fsize_t(&_to)[D], F func) {
-				//auto make_iolambda(fsize_t * _lb, fsize_t * _to, F func) {
+				// implied-do item
+				// wrap with ImpliedDo
+				hidden_level++;
+				regen_hiddendo_exprex(finfo, argtable_item, handler);
+				//auto make_implieddo(const fsize_t(&_lb)[D], const fsize_t(&_to)[D], F func) {
+				//auto make_implieddo(fsize_t * _lb, fsize_t * _to, F func) {
 
-				vector<ParseNode *> hiddendo_layer = get_parent_hiddendo_layers(innermost);
-				//SliceBoundInfo lb_ub = get_lbound_ubound_from_hiddendo(finfo, pn, hiddendo_layer);
+				vector<ParseNode *> hiddendo_layers = get_parent_hiddendo_layers(argtable_item);
 				SliceBoundInfo lb_ub;
-				for (int i = (int)hiddendo_layer.size() - 1; i >= 0 ; i--)
+				for (int i = (int)hiddendo_layers.size() - 1; i >= 0 ; i--)
 				{
 					if (i == 0)
 					{
-						// innermost
-						regen_exp(finfo, hiddendo_layer[i]->get(2));
-						regen_exp(finfo, hiddendo_layer[i]->get(3));
-						get<0>(lb_ub).push_back(hiddendo_layer[i]->get(2).get_what());
-						get<1>(lb_ub).push_back(hiddendo_layer[i]->get(3).get_what());
+						// if this `hiddendo` node is the outmost
+						regen_exp(finfo, hiddendo_layers[i]->get(2)); // from
+						regen_exp(finfo, hiddendo_layers[i]->get(3)); // to
+						get<0>(lb_ub).push_back(hiddendo_layers[i]->get(2).get_what());
+						get<1>(lb_ub).push_back(hiddendo_layers[i]->get(3).get_what());
 					}
 					else {
-						get<0>(lb_ub).push_back(hiddendo_layer[i]->get(1).get_what());
-						get<1>(lb_ub).push_back(hiddendo_layer[i]->get(1).get_what());
+						/******************** 
+						*	if this `hiddendo` node is inside another `hiddendo` node
+						*	its `lb_ub` indexer is not all unbounded
+						*	e.g. 
+						*	inside the inner do, the `lb_ub` indexer `{ i, 1 }, { i, 6 }` has its first dimension bounded to `i`
+						*	```
+						*	make_implieddo({ 1 }, { np }, [&](const fsize_t * current_i) {
+						*		return [&](fsize_t i) {
+						*			return make_iostuff(make_tuple(make_implieddo({ i, 1 }, { i, 6 }, [&](const fsize_t * current_j) {
+						*				return [&](fsize_t i, fsize_t j) {
+						*					return XXXXX(FW(i), FW(j));
+						*				}(current_j[0], current_j[1]);
+						*			})));
+						*		}(current_i[0]);
+						*	})
+						*	```
+						********************/ 
+						get<0>(lb_ub).push_back(hiddendo_layers[i]->get(1).get_what());
+						get<1>(lb_ub).push_back(hiddendo_layers[i]->get(1).get_what());
 					}
 				}
 				std::string lb_ub_str = gen_sliceinfo_str(get<0>(lb_ub).begin(), get<0>(lb_ub).end(), get<1>(lb_ub).begin(), get<1>(lb_ub).end());
-				sprintf(codegen_buf, "make_iolambda(%s, %s)", lb_ub_str.c_str(), innermost.get_what().c_str());
+				sprintf(codegen_buf, "make_implieddo(%s, %s)", lb_ub_str.c_str(), argtable_item.get_what().c_str());
 
-				innermost.get_what() = string(codegen_buf);
+				argtable_item.get_what() = string(codegen_buf);
+
+				hidden_level--;
 			}
 			else {
-				regen_exp(finfo, innermost);
+				// normal item
+				regen_exp(finfo, argtable_item);
 				if (iofunc == "read")
 				{
-					// read use pointer
-					innermost.get_what() = "&" + innermost.get_what();
-				}
-				else {
+					// read stmt require pointer as input
+					argtable_item.get_what() = "&" + argtable_item.get_what();
+				} else {
+					// write/print stmt require const reference as input
 				}
 			}
 			return;
@@ -127,7 +149,7 @@ void regen_read(FunctionInfo * finfo, ParseNode & stmt) {
 
 	if (argtable.length() == 0)
 	{
-		// a read-stmt without args are intented to pause
+		// a read-stmt without args is equal to pause
 		// e.g. `read(*,*)`
 		sprintf(codegen_buf, "stop();\n");
 	}
@@ -272,6 +294,7 @@ for90std::IOFormat parse_ioformatter(const std::string & src) {
 	std::string rt = "";
 	std::string descriptor;
 	std::string prec;
+	int instant_rep = 1;
 	char buf[256];
 	char ch;
 	/********************
@@ -288,6 +311,22 @@ for90std::IOFormat parse_ioformatter(const std::string & src) {
 	bool instant_defined = false;
 	bool add_crlf_at_end = true;
 	int reversion_start = 0;
+	std::function<void()> term_editing = [&]() {
+		memset(buf, 0, sizeof(buf));
+		sprintf(buf, descriptor.c_str(), prec.c_str()); // set precision(prec) specifier to descriptor
+		if (descriptor != "")
+		{
+			for (int j = 0; j < instant_rep; j++)
+			{
+				rt += buf;
+			}
+			descriptor = "";
+			prec = "";
+			stat = 0;
+			instant_defined = false;
+		}
+	};
+
 	for (int i = 0; i < src.size(); i++)
 	{
 		ch = tolower(src[i]);
@@ -298,35 +337,37 @@ for90std::IOFormat parse_ioformatter(const std::string & src) {
 			descriptor = "%%c";
 			if (!instant_defined)
 			{
-				repeat.push_back(1);
+				instant_rep = 1;
 			}
 			stat = 1;
 			instant_defined = false;
 			break;
 		case 'i':
-			/* integer */
+			// integer 
 			descriptor = "%%%sd";
 			if (!instant_defined)
 			{
-				repeat.push_back(1);
+				instant_rep = 1;
 			}
 			stat = 1;
 			instant_defined = false;
 			break;
 		case 'f':
+			// float 
 			descriptor = "%%%sf";
 			if (!instant_defined)
 			{
-				repeat.push_back(1);
+				instant_rep = 1;
 			}
 			stat = 1;
 			instant_defined = false;
 			break;
 		case 'e':
+			// float 
 			descriptor = "%%%sf";
 			if (!instant_defined)
 			{
-				repeat.push_back(1);
+				instant_rep = 1;
 			}
 			stat = 1;
 			instant_defined = false;
@@ -389,9 +430,11 @@ for90std::IOFormat parse_ioformatter(const std::string & src) {
 				int j = i + 1;
 				for (; j < src.size() && src[j] >= '0' && src[j] <= '9'; j++);
 				// IMPORTANT in level repeat.size() - 1 BEFORE push_back, or will cause `rt += buf;` failure
+
 				instant_defined = true;
 				int t = std::atoi(src.substr(i, j - i).c_str());
-				repeat.push_back(t);
+				instant_rep = t;
+				//repeat.push_back(t);
 				i = j - 1;
 			}
 			break;
@@ -408,38 +451,20 @@ for90std::IOFormat parse_ioformatter(const std::string & src) {
 			}
 			break;
 		case ',':
-			memset(buf, 0, sizeof(buf));
-			sprintf(buf, descriptor.c_str(), prec.c_str()); // set precision(prec) specifier to descriptor
-			for (int j = 0; j < repeat.back(); j++)
-			{
-				rt += buf;
-			}
-			descriptor = "";
-			prec = "";
-			repeat.pop_back();
-			stat = 0;
+			term_editing();
 			break;
 		case '(':
 			// every `( format-item-list )` repeat 1 time by default
-			repeat.push_back(1);
+			// 6(...) is handled in case '0' - '9'
+
+			repeat.push_back(instant_rep);
 			// 重复从'('的下一个字符开始
 			repeat_from.push_back((int)rt.size());
-			reversion_start = i;
+			reversion_start = (int)rt.size();
 			break;
 		case ')':
-			memset(buf, 0, sizeof(buf));
-			sprintf(buf, descriptor.c_str(), prec.c_str()); // set precision(prec) specifier to descriptor
-			// 重复最后一个字符
-			if (descriptor != "")
-			{
-				for (int j = 0; j < repeat.back(); j++)
-				{
-					rt += buf;
-				}
-				descriptor = "";
-				prec = "";
-				repeat.pop_back();
-			}
+			// 重复最后一个Editing
+			term_editing();
 			{
 				// 重复括号内部的项
 				string braced = rt.substr(repeat_from.back(), i - repeat_from.back() + 1);
@@ -458,7 +483,15 @@ for90std::IOFormat parse_ioformatter(const std::string & src) {
 			rt += "%%";
 			break;
 		case '/':
-			rt += "\\n";
+			// `/` equals to ',' + `\n`
+			// same with `,`
+
+			term_editing();
+			// add  `\n`
+			for (; i < src.size() && src[i] == '/' ; i++) {
+				rt += "\\n";
+			}
+			i--;
 			break;
 		case '\\':
 			add_crlf_at_end = false;
@@ -473,7 +506,8 @@ for90std::IOFormat parse_ioformatter(const std::string & src) {
 			}
 			if (!instant_defined)
 			{
-				repeat.push_back(1);
+				instant_rep = 1;
+				//repeat.push_back(1);
 			}
 			stat = 1;
 			instant_defined = false;
@@ -488,7 +522,8 @@ for90std::IOFormat parse_ioformatter(const std::string & src) {
 			}
 			if (!instant_defined)
 			{
-				repeat.push_back(1);
+				instant_rep = 1;
+				//repeat.push_back(1);
 			}
 			stat = 1;
 			instant_defined = false;
@@ -516,6 +551,7 @@ for90std::IOFormat parse_ioformatter(const std::string & src) {
 			break;
 		}
 	}
+	// the last editing
 	memset(buf, 0, sizeof(buf));
 	sprintf(buf, descriptor.c_str(), prec.c_str());
 	rt += string(buf);

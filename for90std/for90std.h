@@ -23,6 +23,7 @@
 #include "forstdio.h"
 #include "forfilesys.h"
 #include "farray.h"
+#include "forstring.h"
 
 
 #define USE_FORARRAY

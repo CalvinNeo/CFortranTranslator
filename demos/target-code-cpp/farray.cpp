@@ -97,9 +97,36 @@ void test_slice(){
 void test_io(){
 	farray<int> aa = forconcat({ make_init_list({1,2,3,4,5,6}) });
 	forprintfree(aa);
-	forwrite(stdout, "%d%d%d", make_iolambda<int>({ 2 }, { 4 }, [](fsize_t * current) {
+	forwrite(stdout, "%d%d%d", make_implieddo<int>({ 2 }, { 4 }, [](fsize_t * current) {
 		return [](int i) {
 			return i + 1;
 		}(current[0]);
 	}));
+}
+
+void test_order(){
+	farray<int> farr({ 1, 1 }, { 2, 4 });
+	farr = make_init_list({ 1,2,3,4,5,6,7,8 });
+	for (int line = 1; line <= 4; line++)
+	{
+		for (int col = 1; col <= 2; col++)
+		{
+			forprintfree(line, col, farr(col, line));
+		}
+		forprintfree("\n");
+	}
+	//forprintfree(farr);
+	stop();
+	
+	//program aaa
+	//	integer, dimension(2, 4)::c
+	//	integer line, col
+	//	c = reshape((/1,2,3,4,5,6,7,8/), (/2, 4/))
+	//	do line = 1, 4
+	//		do col = 1, 2
+	//			print *, line, col, c(col, line)
+	//		enddo
+	//		print *, ""
+	//	enddo
+	//endprogram
 }

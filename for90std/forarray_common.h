@@ -79,24 +79,7 @@ namespace for90std {
 		slice_info(const slice_info<T> & x) : fr(x.fr), to(x.to), step(x.step), isall(x.isall), isslice(x.isslice) {
 		}
 	};
-	// specialization `forslice` of std::string
-	inline std::string forslice(std::string str, const slice_info<std::string::size_type> & tp) {
-		if (tp.to >= str.size()) {
-			size_t appendlen = tp.to + 1- str.size() + 1;
-			str += std::string(appendlen, ' ');
-		}
-		if (tp.step == 1) {
-			return str.substr(tp.fr, tp.to - tp.fr + 1);
-		}
-		else {
-			std::string newstr;
-			for (size_t i = tp.fr; i <= tp.to; i += tp.step)
-			{
-				newstr += str[i];
-			}
-			return newstr;
-		}
-	}
+
 #ifdef USE_FORARRAY
 	template<typename Iterator>
 	std::vector<fsize_t> fa_layer_delta(Iterator size_begin, Iterator size_end) {

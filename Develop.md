@@ -114,6 +114,10 @@ their replacement occur in following stages:
 
     join generated codes of Step 2, depending whether this variable is common block
 
+#### common block
+
+common block is in global name space(finfo = `get_function("", "")`, vinfo = `get_commonblock(commonblock_name)->variables[commonblock_index]` = `get_variable("", "BLOCK_" + commonblock_name, local_varname)`)
+
 #### interface
 1. all items in interface are firstly variables, so it will be
     1. registered by `add_variable` under `finfo->local_name`

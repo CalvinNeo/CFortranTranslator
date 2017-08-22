@@ -41,20 +41,20 @@
 
 namespace for90std {
 	template<typename T, typename F>
-	struct IOLambda {
-		IOLambda(int D, fsize_t * _lb, fsize_t * _to, F func ) : dim(D), f(func) {
+	struct ImpliedDo {
+		ImpliedDo(int D, fsize_t * fr, fsize_t * to, F func ) : dim(D), f(func) {
 			lb = new fsize_t[dim];
 			sz = new fsize_t[dim];
 			cur = new fsize_t[dim];
-			std::copy_n(_lb, D, lb);
+			std::copy_n(fr, D, lb);
 			for (int i = 0; i < dim; i++)
 			{
-				sz[i] = _to[i] - lb[i] + 1;
+				sz[i] = to[i] - lb[i] + 1;
 			}
 			_map_impl_reset(cur, dim, cur_dim, lb, sz);
 		}
-		IOLambda(const IOLambda<T, F> & x) : f(x.f) {
-			// TODO IOLambda is better passed by reference
+		ImpliedDo(const ImpliedDo<T, F> & x) : f(x.f) {
+			// TODO ImpliedDo is better passed by reference
 			dim = x.dim;
 			cur_dim = x.cur_dim;
 			lb = new fsize_t[dim];
@@ -64,10 +64,10 @@ namespace for90std {
 			std::copy_n(x.sz, dim, sz);
 			std::copy_n(x.cur, dim, cur);
 		}
-		//IOLambda() {
+		//ImpliedDo() {
 
 		//}
-		//IOLambda & operator=(const IOLambda & x) {
+		//ImpliedDo & operator=(const ImpliedDo & x) {
 		//	if (this == &x) return *this;
 		//	dim = x.dim;
 		//	cur_dim = x.cur_dim;
@@ -79,7 +79,7 @@ namespace for90std {
 		//	std::copy_n(x.cur, dim, cur);
 		//	return *this;
 		//}
-		~IOLambda() {
+		~ImpliedDo() {
 			if (lb != nullptr)
 			{
 				delete[] lb;
@@ -120,14 +120,14 @@ namespace for90std {
 	};
 
 	template <int D, typename F>
-	auto make_iolambda(const fsize_t(&_lb)[D], const fsize_t(&_to)[D], F func) {
+	auto make_implieddo(const fsize_t(&_lb)[D], const fsize_t(&_to)[D], F func) {
 		typedef typename function_traits<decltype(func)>::result_type T;
-		return IOLambda<T, F>{D, (fsize_t *)_lb, (fsize_t *)_to, func};
+		return ImpliedDo<T, F>{D, (fsize_t *)_lb, (fsize_t *)_to, func};
 	};
 	template <typename T, int D, typename F>
-	auto make_iolambda(fsize_t * _lb, fsize_t * _to, F func) {
+	auto make_implieddo(fsize_t * _lb, fsize_t * _to, F func) {
 		typedef typename function_traits<decltype(func)>::result_type T;
-		return IOLambda<T, F>{D, _lb, _to, func};
+		return ImpliedDo<T, F>{D, _lb, _to, func};
 	};
 
 	template<typename ... Types>
@@ -335,7 +335,8 @@ RETURN_FRONT:
 		});
 	};
 	template <typename T, typename F>
-	void _forwrite_dispatch(FILE * f, IOFormat & format, const IOLambda<T, F> & l) {
+	void _forwrite_dispatch(FILE * f, IOFormat & format, const ImpliedDo<T, F> & l) {
+		format.strip_front();
 		while (l.has_next())
 		{
 			_forwrite_dispatch(f, format, l.get_next());
@@ -429,7 +430,7 @@ RETURN_FRONT:
 		});
 	};
 	template <typename T, typename F>
-	void _forwritefree_dispatch(FILE * f, const IOLambda<T, F> & l) {
+	void _forwritefree_dispatch(FILE * f, const ImpliedDo<T, F> & l) {
 		while (l.has_next())
 		{
 			const T & x = l.get_next();
@@ -534,7 +535,8 @@ RETURN_FRONT:
 		});
 	};
 	template <typename T, typename F>
-	void _forread_dispatch(FILE * f, IOFormat & format, IOLambda<T, F> & l) {
+	void _forread_dispatch(FILE * f, IOFormat & format, ImpliedDo<T, F> & l) {
+		format.strip_front();
 		while (l.has_next())
 		{
 			_forread_dispatch(f, format, l.get_next());
@@ -549,6 +551,14 @@ RETURN_FRONT:
 	};
 
 	inline void forread(FILE * f, IOFormat & format) {
+		// iteration terminal
+	};
+
+	template <typename T, typename... Args>
+	void forread(FILE * f, const std::string & format, T && x, Args&&... args) {
+		IOFormat _format(format);
+		_forread_dispatch(f, _format, x);
+		forread(f, _format, std::forward<Args>(args)...);
 	};
 
 	// free format
@@ -622,7 +632,7 @@ RETURN_FRONT:
 		});
 	};
 	template <typename T, typename F>
-	void _forreadfree_dispatch(FILE * f, typename IOLambda<T, F> & l) {
+	void _forreadfree_dispatch(FILE * f, typename ImpliedDo<T, F> & l) {
 		while (l.has_next())
 		{
 			_forreadfree_dispatch(f, l.get_next());

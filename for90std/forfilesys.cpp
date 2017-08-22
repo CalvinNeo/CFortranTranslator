@@ -75,16 +75,22 @@ namespace for90std {
 		// a append create(w)
 		// a+ append create(rw)
 
-		s = position.value_or("rewind");
+		// 9.3.4.7
+		s = position.value_or("asis");
 		transform(s.begin(), s.end(), s.begin(), tolower);
 		if (s == "rewind") {
+			// REWIND positions an existing file at its initial point.
 			doappend = false;
 		}
 		else if (s == "append") {
+			// APPEND positions the file at its terminal point
 			doappend = true;
 		}
 		else {
-			// asia
+			// asis
+			// ASIS leaves the position unchanged if the file
+			// exists and already is connected.ASIS leaves the position unspecified if the file exists but is not connected.If this
+			//	specifier is omitted, the default value is ASIS.
 			doappend = false;
 		}
 
@@ -133,7 +139,7 @@ namespace for90std {
 			dowrite = false;
 			dowrite = true;
 		}
-		else{
+		else {
 			// s == "readwrite"
 			doread = true;
 			dowrite = true;
@@ -152,6 +158,14 @@ namespace for90std {
 		{
 			// if not exist then create
 			filenos[unit] = fopen(file.get().c_str(), "w+");
+		}
+		if (position.value_or("rewind") == "")
+		{
+			fseek(filenos[unit], 0, SEEK_SET);
+		}
+		else if (position.value_or("append") == "")
+		{
+			fseek(filenos[unit], 0, SEEK_END);
 		}
 		nop();
 	}
