@@ -31,7 +31,7 @@ ParseNode promote_argtable_to_dimenslice(ARG_IN argtable) {
 	ParseNode newnode = gen_token(Term{ TokenMeta::NT_DIMENSLICE, "" });
 	for (int i = 0; i < argtable.length(); i++)
 	{
-		newnode.addchild(promote_exp_to_keyvalue(argtable.get(i)));
+		newnode.addchild(promote_exp_to_slice(argtable.get(i)));
 	}
 	return newnode;
 }
@@ -56,10 +56,14 @@ void regen_slice(FunctionInfo * finfo, ParseNode & slice) {
 			/***********
 			* select the whole slice
 			* e.g.
+			*```
 			* FROTRAN Code
 			*	c = a(:)
+			*	c = a(i, 1:j)
 			* C++ Code:
 			*	c = forslice(a, { {} });
+			*	c = forslice(a, { {i}, {1, j} });
+			*```
 			***********/
 		}
 		else if (slice.length() == 0)
@@ -67,7 +71,7 @@ void regen_slice(FunctionInfo * finfo, ParseNode & slice) {
 			print_error("Slice can not be empty");
 		}
 		else if (slice.length() == 1) {
-			// a single element, not size
+			// point to a single element, not mean size
 			sprintf(codegen_buf, "%s", slice_info_arr[0].c_str());
 		}
 		else if (slice.length() == 2) {

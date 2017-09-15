@@ -170,6 +170,7 @@ void regen_read(FunctionInfo * finfo, ParseNode & stmt) {
 			fmt = require_format_index(finfo, label_name).to_string();
 		}
 		else {
+			fmt = io_info.get(1).get_what();
 		}
 		fmt = fmt.substr(1, fmt.size() - 1); // strip " 
 		for90std::IOFormat ioformat = parse_ioformatter(fmt);
@@ -179,8 +180,8 @@ void regen_read(FunctionInfo * finfo, ParseNode & stmt) {
 				, ioformat.reversion_start, (argtable_str == "" ? "" : ","), argtable_str.c_str());
 		}
 		else {
-			sprintf(codegen_buf, "forread(get_file(%s), IOFormat{\"%s\", %d}%s %s);\n", device.c_str()
-				, ioformat.fmt.c_str(), ioformat.reversion_start, (argtable_str == "" ? "" : ","), argtable_str.c_str());
+			sprintf(codegen_buf, "forread(get_file(%s), IOFormat{\"%s\", %d, %d}%s %s);\n", device.c_str()
+				, ioformat.fmt.c_str(), ioformat.reversion_start, ioformat.reversion_end, (argtable_str == "" ? "" : ","), argtable_str.c_str());
 		}
 	}
 	stmt.fs.CurrentTerm = Term{ TokenMeta::NT_READ_STMT, string(codegen_buf) };
@@ -210,6 +211,7 @@ void regen_write(FunctionInfo * finfo, ParseNode & stmt) {
 		{
 			fmt = require_format_index(finfo, io_info.get(1).to_string()).to_string();
 		} else{
+			fmt = io_info.get(1).get_what();
 		}
 		fmt = fmt.substr(1, fmt.size() - 1); // strip " 
 		for90std::IOFormat ioformat = parse_ioformatter(fmt);
@@ -219,8 +221,8 @@ void regen_write(FunctionInfo * finfo, ParseNode & stmt) {
 				, ioformat.reversion_start, (argtable_str == "" ? "" : ","), argtable_str.c_str());
 		}
 		else {
-			sprintf(codegen_buf, "forwrite(get_file(%s), IOFormat{\"%s\", %d}%s %s);\n", device.c_str()
-				, ioformat.fmt.c_str(), ioformat.reversion_start, (argtable_str == "" ? "" : ","), argtable_str.c_str());
+			sprintf(codegen_buf, "forwrite(get_file(%s), IOFormat{\"%s\", %d, %d}%s %s);\n", device.c_str()
+				, ioformat.fmt.c_str(), ioformat.reversion_start, ioformat.reversion_end, (argtable_str == "" ? "" : ","), argtable_str.c_str());
 		}
 	}
 	stmt.fs.CurrentTerm = Term{ TokenMeta::NT_WRITE_STMT, string(codegen_buf) };
@@ -241,9 +243,14 @@ void regen_print(FunctionInfo * finfo, ParseNode & stmt) {
 			fmt = require_format_index(finfo, io_info.get(1).to_string()).to_string();
 		}
 		else {
+			fmt = io_info.get(1).get_what();
 		}
 		fmt = fmt.substr(1, fmt.size() - 1); // strip " 
+		for90std::IOFormat ioformat = parse_ioformatter(fmt);
 		sprintf(codegen_buf, "forprint(\"%s\"%s %s);\n", parse_ioformatter(fmt).c_str(), (argtable_str == "" ? "" : ","), argtable_str.c_str());
+
+		sprintf(codegen_buf, "forprint(IOFormat{\"%s\", %d, %d}%s %s);\n", ioformat.fmt.c_str()
+			, ioformat.reversion_start, ioformat.reversion_end, (argtable_str == "" ? "" : ","), argtable_str.c_str());
 	}
 	stmt.fs.CurrentTerm = Term{ TokenMeta::NT_PRINT_STMT, string(codegen_buf) };
 	return;
@@ -310,7 +317,7 @@ for90std::IOFormat parse_ioformatter(const std::string & src) {
 	********************/
 	bool instant_defined = false;
 	bool add_crlf_at_end = true;
-	int reversion_start = 0;
+	int reversion_start = 0, reversion_end = -1;
 	std::function<void()> term_editing = [&]() {
 		memset(buf, 0, sizeof(buf));
 		sprintf(buf, descriptor.c_str(), prec.c_str()); // set precision(prec) specifier to descriptor
@@ -373,7 +380,7 @@ for90std::IOFormat parse_ioformatter(const std::string & src) {
 			instant_defined = false;
 			break;
 		case 'a':
-			/* char */
+			// char 
 			descriptor = "%%%ss";
 			if (!instant_defined)
 			{
@@ -383,7 +390,7 @@ for90std::IOFormat parse_ioformatter(const std::string & src) {
 			instant_defined = false;
 			break;
 		case 'x':
-			/* space */
+			// space
 			descriptor += " ";
 			if (!instant_defined)
 			{
@@ -394,10 +401,10 @@ for90std::IOFormat parse_ioformatter(const std::string & src) {
 			break;
 		case 'h':
 		{
-			/*
+			/********************
 			*	H-editing
 			* nH means put next n characters after H into output
-			*/
+			********************/
 			int length = repeat.back(); 
 			repeat.pop_back();
 			repeat.push_back(1); // the H editing can't only be repeated
@@ -476,7 +483,7 @@ for90std::IOFormat parse_ioformatter(const std::string & src) {
 				repeat.pop_back();
 				repeat_from.pop_back();
 			}
-
+			reversion_end = rt.size();
 			stat = 0;
 			break;
 		case '%':
@@ -555,9 +562,13 @@ for90std::IOFormat parse_ioformatter(const std::string & src) {
 	memset(buf, 0, sizeof(buf));
 	sprintf(buf, descriptor.c_str(), prec.c_str());
 	rt += string(buf);
+	if (reversion_end == -1)
+	{
+		reversion_end = rt.size();
+	}
 	if (add_crlf_at_end)
 	{
 		rt += "\\n";
 	}
-	return for90std::IOFormat(rt, reversion_start);
+	return for90std::IOFormat(rt, reversion_start, reversion_end);
 }

@@ -21,6 +21,7 @@
 #include "forarray_common.h"
 
 namespace for90std {
+
 	template<typename T>
 	struct for1array {
 		typedef T value_type;
@@ -103,7 +104,7 @@ namespace for90std {
 		template<class ... Args>
 		void push_back(const T & x, Args&& ... args) {
 			push_back(x);
-			push_back(forward<Args>(args)...);
+			push_back(std::forward<Args>(args)...);
 		}
 		void push_back(const T & x) {
 			m_arr.push_back(x);
@@ -215,26 +216,6 @@ namespace for90std {
 		return size;
 	}
 
-
-	//template<typename _Container_value_type>
-	//std::vector<fsize_t> _f1a_lbound_impl(
-	//	const for1array<_Container_value_type> & farr
-	//	, std::vector<fsize_t> & lbound
-	//	, .../* SFINAE */) {
-	//	lbound.push_back(farr.LBound());
-	//	return lbound;
-	//}
-
-	//template<typename _Container_value_type>
-	//std::vector<fsize_t> _f1a_lbound_impl(
-	//	const for1array<_Container_value_type> & farr
-	//	, std::vector<fsize_t> & lbound
-	//	, for1array_matcher<_Container_value_type>/* SFINAE */) {
-	//	lbound.push_back(farr.LBound());
-	//	_f1a_lbound_impl<typename _Container_value_type::value_type>(farr.const_get(farr.LBound()), lbound, nullptr);
-	//	return lbound;
-	//}
-
 	template<typename _Container_value_type>
 	void _f1a_lbound_impl(_Container_value_type & farr, std::vector<fsize_t> & lbound) {
 	}
@@ -251,7 +232,7 @@ namespace for90std {
 		_f1a_lbound_impl(farr, lbound);
 		return lbound;
 	}
-#ifdef USE_FORARRAY
+//#ifdef USE_FORARRAY
 	template<typename _DTYPE, typename _Container_value_type, typename = void>
 	void _f1a_resize_impl(for1array<_DTYPE> & farr, int deep
 		, const std::vector<fsize_t> & lower_bound, const std::vector<fsize_t> & size)
@@ -379,7 +360,8 @@ namespace for90std {
 	};
 
 	template<typename _Container_value_type, typename _Return, typename _Iterator>
-	void f1a_flatmapped(for1array<_Container_value_type> & farr, _Iterator begin, _Iterator end, std::function<_Return(typename f1a_gettype<_Container_value_type>::type *)> mapper)
+	void f1a_flatmapped(for1array<_Container_value_type> & farr, _Iterator begin, _Iterator end
+		, std::function<_Return(typename f1a_gettype<_Container_value_type>::type *)> mapper)
 	{
 		typedef typename f1a_gettype<_Container_value_type>::type T; // inner most type
 		std::vector<fsize_t> size = f1a_getsize(farr); // size of each dimension of array
@@ -388,7 +370,8 @@ namespace for90std {
 	};
 
 	template<typename _Container_value_type, typename _Return, typename _Iterator>
-	void f1a_flatmapped_const(const for1array<_Container_value_type> & farr, _Iterator begin, _Iterator end, std::function<_Return(typename const f1a_gettype<_Container_value_type>::type *)> mapper)
+	void f1a_flatmapped_const(const for1array<_Container_value_type> & farr, _Iterator begin, _Iterator end
+		, std::function<_Return(typename const f1a_gettype<_Container_value_type>::type *)> mapper)
 	{
 		f1a_flatmapped(const_cast<for1array<_Container_value_type> &>(farr), begin, end, mapper);
 	}
@@ -417,12 +400,13 @@ namespace for90std {
 			farr, ans.begin(), ans.end(), [](typename f1a_gettype<_Container_value_type>::type * tx) {return tx; });
 		return ans;
 	}
-#else
-
-#endif
+//#else
+//
+//#endif
 
 	template<typename T>
-	auto _f1a_init_hiddendo(typename for1array<T>::size_type start, typename for1array<T>::size_type end, std::function<T(typename for1array<T>::size_type) > get_T)
+	auto _f1a_init_hiddendo(typename for1array<T>::size_type start, typename for1array<T>::size_type end
+		, std::function<T(typename for1array<T>::size_type) > get_T)
 	{
 		for1array<T> rt;
 		for1array<T>::size_type j = rt.LBound();
@@ -454,14 +438,6 @@ namespace for90std {
 	for1array<T> forslice(const for1array<T> & farr, const slice_info<fsize_t>(&tp)[X]) {
 		return _f1aslice_impl<T, X, X - 1>::get(farr, tp);
 	}
-
-	//template<int D, typename T>
-	//auto forreshape(const std::initializer_list<T> & values, const fsize_t(&shape)[D])
-	//{
-	//	std::vector<fsize_t> lbound = std::vector<fsize_t>(D, 1);
-	//	std::vector<fsize_t> size = std::vector<fsize_t>(shape, shape + D);
-	//	return f1a_gen<T, D>(lbound, size, values);
-	//}
 
 
 }

@@ -212,7 +212,7 @@ using namespace std;
 				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($4));
 				CLEAN_RIGHT($1, $2, $3, $4);
 			}
-		| YY_DIMENSION '(' dimen_slice ')'
+		| YY_DIMENSION '(' paramtable ')'
 			{
 				// if write `',' YY_DIMENSION` in `var_def` will cause conflict at ',' 
 				// if is array reduce immediately and goto `var_def` 
@@ -559,7 +559,9 @@ using namespace std;
 				ParseNode newnode;
 				if (argtable.get_token() == TokenMeta::NT_ARGTABLE_PURE)
 				{
-					newnode = gen_flattern(slice, promote_argtable_to_dimenslice(argtable), "%s, %s", TokenMeta::NT_DIMENSLICE, true);
+					// IMPORTANT: can't promote here, or `s(i, 1:j)` cause error, ref `regen_slice`
+					//newnode = gen_flattern(slice, promote_argtable_to_dimenslice(argtable), "%s, %s", TokenMeta::NT_DIMENSLICE, true);
+					newnode = gen_flattern(slice, argtable, "%s, %s", TokenMeta::NT_DIMENSLICE, true);
 				}
 				else {
 					print_error("Illegal dimen_slice", argtable);

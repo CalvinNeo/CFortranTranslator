@@ -24,6 +24,7 @@
 #include <type_traits>
 #include <limits>
 #include <cassert>
+#include <cfloat>
 
 namespace for90std {
 	struct foroptional_dummy {};

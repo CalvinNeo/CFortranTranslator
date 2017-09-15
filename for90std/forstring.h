@@ -20,13 +20,14 @@
 #pragma once
 #include <iostream>
 #include <cstdio>
-#include <string> 
+#include <string>
 #include <cctype>
 #include <locale>
 
 namespace for90std {
 	// specialization `forslice` of std::string
-	inline std::string forslice(std::string str, const slice_info<std::string::size_type> & tp) {
+	inline std::string forslice(std::string str, const slice_info<int> & tp) {
+		// use `slice_info<int>` to avoid narrow casting
 		if (tp.to >= str.size()) {
 			size_t appendlen = tp.to + 1 - str.size() + 1;
 			str += std::string(appendlen, ' ');
@@ -36,7 +37,7 @@ namespace for90std {
 		}
 		else {
 			std::string newstr;
-			for (size_t i = tp.fr; i <= tp.to; i += tp.step)
+			for (size_t i = tp.fr; (int)i <= tp.to; i += tp.step)
 			{
 				newstr += str[i];
 			}
@@ -58,4 +59,5 @@ namespace for90std {
 		}).base(), s.end());
 		return s;
 	}
+
 }

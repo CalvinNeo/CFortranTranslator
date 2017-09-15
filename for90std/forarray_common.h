@@ -37,8 +37,8 @@ namespace for90std {
 	template<typename T>
 	struct slice_info {
 		T fr, to, step;
-		bool isslice;
-		bool isall;
+		bool isslice = true;
+		bool isall = true;
 		// [from, to]
 		slice_info() {
 			// select all

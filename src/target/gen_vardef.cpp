@@ -169,7 +169,9 @@ std::string gen_vardef_scalar_initial_str(FunctionInfo * finfo, VariableInfo * v
 			sprintf(codegen_buf, " = 0.0");
 		}
 		else if (is_str(vinfo->type)) {
-			sprintf(codegen_buf, " = \"\"");
+			int len = vinfo->desc.kind.get();
+			string blanks = string(len, ' ');
+			sprintf(codegen_buf, " = \"%s\"", blanks.c_str());
 		}
 		else
 		{
@@ -177,8 +179,19 @@ std::string gen_vardef_scalar_initial_str(FunctionInfo * finfo, VariableInfo * v
 		}
 	}
 	else {
-		regen_exp(finfo, entity_variable_initial);
-		sprintf(codegen_buf, " = %s", entity_variable_initial.get_what().c_str());
+		if (is_str(vinfo->type)) {
+			regen_exp(finfo, entity_variable_initial);
+
+			// make enough space for string
+			string front = entity_variable_initial.get_what().c_str();
+			int len = vinfo->desc.kind.get();
+			string blanks = string(max(0, len - (int)front.size()), ' ');
+			sprintf(codegen_buf, " = %s + \"%s\"", front.c_str(), blanks.c_str());
+		}
+		else {
+			regen_exp(finfo, entity_variable_initial);
+			sprintf(codegen_buf, " = %s", entity_variable_initial.get_what().c_str());
+		}
 	}
 	entity_variable.setattr(new VariableAttr(vinfo));
 	return string(codegen_buf);

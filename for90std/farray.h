@@ -25,6 +25,72 @@
 #include "forlang.h"
 
 namespace for90std {
+
+	template <typename size_type>
+	static void _map_impl_reset(size_type * cur, int dimension, int & curdim, const size_type * LBound, const size_type * size) {
+		std::copy_n(LBound, dimension, cur);
+		curdim = 0;
+	}
+	template <typename size_type>
+	static bool _map_impl_has_next(size_type * cur, int dimension, const size_type * LBound, const size_type * size) {
+		for (int i = 0; i < dimension; i++)
+		{
+			fsize_t ub_i = LBound[i] + size[i] - 1;
+			if (cur[i] >= LBound[i] + size[i])
+			{
+				return false;
+			}
+		}
+		return true;
+	}
+	template <typename F, typename size_type>
+	static bool _map_impl_next(F f, size_type * cur, int dimension, int & cur_dim, const size_type * LBound, const size_type * size) {
+		/***************
+		*	cur must be valid
+		*	return false:	the end of iteration
+		*	return true:	continue iteration
+		***************/
+		// perform `f` once
+		f(cur);
+		cur[cur_dim] ++;
+		if (cur[cur_dim] < LBound[cur_dim] + size[cur_dim])
+		{
+			// if index of this deiension haven't touch its upper bound
+			// do not need to carry-over
+		}
+		else
+		{
+			while (cur[cur_dim] + 1 >= LBound[cur_dim] + size[cur_dim]) {
+				// find innermost dimension which isn't to end
+				cur_dim++;
+				if (cur_dim == dimension) {
+					return false; // all finished
+				}
+			}
+			if (cur_dim < dimension) {
+				cur[cur_dim]++;
+			}
+			else {
+				return false; // all finished
+			}
+			std::copy_n(LBound, cur_dim, cur); // reset cur before dim
+			cur_dim = 0;
+		}
+		return true;
+	}
+	template <typename F, typename size_type>
+	static void _map_impl(F f, int dimension, const size_type * LBound, const size_type * size) {
+		size_type * cur = new size_type[dimension];
+		int dim = 0; // current dimension
+		_map_impl_reset(cur, dimension, dim, LBound, size);
+#ifdef USE_FORARRAY
+		while (_map_impl_next(f, cur, dimension, dim, LBound, size)) {
+
+		}
+#endif
+		delete[] cur;
+	}
+
 	template <typename T>
 	struct farray {
 		typedef T value_type;
@@ -34,13 +100,13 @@ namespace for90std {
 		typedef const value_type * const_pointer;
 		typedef const value_type & const_reference;
 		typedef size_type difference_type;
-		typedef slice_info<typename size_type> slice_type;
+		typedef slice_info</*typename*/size_type> slice_type;
 		int dimension;
 		const bool is_view;
-		typedef typename T * iterator;
-		typedef typename const T * const_iterator;
-		typedef typename std::reverse_iterator<iterator> reverse_iterator;
-		typedef typename std::reverse_iterator<const_iterator> const_reverse_iterator;
+		typedef /*typename*/ T * iterator;
+		typedef /*typename*/ const T * const_iterator;
+		typedef /*typename*/ std::reverse_iterator<iterator> reverse_iterator;
+		typedef /*typename*/ std::reverse_iterator<const_iterator> const_reverse_iterator;
 
 		size_type LBound(int dim) const {
 			return lb[dim];
@@ -203,11 +269,11 @@ namespace for90std {
 		template<typename U> friend farray<bool> operator!=(const U & x, const farray<U> & y);
 		template<typename U> friend farray<bool> operator!=(const farray<U> & x, const U & y);
 
-#define MAKE_ARITH_OPERATORS_UNARY(op, op2) farray<T> & operator##op(const farray<T> & x) { \
+#define MAKE_ARITH_OPERATORS_UNARY(op, op2) farray<T> & operator op(const farray<T> & x) { \
 			std::transform(begin(), end(), x.cbegin(), begin(), [](auto x, auto y) {return x op2 y; }); \
 			return *this; \
 		} \
-		farray<T> & operator##op(const T & x) { \
+		farray<T> & operator op(const T & x) { \
 			map([&](T & item, const fsize_t * cur) {item op x;}); \
 			return *this; \
 		}
@@ -215,7 +281,7 @@ namespace for90std {
 		MAKE_ARITH_OPERATORS_UNARY(+=, +);
 		MAKE_ARITH_OPERATORS_UNARY(-=, -);
 		MAKE_ARITH_OPERATORS_UNARY(*=, *);
-		MAKE_ARITH_OPERATORS_UNARY(/=, / );
+		MAKE_ARITH_OPERATORS_UNARY(/=, /);
 
 		void transpose() {
 			T * na = new T[flatsize()];
@@ -225,7 +291,7 @@ namespace for90std {
 				for (int i = 0; i < dimension; i++)
 				{
 					fsize_t oldt = 1;
-					oldt = delta[j];
+					oldt = delta[i];
 					oldindex += (cur[i] - lb[i]) * oldt;
 
 					fsize_t newt = 1;
@@ -450,71 +516,6 @@ namespace for90std {
 
 	};
 
-template <typename size_type>
-static void _map_impl_reset(size_type * cur, int dimension, int & curdim, const size_type * LBound, const size_type * size) {
-	std::copy_n(LBound, dimension, cur);
-	curdim = 0;
-}
-template <typename size_type>
-static bool _map_impl_has_next(size_type * cur, int dimension, const size_type * LBound, const size_type * size) {
-	for (int i = 0; i < dimension; i++)
-	{
-		fsize_t ub_i = LBound[i] + size[i] - 1;
-		if (cur[i] >= LBound[i] + size[i])
-		{
-			return false;
-		}
-	}
-	return true;
-}
-template <typename F, typename size_type>
-static bool _map_impl_next(F f, size_type * cur, int dimension, int & cur_dim, const size_type * LBound, const size_type * size) {
-	/***************
-	*	cur must be valid
-	*	return false:	the end of iteration
-	*	return true:	continue iteration
-	***************/
-	// perform `f` once
-	f(cur);
-	cur[cur_dim] ++;
-	if (cur[cur_dim] < LBound[cur_dim] + size[cur_dim])
-	{
-		// if index of this deiension haven't touch its upper bound
-		// do not need to carry-over
-	}
-	else
-	{
-		while (cur[cur_dim] + 1 >= LBound[cur_dim] + size[cur_dim]) {
-			// find innermost dimension which isn't to end
-			cur_dim++;
-			if (cur_dim == dimension) {
-				return false; // all finished
-			}
-		}
-		if (cur_dim < dimension) {
-			cur[cur_dim]++;
-		}
-		else {
-			return false; // all finished
-		}
-		std::copy_n(LBound, cur_dim, cur); // reset cur before dim
-		cur_dim = 0;
-	}
-	return true;
-}
-template <typename F, typename size_type>
-static void _map_impl(F f, int dimension, const size_type * LBound, const size_type * size) {
-	size_type * cur = new size_type[dimension];
-	int dim = 0; // current dimension
-	_map_impl_reset(cur, dimension, dim, LBound, size);
-#ifdef USE_FORARRAY
-	while (_map_impl_next(f, cur, dimension, dim, LBound, size)) {
-
-	}
-#endif
-	delete[] cur;
-}
-
 template <typename T1, typename T2> 
 auto power(const farray<T1> & x, const farray<T2> & y) { 
 	assert(x.flatsize() == y.flatsize()); 
@@ -535,32 +536,33 @@ auto power(const farray<T1> & x, const T2 & y) {
 	return narr; 
 }
 
-#define _MAKE_ARITH_OPERATORS_BIN(op) template <typename T> \
-	farray<T> operator##op(const farray<T> & x, const farray<T> & y) { \
+#define _MAKE_ARITH_OPERATORS_BIN(op, op2) template <typename T> \
+	farray<T> operator op(const farray<T> & x, const farray<T> & y) { \
 		assert(x.flatsize() == y.flatsize()); \
 		farray<T> narr(x); \
-		narr op ## = y; \
+		narr op2 y; \
 		return narr; \
 	} \
 	template <typename T> \
-	farray<T> operator##op(const T & x, const farray<T> & y) { \
+	farray<T> operator op(const T & x, const farray<T> & y) { \
 		farray<T> narr(y); \
-		narr op ## = x; \
+		narr op2 x; \
 		return narr; \
 	} \
 	template <typename T> \
-	farray<T> operator##op(const farray<T> & x, const T & y) { \
+	farray<T> operator op(const farray<T> & x, const T & y) { \
 		farray<T> narr(x); \
-		narr op ## = y; \
+		narr op2 y; \
 		return narr; \
 	}
-	_MAKE_ARITH_OPERATORS_BIN(+);
-	_MAKE_ARITH_OPERATORS_BIN(-);
-	_MAKE_ARITH_OPERATORS_BIN(*);
-	_MAKE_ARITH_OPERATORS_BIN(/ );
+	// do not use `operator ## op` for std compacity, `operator` is a seprated token
+	_MAKE_ARITH_OPERATORS_BIN(+, +=);
+	_MAKE_ARITH_OPERATORS_BIN(-, -=);
+	_MAKE_ARITH_OPERATORS_BIN(*, *=);
+	_MAKE_ARITH_OPERATORS_BIN(/, /=);
 
 #define _MAKE_CMP_OPERATORS(op) template <typename T> \
-	farray<bool> operator##op(const farray<T> & x, const farray<T> & y) { \
+	farray<bool> operator op(const farray<T> & x, const farray<T> & y) { \
 		assert(x.flatsize() == y.flatsize()); \
 		farray<bool> narr(x.dimension, x.LBound(), x.size()); \
 		narr.map([&](bool & item, const fsize_t * cur) { \
@@ -569,7 +571,7 @@ auto power(const farray<T1> & x, const T2 & y) {
 		return narr;  \
 	} \
 	template <typename T> \
-	farray<bool> operator##op(const T & x, const farray<T> & y) { \
+	farray<bool> operator op(const T & x, const farray<T> & y) { \
 		farray<bool> narr(x.dimension, x.LBound(), x.size()); \
 			narr.map([&](bool & item, const fsize_t * cur) { \
 				item = (x op y.const_get(cur, cur + y.dimension)); \
@@ -577,7 +579,7 @@ auto power(const farray<T1> & x, const T2 & y) {
 		return narr;  \
 	} \
 	template <typename T> \
-	farray<bool> operator##op(const farray<T> & x, const T & y) { \
+	farray<bool> operator op(const farray<T> & x, const T & y) { \
 		farray<bool> narr(x.dimension, x.LBound(), x.size()); \
 		narr.map([&](bool & item, const fsize_t * cur) { \
 			item = (x.const_get(cur, cur + x.dimension) op y); \
@@ -596,7 +598,7 @@ auto power(const farray<T1> & x, const T2 & y) {
 	_MAKE_CMP_OPERATORS(^ );
 
 	template <typename T>
-	farray<bool> operator!(const farray<T> & x) {
+	farray<bool> operator !(const farray<T> & x) {
 		farray<bool> narr(x.dimension, x.LBound(), x.size());
 		narr.map([&](bool & item, const fsize_t * cur) {
 			item = (! x.const_get(cur, cur + x.dimension));
@@ -715,22 +717,23 @@ auto power(const farray<T1> & x, const T2 & y) {
 
 		return narr;
 	}
-	template <typename T>
-	farray<T> forreorganize(const farray<T> & farr, int dim, fsize_t index) {
-		// return a rank D - 1 sub array of farr equals to farr(dim = index)
-		farray<T> narr;
-		slice_info<fsize_t> sl[farr.dimension];
-		for (int i = 0; i < farr.dimension; i++)
-		{
-			sl[i] = slice_info<fsize_t>(); // select all elements
-		}
-		sl[dim] = slice_info<fsize_t>({ {index} }); // choose index(isslice = false) in rank dim
-		narr.reset_array(sl, false); // do not reset lower bound to 1
-		narr.reset_value();
+	
+	//template <typename T>
+	//farray<T> forreorganize(const farray<T> & farr, int dim, fsize_t index) {
+	//	// return a rank D - 1 sub array of farr equals to farr(dim = index)
+	//	farray<T> narr;
+	//	slice_info<fsize_t> sl[farr.dimension];
+	//	for (int i = 0; i < farr.dimension; i++)
+	//	{
+	//		sl[i] = slice_info<fsize_t>(); // select all elements
+	//	}
+	//	sl[dim] = slice_info<fsize_t>({ {index} }); // choose index(isslice = false) in rank dim
+	//	narr.reset_array(sl, false); // do not reset lower bound to 1
+	//	narr.reset_value();
 
-		_forslice_impl<T, X>(farr, 0, farr.get_delta(), narr.begin(), farr.cbegin(), farr.cend());
-		return narr;
-	}
+	//	_forslice_impl<T, X>(farr, 0, farr.get_delta(), narr.begin(), farr.cbegin(), farr.cend());
+	//	return narr;
+	//}
 
 	template <typename T>
 	auto fortranspose(const farray<T> & farr) {

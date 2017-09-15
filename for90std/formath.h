@@ -29,25 +29,25 @@
 namespace for90std {
 
 	template <class T, class ... Args>
-	auto min_n(T x, Args... args) {
-		return min(x, args);
+	auto min_n(T x, Args&&... args) {
+		return min(x, std::forward<Args>(args)...);
 	}
 	template <class T1, class T2>
 	decltype(std::declval<T1>() + std::declval<T2>()) min_n(T1 x, T2 y) {
 		return min(x, y);
 	}
 	template <class T, class ... Args>
-	auto max_n(T x, Args... args) {
-		return max(x, args);
+	auto max_n(T x, Args&&... args) {
+		return max(x, std::forward<Args>(args)...);
 	}
 	template <class T1, class T2>
 	decltype(std::declval<T1>() + std::declval<T2>()) max_n(T1 x, T2 y) {
 		return max(x, y);
 	}
-	
+
 	typedef std::complex<double> forcomplex;
 	//struct forcomplex {
-	//	
+	//
 	//	const forcomplex operator+(const forcomplex & rhs);
 	//
 	//	forcomplex(double real, double imagine);

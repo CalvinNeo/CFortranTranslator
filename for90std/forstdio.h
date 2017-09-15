@@ -42,7 +42,7 @@
 namespace for90std {
 	template<typename T, typename F>
 	struct ImpliedDo {
-		ImpliedDo(int D, fsize_t * fr, fsize_t * to, F func ) : dim(D), f(func) {
+		ImpliedDo(int D, fsize_t * fr, fsize_t * to, F func) : dim(D), f(func) {
 			lb = new fsize_t[dim];
 			sz = new fsize_t[dim];
 			cur = new fsize_t[dim];
@@ -112,10 +112,10 @@ namespace for90std {
 			_map_impl_next(newf, cur, dim, cur_dim, lb, sz);
 			return cps_retrieve();
 		}
-		
+
 		int dim;
 		mutable int cur_dim;
-		fsize_t * lb = nullptr, * sz = nullptr, * cur = nullptr;
+		fsize_t * lb = nullptr, *sz = nullptr, *cur = nullptr;
 		F f;
 	};
 
@@ -124,7 +124,7 @@ namespace for90std {
 		typedef typename function_traits<decltype(func)>::result_type T;
 		return ImpliedDo<T, F>{D, (fsize_t *)_lb, (fsize_t *)_to, func};
 	};
-	template <typename T, int D, typename F>
+	template <int D, typename F>
 	auto make_implieddo(fsize_t * _lb, fsize_t * _to, F func) {
 		typedef typename function_traits<decltype(func)>::result_type T;
 		return ImpliedDo<T, F>{D, _lb, _to, func};
@@ -153,14 +153,24 @@ namespace for90std {
 	struct IOFormat {
 		IOFormat(const char * ch) : reversion_start(0), p(0) {
 			fmt = std::string(ch);
+			reversion_end = (int)fmt.size();
 		}
 		IOFormat(const std::string & s) : reversion_start(0), p(0) {
 			fmt = s;
+			reversion_end = (int)fmt.size();
 		}
 		IOFormat(const char * ch, int rev_start) : reversion_start(rev_start), p(0) {
 			fmt = std::string(ch);
+			reversion_end = (int)fmt.size();
 		}
 		IOFormat(const std::string & s, int rev_start) : reversion_start(rev_start), p(0) {
+			fmt = s;
+			reversion_end = (int)fmt.size();
+		}
+		IOFormat(const char * ch, int rev_start, int rev_end) : reversion_start(rev_start), reversion_end(rev_end), p(0) {
+			fmt = std::string(ch);
+		}
+		IOFormat(const std::string & s, int rev_start, int rev_end) : reversion_start(rev_start), reversion_end(rev_end), p(0) {
 			fmt = s;
 		}
 
@@ -184,18 +194,18 @@ namespace for90std {
 		std::string substr(size_t offset = 0, size_t count = std::string::npos) const {
 			return fmt.substr(offset, count);
 		}
-		const char * c_str() const{
+		const char * c_str() const {
 			return fmt.c_str();
 		}
 		size_t & index() {
-			if (p >= size())
+			if ((int)p >= reversion_end)
 			{
 				p = reversion_start;
 			}
 			return p;
 		}
 		const size_t & index() const {
-			if (p >= size())
+			if ((int)p >= reversion_end)
 			{
 				p = reversion_start;
 			}
@@ -223,7 +233,7 @@ namespace for90std {
 					break;
 				}
 			}
-RETURN_FRONT:
+		RETURN_FRONT:
 			std::string sub = fmt.substr(st, i - st);
 			index() = i;
 			return sub;
@@ -236,22 +246,48 @@ RETURN_FRONT:
 			size_t e = fmt.find_first_of('%', st + 1); // find next editing
 			if (e == std::string::npos) {
 				// the last editing
+				if (reversion_end == (int)fmt.size())
+				{
+					editing = fmt.substr(st, e - st);
+					index() = e;
+				}
+				else {
+					editing = fmt.substr(st, reversion_end - st);
+					index() = reversion_end;
+				}
 			}
 			else {
+				editing = fmt.substr(st, e - st);
+				index() = e;
 			}
-			editing = fmt.substr(st, e - st);
-			index() = e;
 			return editing;
 		}
 
 		void end_this_line() {
 			size_t st = index();
 			while (st < fmt.size() && fmt[st] != '\n') {
-				index() = index()+1;
+				index() = index() + 1;
 			}
 		}
 
-		int reversion_start;
+		std::string end_format() {
+			// IIF after all inputs are swallowed, print the rest of the format string
+			size_t st = reversion_end;
+			std::string s;
+			for (; st < fmt.size(); st++)
+			{
+				if (fmt[st] == '%') {
+					st++;
+					continue;
+				}
+				else {
+					s += fmt[st];
+				}
+			}
+			return s;
+		}
+
+		int reversion_start, reversion_end;
 		mutable size_t p;
 		std::string fmt;
 	};
@@ -270,7 +306,7 @@ RETURN_FRONT:
 		fprintf(f, _format.c_str(), x.c_str());
 	}
 
-	
+
 	// format
 	// write formatted step 2
 	template <typename T>
@@ -286,21 +322,18 @@ RETURN_FRONT:
 		std::string ed = format.next_editing();
 		fprintf(f, ed.c_str(), x.c_str());
 	};
-	template <typename T>
-	void _forwrite_one_arr1(FILE * f, IOFormat & format, const T & x) {
-		// clear front
-		_forwrite_noargs(f, format);
-		typedef typename f1a_gettype<T>::type _InnerT;
-		std::vector<_InnerT> vec = f1a_flatterned(x);
-		for (size_t i = 0; i < vec.size(); i++)
-		{
-			_forwrite_dispatch(f, format, vec[i]);
-		}
-		//if (_format.find_first_of("%") != std::string::npos) {
-		//	fprintf(f, "\n");
-		//}
-		return;
-	};
+	//template <typename T>
+	//void _forwrite_one_arr1(FILE * f, IOFormat & format, const T & x) {
+	//	// clear front
+	//	_forwrite_noargs(f, format);
+	//	typedef typename f1a_gettype<T>::type _InnerT;
+	//	std::vector<_InnerT> vec = f1a_flatterned(x);
+	//	for (size_t i = 0; i < vec.size(); i++)
+	//	{
+	//		_forwrite_dispatch(f, format, vec[i]);
+	//	}
+	//	return;
+	//};
 	template <typename T>
 	void _forwrite_one_arrf(FILE * f, IOFormat & format, const farray<T> & x) {
 		// clear front
@@ -310,16 +343,13 @@ RETURN_FRONT:
 		{
 			_forwrite_dispatch(f, format, *(iter + i));
 		}
-		//if (_format.find_first_of("%") != std::string::npos) {
-		//	fprintf(f, "\n");
-		//}
 		return;
 	};
 	// write formatted step 1
-	template <typename T>
-	void _forwrite_dispatch(FILE * f, IOFormat & format, const for1array<T> & x) {
-		_forwrite_one_arr1(f, format, x);
-	};
+	//template <typename T>
+	//void _forwrite_dispatch(FILE * f, IOFormat & format, const for1array<T> & x) {
+	//	_forwrite_one_arr1(f, format, x);
+	//};
 	template <typename T>
 	void _forwrite_dispatch(FILE * f, IOFormat & format, const farray<T> & x) {
 		_forwrite_one_arrf(f, format, x);
@@ -329,7 +359,7 @@ RETURN_FRONT:
 		_forwrite_one(f, format, x);
 	};
 	template <typename ... Types>
-	void _forwrite_dispatch(FILE * f, IOFormat & format, const typename IOStuff<Types...> & iostuff) {
+	void _forwrite_dispatch(FILE * f, IOFormat & format, const IOStuff<Types...> & iostuff) {
 		foreach_tuple(iostuff.tp, [&](auto x) {
 			_forwrite_dispatch(f, format, x);
 		});
@@ -341,7 +371,7 @@ RETURN_FRONT:
 		{
 			_forwrite_dispatch(f, format, l.get_next());
 		}
-		return ;
+		return;
 	};
 
 	// write formatted step 0
@@ -350,15 +380,25 @@ RETURN_FRONT:
 		_forwrite_dispatch(f, format, x);
 		forwrite(f, format, std::forward<Args>(args)...);
 	};
-	inline void forwrite(FILE * f, IOFormat & format) {
-		// clear end
-		_forwrite_noargs(f, format);
-	};
 	template <typename T, typename... Args>
 	void forwrite(FILE * f, const std::string & format, const T & x, Args&&... args) {
 		IOFormat _format(format);
 		_forwrite_dispatch(f, _format, x);
 		forwrite(f, _format, std::forward<Args>(args)...);
+	};
+	inline void forwrite(FILE * f, IOFormat & format) {
+		// clear end
+		//_forwrite_noargs(f, format);
+		std::string ss = format.end_format();
+		fprintf(f, ss.c_str());
+
+	};
+	inline void forwrite(FILE * f, const std::string & format) {
+		// clear end
+		IOFormat _format(format);
+		//_forwrite_noargs(f, _format);
+		std::string ss = _format.end_format();
+		fprintf(f, ss.c_str());
 	};
 
 
@@ -390,16 +430,16 @@ RETURN_FRONT:
 		fprintf(f, "[object %s] %p", typeid(T).name(), &x);
 	};
 
-	template <typename T>
-	void _forwritefree_one_arr1(FILE * f, const for1array<T> &  x) {
-		typedef typename f1a_gettype<T>::type _InnerT;
-		std::vector<_InnerT> vec = f1a_flatterned(x);
-		for (size_t i = 0; i < vec.size(); i++)
-		{
-			_forwritefree_one(f, vec[i]);
-			fprintf(f, "\t");
-		}
-	};
+	//template <typename T>
+	//void _forwritefree_one_arr1(FILE * f, const for1array<T> &  x) {
+	//	typedef typename f1a_gettype<T>::type _InnerT;
+	//	std::vector<_InnerT> vec = f1a_flatterned(x);
+	//	for (size_t i = 0; i < vec.size(); i++)
+	//	{
+	//		_forwritefree_one(f, vec[i]);
+	//		fprintf(f, "\t");
+	//	}
+	//};
 	template <typename T>
 	void _forwritefree_one_arrf(FILE * f, const farray<T> & x) {
 		auto iter = x.cbegin();
@@ -411,10 +451,10 @@ RETURN_FRONT:
 		fprintf(f, "\n");
 	};
 	// write free step 1
-	template <typename T>
-	void _forwritefree_dispatch(FILE * f, const for1array<T> & x) {
-		_forwritefree_one_arr1(f, x);
-	};
+	//template <typename T>
+	//void _forwritefree_dispatch(FILE * f, const for1array<T> & x) {
+	//	_forwritefree_one_arr1(f, x);
+	//};
 	template <typename T>
 	void _forwritefree_dispatch(FILE * f, const farray<T> & x) {
 		_forwritefree_one_arrf(f, x);
@@ -424,7 +464,7 @@ RETURN_FRONT:
 		_forwritefree_one(f, x);
 	};
 	template <typename ... Types>
-	void _forwritefree_dispatch(FILE * f, const typename IOStuff<Types...> & iostuff) {
+	void _forwritefree_dispatch(FILE * f, const IOStuff<Types...> & iostuff) {
 		foreach_tuple(iostuff.tp, [&](auto x) {
 			_forwritefree_dispatch(f, x);
 		});
@@ -440,10 +480,15 @@ RETURN_FRONT:
 
 	// write free step 0
 	template <typename T, typename... Args>
-	void forwritefree(FILE * f, const T & x, Args... args) {
+	void forwritefree(FILE * f, const T & x, Args&&... args) {
 		_forwritefree_dispatch(f, x);
 		fprintf(f, "\t");
 		forwritefree(f, std::forward<Args>(args)...);
+	};
+	template <typename T>
+	void forwritefree(FILE * f, const T & x) {
+		_forwritefree_dispatch(f, x);
+		fprintf(f, "\n");
 	};
 	inline void forwritefree(FILE * f) {
 		fprintf(f, "\n");
@@ -458,20 +503,24 @@ RETURN_FRONT:
 	inline void forprintfree() {
 		forwritefree(stdout, "\n");
 	};
+
 	template <typename T, typename... Args>
-	void forprint(IOFormat & format, const T & x, Args... args) {
+	void forprint(IOFormat && format, const T & x, Args&&... args) {
 		// format
 		forwrite(stdout, format, x, std::forward<Args>(args)...);
 	};
 	template <typename T, typename... Args>
-	void forprint(const std::string & format, const T & x, Args... args) {
+	void forprint(const std::string & format, const T & x, Args&&... args) {
 		// format
 		forwrite(stdout, format, x, std::forward<Args>(args)...);
 	};
 	inline void forprint(IOFormat & format) {
 		forwrite(stdout, format);
 	};
-	
+	inline void forprint(const std::string & format) {
+		forwrite(stdout, format);
+	};
+
 
 	// read
 	inline void _forread_noargs(FILE * f, IOFormat & format) {
@@ -483,8 +532,19 @@ RETURN_FRONT:
 		fscanf(f, _format.c_str(), &x);
 	}
 	inline void _str_fscanf(FILE * f, const std::string & _format, std::string & x) {
-		std::ifstream ifs(f);
-		ifs >> x;
+		//		std::ifstream ifs(f);
+		//		ifs >> x;
+		const unsigned N = 1024;
+		while (true) {
+			std::vector<char> buf(N);
+			size_t read = fread((void *)&buf[0], 1, N, f);
+			if (read) {
+				x.append(buf.begin(), buf.end());
+			}
+			if (read < N) {
+				break;
+			}
+		}
 	}
 
 	// read formatted step 2
@@ -497,14 +557,13 @@ RETURN_FRONT:
 	inline void _forread_one(FILE * f, IOFormat & format, std::string & x) {
 		// strip front
 		_forread_noargs(f, format);
-		format.next_editing();
-		std::ifstream ifs(f);
-		ifs >> x;
+		std::string fmt = format.next_editing();
+		_str_fscanf(f, fmt, x);
 	};
-	template <typename T>
-	void _forread_one_arr1(FILE * f, IOFormat & format, for1array<T> & x) {
+	//template <typename T>
+	//void _forread_one_arr1(FILE * f, IOFormat & format, for1array<T> & x) {
 
-	};
+	//};
 	template <typename T>
 	void _forread_one_arrf(FILE * f, IOFormat & format, farray<T> & x) {
 		// clear front
@@ -516,10 +575,10 @@ RETURN_FRONT:
 		}
 	};
 	// read formatted step 1
-	template <typename T>
-	void _forread_dispatch(FILE * f, IOFormat & format, for1array<T> * x) {
-		_forread_one_arr1(f, format, *x);
-	};
+	//template <typename T>
+	//void _forread_dispatch(FILE * f, IOFormat & format, for1array<T> * x) {
+	//	_forread_one_arr1(f, format, *x);
+	//};
 	template <typename T>
 	void _forread_dispatch(FILE * f, IOFormat & format, farray<T> * x) {
 		_forread_one_arrf(f, format, *x);
@@ -529,7 +588,7 @@ RETURN_FRONT:
 		_forread_one(f, format, *x);
 	};
 	template <typename ... Types>
-	void _forread_dispatch(FILE * f, IOFormat & format, typename IOStuff<Types...> & iostuff) {
+	void _forread_dispatch(FILE * f, IOFormat & format, IOStuff<Types...> & iostuff) {
 		foreach_tuple(iostuff.tp, [&](auto & x) {
 			_forread_dispatch(f, x);
 		});
@@ -566,7 +625,7 @@ RETURN_FRONT:
 
 	inline void _forreadfree_one(FILE * f, int & x) {
 		int res = fscanf(f, "%d", &x);
-		
+
 	};
 	inline void _forreadfree_one(FILE * f, long long & x) {
 		fscanf(f, "%lld", &x);
@@ -578,8 +637,7 @@ RETURN_FRONT:
 		fscanf(f, "%Lf", &x);
 	};
 	inline void _forreadfree_one(FILE * f, std::string & x) {
-		std::ifstream ifs(f);
-		ifs >> x;
+		_str_fscanf(f, "", x);
 	};
 	inline void _forreadfree_one(FILE * f, bool & x) {
 		char bool_str[10];
@@ -600,10 +658,11 @@ RETURN_FRONT:
 	//	std::ifstream ifs(f);
 	//	ifs >> x;
 	//};
-	template <typename T>
-	void _forreadfree_one_arr1(FILE * f, for1array<T> & x) {
 
-	};
+	//template <typename T>
+	//void _forreadfree_one_arr1(FILE * f, for1array<T> & x) {
+
+	//};
 	template <typename T>
 	void _forreadfree_one_arrf(FILE * f, farray<T> & x) {
 		auto iter = x.begin();
@@ -613,10 +672,10 @@ RETURN_FRONT:
 		}
 	};
 	// read free step 1
-	template <typename T>
-	void _forreadfree_dispatch(FILE * f, for1array<T> * x) {
-		_forreadfree_one_arr1(f, *x);
-	};
+	//template <typename T>
+	//void _forreadfree_dispatch(FILE * f, for1array<T> * x) {
+	//	_forreadfree_one_arr1(f, *x);
+	//};
 	template <typename T>
 	void _forreadfree_dispatch(FILE * f, farray<T> * x) {
 		_forreadfree_one_arrf(f, *x);
@@ -626,13 +685,13 @@ RETURN_FRONT:
 		_forreadfree_one(f, *x);
 	};
 	template <typename ... Types>
-	void _forreadfree_dispatch(FILE * f, typename IOStuff<Types...> & iostuff) {
+	void _forreadfree_dispatch(FILE * f, IOStuff<Types...> & iostuff) {
 		foreach_tuple(iostuff.tp, [&](auto & x) {
-			 _forreadfree_dispatch(f, x);
+			_forreadfree_dispatch(f, x);
 		});
 	};
 	template <typename T, typename F>
-	void _forreadfree_dispatch(FILE * f, typename ImpliedDo<T, F> & l) {
+	void _forreadfree_dispatch(FILE * f, ImpliedDo<T, F> & l) {
 		while (l.has_next())
 		{
 			_forreadfree_dispatch(f, l.get_next());
@@ -650,7 +709,7 @@ RETURN_FRONT:
 	};
 
 	void forrewind(int unit, foroptional<int> iostat, foroptional<forlabel> err);
-	void forbackspace(int unit, foroptional<int> iostat, foroptional<forlabel> err);	
+	void forbackspace(int unit, foroptional<int> iostat, foroptional<forlabel> err);
 	void forrewind(FILE * f, foroptional<int> iostat, foroptional<forlabel> err);
 	void forbackspace(FILE * f, foroptional<int> iostat, foroptional<forlabel> err);
 }
