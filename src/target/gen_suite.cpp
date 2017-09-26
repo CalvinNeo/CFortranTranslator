@@ -125,7 +125,7 @@ void regen_suite(FunctionInfo * finfo, ParseNode & oldsuite, bool is_partial) {
 	{
 
 		regen_all_variables(finfo, oldsuite);
-		//newsuitestr = regen_all_variables_str(finfo, oldsuite) + newsuitestr;
+		//newsuitestr = regen_all_variables_decl_str(finfo, oldsuite) + newsuitestr;
 	}
 	// currently without all decls
 	oldsuite.get_what() = newsuitestr;
@@ -201,7 +201,8 @@ void regen_all_variables(FunctionInfo * finfo, ParseNode & oldsuite) {
 					}
 					else if (vinfo->vardef_node == nullptr) {
 						// implicit definition
-						fatal_error("vinfo->vardef_node is nullptr");
+						sprintf(codegen_buf, "Variable %s has no vardef node", vinfo->local_name.c_str());
+						fatal_error(string(codegen_buf));
 					}
 					else {
 						// normal definition
@@ -221,10 +222,10 @@ void regen_all_variables(FunctionInfo * finfo, ParseNode & oldsuite) {
 	return ;
 }
 
-void regen_all_variables_str(FunctionInfo * finfo, ParseNode & oldsuite) {
+void regen_all_variables_decl_str(FunctionInfo * finfo, ParseNode & oldsuite) {
 
 	/**********************************
-	*	join declarations of all variables together
+	*	join declarations of all variable declarations stmts together
 	***********************************/
 	string variable_declarations;
 	forall_variable_in_function(get_context().current_module, finfo->local_name, [&](const std::pair<std::string, VariableInfo *> & p) {

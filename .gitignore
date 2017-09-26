@@ -65,3 +65,4 @@ presentation/
 /vsbuild/cpptest/1
 ~m4*
 *.diagsession
+demos/test_workplace/

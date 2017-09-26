@@ -91,7 +91,8 @@ void gen_fortran_program(ARG_IN wrappers) {
 	regen_suite(program_info, script_program);
 
 	// regen common definition 
-	// this must before generate subprogram's code(`regen_function_2`)
+	// this MUST before generate subprogram's code(`regen_function_2`), ref `regen_function_2` for reason
+	// if you move this code block under the "regen all subprogram's step 2" block, errors will occur when processing file *For3d14.for*
 	std::string common_decls;
 	for (std::map<std::string, CommonBlockInfo *>::iterator iter = get_context().commonblocks.begin(); iter != get_context().commonblocks.end(); iter++)
 	{
@@ -113,8 +114,9 @@ void gen_fortran_program(ARG_IN wrappers) {
 			codes += "\n";
 		}
 	}
+
 	// main program code
-	regen_all_variables_str(program_info, script_program);
+	regen_all_variables_decl_str(program_info, script_program);
 	main_code = tabber(script_program.get_what());
 	sprintf(codegen_buf, "int main()\n{\n%s\treturn 0;\n}", main_code.c_str());
 	codes += string(codegen_buf);

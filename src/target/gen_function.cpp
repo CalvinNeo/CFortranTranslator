@@ -171,10 +171,24 @@ void regen_function_1(FunctionInfo * finfo, ParseNode & functiondecl_node) {
 }
 
 void regen_function_2(FunctionInfo * finfo) {
+	/****************
+	* IMPORTANT
+	* MUST split regen_function into two parts `regen_function_1` and `regen_function_2`?
+	* or some functions will have error definition about common block variables
+	*================
+	* `regen_all_variables_decl_str` MUST AFTER all common blocks in this program are handled.
+	* because 
+	*----------------
+	* so in `gen_program`, the FIRST loop iterates over all functions and calls `regen_function_1` to each of them. 
+	* after this procedure, all common blocks are found.
+	* then `gen_common_definition` are called to each of the common blocks to regen common definition
+	* finally, the SECOND loop iterates over all functions and calls `regen_function_2` to each of them. 
+	* e.g.
+	*****************/
 	ParseNode & oldsuite = *finfo->suite;
 	ParseNode & decl_node = *finfo->node;
 
-	regen_all_variables_str(finfo, oldsuite);
+	regen_all_variables_decl_str(finfo, oldsuite);
 
 	// gen signature
 	std::string signature = gen_function_signature(finfo);

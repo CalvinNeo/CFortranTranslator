@@ -115,7 +115,7 @@ void regen_do_range(FunctionInfo * finfo, ParseNode & do_stmt);
 void regen_do_while(FunctionInfo * finfo, ParseNode & do_stmt);
 void regen_simple_stmt(FunctionInfo * finfo, ParseNode & stmt);
 void regen_all_variables(FunctionInfo * finfo, ParseNode & oldsuite);
-void regen_all_variables_str(FunctionInfo * finfo, ParseNode & oldsuite);
+void regen_all_variables_decl_str(FunctionInfo * finfo, ParseNode & oldsuite);
 void regen_suite(FunctionInfo * finfo, ParseNode & oldsuite, bool is_partial = false);
 std::string regen_stmt(FunctionInfo * finfo, ParseNode & stmt);
 void regen_arraybuilder(FunctionInfo * finfo, ParseNode & arraybuilder);

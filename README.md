@@ -207,7 +207,7 @@ all implied-do will be translated in to struct `ImpliedDo`,
     - for a 2d array, it means when initializing a 1d array by sequence, it follows the order of `a(1)(1) -> a(2)(1) -> a(1)(2) -> a(1)(2)` 
     - similarly, for a nd array, rank 1 increase by 1 first, when rank 1 equals to upper bound it wrap back and rank 2 increase by 1..., rank n increase the last.
     - for details refer to `array_builder` rule in [/src/grammar/for90.y](/src/grammar/for90.y)
-2. fortran array default lower bound for each rank is **1**, and it can be negative; each dimension of C++ style array has constant lower bound 0
+2. fortran array is **1**-indexed array, and it can be negative; each dimension of C++ style array is **0**-indexed array
 3. fortran array **rank** start from 1, C++ array **dimension** start from 0, parameter for most `for-` functions are index of rank, though they are called "dim" in standard, they are called `fordim` in this implementation
 4. `#define USE_FORARRAY` to use fortran style array, `#define USE_CARRAY` to use c style array
 5. `farray` set no limit to rank, in fortran90, the maximun rank is 7
@@ -319,7 +319,7 @@ all implied-do will be translated in to struct `ImpliedDo`,
 
 ##### fortran intrinsic functions
 
-|fortran|C++| explaination |
+|fortran|C++| explanation |
 |:-:|:-:|:-:|
 |get|`a(1, 2, 3, 4)` or `a({1, 2, 3, 4})` or `a[{1, 2, 3, 4}]` or `forslice(a, {1, 2, 3, 4})`| |
 |forslice|`a[{{1, 3, 1}, {1, 4}, {5}, {}}]` or `forslice(a, {{1, 3, 1}, {1, 4}, {5}}, {})`| |
@@ -359,13 +359,13 @@ all implied-do will be translated in to struct `ImpliedDo`,
 
 ### variables
 1. variable names in fortran are **case-insensitive**, and their names will be translated into lower case.
-2. variable names that conflictswith C++ keywords and standard library functions will be renamed with a `R_` surfix
+2. variable names that conflicts with C++ keywords and standard library functions will be renamed with a `R_` surfix
 
 #### common block
 
 common blocks, can be accessed by any of the scoping units in an executable program
 
-| common statement | CPP code |
+| common statement | C++ |
 |:-:|:-:|
 |`INTEGER::A; COMMON A`| `int & a = G.a` |
 |`INTEGER::B; COMMON /COMMON_NAME/ B`| `int & b = COMMON_NAME.b` |
