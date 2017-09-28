@@ -27,37 +27,95 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\attribute.cpp" />
-    <ClCompile Include="..\..\develop.cpp" />
-    <ClCompile Include="..\..\Function.cpp" />
-    <ClCompile Include="..\..\getopt.cpp" />
-    <ClCompile Include="..\..\IntentHelper.cpp" />
-    <ClCompile Include="..\..\parser.cpp" />
-    <ClCompile Include="..\..\scanner.cpp" />
-    <ClCompile Include="..\..\tokenizer.cpp" />
-    <ClCompile Include="..\..\Variable.cpp" />
+    <ClCompile Include="..\for90std\farray.cpp" />
+    <ClCompile Include="..\for90std\for90std.cpp" />
+    <ClCompile Include="..\for90std\forfilesys.cpp" />
+    <ClCompile Include="..\for90std\forlang.cpp" />
+    <ClCompile Include="..\for90std\forstdio.cpp" />
+    <ClCompile Include="..\src\develop.cpp" />
+    <ClCompile Include="..\src\getopt.cpp" />
+    <ClCompile Include="..\src\grammar\for90.flex.cpp" />
+    <ClCompile Include="..\src\grammar\for90.tab.cpp" />
+    <ClCompile Include="..\src\grammar\simple_lexer.cpp" />
+    <ClCompile Include="..\src\main.cpp" />
+    <ClCompile Include="..\src\parser\attribute.cpp" />
+    <ClCompile Include="..\src\parser\Function.cpp" />
+    <ClCompile Include="..\src\parser\Intent.cpp" />
+    <ClCompile Include="..\src\parser\parser.cpp" />
+    <ClCompile Include="..\src\parser\scanner.cpp" />
+    <ClCompile Include="..\src\parser\tokenizer.cpp" />
+    <ClCompile Include="..\src\parser\Variable.cpp" />
+    <ClCompile Include="..\src\target\codegen.cpp" />
+    <ClCompile Include="..\src\target\gen_arraybuilder.cpp" />
+    <ClCompile Include="..\src\target\gen_attr_describer.cpp" />
+    <ClCompile Include="..\src\target\gen_callable.cpp" />
+    <ClCompile Include="..\src\target\gen_config.cpp" />
+    <ClCompile Include="..\src\target\gen_dimenslice.cpp" />
+    <ClCompile Include="..\src\target\gen_do.cpp" />
+    <ClCompile Include="..\src\target\gen_doc.cpp" />
+    <ClCompile Include="..\src\target\gen_exp.cpp" />
+    <ClCompile Include="..\src\target\gen_feature.cpp" />
+    <ClCompile Include="..\src\target\gen_function.cpp" />
+    <ClCompile Include="..\src\target\gen_if.cpp" />
+    <ClCompile Include="..\src\target\gen_io.cpp" />
+    <ClCompile Include="..\src\target\gen_label.cpp" />
+    <ClCompile Include="..\src\target\gen_paramtable.cpp" />
+    <ClCompile Include="..\src\target\gen_program.cpp" />
+    <ClCompile Include="..\src\target\gen_select.cpp" />
+    <ClCompile Include="..\src\target\gen_stmt.cpp" />
+    <ClCompile Include="..\src\target\gen_suite.cpp" />
+    <ClCompile Include="..\src\target\gen_type.cpp" />
+    <ClCompile Include="..\src\target\gen_vardef.cpp" />
+    <ClCompile Include="..\src\target\gen_variable.cpp" />
+    <ClCompile Include="..\src\target\lazygen.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\attribute.h" />
-    <ClInclude Include="..\..\develop.h" />
-    <ClInclude Include="..\..\Function.h" />
-    <ClInclude Include="..\..\general_config.h" />
-    <ClInclude Include="..\..\getopt.h" />
-    <ClInclude Include="..\..\Intent.h" />
-    <ClInclude Include="..\..\IntentHelper.h" />
-    <ClInclude Include="..\..\parser.h" />
-    <ClInclude Include="..\..\tokenizer.h" />
-    <ClInclude Include="..\..\Variable.h" />
+    <ClInclude Include="..\for90std\farray.h" />
+    <ClInclude Include="..\for90std\for1array.h" />
+    <ClInclude Include="..\for90std\for90std.h" />
+    <ClInclude Include="..\for90std\forarray_common.h" />
+    <ClInclude Include="..\for90std\forfilesys.h" />
+    <ClInclude Include="..\for90std\forlang.h" />
+    <ClInclude Include="..\for90std\formath.h" />
+    <ClInclude Include="..\for90std\forstdio.h" />
+    <ClInclude Include="..\for90std\fortime.h" />
+    <ClInclude Include="..\for90std\utils.h" />
+    <ClInclude Include="..\src\develop.h" />
+    <ClInclude Include="..\src\general_config.h" />
+    <ClInclude Include="..\src\getopt.h" />
+    <ClInclude Include="..\src\grammar\for90.tab.h" />
+    <ClInclude Include="..\src\grammar\simple_lexer.h" />
+    <ClInclude Include="..\src\parser\attribute.h" />
+    <ClInclude Include="..\src\parser\context.h" />
+    <ClInclude Include="..\src\parser\enum_reflect.h" />
+    <ClInclude Include="..\src\parser\Function.h" />
+    <ClInclude Include="..\src\parser\Intent.h" />
+    <ClInclude Include="..\src\parser\parser.h" />
+    <ClInclude Include="..\src\parser\tokenizer.h" />
+    <ClInclude Include="..\src\parser\Variable.h" />
+    <ClInclude Include="..\src\target\codegen.h" />
+    <ClInclude Include="..\src\target\gen_common.h" />
+    <ClInclude Include="..\src\target\gen_config.h" />
+    <ClInclude Include="..\src\utf8.h" />
   </ItemGroup>
   <ItemGroup>
-    <Bison Include="..\..\grammar\for77.y" />
+    <None Include="..\cn.md" />
+    <None Include="..\Develop.md" />
+    <None Include="..\README.md" />
+    <None Include="..\todolist.md" />
+  </ItemGroup>
+  <ItemGroup>
+    <Bison Include="..\src\grammar\for90.y" />
+  </ItemGroup>
+  <ItemGroup>
+    <Flex Include="..\src\grammar\for90.l" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{41F1B7FB-5DD3-4115-BDB8-563D19F4D981}</ProjectGuid>
-    <RootNamespace>CFortran77Translator</RootNamespace>
+    <ProjectGuid>{EEFFE8C1-37FF-4F41-9113-5996FEA58436}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+    <RootNamespace>CFortranTranslator</RootNamespace>
     <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
   </PropertyGroup>
-  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
@@ -99,7 +157,7 @@
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
-    <Import Project="..\custom_build_rules\win_flex_bison_custom_build.props" />
+    <Import Project="..\src\grammar\custom_build_rules\win_flex_bison_custom_build.props" />
   </ImportGroup>
   <ImportGroup Label="Shared">
   </ImportGroup>
@@ -128,25 +186,34 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Develop|Win32'">
     <LinkIncremental>true</LinkIncremental>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <LinkIncremental>true</LinkIncremental>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Develop|x64'">
-    <LinkIncremental>true</LinkIncremental>
-  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
   </PropertyGroup>
+  
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <LinkIncremental>true</LinkIncremental>
+    <OutDir>../bin/</OutDir>
+    <IntDir>../bin/obj/</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Develop|x64'">
+    <LinkIncremental>true</LinkIncremental>
+    <OutDir>../bin/</OutDir>
+    <IntDir>../bin/obj/</IntDir>
+  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
+    <OutDir>../bin/</OutDir>
+    <IntDir>../bin/obj/</IntDir>
   </PropertyGroup>
+  
+  
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <PrecompiledHeader>
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;_CRT_SECURE_NO_WARNINGS;_SCL_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -159,26 +226,46 @@
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;_CRT_SECURE_NO_WARNINGS;_SCL_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
   </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;_CRT_SECURE_NO_WARNINGS;_SCL_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <GenerateDebugInformation>true</GenerateDebugInformation> 
+    </Link>
+  </ItemDefinitionGroup>
+  
+  
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <PrecompiledHeader>
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>_DEBUG;_CONSOLE;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>F:\Codes\CommonLib\boost_1_60_0;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>_DEBUG;_CONSOLE;_CRT_SECURE_NO_WARNINGS;_SCL_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>%boost_dir%;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>F:\Codes\CommonLib\boost_1_60_0\libs;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>%boost_dir%\stage\lib;%boost_dir%\libs;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>      
+      <OutputFile>../bin/$(TargetName)$(TargetExt)</OutputFile>
     </Link>
     <Flex>
       <Debug>false</Debug>
@@ -190,34 +277,20 @@
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>F:\Codes\CommonLib\boost_1_60_0;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>_DEBUG;_CONSOLE;_SCL_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>%boost_dir%;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>F:\Codes\CommonLib\boost_1_60_0\libs;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>%boost_dir%\stage\lib;%boost_dir%\libs;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>     
+      <OutputFile>../bin/$(TargetName)$(TargetExt)</OutputFile>
     </Link>
     <Flex>
       <Debug>false</Debug>
     </Flex>
-  </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <ClCompile>
-      <WarningLevel>Level3</WarningLevel>
-      <PrecompiledHeader>
-      </PrecompiledHeader>
-      <Optimization>MaxSpeed</Optimization>
-      <FunctionLevelLinking>true</FunctionLevelLinking>
-      <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-    </ClCompile>
-    <Link>
-      <SubSystem>Console</SubSystem>
-      <EnableCOMDATFolding>true</EnableCOMDATFolding>
-      <OptimizeReferences>true</OptimizeReferences>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
-    </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -227,8 +300,8 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>NDEBUG;_CONSOLE;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>F:\Codes\CommonLib\boost_1_60_0;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>NDEBUG;_CONSOLE;_CRT_SECURE_NO_WARNINGS;_SCL_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>%boost_dir%;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
@@ -236,11 +309,12 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>F:\Codes\CommonLib\boost_1_60_0\libs;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>%boost_dir%\stage\lib;%boost_dir%\libs;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>           
+      <OutputFile>../bin/$(TargetName)$(TargetExt)</OutputFile>
     </Link>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
-    <Import Project="..\custom_build_rules\win_flex_bison_custom_build.targets" />
+    <Import Project="..\src\grammar\custom_build_rules\win_flex_bison_custom_build.targets" />
   </ImportGroup>
 </Project>

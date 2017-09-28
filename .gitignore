@@ -66,3 +66,5 @@ presentation/
 ~m4*
 *.diagsession
 demos/test_workplace/
+bin/
+!bin/CFortranTranslator.exe

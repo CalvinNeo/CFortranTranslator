@@ -42,14 +42,13 @@ The whole project, including both the translator itself and fortran standrad lib
 # Usage
 ## Install
 ### Build Translator
-My Configuration:
+#### Dependencies
+1. MSVC 2015
+2. win\_flex(win\_flex\_bison 2.4.5, flex 2.5.37)
+3. win\_bison(win\_flex\_bison 2.4.5, bison 2.7)
+4. boost(1.60)
 
-- translator
-    1. Visual Studio 2015(Update 3) 
-    2. win\_flex(win\_flex\_bison 2.4.5, flex 2.5.37)
-    3. win\_bison(win\_flex\_bison 2.4.5, bison 2.7)
-    4. boost(1.60)
-
+#### Configure boost
 - build boost
 ```
 bjam --toolset=msvc-14.0 address-model=64
@@ -59,10 +58,14 @@ bjam --toolset=msvc-14.0 address-model=64
     1. add **boost\_dir** directory to additional include library
     2. add **boost\_dir/libs** and **boost\_dir/stage/lib** to additional library directory
 
-- configure win\_flex and win\_bison
-    1. On the Project menu, choose Project Dependencies.
-    2. Select Custom Build Tools
-    3. Add [/grammar/custom_build_rules/win_flex_bison_custom_build.props](/src/grammar/custom_build_rules/win_flex_bison_custom_build.props)
+#### Configure winflex and winbison
+1. On the Project menu, choose Project Dependencies.
+2. Select Custom Build Tools
+3. Add [/src/grammar/custom\_build\_rules/win\_flex\_bison\_custom\_build.props](/src/grammar/custom\_build\_rules/win\_flex\_bison\_custom\_build.props)
+
+#### Build by MSBuild
+run [/vcbuild/vcbuild.cmd](/build/vsbuild.cmd)
+
 
 ### Use fortran standard library
 fortran standard library requires compiler support at least C++14 standard
@@ -72,6 +75,13 @@ fortran standard library requires compiler support at least C++14 standard
     -f file_name : translate file_name into C++
     -d : use debug mode
     -C : use c-style array
+
+## The "hello world" demo
+1. use the following command to generate target C++ code
+    ```
+    CFortranTranslator.exe -Ff demos/helloworld.f90 > target.cpp
+    ```
+2. build *target.cpp*, modify `#include "../for90std/for90std.h"` to ensure you include the right path of for90std library
 
 ## Debug
 Only fatal errors hinderring parsing will be reported by translator. 
