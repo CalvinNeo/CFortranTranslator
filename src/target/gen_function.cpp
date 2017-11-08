@@ -177,7 +177,7 @@ void regen_function_2(FunctionInfo * finfo) {
 	* or some functions will have error definition about common block variables
 	*================
 	* `regen_all_variables_decl_str` MUST AFTER all common blocks in this program are handled.
-	* because 
+	* because common definition can "rewrite" a variable's attribute, which is often onferred implicitly by their names
 	*----------------
 	* so in `gen_program`, the FIRST loop iterates over all functions and calls `regen_function_1` to each of them. 
 	* after this procedure, all common blocks are found.

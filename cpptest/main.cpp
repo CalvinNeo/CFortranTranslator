@@ -9,28 +9,9 @@
 #define USE_FORARRAY
 int main()
 {
-	string ch = SS("") + "                        ";
-	int i = 0;
-	int j = 0;
-	int k = 0;
-	farray<int> m{ { 1, 1 },{ 5, 5 } };
-	for (i = 1; i <= 5; i += 1) {
-		for (j = 1; j <= 5; j += 1) {
-			k = k + 1;
-			m(FW(i), FW(j)) = k;
-
-		}
-
-	}
-	for (i = 1; i <= 5; i += 1) {
-		forprint(IOFormat{ " %4d%4d%4d%4d%4d\n", 0, 16 }, forslice(m, { { i },{ 1, i } }));
-
-	}
-	forprintfree(SS("----"));
-	for (i = 1; i <= 5; i += 1) {
-		forprint(IOFormat{ "%s%4d%4d%4d%4d%4d\n", 0, 17 }, forslice(ch, { { 1, 4 * (i - 1) + 1 } }), forslice(m, { { i },{ i, 5 } }));
-
-	}
+	const char * aaa = "hello, wolrd!";
+	const char * fff = "%s\n";
+	forprint(fff, aaa);
 	stop();
 	return 0;
 }

@@ -73,6 +73,8 @@ their replacement occur in following stages:
 4. overload `operator()` and  `operator[]` so `a(x, y, z)`(fortran-style) is same as `a(x)(y)(z)`(c-style) where x,y,z are `slice_info` or index
 5. slice selections are handled in [/src/target/gen_callable.cpp](/src/target/gen_callable.cpp). 
 
+#### implied do
+`foreach_tupe(iostuff.tup)` can enumerate content of `IOStuff`
 
 ### variable definition
 
@@ -82,11 +84,11 @@ their replacement occur in following stages:
 
         all variables, **once** reached by the parser and not registered to symbol table `gen_context().variables` yes, will be addded to symbol table, which includes: 
 
-            1. add `VariableInfo` node 
-            2. `.type` is deduced by its name in `gen_implicit_type`
-            3. `.implicit_defined` = true
-            4. `.vardef` is pointer(!= nullptr) to a `ParseNode` node. 
-            5. `commonblock_name` = `""`, `commonblock_index` = `0`.
+		1. add `VariableInfo` node 
+		2. `.type` is deduced by its name in `gen_implicit_type`
+		3. `.implicit_defined` = true
+		4. `.vardef` is pointer(!= nullptr) to a `ParseNode` node. 
+		5. `commonblock_name` = `""`, `commonblock_index` = `0`.
         VARIABLES ARE REGISTERED TO SYMBOL TABLE IN THIS CONDITION MOSTLY
 
         call `check_implicit_variable`, it will register this variable to `gen_context().variables`, if this variable is implicit defined, not declared as case 2.

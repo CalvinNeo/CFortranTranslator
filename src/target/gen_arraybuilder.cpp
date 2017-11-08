@@ -20,8 +20,12 @@
 #include "gen_common.h"
 
 ParseNode gen_array_from_paramtable(ARG_IN argtable) {
-	/* give initial value */
-	/* `B(1:2:3)` can be either a single-element argtable or a exp, this can probably lead to reduction conflicts, so merge rules */
+	/*****************
+	* give initial value
+	* `B(1:2:3)` can be either a single-element argtable or a exp, depending on what `B` is
+	* in light of this, reduction conflicts can be raised, 
+	* promote argtable/dimen_slice to paramtable, in order to defer anaslysis
+	*****************/
 	ParseNode newnode = gen_token(Term{ TokenMeta::NT_ARRAYBUILDER_LIST, argtable.to_string() }, argtable);
 	return newnode;
 }
@@ -68,7 +72,7 @@ bool maybe_return_array(FunctionInfo * finfo, const ParseNode & elem) {
 			std::string & result_name = f->funcdesc.paramtable_info.back();
 			VariableInfo * result_vinfo = get_variable(get_context().current_module, finfo->local_name, result_name);
 			ParseNode & result_type = result_vinfo->type;
-			if (result_type.get_token() == TokenMeta::Void_Decl || result_type.get_token() == TokenMeta::Void)
+			if (result_type.token_equals(TokenMeta::Void_Decl, TokenMeta::Void))
 			{
 				// subroutine
 				return false;
@@ -140,7 +144,7 @@ void regen_arraybuilder(FunctionInfo * finfo, ParseNode & array_builder) {
 					std::string lambda = elem.get_what();
 					sprintf(codegen_buf, "make_init_list(%s, %s)", lb_size_str.c_str(), lambda.c_str());
 				}
-				else if (elem.get_token() == TokenMeta::UnknownVariant || elem.get_token() == TokenMeta::NT_FUCNTIONARRAY) {
+				else if (elem.token_equals(TokenMeta::UnknownVariant, TokenMeta::NT_FUCNTIONARRAY)) {
 					regen_exp(finfo, elem);
 					VariableInfo * vinfo = get_variable(get_context().current_module, finfo->local_name, elem.get_what());
 					if (maybe_return_array(finfo, elem))

@@ -26,16 +26,23 @@
 #include "../for90std/for90std.h"
 #include <numeric>
 #include "develop.h"
-#include "getopt.h"
+#include "getopt2.h"
 
 using namespace std;
 
 int main(int argc, char* argv[], char* env[])
 {
-	vector<int> v;
 	int opt;
 	std::string code;
-	while ((opt = getopt(argc, argv, "df:Fp")) != -1) {
+
+	struct option opts[] = { 
+		{ "fortran", optional_argument, nullptr, 'F' },
+		{ "file", required_argument, nullptr, 'v' },
+		{ "debug", no_argument, nullptr, 'd' },
+		{ 0, 0, 0, 0 } 
+	};
+
+	while ((opt = getopt_long(argc, argv, "df:F::p", opts, nullptr)) != -1) {
 		if (opt == 'f')
 		{
 			get_context().parse_config.hasfile = true;
@@ -46,6 +53,10 @@ int main(int argc, char* argv[], char* env[])
 		}
 		else if (opt == 'F') {
 			// for90
+			if (strcmp(optarg, "77") == 0)
+			{
+				get_context().parse_config.for90 = false;
+			}
 			get_context().parse_config.for90 = true;
 		}
 		else if (opt == 'd') {

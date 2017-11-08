@@ -19,7 +19,6 @@
 
 #pragma once
 
-#include <queue>
 #include "../parser/tokenizer.h"
 #include "../parser/parser.h"
 #include "../parser/context.h"
@@ -32,16 +31,35 @@ struct SimplerContext {
 	std::vector <char> char_cache;
 	std::vector <std::string> item_cache;
 	/****************
-	*	true if the previous token is CRLF
-	*	if `crlf_marker` = `true`, current token is the first token of the current line
+	* newline_marker:
+	* true if the previous token is CRLF
+	* if `newline_marker` = `true`, current token is the first token of the current line
 	****************/
-	bool crlf_marker = true; // initial is true not false
+	bool newline_marker = true; // initial is true not false
 	/****************
-	*	true if tokens other than blanks(` `, `\t`) appears in this line
-	*	and thee cursor within label area(the first FORTRAN_CONTINUATION_SPACE chars)
+	* label_border:
+	* counts length to the end of label region
+	* set to FORTRAN_CONTINUATION_SPACE + 1 at the beginning of every line
+	* according to fortran 77 std, one line of source code is composed by
+	* ```
+	* lllllcxxxxxxxx
+	* ```
+	* in which `l` means label or comment marker [C/c]
+	* `c` means continuation mark
+	* `x` means normal codes
+	* the translator is also compacted with new fortran standard, in which one line of source code can be composed by
+	* ```
+	* xxxxxxxx
+	* ```
 	****************/
 	int label_border = FORTRAN_CONTINUATION_SPACE + 1;
-	char inStr = 0;
+	/****************
+	* in_string_literal:
+	* 0 if not wrapped in a string now
+	* '\"' if wrapped by a '\"' string now
+	* '\'' if wrapped by a '\'' string now
+	****************/
+	char in_string_literal = 0;
 	bool in_format_stmt = false;
 	void reset() {
 		pos = 0;

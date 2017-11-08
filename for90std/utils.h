@@ -166,5 +166,8 @@ namespace for90std {
 	}
 
 	#define FW(X) std::move(X)
+	#define INOUT(X) FW(X)
+	#define IN(X) X
+	#define OUT(X) X
 	#define SS(X) std::string(X)
 }

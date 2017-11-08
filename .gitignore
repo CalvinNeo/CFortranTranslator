@@ -68,3 +68,5 @@ presentation/
 demos/test_workplace/
 bin/
 !bin/CFortranTranslator.exe
+*.7z
+/demos/1.txt

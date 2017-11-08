@@ -19,6 +19,22 @@
 
 #pragma once
 
+
+struct option {
+	char * name;
+	int has_arg;
+	int * flag;
+	// flag == NULL: corresponding short options
+	// flag != NULL: fill val to *flag
+	int val;
+};
+
+enum longarg_ops {
+	no_argument = 0,
+	required_argument = 1,
+	optional_argument = 2
+};
+
 int getopt(int argc, char * const argv[], const char * optstring);
-int getopt_long(int argc, char *const argv, const char * optString, const struct option * longopts, int * longindex);
+int getopt_long(int argc, char *const argv[], const char * optString, const struct option * longopts, int * longindex);
 extern char * optarg;

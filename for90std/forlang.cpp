@@ -18,9 +18,12 @@
 */
 
 #include "forlang.h"
+#include <string>
+#include <cstring>
+#include <cstdlib>
 
 namespace for90std {
-	/* string type cast */
+	// parsing from string
 	foroptional_dummy None;
 	int to_int(std::string x, foroptional<int> kind = None) {
 		int a;
@@ -41,5 +44,9 @@ namespace for90std {
 		long double a;
 		sscanf(x.c_str(), "%LF", &a);
 		return a;
+	}
+	bool to_bool(std::string x) {
+		std::transform(x.begin(), x.end(), x.begin(), ::tolower);
+		return !x.empty() && (std::strcmp(x.c_str(), "true") == 0 || atoi(x.c_str()) != 0);
 	}
 }

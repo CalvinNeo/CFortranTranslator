@@ -33,7 +33,7 @@
     <ClCompile Include="..\for90std\forlang.cpp" />
     <ClCompile Include="..\for90std\forstdio.cpp" />
     <ClCompile Include="..\src\develop.cpp" />
-    <ClCompile Include="..\src\getopt.cpp" />
+    <ClCompile Include="..\src\getopt2.cpp" />
     <ClCompile Include="..\src\grammar\for90.flex.cpp" />
     <ClCompile Include="..\src\grammar\for90.tab.cpp" />
     <ClCompile Include="..\src\grammar\simple_lexer.cpp" />
@@ -82,7 +82,7 @@
     <ClInclude Include="..\for90std\utils.h" />
     <ClInclude Include="..\src\develop.h" />
     <ClInclude Include="..\src\general_config.h" />
-    <ClInclude Include="..\src\getopt.h" />
+    <ClInclude Include="..\src\getopt2.h" />
     <ClInclude Include="..\src\grammar\for90.tab.h" />
     <ClInclude Include="..\src\grammar\simple_lexer.h" />
     <ClInclude Include="..\src\parser\attribute.h" />
@@ -193,17 +193,17 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
     <OutDir>../bin/</OutDir>
-    <IntDir>../bin/obj/</IntDir>
+    <IntDir>../bin/obj/debug/</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Develop|x64'">
     <LinkIncremental>true</LinkIncremental>
     <OutDir>../bin/</OutDir>
-    <IntDir>../bin/obj/</IntDir>
+    <IntDir>../bin/obj/develop/</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
     <OutDir>../bin/</OutDir>
-    <IntDir>../bin/obj/</IntDir>
+    <IntDir>../bin/obj/release</IntDir>
   </PropertyGroup>
   
   
@@ -260,6 +260,7 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;_CRT_SECURE_NO_WARNINGS;_SCL_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>%boost_dir%;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OutputFile>../bin/$(TargetName)$(TargetExt)</OutputFile>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>

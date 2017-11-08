@@ -21,51 +21,6 @@
 #include <vector>
 #include <iostream>
 #include "tokenizer.h"
-#include <boost/optional/optional.hpp>
-
-// 在初始化之后是否值是否被修改
-template<class T>
-struct dirty {
-	operator T() const {
-		return value;
-	}
-	T & operator= (const T & newv) {
-		changed = true;
-		value = newv;
-		return value;
-	}
-	dirty(const boost::none_t &) {
-		changed = false;
-	}
-	dirty(const T & newv) {
-		// constructor by T
-		changed = false;
-		value = newv;
-	}
-	dirty(const dirty<T> & d) {
-		// copy constructor
-		changed = false;
-		changed = d.isdirty();
-		value = d;
-	}
-	bool isdirty() const {
-		return changed;
-	}
-	T & get() {
-		return value;
-	}
-	const T & get() const {
-		return value;
-	}
-	const T & const_get() const {
-		return value;
-	}
-private:
-	T value;
-	bool changed = false;
-};
-
-
 
 struct ParseNode {
 	TokenizerState fs;
@@ -96,6 +51,11 @@ struct ParseNode {
 	const TokenMeta_T & get_token() const { return this->fs.CurrentTerm.token; }
 	std::string & get_what() { return this->fs.CurrentTerm.what; }
 	const std::string & get_what() const { return this->fs.CurrentTerm.what; }
+	template <typename ... Args>
+	bool token_equals(const TokenMeta_T & token, Args&& ... args) {
+		return (this->get_token() == token) || token_equals(std::forward<Args>(args)...);
+	}
+	bool token_equals(const TokenMeta_T & token) { return this->get_token() == token; };
 	std::vector<ParseNode *>::iterator begin() { return child.begin(); }
 	std::vector<ParseNode *>::iterator end() { return child.end(); }
 	std::vector<ParseNode *>::const_iterator begin() const { return child.begin(); }

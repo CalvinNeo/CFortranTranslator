@@ -25,7 +25,7 @@ void set_variabledesc_attr(ParseNode & vardescattr_node, boost::optional<bool> r
 	if (vardescattr_node.attr == nullptr) {
 		vardescattr_node.setattr(new VariableDescAttr());
 	}
-	VariableDescAttr * desc_attr = dynamic_cast<VariableDescAttr *>(vardescattr_node.attr);
+	VariableDescAttr * desc_attr = dynamic_cast<VariableDescAttr *>(vardescattr_node.attr); // explicit dynamic_cast is clearer than static_cast and vfunc, :D
 	desc_attr->desc = VariableDesc(reference, constant, optional, slice, kind, save, allocatable, target, pointer);
 }
 
@@ -33,7 +33,7 @@ VariableDesc & get_variabledesc_attr(ParseNode & vardescattr_node) {
 	if (vardescattr_node.attr == nullptr) {
 		vardescattr_node.setattr(new VariableDescAttr());
 	}
-	VariableDescAttr * desc_attr = dynamic_cast<VariableDescAttr *>(vardescattr_node.attr);
+	VariableDescAttr * desc_attr = dynamic_cast<VariableDescAttr *>(vardescattr_node.attr); // explicit dynamic_cast is clearer than static_cast and vfunc, :D
 	return desc_attr->desc;
 }
 

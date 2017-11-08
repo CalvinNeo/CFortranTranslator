@@ -73,8 +73,8 @@ void gen_fortran_program(ARG_IN wrappers) {
 		}
 	}
 
-	// regen all subprogram's step 1
-	// subprogram code
+	// regen all subprogram's step 1: generate subprogram's code
+	// create function, generate function body
 	get_context().current_module = "";
 	for (int i = 0; i < get_context().program_tree.length(); i++)
 	{
@@ -82,7 +82,6 @@ void gen_fortran_program(ARG_IN wrappers) {
 		if(wrapper.get_token() == TokenMeta::NT_FUNCTIONDECLARE)
 		{
 			ParseNode & variable_function = wrapper.get(1);
-			//printf("==================function: %s \n", variable_function.get_what().c_str());
 			FunctionInfo * finfo = get_function(get_context().current_module, variable_function.get_what());
 			regen_function_1(finfo, wrapper);
 		}
@@ -101,7 +100,7 @@ void gen_fortran_program(ARG_IN wrappers) {
 	}
 
 	// regen all subprogram's step 2: generate subprogram's code
-	// subprogram code
+	// generate function signature
 	for (int i = 0; i < get_context().program_tree.length(); i++)
 	{
 		ParseNode & wrapper = get_context().program_tree.get(i);

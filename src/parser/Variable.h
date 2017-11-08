@@ -19,6 +19,49 @@
 
 #pragma once
 #include "parser.h"
+#include <boost/optional/optional.hpp>
+
+// checks whether value is modified after initialization
+template<class T>
+struct dirty {
+	operator T() const {
+		return value;
+	}
+	T & operator= (const T & newv) {
+		changed = true;
+		value = newv;
+		return value;
+	}
+	dirty(const boost::none_t &) {
+		changed = false;
+	}
+	dirty(const T & newv) {
+		// constructor by T
+		changed = false;
+		value = newv;
+	}
+	dirty(const dirty<T> & d) {
+		// copy constructor
+		changed = false;
+		changed = d.isdirty();
+		value = d;
+	}
+	bool isdirty() const {
+		return changed;
+	}
+	T & get() {
+		return value;
+	}
+	const T & get() const {
+		return value;
+	}
+	const T & const_get() const {
+		return value;
+	}
+private:
+	T value;
+	bool changed = false;
+};
 
 struct VariableDesc {
 	dirty<bool> reference = false;

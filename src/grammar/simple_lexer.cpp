@@ -17,12 +17,14 @@
 *   51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
+#ifdef DEBUG
 #include <cstdio>
 #include <iostream>
+#endif // DEBUG
+
 #include <functional>
-#include <numeric>
 #include <algorithm>
-#include <boost/algorithm/string.hpp>
+#include <numeric>
 #include <memory>
 #include "../target/gen_config.h"
 #include "for90.tab.h"
@@ -34,11 +36,25 @@ SimplerContext & get_simpler_context() {
 	return sc;
 };
 
-static bool is_name(char ch) {
+static std::function<bool(char)> is_comment_beginning = [&](char ch) {
+	SimplerContext & sc = get_simpler_context();
+	return (ch == '!') // `!`-beginning comments can start any where
+		|| (sc.newline_marker && (ch == 'c' || ch == 'C'));
+};
+static std::function<bool(char)> is_name = [&](char ch) {
 	return (ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z') || ch == '_';
-}
-static bool is_int(char ch) {
+};
+static std::function<bool(char)> is_int = [&](char ch) {
 	return ch >= '0' && ch <= '9';
+};
+static bool is_blank(char ch) {
+	return (ch == ' ' || ch == '\t');
+}
+static bool is_blank(std::string ch) {
+	return (ch == " " || ch == "\t");
+}
+static bool is_operator(std::string cur) {
+	return (cur.size() > 1 && cur[0] == '.' && is_name(cur[1]));
 }
 
 static bool check_continuation(char & return_char) {
@@ -71,11 +87,10 @@ static bool check_continuation(char & return_char) {
 	if (continuation_symbol_p != -1)
 	{
 		do_continuation = continuation_symbol_p < s.size()
-			&& s[continuation_symbol_p] != ' '
+			&& !is_blank(s[continuation_symbol_p])
 			&& s[continuation_symbol_p] != '\n'
-			&& s[continuation_symbol_p] != '\t' // continuation mark can't be blank
-			&& !is_name(s[continuation_symbol_p]); // continuation mark can't be alpha
-		// if there's leading blanks
+			&& !is_name(s[continuation_symbol_p]); // continuation mark can't be alpha char
+												   // if there's leading blanks
 		if (do_continuation) {
 			// `continuation_symbol_p` is a continuation mark
 			p = continuation_symbol_p + 1;
@@ -92,29 +107,45 @@ static bool check_continuation(char & return_char) {
 	return do_continuation;
 }
 static char get_complete_char() {
-	// TODO do not use save_pos, it will generate error parse_line
+	/****************
+	* DO NOT CALL THIS FUNCTION DIRECTLY, CALL `pull_complete_char` INSTEAD
+	* this function returns a char from source code
+	*	1. it will not return any char of comments,
+	* instead log them to `get_tokenizer_context().comments`
+	*	2. it will automaticly do continuation.
+	* e.g. it will concat tokens broken by '\n' automaticly
+	*	3. it can automaticly handle special case of format and string literal,
+	* by flag in `SimplerContext`
+	*	4. it will NOT generate label automaticly,
+	* however, it will modify `label_border`, from which you can know whether this char will compose a label
+	****************/
 	SimplerContext & sc = get_simpler_context();
 	int & p = sc.pos;
 	const std::string & s = sc.code;
 	int old_p = p;
 	char return_char = 0;
+	std::function<void()> handle_newline = [&]() {
+		get_tokenizer_state().parse_line++;
+		sc.in_string_literal = 0;
+		sc.label_border = FORTRAN_CONTINUATION_SPACE + 1;
+		sc.newline_marker = true;
+	};
+	std::function<bool()> is_normal_parse = [&]() {
+		SimplerContext & sc = get_simpler_context();
+		return !sc.in_format_stmt && !sc.in_string_literal;
+	};
 	if (p >= s.size())
 	{
 		goto RETURN_CHAR;
 	}
-
 	if (s[p] == '\n')
 	{
 		// `new_line_p` is the first character of next line
 		if (check_continuation(return_char)) {
 		}
-		get_tokenizer_state().parse_line++;
-		//printf("-1---%d---%s---: %s\n", get_tokenizer_state().parse_line, sc.inStr? "T" : "F", s.substr(p, 40).c_str());
-		sc.inStr = 0;
-		sc.label_border = FORTRAN_CONTINUATION_SPACE + 1;
-		sc.crlf_marker = true;
+		handle_newline();
 	}
-	else if (!sc.in_format_stmt && !sc.inStr && ( (s[p] == '!') || (sc.crlf_marker && (s[p] == 'c' || s[p] == 'C')))) {
+	else if (is_normal_parse() && is_comment_beginning(s[p])) {
 		std::string comment_str;
 		while (p < s.size() && s[p] != '\n') {
 			comment_str += s[p];
@@ -123,47 +154,48 @@ static char get_complete_char() {
 		// now s[p] == '\n'
 		if (check_continuation(return_char)) {
 		}
-		get_tokenizer_state().parse_line++;
-		//printf("-2---%d---%s---: %s\n", get_tokenizer_state().parse_line, sc.inStr ? "T" : "F", s.substr(p, 40).c_str());
 		get_tokenizer_context().comments.push_back(comment_str);
-		sc.inStr = 0;
-		sc.label_border = FORTRAN_CONTINUATION_SPACE + 1;
-		sc.crlf_marker = true;
+		handle_newline();
 	}
 	else if (s[p] == ' ' || is_int(s[p]))
 	{
 		if (sc.label_border > 0)
 		{
-			// among the label region
+			// if with in label region, the integer is part  of label
 			sc.label_border--;
 		}
 		return_char = s[p++];
-		sc.crlf_marker = false;
+		sc.newline_marker = false;
 	}
 	else {
-		// TODO must exclude format-stmt
 		if (!sc.in_format_stmt)
 		{
 			if (s[p] == '\'' || s[p] == '\"')
 			{
-				if (sc.inStr && s[p] == sc.inStr)
+				if (sc.in_string_literal && s[p] == sc.in_string_literal)
 				{
-					sc.inStr = 0;
+					sc.in_string_literal = 0;
 				}
-				else if (!sc.inStr) {
-					sc.inStr = s[p];
+				else if (!sc.in_string_literal) {
+					sc.in_string_literal = s[p];
 				}
 			}
 		}
-		sc.label_border = 0;
 		return_char = s[p++];
-		sc.crlf_marker = false;
+		sc.label_border = 0;
+		sc.newline_marker = false;
 	}
 RETURN_CHAR:
 	return return_char;
 }
 static char pull_complete_char() {
-	SimplerContext & sc = get_simpler_context(); 
+	/****************
+	* this function return a char by the following steps:
+	* 1. if there is cached `item_cache`, push them into `char_cache`
+	* 2. if there is cached `char_cache`, return cached char
+	* 3. if there is NO cached char, call `get_complete_char` for one
+	****************/
+	SimplerContext & sc = get_simpler_context();
 	if (!sc.item_cache.empty())
 	{
 		for (int i = 0; i < sc.item_cache.size(); i++) {
@@ -186,13 +218,24 @@ static char pull_complete_char() {
 	}
 }
 static void store_complete_char(char ch) {
+	/****************
+	* this function put a char into `char_cache`, so `pull_complete_char` can get it later from cache
+	* WARNING:
+	* this function will not rollback SimplerContext, such as
+	* in_string_literal, in_format_stmt, label_border, newline_marker
+	* ====IMPORTANT====
+	* though a deferred SimplerContext will NOT affect `get_complete_char`,
+	* it will certainly affect callers of `pull_complete_char`, such as `next_item`
+	* BE CAREFUL WHEN USING!!!
+	****************/
 	SimplerContext & sc = get_simpler_context();
 	sc.char_cache.push_back(ch);
 }
 
 static bool next_item(std::string & res) {
 	/****************
-	*	
+	*	this function is called directly by lexer, as a intermediate process.
+	* it joins chars from `pull_complete_char` into an **item** of type string
 	****************/
 	char ch2;
 	res = "";
@@ -206,56 +249,57 @@ static bool next_item(std::string & res) {
 	char ch = pull_complete_char();
 	if (ch == 0)
 	{
+		// EOF
 		return false;
 	}
-	if (is_int(ch)) {
-		res += ch;
-		if (sc.label_border > 0)
-		{
-			bool islabel = true;
-			while (sc.label_border > 0)
-			{
-				ch = pull_complete_char();
-				if (!is_int(ch) && ch != ' ' && ch != '\t')
-				{
-					islabel = false;
-					store_complete_char(ch);
-					break;
-				}
-				else if (ch == '\t')
-				{
-					// a tab means previous end of label region(according to somee non-standard codes)
-					store_complete_char(ch);
-					break;
-				}
-				else {
-					res += ch;
-				}
-			}
-			if (islabel)
-			{
-				// label
-				int label_index = std::atoi(res.c_str()); // in order to strip space
-				res = ":" + std::to_string(label_index);
 
+	if (sc.label_border > 0 && is_int(ch))
+	{
+		// int which can be labels
+		bool islabel = true;
+		res += ch;
+		while (sc.label_border > 0)
+		{
+			ch = pull_complete_char();
+			if (!is_int(ch) && !is_blank(ch))
+			{
+				// to compact with new fortran standard, there can be normal codes in label region
+				islabel = false;
+				store_complete_char(ch);
+				break;
+			}
+			else if (ch == '\t')
+			{
+				// a tab means premature terminate of label region(according to somee non-standard codes)
+				store_complete_char(ch);
+				break;
 			}
 			else {
-				// int
-
+				// int, continue label generating
+				res += ch;
 			}
 		}
+		if (islabel)
+		{
+			// label
+			int label_index = std::atoi(res.c_str()); // in order to strip space
+			res = ":" + std::to_string(label_index);
+		}
 		else {
-			// int
-			while (true) {
-				ch = pull_complete_char();
-				if (is_int(ch))
-				{
-					res += ch;
-				}
-				else {
-					store_complete_char(ch);
-					break;
-				}
+			// normal codes
+		}
+	}
+	else if (is_int(ch)) {
+		res += ch;
+		// normal int
+		while (ch = pull_complete_char()) {
+			if (is_int(ch))
+			{
+				res += ch;
+			}
+			else {
+				store_complete_char(ch);
+				break;
 			}
 		}
 	}
@@ -390,9 +434,12 @@ static bool next_item(std::string & res) {
 }
 
 static bool next_nonblank_item(std::string & res) {
+	/****************
+	* this function neglect blank item returned by next_item
+	****************/
 	std::string cur;
 	while (next_item(cur)) {
-		if (cur == " " || cur == "\t")
+		if (is_blank(cur))
 		{
 			continue;
 		}
@@ -401,18 +448,12 @@ static bool next_nonblank_item(std::string & res) {
 		}
 	}
 	res = cur;
-	if (cur == "")
-	{
-		return false;
-	}
-	else {
-		return true;
-	}
+	return cur == "" ? false : true;
 }
 
 template<typename T, typename R>
 static bool is_within(const T & x, const typename std::vector<R> & vec) {
-	return std::accumulate(vec.begin(), vec.end(), false, [&](bool b, const R & y ) {
+	return std::accumulate(vec.begin(), vec.end(), false, [&](bool b, const R & y) {
 		return b || (x == y);
 	});
 }
@@ -424,7 +465,7 @@ static void update_flex(const std::string & cur) {
 	int cur_len = (int)cur.size();
 	if (newline) {
 		get_tokenizer_state().parse_pos = sc.pos - cur_len;
-		get_tokenizer_state().line_pos = 0; 
+		get_tokenizer_state().line_pos = 0;
 		get_tokenizer_state().parse_len = cur_len;
 	}
 	else {
@@ -485,7 +526,7 @@ static bool check_frac(const std::string & cur, std::string & res) {
 			{
 				// if two continuous `.`, the later `.` must belong to a operator
 				// e.g. `2..gt.3`
-				res = cur + ".0" ;
+				res = cur + ".0";
 				get_simpler_context().item_cache.push_back(cur2);
 				return true;
 			}
@@ -531,15 +572,13 @@ static bool check_expo(const std::string & pre, std::string & res) {
 		if (is_int(cur[0]))
 		{
 			bool is_fl = check_frac(cur, cur2);
-			res += "e";
-			res += cur2;
+			res += ("e" + cur2);
 			flag = true;
 		}
 		else if (cur[0] == '.')
 		{
 			bool is_fl = check_frac(".", cur2);
-			res += "e";
-			res += cur2;
+			res += ("e" + cur2);
 			flag = true;
 		}
 		else {
@@ -560,7 +599,7 @@ static void check_keyword(const std::string name, std::function<void(const Keywo
 	SimplerContext & sc = get_simpler_context();
 	std::string lowercase_name = name;
 	std::transform(lowercase_name.begin(), lowercase_name.end(), lowercase_name.begin(), tolower);
-	CHECK_CONCATED_WORD:
+CHECK_CONCATED_WORD:
 	auto keyword_iter = find_if(keywords.begin(), keywords.end(), [&](const KeywordMeta & x) {return x.what == lowercase_name; });
 	auto forward1_iter = find_if(forward1.begin(), forward1.end(), [&](const auto & x) {return x.first == lowercase_name; });
 	if (forward1_iter != forward1.end()) {
@@ -600,12 +639,12 @@ int simpler_yylex(void) {
 	****************/
 	SimplerContext & sc = get_simpler_context();
 	std::string cur;
-	int return_token; 
+	int return_token;
 	Term return_term;
 NOP_REPEAT:
 	if (next_item(cur))
 	{
-		if(is_int(cur[0])) {
+		if (is_int(cur[0])) {
 			// int or float
 			std::string cur2, res;
 			check_frac(cur, cur2);
@@ -621,7 +660,7 @@ NOP_REPEAT:
 				return_token = YY_INTEGER;
 			}
 		}
-		else if (is_name(cur[0]) || (cur.size() > 1 && cur[0] == '.' && is_name(cur[1]))) {
+		else if (is_name(cur[0]) || is_operator(cur)) {
 			std::string lowercase_name = cur;
 			transform(lowercase_name.begin(), lowercase_name.end(), lowercase_name.begin(), tolower);
 		FIND_CONCAT:
@@ -630,21 +669,24 @@ NOP_REPEAT:
 				int left_brackets = 0;
 				int len = 0; // len != code.size(), because of special editing like H-editing
 				int in_str = 0;
-				int h_editing_count = 0;
+				int h_editing_count = 0; // handle `H` editing
 				char ch;
 				sc.in_format_stmt = true;
 				cur = ""; // clear `cur` which is now "format"
+				std::function<bool()> is_normal_parse = [&]() {
+					return !in_str && !h_editing_count;
+				};
 				while (ch = pull_complete_char()) {
 					if (ch == 0)
 					{
 						break;
 					}
-					else if (ch == '(' && !in_str && !h_editing_count)
+					else if (ch == '(' && is_normal_parse())
 					{
 						left_brackets++;
 						cur += ch;
 					}
-					else if (ch == ')' && !in_str && !h_editing_count) {
+					else if (ch == ')' && is_normal_parse()) {
 						left_brackets--;
 						cur += ch;
 						if (left_brackets == 0)
@@ -655,10 +697,11 @@ NOP_REPEAT:
 							break;
 						}
 					}
-					else if (tolower(ch) == 'h' && !in_str && !h_editing_count) {
+					else if (tolower(ch) == 'h' && is_normal_parse()) {
 						// h-editing
 						int num_s = (int)cur.size() - 1;
-						while (num_s > 0 && !(cur[num_s] >= '0' && cur[num_s] <= '9')) {
+
+						while (num_s > 0 && !is_int(cur[num_s])) {
 							num_s--;
 						}
 						std::string h_editing_arg = cur.substr(num_s);
@@ -679,17 +722,18 @@ NOP_REPEAT:
 							****************/
 							if (in_str == ch)
 							{
-
+								// if ch closes bracket in_str
 								in_str = 0;
 							}
 							else if (in_str == 0)
 							{
+								// open bracket in_str
 								in_str = ch;
 							}
 						}
 						else if (ch == '\n')
 						{
-							// get_tokenizer_state().parse_line++;
+
 						}
 						if (h_editing_count >0)
 						{
@@ -740,7 +784,7 @@ NOP_REPEAT:
 				check_expo(res, res);
 				return_term = Term{ TokenMeta::Float, res };
 				return_token = YY_FLOAT;
-			} 
+			}
 			else {
 				res = cur; // res = `.`
 				next_nonblank_item(cur);
@@ -765,7 +809,7 @@ NOP_REPEAT:
 					return_term = Term{ TokenMeta::Dot, "." };
 					return_token = '.';
 				}
-			} 
+			}
 		}
 		else if (cur == "\n") {
 			return_term = Term{ TokenMeta::CRLF, "\n" };
@@ -782,7 +826,7 @@ NOP_REPEAT:
 					break;
 				}
 			}
-			return_term = Term{ TokenMeta::String, "\"" + cur.substr(1, cur.size()  - 2)+ "\"" };
+			return_term = Term{ TokenMeta::String, "\"" + cur.substr(1, cur.size() - 2) + "\"" };
 			return_token = YY_STRING;
 		}
 		else if (cur == "!") {

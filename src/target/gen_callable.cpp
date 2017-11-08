@@ -140,13 +140,14 @@ void regen_function_array(FunctionInfo * finfo, ParseNode & callable) {
 
 		argtable_str += make_str_list(normal_args.begin(), normal_args.end(), [&](string p) {
 			// origin: a, b, 1
-			// fuck fortran: FW(a), FW(b), FW(1)
+			// TODO: this is a temporary solution
+			// fortran: INOUT(a), INOUT(b), INOUT(1)
 			if (is_sysfunc)
 			{
 				return p;
 			}
 			else {
-				sprintf(codegen_buf, "FW(%s)", p.c_str());
+				sprintf(codegen_buf, "INOUT(%s)", p.c_str());
 				return string(codegen_buf);
 			}
 		});

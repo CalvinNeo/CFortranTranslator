@@ -20,7 +20,9 @@
 #include "gen_common.h"
 
 ParseNode gen_keyvalue_from_name(std::string name) {
-
+	/************************
+	* this function promote a `word`(possibly variable name) to a new ParseNode of NT_KEYVALUE `(x, initial)`,
+	*************************/
 	ParseNode newnode = gen_token(Term{ TokenMeta::NT_VARIABLE_ENTITY, name }
 		, gen_token(Term{ TokenMeta::UnknownVariant, name }) 
 		, gen_token(Term{ TokenMeta::NT_VARIABLEINITIALDUMMY, "" })
@@ -33,6 +35,18 @@ ParseNode gen_keyvalue_from_exp(ARG_IN variable, ARG_IN initial) {
 	return newnode;
 }
 
+ParseNode promote_exp_to_keyvalue(ARG_IN paramtable_elem) {
+	/************************
+	* this function promote a `exp` to a new ParseNode of NT_KEYVALUE `(x, initial)`,
+	*************************/
+	if (paramtable_elem.get_token() == TokenMeta::NT_KEYVALUE) {
+		// keyvalue pair
+		return paramtable_elem;
+	}
+	else {
+		return gen_keyvalue_from_exp(paramtable_elem, gen_token(Term{ TokenMeta::NT_VARIABLEINITIALDUMMY, "" }));
+	}
+}
 
 ParseNode gen_pure_paramtable(ARG_IN paramtable_elem) {
 	if (paramtable_elem.get_token() == TokenMeta::NT_DIMENSLICE) {
@@ -92,23 +106,10 @@ ParseNode gen_pure_paramtable(ARG_IN paramtable_elem, ARG_IN paramtable, bool le
 	return newnode;
 }
 
-ParseNode promote_exp_to_keyvalue(ARG_IN paramtable_elem) {
-	/************************
-	*	this function promote a `exp` to a new ParseNode of NT_KEYVALUE `(x, initial)`,
-	*************************/
-	if (paramtable_elem.get_token() == TokenMeta::NT_KEYVALUE) {
-		// keyvalue pair
-		return paramtable_elem;
-	}
-	else {
-		return gen_keyvalue_from_exp(paramtable_elem, gen_token(Term{ TokenMeta::NT_VARIABLEINITIALDUMMY, "" }));
-	}
-}
-
 ParseNode promote_argtable_to_paramtable(ARG_IN paramtable) {
 	/************************
-	*	this function map every element `x` in a argtable to a keyvalue by `promote_exp_to_keyvalue`, 
-	*	and return a flat parameter list
+	* this function map every element `x` in a argtable to a keyvalue by `promote_exp_to_keyvalue`, 
+	* and return a flat parameter list
 	*************************/
 	ParseNode newnode = gen_token(Term{ TokenMeta::NT_PARAMTABLE_PURE, "" });
 	for (int i = 0; i < paramtable.length(); i++)

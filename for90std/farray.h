@@ -174,7 +174,7 @@ namespace for90std {
 		T & get(Iterator index_from, Iterator index_to) {
 			assert(index_to - index_from == dimension);
 			auto it = begin();
-			size_t i = 0;
+			size_type i = 0;
 			for (Iterator iter = index_from; iter < index_to; iter++, i++)
 			{
 				size_type off = *iter - lb[i];
@@ -188,7 +188,7 @@ namespace for90std {
 		const T & const_get(Iterator index_from, Iterator index_to) const {
 			assert(index_to - index_from == dimension);
 			auto it = cbegin();
-			size_t i = 0;
+			size_type i = 0;
 			for (Iterator iter = index_from; iter < index_to; iter++, i++)
 			{
 				size_type off = *iter - lb[i];

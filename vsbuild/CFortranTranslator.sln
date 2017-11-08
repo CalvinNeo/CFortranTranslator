@@ -5,7 +5,7 @@ VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "cpptest", "cpptest\cpptest.vcxproj", "{4ECA6379-116F-460C-8D1D-027CF73D6DF9}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "CFortranTranslator", "CFortranTranslator\CFortranTranslator.vcxproj", "{EEFFE8C1-37FF-4F41-9113-5996FEA58436}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "CFortranTranslator", "CFortranTranslator.vcxproj", "{EEFFE8C1-37FF-4F41-9113-5996FEA58436}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

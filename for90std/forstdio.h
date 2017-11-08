@@ -197,23 +197,15 @@ namespace for90std {
 		const char * c_str() const {
 			return fmt.c_str();
 		}
-		size_t & index() {
+		size_t & index() const {
 			if ((int)p >= reversion_end)
 			{
 				p = reversion_start;
 			}
 			return p;
 		}
-		const size_t & index() const {
-			if ((int)p >= reversion_end)
-			{
-				p = reversion_start;
-			}
-			return p;
-		}
-
-
-		std::string strip_front() {
+		
+		std::string strip_front() const {
 			size_t st = index();
 			size_t i = st;
 			for (; i < size(); i++)
@@ -239,7 +231,7 @@ namespace for90std {
 			return sub;
 		}
 
-		std::string next_editing() {
+		std::string next_editing() const {
 			std::string editing;
 			size_t st = index();
 			assert(st >= size() || fmt[st] == '%'); // start with an editing
@@ -263,14 +255,14 @@ namespace for90std {
 			return editing;
 		}
 
-		void end_this_line() {
+		void end_this_line() const {
 			size_t st = index();
 			while (st < fmt.size() && fmt[st] != '\n') {
 				index() = index() + 1;
 			}
 		}
 
-		std::string end_format() {
+		std::string end_format() const {
 			// IIF after all inputs are swallowed, print the rest of the format string
 			size_t st = reversion_end;
 			std::string s;
