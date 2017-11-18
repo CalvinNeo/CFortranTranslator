@@ -36,26 +36,3 @@ VariableDesc & get_variabledesc_attr(ParseNode & vardescattr_node) {
 	VariableDescAttr * desc_attr = dynamic_cast<VariableDescAttr *>(vardescattr_node.attr); // explicit dynamic_cast is clearer than static_cast and vfunc, :D
 	return desc_attr->desc;
 }
-
-ParseNode gen_variabledesc_from_dimenslice(ARG_IN dimen_slice) {
-	ParseNode dimen = dimen_slice;
-	for (int sliceid = 0; sliceid < dimen.length(); sliceid++)
-	{
-		if (dimen.get(sliceid).get_token() == TokenMeta::NT_SLICE) {
-
-		}
-		else {
-			dimen.replace(sliceid, promote_exp_to_slice(dimen.get(sliceid)));
-		}
-		sprintf(codegen_buf, "%s, %s"
-			, dimen.get(sliceid).get(0).get_what().c_str() // from
-			, dimen.get(sliceid).get(1).get_what().c_str()); // to
-		dimen.get(sliceid).fs.CurrentTerm = Term{ TokenMeta::NT_SLICE, string(codegen_buf) };
-	}
-	ParseNode vardesc = gen_token(Term{ TokenMeta::NT_VARIABLEDESC, "NT_VARIABLEDESC GENERATED IN" }, dimen);
-	return vardesc;
-}
-
-ParseNode gen_variabledesc_from_dimenslice() {
-	return gen_token(Term{ TokenMeta::NT_VARIABLEDESC, string(codegen_buf) });
-}

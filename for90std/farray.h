@@ -25,7 +25,11 @@
 #include "forlang.h"
 
 namespace for90std {
-
+#ifdef _DEBUG
+#define _RTN(X) X
+#else
+#define _RTN(X) X
+#endif
 	template <typename size_type>
 	static void _map_impl_reset(size_type * cur, int dimension, int & curdim, const size_type * LBound, const size_type * size) {
 		std::copy_n(LBound, dimension, cur);
@@ -103,10 +107,10 @@ namespace for90std {
 		typedef slice_info</*typename*/size_type> slice_type;
 		int dimension;
 		const bool is_view;
-		typedef /*typename*/ T * iterator;
-		typedef /*typename*/ const T * const_iterator;
-		typedef /*typename*/ std::reverse_iterator<iterator> reverse_iterator;
-		typedef /*typename*/ std::reverse_iterator<const_iterator> const_reverse_iterator;
+		typedef T * iterator;
+		typedef const T * const_iterator;
+		typedef std::reverse_iterator<iterator> reverse_iterator;
+		typedef  std::reverse_iterator<const_iterator> const_reverse_iterator;
 
 		size_type LBound(int dim) const {
 			return lb[dim];
@@ -215,18 +219,6 @@ namespace for90std {
 		template<int X>
 		T & operator[](const slice_type (&index)[X]) {
 			return get(index);
-		}
-
-		farray<T> & operator=(const farray<T> & x) {
-			if (this == &x) return *this;
-			reset_value(x.cbegin(), x.cend());
-			return *this;
-		}
-		farray<T> & operator=(farray<T> && x) {
-			if (this == &x) return *this;
-			this->parr = x.parr;
-			x.parr = nullptr;
-			return *this;
 		}
 
 		operator T() {
@@ -490,7 +482,7 @@ namespace for90std {
 		farray<T> & move_from(farray<T> && m) {
 			if (this == &m) return *this;
 			this->dimension = m.dimension;
-			this->lb = m.lb;
+			this->lb = m.lb; 
 			this->sz = m.sz;
 			this->delta = m.delta;
 			this->parr = m.parr;
@@ -504,6 +496,21 @@ namespace for90std {
 			move_from(std::move(m));
 		}
 
+		farray<T> & operator=(const farray<T> & x) {
+			// only reset value, remain original shape
+			// use `copy_from`, or call `reset_array` before using `operator=`, if you want to copy the entire array
+			if (this == &x) return *this;
+			reset_value(x.cbegin(), x.cend());
+			return *this;
+		}
+		farray<T> & operator=(farray<T> && x) {
+			// only reset value, remain original shape
+			// use `move_from`, or call `reset_array` before using `operator=`, if you want to move the entire array
+			if (this == &x) return *this;
+			this->parr = x.parr;
+			x.parr = nullptr;
+			return *this;
+		}
 		~farray() {
 			if (!is_view) {
 				delete[] parr;
@@ -521,19 +528,19 @@ auto power(const farray<T1> & x, const farray<T2> & y) {
 	assert(x.flatsize() == y.flatsize()); 
 	decltype(std::declval<T1>() * std::declval<T2>()) narr(x);
 	std::transform(narr.begin(), narr.end(), x.cbegin(), narr.begin(), [](auto m, auto n) {return power(m, n); });
-	return narr; 
+	return _RTN(narr);
 }
 template <typename T1, typename T2>
 auto power(const T1 & x, const farray<T2> & y) {
 	decltype(std::declval<T1>() * std::declval<T2>()) narr(y);
 	std::transform(narr.begin(), narr.end(), narr.begin(), [&](auto m) {return power(x, m); });
-	return narr; 
+	return _RTN(narr);
 }
 template <typename T1, typename T2>
 auto power(const farray<T1> & x, const T2 & y) {
 	decltype(std::declval<T1>() * std::declval<T2>()) narr(x);
 	std::transform(narr.begin(), narr.end(), narr.begin(), [&](auto m) {return power(m, y); });
-	return narr; 
+	return _RTN(narr);
 }
 
 #define _MAKE_ARITH_OPERATORS_BIN(op, op2) template <typename T> \
@@ -541,19 +548,19 @@ auto power(const farray<T1> & x, const T2 & y) {
 		assert(x.flatsize() == y.flatsize()); \
 		farray<T> narr(x); \
 		narr op2 y; \
-		return narr; \
+		return _RTN(narr); \
 	} \
 	template <typename T> \
 	farray<T> operator op(const T & x, const farray<T> & y) { \
 		farray<T> narr(y); \
 		narr op2 x; \
-		return narr; \
+		return _RTN(narr); \
 	} \
 	template <typename T> \
 	farray<T> operator op(const farray<T> & x, const T & y) { \
 		farray<T> narr(x); \
 		narr op2 y; \
-		return narr; \
+		return _RTN(narr); \
 	}
 	// do not use `operator ## op` for std compacity, `operator` is a seprated token
 	_MAKE_ARITH_OPERATORS_BIN(+, +=);
@@ -568,7 +575,7 @@ auto power(const farray<T1> & x, const T2 & y) {
 		narr.map([&](bool & item, const fsize_t * cur) { \
 			item = (x.const_get(cur, cur + x.dimension) op y.const_get(cur, cur + y.dimension)); \
 		}); \
-		return narr;  \
+		return _RTN(narr); \
 	} \
 	template <typename T> \
 	farray<bool> operator op(const T & x, const farray<T> & y) { \
@@ -576,7 +583,7 @@ auto power(const farray<T1> & x, const T2 & y) {
 			narr.map([&](bool & item, const fsize_t * cur) { \
 				item = (x op y.const_get(cur, cur + y.dimension)); \
 		}); \
-		return narr;  \
+		return _RTN(narr); \
 	} \
 	template <typename T> \
 	farray<bool> operator op(const farray<T> & x, const T & y) { \
@@ -584,7 +591,7 @@ auto power(const farray<T1> & x, const T2 & y) {
 		narr.map([&](bool & item, const fsize_t * cur) { \
 			item = (x.const_get(cur, cur + x.dimension) op y); \
 		}); \
-		return narr;  \
+		return _RTN(narr); \
 	}
 
 	_MAKE_CMP_OPERATORS(< );
@@ -603,7 +610,7 @@ auto power(const farray<T1> & x, const T2 & y) {
 		narr.map([&](bool & item, const fsize_t * cur) {
 			item = (! x.const_get(cur, cur + x.dimension));
 		});
-		return narr; 
+		return _RTN(narr); 
 	}
 
 	template <typename T, int X>
@@ -617,13 +624,13 @@ auto power(const farray<T1> & x, const T2 & y) {
 		farray<T> narr({ 1 }, { flatsize });
 		// concat several farrays
 		narr.reset_value(X, farrs);
-		return narr;
+		return _RTN(narr);
 	}
 
 
 	template <int D, typename F/*, typename = std::enable_if_t<std::is_callable<F, size_type>::value>*/>
 	auto make_init_list(const fsize_t(&from)[D], const fsize_t(&size)[D], F f) 
-	-> typename farray<typename function_traits<decltype(f)>::result_type> {
+	-> farray<typename function_traits<decltype(f)>::result_type> {
 		typedef typename function_traits<decltype(f)>::result_type T;
 		farray<T> narr(D, from, size);
 		// important: second argument is size, not to
@@ -632,19 +639,19 @@ auto power(const farray<T1> & x, const T2 & y) {
 		narr.map([&](T & item, const fsize_t *cur) {
 			item = f(cur);
 		});
-		return narr;
+		return _RTN(narr);
 	}
 	template <typename T, int D, typename Iterator>
 	farray<T> make_init_list(Iterator list_begin, Iterator list_end) {
 		farray<T> narr({ 1 }, { list_end - list_begin });
 		narr.reset_value(list_begin, list_end);
-		return narr;
+		return _RTN(narr);
 	}
 	template <typename T, int X>
 	farray<T> make_init_list(const T(&values)[X]){
 		farray<T> narr({ 1 }, { X });
 		narr.reset_value(values, values + X);
-		return narr;
+		return _RTN(narr);
 	}
 	template <typename T>
 	farray<T> make_init_list(const T & scalar)  {
@@ -654,17 +661,19 @@ auto power(const farray<T1> & x, const T2 & y) {
 		*	A rank-one array may be constructed from scalars and other arrays and may be reshaped into any allowable array shape
 		****************/
 		// implicitly use a scalr to initialize an array, so shape of array is undetermined
-		return farray<T>(scalar);
+		farray<T> narr{ scalar };
+		return _RTN(narr);
 	}
 	template <typename T>
 	farray<T> make_init_list(int repeat, const T & scalar) {
 		farray<T> narr({ 1 }, { repeat });
 		narr.reset_value(scalar);
-		return narr;
+		return _RTN(narr);
 	}
 	template <typename T>
-	farray<T> make_init_list(const farray<T> & m) {
-		return m;
+	farray<T> make_init_list(const farray<T> & narr) {
+		// this function is to for compacity
+		return _RTN(narr);
 	}
 
 	template <typename T, int X, typename _Iterator_In, typename _Iterator_Out>
@@ -715,59 +724,42 @@ auto power(const farray<T1> & x, const T2 & y) {
 		fa_layer_delta(ndelta, ndelta + X, ndelta);
 		_forslice_impl<T, X>(ntp, farr, 0, ndelta, farr.get_delta(), narr.begin(), narr.end(), farr.cbegin(), farr.cend());
 
-		return narr;
+		return _RTN(narr);
 	}
-	
-	//template <typename T>
-	//farray<T> forreorganize(const farray<T> & farr, int dim, fsize_t index) {
-	//	// return a rank D - 1 sub array of farr equals to farr(dim = index)
-	//	farray<T> narr;
-	//	slice_info<fsize_t> sl[farr.dimension];
-	//	for (int i = 0; i < farr.dimension; i++)
-	//	{
-	//		sl[i] = slice_info<fsize_t>(); // select all elements
-	//	}
-	//	sl[dim] = slice_info<fsize_t>({ {index} }); // choose index(isslice = false) in rank dim
-	//	narr.reset_array(sl, false); // do not reset lower bound to 1
-	//	narr.reset_value();
-
-	//	_forslice_impl<T, X>(farr, 0, farr.get_delta(), narr.begin(), farr.cbegin(), farr.cend());
-	//	return narr;
-	//}
 
 	template <typename T>
-	auto fortranspose(const farray<T> & farr) {
+	farray<T> fortranspose(const farray<T> & farr) {
 		farray<T> narr(farr);
 		narr.transpose();
-		return narr;
+		return _RTN(narr);
 	}
 	
 	template <typename T>
-	auto forlbound(const farray<T> & farr, int fordim = 1) {
+	fsize_t forlbound(const farray<T> & farr, int fordim = 1) {
 		return farr.LBound(fordim - 1);
 	}
 	
 	template <typename T>
-	auto forubound(const farray<T> & farr, int fordim = 1) {
+	fsize_t forubound(const farray<T> & farr, int fordim = 1) {
 		return farr.UBound(fordim - 1);
 	}
 
 	template <typename T>
 	farray<fsize_t> forshape(const farray<T> & farr, int fordim = 1) {
-		farray<fsize_t> r = make_init_list(farr.size(), farr.size() + farr.dimension); 
-		return r;
+		farray<fsize_t> sarr = make_init_list(farr.size(), farr.size() + farr.dimension); 
+		return _RTN(sarr);
 	}
 
 	template <typename T, int X, int D>
-	auto forreshape(const T(&value)[X], const fsize_t(&shape)[D]){
+	farray<T> forreshape(const T(&value)[X], const fsize_t(&shape)[D]){
 		fsize_t lb[D];
 		std::fill_n(lb, D, 1);
-		farray<T> r = farray<T>(lb, shape, value, value + X);
-		return r;
+		farray<T> sarr = farray<T>(lb, shape, value, value + X);
+		return _RTN(sarr);
 	}
 
 	template <typename T>
-	auto forsize(const farray<T> & farr, int fordim = 1) {
+	fsize_t forsize(const farray<T> & farr, int fordim = 1) {
 		return farr.size(fordim - 1);
 	}
 
@@ -797,7 +789,7 @@ auto power(const farray<T1> & x, const T2 & y) {
 			}
 			inited.get(subcur.begin(), subcur.end()) = true;
 		});
-		return loc;
+		return _RTN(loc);
 	}
 	template <typename T, typename F>
 	farray<T> _forloc_impl(F predicate, const farray<T> & farr, foroptional<mask_wrapper_t> mask = None) {
@@ -811,7 +803,7 @@ auto power(const farray<T1> & x, const T2 & y) {
 			}
 			inited = true;
 		});
-		return loc;
+		return _RTN(loc);
 	}
 	template <typename T, typename F>
 	farray<T> formap(F f, const farray<T> & farr) {
@@ -819,7 +811,7 @@ auto power(const farray<T1> & x, const T2 & y) {
 		narr.map([&](T & current_value, const fsize_t * cur) {
 			f(current_value);
 		});
-		return narr;
+		return _RTN(narr);
 	}
 	template <typename T, typename F>
 	T formap(F f, T x) {
@@ -827,7 +819,7 @@ auto power(const farray<T1> & x, const T2 & y) {
 	}
 
 	template <typename R, typename T, typename F>
-	R forreduce(F binop, R initial, const farray<T> & farr, foroptional<mask_wrapper_t> mask = None)
+	R forreduce(F binop, R initial, const farray<T> & farr, foroptional<mask_wrapper_t> mask)
 	{
 		// TODO examine why this do not work
 		//return std::accumulate(farr.cbegin(), farr.cend(), intial, [&](const R & op1, const T & op2) {
@@ -850,10 +842,10 @@ auto power(const farray<T1> & x, const T2 & y) {
 				initial = binop(initial, *iter);
 			}
 		}
-		return initial;
+		return _RTN(initial);
 	}
 	template <typename R, typename T, typename F>
-	farray<typename R> forreduce(F binop, farray<typename R> initial_set, const farray<T> & farr, int dim, foroptional<mask_wrapper_t> mask = None)
+	farray<R> forreduce(F binop, farray<R> initial_set, const farray<T> & farr, int dim, foroptional<mask_wrapper_t> mask)
 	{
 		// previous_result_set is a farray 1 rank less than farr
 		farr.map([&](const T & current_value, const fsize_t * cur) {
@@ -868,7 +860,7 @@ auto power(const farray<T1> & x, const T2 & y) {
 			R & initial = initial_set.get(subcur.begin(), subcur.end());
 			initial = binop(initial, current_value);
 		});
-		return initial_set;
+		return _RTN(initial_set);
 	}
 
 	template <typename T>
@@ -1055,7 +1047,7 @@ auto power(const farray<T1> & x, const T2 & y) {
 				*narr_iter = *farr_iter;
 			}
 		}
-		return narr;
+		return _RTN(narr);
 	}
 }
 

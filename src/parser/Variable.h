@@ -109,23 +109,23 @@ struct VariableDesc {
 	VariableDesc(boost::optional<bool> reference, boost::optional<bool> constant, boost::optional<bool> optional, boost::optional<ParseNode> slice
 		, boost::optional<int> kind, boost::optional<bool> save, boost::optional<bool> allocatable, boost::optional<bool> target, boost::optional<bool> pointer) {
 		if (reference.is_initialized())
-			this->reference = reference.value();
+			this->reference = reference.get_value_or(this->reference);
 		if (constant.is_initialized())
-			this->constant = constant.value();
+			this->constant = constant.get_value_or(this->constant);
 		if (optional.is_initialized())
-			this->optional = optional.value();
+			this->optional = optional.get_value_or(this->optional);
 		if (slice.is_initialized())
-			this->slice = slice.value();
+			this->slice = slice;
 		if (kind.is_initialized())
-			this->kind = kind.value();
+			this->kind = kind.get_value_or(this->kind);
 		if (save.is_initialized())
-			this->save = save.value();
+			this->save = save.get_value_or(this->save);
 		if (allocatable.is_initialized())
-			this->allocatable = allocatable.value();
+			this->allocatable = allocatable.get_value_or(this->allocatable);
 		if (target.is_initialized())
-			this->target = target.value();
+			this->target = target.get_value_or(this->target);
 		if (pointer.is_initialized())
-			this->pointer = pointer.value();
+			this->pointer = pointer.get_value_or(this->pointer);
 	}
 };
 
@@ -185,7 +185,7 @@ struct VariableInfo
 	bool implicit_defined = true; 
 
 	VariableInfo()
-		: local_name(""), implicit_defined(true), commonblock_index(0), commonblock_name(""), vardef_node(nullptr), declared(false), generated(false) {
+		: local_name(""), vardef_node(nullptr), declared(false), generated(false), commonblock_name(""), commonblock_index(0), implicit_defined(true) {
 
 	}
 

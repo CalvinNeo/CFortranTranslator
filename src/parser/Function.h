@@ -64,7 +64,13 @@ struct FunctionInfo {
 *	std::string type
 *	std::string default
 *******************/
-typedef std::tuple<std::string, std::string, std::string> KeywordParamInfo;
+struct KeywordParamInfo : public std::tuple<std::string, std::string, std::string> {
+public:
+	KeywordParamInfo(const char * x, const char * y, const char * z) 
+		: std::tuple<std::string, std::string, std::string>(std::string{x}, std::string{y}, std::string{z}) {
+
+	}
+};
 
 FunctionInfo * get_function(std::string module_name, std::string function_name);
 FunctionInfo * add_function(std::string module_name, std::string function_name, const FunctionInfo & func);

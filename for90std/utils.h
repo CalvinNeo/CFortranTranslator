@@ -18,6 +18,7 @@
 */
 #pragma once
 #include <tuple>
+#include <functional>
 
 // WARNING: DEPRECATED
 #if (defined(_MSC_VER) && _MSC_VER <= 1900)
@@ -88,6 +89,12 @@ namespace for90std {
 			// composed of those arguments.
 		};
 	};
+
+#if (defined(__GNUC__) && __GNUC__ <= 5)
+	#define __MA_STR(x) __MA_STR1(x)
+	#define __MA_STR1(x) #x
+	#define invoke __invoke
+#endif
 
 	template <typename T>
 	class for_reference_wrapper {
@@ -165,8 +172,17 @@ namespace for90std {
 		return std::reference_wrapper<T>(x);
 	}
 
+
+	inline char to_lower(char ch) {
+		if (ch >= 'A' && ch <= 'Z')
+		{
+			return (char)(ch - 'A' + 'a');
+		}
+		return ch;
+	};
+
 	#define FW(X) std::move(X)
-	#define INOUT(X) FW(X)
+	#define INOUT(X) std::move(X)
 	#define IN(X) X
 	#define OUT(X) X
 	#define SS(X) std::string(X)

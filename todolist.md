@@ -46,6 +46,9 @@
 - ~~display comments~~
 - support other C++ compilers
 - free format continuation(ref 3.3.1.3)
+- optimize performance
+    - `gen_merge`
+    - `RETURN_NT` eliminate copy from `T` to `T *`
 
 ## todolist(bugfix)
 - ~~if slice can be a scalar x and equal to (1: x + 1), there will be conflict in argtable~~

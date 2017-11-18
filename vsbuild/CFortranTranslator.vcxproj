@@ -34,7 +34,6 @@
     <ClCompile Include="..\for90std\forstdio.cpp" />
     <ClCompile Include="..\src\develop.cpp" />
     <ClCompile Include="..\src\getopt2.cpp" />
-    <ClCompile Include="..\src\grammar\for90.flex.cpp" />
     <ClCompile Include="..\src\grammar\for90.tab.cpp" />
     <ClCompile Include="..\src\grammar\simple_lexer.cpp" />
     <ClCompile Include="..\src\main.cpp" />
@@ -45,7 +44,7 @@
     <ClCompile Include="..\src\parser\scanner.cpp" />
     <ClCompile Include="..\src\parser\tokenizer.cpp" />
     <ClCompile Include="..\src\parser\Variable.cpp" />
-    <ClCompile Include="..\src\target\codegen.cpp" />
+    <ClCompile Include="..\src\target\gen_common.cpp" />
     <ClCompile Include="..\src\target\gen_arraybuilder.cpp" />
     <ClCompile Include="..\src\target\gen_attr_describer.cpp" />
     <ClCompile Include="..\src\target\gen_callable.cpp" />
@@ -78,6 +77,7 @@
     <ClInclude Include="..\for90std\forlang.h" />
     <ClInclude Include="..\for90std\formath.h" />
     <ClInclude Include="..\for90std\forstdio.h" />
+    <ClInclude Include="..\for90std\forstring.h" />
     <ClInclude Include="..\for90std\fortime.h" />
     <ClInclude Include="..\for90std\utils.h" />
     <ClInclude Include="..\src\develop.h" />

@@ -51,17 +51,15 @@ ParseNode promote_exp_to_keyvalue(ARG_IN paramtable_elem) {
 ParseNode gen_pure_paramtable(ARG_IN paramtable_elem) {
 	if (paramtable_elem.get_token() == TokenMeta::NT_DIMENSLICE) {
 		print_error("Can't generate paramtable from dimen_slice", paramtable_elem);
-		return gen_dimenslice(paramtable_elem);
+		return gen_reset(paramtable_elem, Term{ TokenMeta::NT_DIMENSLICE, "DIMENSLICE GENERATED IN REGEN_SUITE" });
 	}
-	else if( paramtable_elem.get_token() == TokenMeta::NT_ARGTABLE_PURE) {
+	else if(paramtable_elem.get_token() == TokenMeta::NT_ARGTABLE_PURE) {
 		print_error("Can't generate paramtable from pure argtable", paramtable_elem);
 		// promote dimen_slice to parameter list
-		return gen_argtable(paramtable_elem);
+		return gen_reset(paramtable_elem, Term{ TokenMeta::NT_ARGTABLE_PURE, "ARGTABLE GENERATED IN REGEN_SUITE" });
 	}
 	else if(paramtable_elem.get_token() == TokenMeta::NT_KEYVALUE){
-		sprintf(codegen_buf, "%s", paramtable_elem.get_what().c_str());
-		ParseNode newnode = gen_token(Term{ TokenMeta::NT_PARAMTABLE_PURE, string(codegen_buf) }, paramtable_elem);
-		return newnode;
+		return gen_token(Term{ TokenMeta::NT_PARAMTABLE_PURE, paramtable_elem.to_string() }, paramtable_elem);
 	}
 	else if (paramtable_elem.get_token() == TokenMeta::NT_PARAMTABLE_PURE) {
 		return paramtable_elem;
@@ -84,12 +82,12 @@ ParseNode gen_pure_paramtable(ARG_IN paramtable_elem, ARG_IN paramtable, bool le
 
 	if (all_param) {
 		// all keyvalue pair 
-		newnode = gen_flattern(paramtable_elem, paramtable, "%s, %s", TokenMeta::NT_PARAMTABLE_PURE, left_recursion);
+		newnode = gen_flatten(paramtable_elem, paramtable, "%s, %s", TokenMeta::NT_PARAMTABLE_PURE, left_recursion);
 	}
 	else if(to_param){
 		// there is keyvalue pair
 		ParseNode promoted_argtable = promote_argtable_to_paramtable(paramtable);
-		newnode = gen_flattern(promote_exp_to_keyvalue(paramtable_elem), promoted_argtable, "%s, %s", TokenMeta::NT_PARAMTABLE_PURE, left_recursion);
+		newnode = gen_flatten(promote_exp_to_keyvalue(paramtable_elem), promoted_argtable, "%s, %s", TokenMeta::NT_PARAMTABLE_PURE, left_recursion);
 	}
 	else if (to_dimen) {
 		print_error("Can't generate dimen_slice from paramtable");
@@ -98,7 +96,7 @@ ParseNode gen_pure_paramtable(ARG_IN paramtable_elem, ARG_IN paramtable, bool le
 	else if (all_arg) {
 		// all argument_pure or variable
 		print_error("Can't generate all arguments from paramtable");
-		newnode = gen_flattern(paramtable_elem, paramtable, "%s, %s", TokenMeta::NT_ARGTABLE_PURE, left_recursion);
+		newnode = gen_flatten(paramtable_elem, paramtable, "%s, %s", TokenMeta::NT_ARGTABLE_PURE, left_recursion);
 	}
 	else {
 		fatal_error("bad param table");
@@ -118,14 +116,6 @@ ParseNode promote_argtable_to_paramtable(ARG_IN paramtable) {
 	}
 	return newnode;
 }
-
-
-ParseNode gen_argtable(ARG_IN argtable) {
-	ParseNode newnode = argtable;
-	newnode.get_token() = TokenMeta::NT_ARGTABLE_PURE;
-	return newnode;
-}
-
 
 void regen_paramtable(FunctionInfo * finfo, ParseNode & paramtable) {
 	TokenMeta_T paramtable_type = TokenMeta::NT_ARGTABLE_PURE;
@@ -207,13 +197,12 @@ void regen_paramtable(FunctionInfo * finfo, ParseNode & paramtable) {
 
 void foreach_paramtable(const ParseNode & pn, std::function<void(const ParseNode &)> f, bool recursion_direction_right) {
 	const ParseNode * pp = &pn;
-	ParseNode newnode = gen_token(Term{ TokenMeta::NT_PARAMTABLE_PURE, "" });
 	do {
 		int from, to;
 		/************
 		*	pn->length() == 0: empty parameter list
 		*	pn->length() == 1: parameter list with a single element
-		*	pn->length() == 2: probably non-flattern parameter list
+		*	pn->length() == 2: probably non-flatten parameter list
 		**************/
 		bool possible_length = (pp->length() == 2);
 		if (recursion_direction_right)

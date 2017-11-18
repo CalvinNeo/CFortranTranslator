@@ -21,14 +21,14 @@
 
 
 bool is_dimenslice(const ParseNode & elem) {
-	return elem.get_token() == TokenMeta::NT_DIMENSLICE || elem.get_token() == TokenMeta::NT_SLICE; 
+	return elem.token_equals(TokenMeta::NT_DIMENSLICE, TokenMeta::NT_SLICE) ;
 }
 bool is_argtable(const ParseNode & elem) {
 	return elem.get_token() == TokenMeta::NT_ARGTABLE_PURE ||
 		(is_element(elem) || is_exp(elem) );
 }
 bool is_paramtable(const ParseNode & elem) {
-	return elem.get_token() == TokenMeta::NT_PARAMTABLE_PURE || elem.get_token() == TokenMeta::NT_KEYVALUE;
+	return elem.token_equals(TokenMeta::NT_PARAMTABLE_PURE, TokenMeta::NT_KEYVALUE);
 }
 
 bool is_function_array(const ParseNode & entity_variable) {
@@ -42,50 +42,36 @@ bool is_function_array(const ParseNode & entity_variable) {
 
 bool is_exp(const ParseNode & exp) {
 	TokenMeta_T tok = exp.get_token();
-	bool res;
+	bool isexp;
 	switch (tok)
 	{
 	case TokenMeta::NT_EXPRESSION:
 	case TokenMeta::NT_ARRAYBUILDER_LIST:
 	case TokenMeta::NT_FUCNTIONARRAY:
 	case TokenMeta::NT_HIDDENDO:
-		res = true;
+		isexp = true;
 	default:
-		res = false;
+		isexp = false;
 	}
-	return res;
+	return isexp;
 }
 
 bool is_element(const ParseNode & elem) {
 	TokenMeta_T tok = elem.get_token();
 	if (is_literal(elem)) return true;
-	if (tok == TokenMeta::META_WORD) return true;
-	if (tok == TokenMeta::Bool) return true;
-	if (tok == TokenMeta::UnknownVariant) return true;
-	return false;
+	return elem.token_equals(TokenMeta::META_WORD, TokenMeta::Bool, TokenMeta::UnknownVariant);
 }
 bool is_literal(const ParseNode & lit) {
 	TokenMeta_T tok = lit.get_token();
 	if (is_int(lit)) return true;
 	if (is_str(lit)) return true;
 	if (is_floating(lit)) return true;
-	if (tok == TokenMeta::Bool) return true;
-	if (tok == TokenMeta::Complex) return true;
-	if (tok == TokenMeta::Function) return true;
-	if (tok == TokenMeta::False) return true;
-	if (tok == TokenMeta::True) return true;
-	return false;
+	return lit.token_equals(TokenMeta::Bool, TokenMeta::Complex, TokenMeta::Function, TokenMeta::False, TokenMeta::True);
 }
 
 bool is_int(const ParseNode & lit) {
 	TokenMeta_T tok = lit.get_token();
-	if (tok == TokenMeta::Int) return true;
-	if (tok == TokenMeta::Char) return true;
-	if (tok == TokenMeta::Int8) return true;
-	if (tok == TokenMeta::Int16) return true;
-	if (tok == TokenMeta::Int32) return true;
-	if (tok == TokenMeta::Int64) return true;
-	return false;
+	return lit.token_equals(TokenMeta::Int, TokenMeta::Char, TokenMeta::Int8, TokenMeta::Int16, TokenMeta::Int32, TokenMeta::Int64);
 }
 
 bool is_str(const ParseNode & lit) {
@@ -95,11 +81,7 @@ bool is_str(const ParseNode & lit) {
 }
 
 bool is_floating(const ParseNode & lit) {
-	TokenMeta_T tok = lit.get_token();
-	if (tok == TokenMeta::Double) return true;
-	if (tok == TokenMeta::LongDouble) return true;
-	if (tok == TokenMeta::Float) return true;
-	return false;
+	return lit.token_equals(TokenMeta::Double, TokenMeta::LongDouble, TokenMeta::Float);
 }
 
 
@@ -119,7 +101,7 @@ bool is_fortran_function(FunctionInfo * finfo, std::string name) {
 		}
 	}
 	else {
-		if (vinfo->type.get_token() == TokenMeta::Function_Decl || vinfo->type.get_token() == TokenMeta::Function)
+		if (vinfo->type.token_equals(TokenMeta::Function_Decl, TokenMeta::Function))
 		{
 			// interface
 			return true;

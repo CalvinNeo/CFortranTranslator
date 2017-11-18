@@ -57,6 +57,14 @@ static bool is_operator(std::string cur) {
 	return (cur.size() > 1 && cur[0] == '.' && is_name(cur[1]));
 }
 
+static char to_lower(char ch) {
+	if (ch >= 'A' && ch <= 'Z')
+	{
+		return (char)(ch - 'A' + 'a');
+	}
+	return ch;
+};
+
 static bool check_continuation(char & return_char) {
 	return_char = 0;
 	SimplerContext & sc = get_simpler_context();
@@ -138,12 +146,24 @@ static char get_complete_char() {
 	{
 		goto RETURN_CHAR;
 	}
+	BEGINNING:
 	if (s[p] == '\n')
 	{
 		// `new_line_p` is the first character of next line
 		if (check_continuation(return_char)) {
 		}
 		handle_newline();
+	}
+	else if (s[p] == '\r')
+	{
+		// Windows's newline marker is '\r\n', while in linux is '\n'
+#if defined(_MSC_VER)
+		goto NORMAL;
+#else
+		// in Linux, simply discard
+		p++;
+		goto BEGINNING;
+#endif
 	}
 	else if (is_normal_parse() && is_comment_beginning(s[p])) {
 		std::string comment_str;
@@ -161,7 +181,7 @@ static char get_complete_char() {
 	{
 		if (sc.label_border > 0)
 		{
-			// if with in label region, the integer is part  of label
+			// if with in label region, the integer is part of label
 			sc.label_border--;
 		}
 		return_char = s[p++];
@@ -182,6 +202,7 @@ static char get_complete_char() {
 			}
 		}
 		return_char = s[p++];
+	NORMAL:
 		sc.label_border = 0;
 		sc.newline_marker = false;
 	}
@@ -598,7 +619,7 @@ static void check_keyword(const std::string name, std::function<void(const Keywo
 	, std::function<void(const std::string &)> non_keyword_handler) {
 	SimplerContext & sc = get_simpler_context();
 	std::string lowercase_name = name;
-	std::transform(lowercase_name.begin(), lowercase_name.end(), lowercase_name.begin(), tolower);
+	std::transform(lowercase_name.begin(), lowercase_name.end(), lowercase_name.begin(), to_lower);
 CHECK_CONCATED_WORD:
 	auto keyword_iter = find_if(keywords.begin(), keywords.end(), [&](const KeywordMeta & x) {return x.what == lowercase_name; });
 	auto forward1_iter = find_if(forward1.begin(), forward1.end(), [&](const auto & x) {return x.first == lowercase_name; });
@@ -606,7 +627,7 @@ CHECK_CONCATED_WORD:
 		// if this token can be concated
 		std::string next_token;
 		next_nonblank_item(next_token);
-		std::transform(next_token.begin(), next_token.end(), next_token.begin(), tolower);
+		std::transform(next_token.begin(), next_token.end(), next_token.begin(), to_lower);
 		auto next_iter = find_if(forward1_iter->second.begin(), forward1_iter->second.end(), [&](const std::string & x) {return x == next_token; });
 		if (next_iter != forward1_iter->second.end()) {
 			// if this token can be concated exactly with `next`
@@ -662,7 +683,7 @@ NOP_REPEAT:
 		}
 		else if (is_name(cur[0]) || is_operator(cur)) {
 			std::string lowercase_name = cur;
-			transform(lowercase_name.begin(), lowercase_name.end(), lowercase_name.begin(), tolower);
+			transform(lowercase_name.begin(), lowercase_name.end(), lowercase_name.begin(), to_lower);
 		FIND_CONCAT:
 			if (lowercase_name == "format")
 			{
@@ -697,7 +718,7 @@ NOP_REPEAT:
 							break;
 						}
 					}
-					else if (tolower(ch) == 'h' && is_normal_parse()) {
+					else if (to_lower(ch) == 'h' && is_normal_parse()) {
 						// h-editing
 						int num_s = (int)cur.size() - 1;
 

@@ -172,7 +172,7 @@ void regen_read(FunctionInfo * finfo, ParseNode & stmt) {
 		else {
 			fmt = io_info.get(1).get_what();
 		}
-		fmt = fmt.substr(1, fmt.size() - 1); // strip " 
+		fmt = fmt.substr(1, (int)fmt.size() - 1); // strip " 
 		for90std::IOFormat ioformat = parse_ioformatter(fmt);
 		if (is_stdio) {
 			// device = "5"; // stdin
@@ -213,7 +213,7 @@ void regen_write(FunctionInfo * finfo, ParseNode & stmt) {
 		} else{
 			fmt = io_info.get(1).get_what();
 		}
-		fmt = fmt.substr(1, fmt.size() - 1); // strip " 
+		fmt = fmt.substr(1, (int)fmt.size() - 1); // strip " 
 		for90std::IOFormat ioformat = parse_ioformatter(fmt);
 		if (is_stdio) {
 			// device = "6"; // stdout
@@ -245,7 +245,7 @@ void regen_print(FunctionInfo * finfo, ParseNode & stmt) {
 		else {
 			fmt = io_info.get(1).get_what();
 		}
-		fmt = fmt.substr(1, fmt.size() - 1); // strip " 
+		fmt = fmt.substr(1, (int)fmt.size() - 1); // strip " 
 		for90std::IOFormat ioformat = parse_ioformatter(fmt);
 		sprintf(codegen_buf, "forprint(\"%s\"%s %s);\n", parse_ioformatter(fmt).c_str(), (argtable_str == "" ? "" : ","), argtable_str.c_str());
 
@@ -275,7 +275,7 @@ void regen_print(FunctionInfo * finfo, ParseNode & stmt) {
 
 std::string add_escape_char(std::string s) {
 	string r;
-	for (int i = 0; i < s.size(); i++)
+	for (int i = 0; i < (int)s.size(); i++)
 	{
 		switch (s[i])
 		{
@@ -334,7 +334,7 @@ for90std::IOFormat parse_ioformatter(const std::string & src) {
 		}
 	};
 
-	for (int i = 0; i < src.size(); i++)
+	for (int i = 0; i < (int)src.size(); i++)
 	{
 		ch = tolower(src[i]);
 		switch (ch)
@@ -428,14 +428,14 @@ for90std::IOFormat parse_ioformatter(const std::string & src) {
 				// precision
 				// have previous i, e, f, a, x, is component of std::string prec
 				int j = i + 1;
-				for (; j < src.size() && src[j] >= '0' && src[j] <= '9'; j++);
+				for (; j < (int)src.size() && src[j] >= '0' && src[j] <= '9'; j++);
 				prec = src.substr(i, j - i).c_str();
 				i = j - 1;
 			}
 			else {
 				// repeat 
 				int j = i + 1;
-				for (; j < src.size() && src[j] >= '0' && src[j] <= '9'; j++);
+				for (; j < (int)src.size() && src[j] >= '0' && src[j] <= '9'; j++);
 				// IMPORTANT in level repeat.size() - 1 BEFORE push_back, or will cause `rt += buf;` failure
 
 				instant_defined = true;
@@ -449,7 +449,7 @@ for90std::IOFormat parse_ioformatter(const std::string & src) {
 			if (stat == 1)
 			{
 				int j = i + 1;
-				for (; j < src.size() && src[j] >= '0' && src[j] <= '9'; j++);
+				for (; j < (int)src.size() && src[j] >= '0' && src[j] <= '9'; j++);
 				prec += src.substr(i, j - i);
 				i = j - 1;
 			}
@@ -483,7 +483,7 @@ for90std::IOFormat parse_ioformatter(const std::string & src) {
 				repeat.pop_back();
 				repeat_from.pop_back();
 			}
-			reversion_end = rt.size();
+			reversion_end = (int)rt.size();
 			stat = 0;
 			break;
 		case '%':
@@ -495,7 +495,7 @@ for90std::IOFormat parse_ioformatter(const std::string & src) {
 
 			term_editing();
 			// add  `\n`
-			for (; i < src.size() && src[i] == '/' ; i++) {
+			for (; i < (int)src.size() && src[i] == '/' ; i++) {
 				rt += "\\n";
 			}
 			i--;
@@ -505,7 +505,7 @@ for90std::IOFormat parse_ioformatter(const std::string & src) {
 			break;
 		case '\"':
 			descriptor = "";
-			for (i++; i < src.size() && src[i] != '\"'; i++)
+			for (i++; i < (int)src.size() && src[i] != '\"'; i++)
 			{
 				if (src[i] != '\'') {
 					descriptor += src[i];
@@ -521,7 +521,7 @@ for90std::IOFormat parse_ioformatter(const std::string & src) {
 			break;
 		case '\'':
 			descriptor = "";
-			for (i++; i < src.size() && src[i] != '\''; i++)
+			for (i++; i < (int)src.size() && src[i] != '\''; i++)
 			{
 				if (src[i] != '\"') {
 					descriptor += src[i];
@@ -539,7 +539,7 @@ for90std::IOFormat parse_ioformatter(const std::string & src) {
 		{
 			int start = i;
 			// line continuation
-			for (i++; i < src.size() && src[i] == ' '; i++)
+			for (i++; i < (int)src.size() && src[i] == ' '; i++)
 			{
 				rt += src[i];
 			}

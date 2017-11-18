@@ -27,13 +27,13 @@
 
 #define ADD_ENUM(NAME, VALUE) NAME = VALUE
 #define __MAKE_ENUM_DECL(T, ...) enum T {__VA_ARGS__}
-#define __MAKE_ENUM_HELPER(ARGS) struct EnumTableHelper { 																\
-		int EnumTableHelper::from_name(std::string name) { 																\
+#define __MAKE_ENUM_HELPER(...) struct EnumTableHelper { 																\
+		int from_name(std::string name) { 																\
 			std::map<std::string, int>::const_iterator iter = m.find(name); 											\
 			assert(iter != m.end()); 																					\
 			return iter->second; 																						\
 		} 																												\
-		std::string EnumTableHelper::from_value(int value) { 															\
+		std::string from_value(int value) { 															\
 			std::map<std::string, int>::const_iterator iter = 															\
 				std::find_if(m.begin(), m.end() 																		\
 					, [&](const std::pair<std::string, int> & p) {return p.second == value;  }); 						\
@@ -45,7 +45,7 @@
 		} 																												\
 	public:																												\
 		std::map<std::string, int> m; 																					\
-		const std::string input_str = #ARGS;																			\
+		const std::string input_str = #__VA_ARGS__;																			\
 	}; 																													\
 	inline EnumTableHelper & get_enum_table() { 																		\
 		static EnumTableHelper table; 																					\

@@ -21,8 +21,9 @@
 
 
 ParseNode promote_exp_to_slice(ARG_IN exp) {
+	// exp -> (UBOUND_DELTA_STR, exp)
 	ParseNode lit = gen_token(Term{ TokenMeta::META_INTEGER, UBOUND_DELTA_STR });
-	ParseNode exp0 = gen_token(Term{ TokenMeta::NT_EXPRESSION , lit.get_what() }, lit);
+	ParseNode exp0 = gen_token(Term{ TokenMeta::NT_EXPRESSION, UBOUND_DELTA_STR }, lit);
 	ParseNode newnode = gen_token(Term{ TokenMeta::NT_SLICE, "" }, exp0, exp);
 	return newnode;
 }
@@ -41,7 +42,7 @@ void regen_slice(FunctionInfo * finfo, ParseNode & slice) {
 		bool empty_slice = false;
 		// use slice_info_arr to handle default situation
 		string slice_info_arr[] = { UBOUND_DELTA_STR, UBOUND_DELTA_STR, UBOUND_DELTA_STR };
-		for (auto j = 0; j < slice.length(); j++)
+		for (int j = 0; j < slice.length(); j++)
 		{
 			if (slice.get(j).get_token() == TokenMeta::NT_VARIABLEINITIALDUMMY) {
 				// a(:)
@@ -91,11 +92,4 @@ void regen_slice(FunctionInfo * finfo, ParseNode & slice) {
 		***********/
 		regen_exp(finfo, slice);
 	}
-}
-
-ParseNode gen_dimenslice(ARG_IN dimen_slice) {
-	// all promoted to dimen_slice
-	ParseNode newnode = dimen_slice;
-	newnode.fs.CurrentTerm = Term{ TokenMeta::NT_DIMENSLICE, "IF GENERATED IN REGEN_SUITE" };
-	return newnode;
 }

@@ -42,26 +42,15 @@ void do_trans(const std::string & src) {
 	get_context().program_tree.get_what() = gen_header().to_string() + get_context().program_tree.to_string();
 }
 
-ParseNode gen_dummy() {
-	return gen_token(Term{ TokenMeta::NT_DUMMY, "" });
-}
-
-TokenizerState gen_flex(Term term) {
-	TokenizerState f;
-	f.CurrentTerm = term;
-	f.line_pos = f.parse_len = f.parse_line = f.parse_pos = 0;
-	return f;
-}
-
-ParseNode flattern_bin(ARG_IN pn, bool recursion_direction_right) {
-	// it cant work well because it create a whole new tree copy too much 
+ParseNode flatten_bin(ParseNode & pn, bool recursion_direction_right) {
+	// it' DEPRECATED because it create a whole new tree
 	// THIS ALGORITHM FLATTERNS A LEFT/RIGHT-RECURSIVE BINARY TREE
 	if (pn.length() == 2) {
 		ParseNode newp = ParseNode();
 		// child[0] is the only data node
 		if (recursion_direction_right)
 		{
-			// pn.child[1] is a **list** of ALREADY flatterned elements
+			// pn.child[1] is a **list** of ALREADY flattened elements
 			// child[0] is 1 
 			// child[1] is [2, 3, 4, 5]
 			newp.addchild(pn.get(0));
@@ -71,7 +60,7 @@ ParseNode flattern_bin(ARG_IN pn, bool recursion_direction_right) {
 			}
 		}
 		else {
-			// pn.child[0] is a **list** of ALREADY flatterned elements 
+			// pn.child[0] is a **list** of ALREADY flattened elements 
 			// child[0] is [2, 3, 4, 5]
 			// child[1] is 1 
 			for (int i = 0; i < pn.get(0).length(); i++)
@@ -92,7 +81,7 @@ ParseNode flattern_bin(ARG_IN pn, bool recursion_direction_right) {
 	}
 }
 
-void flattern_bin_inplace(ParseNode & pn, bool recursion_direction_right) {
+void flatten_bin_inplace(ParseNode & pn, bool recursion_direction_right) {
 	if (pn.length() == 2) {
 		ParseNode * list, *item;
 		if (recursion_direction_right)
@@ -120,7 +109,7 @@ void flattern_bin_inplace(ParseNode & pn, bool recursion_direction_right) {
 		{
 			pn.child.push_back(item);
 		}
-		// pn.child[1] is a **list** of ALREADY flatterned elements
+		// pn.child[1] is a **list** of ALREADY flattened elements
 		//	e.g
 		//	child[0] is 1 
 		//	child[1] is [2, 3, 4, 5]
@@ -131,8 +120,8 @@ void flattern_bin_inplace(ParseNode & pn, bool recursion_direction_right) {
 }
 
 
-ParseNode gen_flattern(ARG_IN item, ARG_IN list, std::string merge_rule, TokenMeta_T merged_token_meta, bool left_recursion) {
-	 ParseNode();
+ParseNode gen_flatten(ARG_IN item, ARG_IN list, std::string merge_rule, TokenMeta_T merged_token_meta, bool left_recursion) {
+	// make fs
 	if (left_recursion)
 	{
 		sprintf(codegen_buf, merge_rule.c_str(), list.to_string().c_str(), item.to_string().c_str());
@@ -143,15 +132,22 @@ ParseNode gen_flattern(ARG_IN item, ARG_IN list, std::string merge_rule, TokenMe
 	if (merged_token_meta == TokenMeta::USE_DEFAULT_VALUE) {
 		merged_token_meta = list.get_token();
 	}
+	// make new node
 	ParseNode nn = gen_token(Term{ merged_token_meta, string(codegen_buf) });
 	if (left_recursion)
 	{
 		nn.addlist(list, item);
-		flattern_bin_inplace(nn, false);
 	}
 	else {
 		nn.addlist(item, list);
-		flattern_bin_inplace(nn, true);
+	}
+	// do inplace flatten on new node
+	if (left_recursion)
+	{
+		flatten_bin_inplace(nn, false);
+	}
+	else {
+		flatten_bin_inplace(nn, true);
 	}
 	return nn;
 }

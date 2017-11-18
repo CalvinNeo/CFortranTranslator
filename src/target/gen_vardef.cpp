@@ -92,7 +92,7 @@ std::string gen_vardef_array_initial_str(FunctionInfo * finfo, VariableInfo * vi
 		}
 	}
 
-	SliceBoundInfo & shape = get_lbound_size_from_slice(additional_desc);
+	SliceBoundInfo shape = get_lbound_size_from_slice(additional_desc);
 	const std::vector<std::string> & lbound_vec = get<0>(shape);
 	const std::vector<std::string> & size_vec = get<1>(shape);
 	int dimension = (int)lbound_vec.size();
@@ -207,7 +207,7 @@ ParseNode gen_vardef_from_default(ARG_IN type, std::string name) {
 }
 
 ParseNode gen_vardef(ARG_IN type_nospec, ARG_IN variable_desc, ARG_IN paramtable) {
-	ParseNode kvparamtable = promote_argtable_to_paramtable(paramtable); // a flatterned paramtable with all keyvalue elements
+	ParseNode kvparamtable = promote_argtable_to_paramtable(paramtable); // a flattened paramtable with all keyvalue elements
 	ParseNode newnode = gen_token(Term{ TokenMeta::NT_VARIABLEDEFINESET, "VARDEFSET GENERATED IN REGEN_SUITE" });
 	for (int i = 0; i < kvparamtable.length(); i++)
 	{
@@ -261,7 +261,7 @@ std::string regen_vardef(FunctionInfo * finfo, VariableInfo * vinfo, std::string
 		type_str = gen_qualified_typestr(type_nospec, desc, false);
 		sprintf(codegen_buf, "%s %s", type_str.c_str(), alias_name.c_str());
 		var_decl = string(codegen_buf);
-		var_decl += gen_vardef_array_initial_str(finfo, vinfo, desc.slice.value());
+		var_decl += gen_vardef_array_initial_str(finfo, vinfo, desc.slice.get_value_or(ParseNode{}));
 		if (vinfo->vardef_node == nullptr)
 		{
 			// considered to be implicit defined
@@ -283,7 +283,7 @@ std::string regen_vardef(FunctionInfo * finfo, VariableInfo * vinfo, std::string
 		type_str = gen_qualified_typestr(type_nospec, desc, false);
 		sprintf(codegen_buf, "%s %s", type_str.c_str(), alias_name.c_str());
 		var_decl = string(codegen_buf);
-		var_decl += gen_vardef_array_initial_str(finfo, vinfo, desc.slice.value());
+		var_decl += gen_vardef_array_initial_str(finfo, vinfo, desc.slice.get_value_or(ParseNode{}));
 		if (save_to_node)
 		{
 			vinfo->vardef_node->get_what() = var_decl;

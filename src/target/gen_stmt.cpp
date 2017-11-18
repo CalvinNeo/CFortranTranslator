@@ -43,7 +43,7 @@ vector<VariableInfo *> get_all_declared_vinfo(FunctionInfo * finfo, ARG_IN suite
 	return declared_variables_and_functions;
 }
 
-vector<ParseNode *> get_all_declared_by_node(FunctionInfo * finfo, ParseNode & suite) {
+vector<ParseNode *> get_all_declared_nodes(FunctionInfo * finfo, ParseNode & suite) {
 	/***************
 	* find out all explicit declarations of variables and interface in a function
 	*	, by enumerating all nodes

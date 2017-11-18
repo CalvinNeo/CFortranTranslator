@@ -108,7 +108,7 @@ void get_full_paramtable(FunctionInfo * finfo) {
 
 ParseNode gen_function(ARG_IN variable_function, ARG_IN paramtable, ARG_IN variable_result, ARG_IN suite) {
 	ParseNode newnode = gen_token(Term{ TokenMeta::NT_FUNCTIONDECLARE, ""});
-	ParseNode kvparamtable = promote_argtable_to_paramtable(paramtable); // a flatterned parameter list with all keyvalue elements
+	ParseNode kvparamtable = promote_argtable_to_paramtable(paramtable); // a flattened parameter list with all keyvalue elements
 	newnode.addlist(ParseNode(), variable_function, kvparamtable, variable_result, suite);
 	return newnode;
 }

@@ -115,7 +115,7 @@ SliceBoundInfo get_lbound_ubound_from_hiddendo(FunctionInfo * finfo, ParseNode &
 
 void regen_hiddendo_expr(FunctionInfo * finfo, ParseNode & hiddendo, std::function<void(ParseNode &)> regen_innermost_argtable) {
 	/**************************************
-	* this function flattern a n-layer nested hidden do into an lambda function,
+	* this function flatten a n-layer nested hidden do into an lambda function,
 	*	this function use a 1-dimension size-n array of `fsize_t`,
 	*	which stands for index of every n-dimensions.
 	* this function is used to deal with io-implied-do, ac-implied-do, data-implied-do.

@@ -22,7 +22,6 @@
 #include <cstdio>
 #include <string>
 #include <fstream>
-#include "for1array.h"
 #include "farray.h"
 #include <complex>
 
@@ -319,7 +318,7 @@ namespace for90std {
 	//	// clear front
 	//	_forwrite_noargs(f, format);
 	//	typedef typename f1a_gettype<T>::type _InnerT;
-	//	std::vector<_InnerT> vec = f1a_flatterned(x);
+	//	std::vector<_InnerT> vec = f1a_flattened(x);
 	//	for (size_t i = 0; i < vec.size(); i++)
 	//	{
 	//		_forwrite_dispatch(f, format, vec[i]);
@@ -425,7 +424,7 @@ namespace for90std {
 	//template <typename T>
 	//void _forwritefree_one_arr1(FILE * f, const for1array<T> &  x) {
 	//	typedef typename f1a_gettype<T>::type _InnerT;
-	//	std::vector<_InnerT> vec = f1a_flatterned(x);
+	//	std::vector<_InnerT> vec = f1a_flattened(x);
 	//	for (size_t i = 0; i < vec.size(); i++)
 	//	{
 	//		_forwritefree_one(f, vec[i]);

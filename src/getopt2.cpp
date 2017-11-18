@@ -23,6 +23,7 @@
 #include <queue>
 #include <map>
 #include <functional>
+#include <cstring>
 
 static int optind = 1; // from 0 to argc-1
 char * optarg = nullptr;
@@ -109,7 +110,7 @@ int _getopt_impl(int argc, char * const argv[], const char * optstring, const st
 		{
 			// longopptr->name: argname
 			// long_optname: --argname
-			if (strcmp(longopptr->name, long_optname + 2) == 0)
+			if (std::strcmp(longopptr->name, long_optname + 2) == 0)
 			{
 				break;
 			}

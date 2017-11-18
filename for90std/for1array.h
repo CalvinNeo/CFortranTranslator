@@ -164,15 +164,15 @@ namespace for90std {
 	// base template must before inherited
 	template<typename _DTYPE, int D>
 	struct fornarray_impl {
-		typedef typename for1array<typename fornarray_impl<_DTYPE, D - 1>::type> type;
+		typedef for1array<typename fornarray_impl<_DTYPE, D - 1>::type> type;
 	};
 	template<typename _DTYPE>
 	struct fornarray_impl<_DTYPE, 1> {
-		typedef typename for1array<_DTYPE> type;
+		typedef for1array<_DTYPE> type;
 	};
 	template<typename _DTYPE>
 	struct fornarray_impl<_DTYPE, 0> {
-		typedef typename _DTYPE type;
+		typedef _DTYPE type;
 	};
 	template<typename _DTYPE, int D>
 	using fornarray = typename fornarray_impl<_DTYPE, D>::type;
@@ -307,7 +307,7 @@ namespace for90std {
 		std::vector<fsize_t> next_iter_delta = fa_layer_delta(size.begin(), size.end());
 		//_f1a_init_impl<_DTYPE, _Container_value_type, std::initializer_list<_DTYPE>::const_iterator >(farr, 0, lower_bound, size
 		//	, next_iter_delta, values.begin(), values.end());
-		auto vec_ptr = f1a_flatternedptr(farr);
+		auto vec_ptr = f1a_flattenedptr(farr);
 		auto iter = values.begin();
 		for (auto i = 0; i < vec_ptr.size(); i++, iter++)
 		{
@@ -329,7 +329,7 @@ namespace for90std {
 	void _f1a_flatmapped_impl(for1array<_DTYPE> & farr, int deep
 		, const std::vector<fsize_t> & next_iter_delta
 		, _Iterator b, _Iterator e
-		, std::function<_Return(typename _DTYPE *)> mapper)
+		, std::function<_Return(_DTYPE *)> mapper)
 	{
 		auto iter = b;
 		for (auto i = farr.LBound(); i < x.LBound() + x.size(); i++)
@@ -346,7 +346,7 @@ namespace for90std {
 		void _f1a_flatmapped_impl(for1array<_Container_value_type> & farr, int deep
 			, const std::vector<fsize_t> & next_iter_delta
 			, _Iterator b, _Iterator e
-			, std::function<_Return(typename _DTYPE *)> mapper)
+			, std::function<_Return(_DTYPE *)> mapper)
 	{
 		auto iter = b;
 		for (auto i = farr.LBound(); i < x.LBound() + x.size(); i++)
@@ -378,7 +378,7 @@ namespace for90std {
 
 	// refer temp.log for full version
 	template<typename _Container_value_type>
-	auto f1a_flatterned(const for1array<_Container_value_type> & farr)
+	auto f1a_flattened(const for1array<_Container_value_type> & farr)
 	{
 		std::vector<fsize_t> size = f1a_getsize(farr); // size of each dimension of array
 		fsize_t sizeflat = fa_getflatsize(size.begin(), size.end());
@@ -390,7 +390,7 @@ namespace for90std {
 		return ans;
 	}
 	template<typename _Container_value_type>
-	auto f1a_flatternedptr(for1array<_Container_value_type> & farr)
+	auto f1a_flattenedptr(for1array<_Container_value_type> & farr)
 		//-> std::vector< typename f1a_gettype<_Container_value_type>::type * > 
 	{
 		std::vector<fsize_t> size = f1a_getsize(farr); // size of each dimension of array

@@ -191,16 +191,19 @@ argument must be definable.
 > If no INTENT attribute is specified for a dummy argument, its use is subject to the limitations of the associated
 actual argument (12.5.2.1, 12.5.2.2, 12.5.2.3).
 
+The `intent`, `parameter`, `save` specification generate codes following rules:
 
-|intent|parameter|save|C++|passing pattern|
+|intent|parameter|save|C++|argument passing pattern|
 |:-:|:-:|:-:|:-:|:-:|
 |/|/|/|`T &&`| `INOUT(v)` |
-|ignore|/|save|`static`| `INOUT(v)` |
-|ignore|parameter|save|`static const`| `INOUT(v)` |
-|ignore|parameter|/|`const T`| `INOUT(v)` |
-|in|ignore|/|`const T &`| `INOUT(v)` |
-|out|ignore|/|`T &`| `INOUT(v)` |
-|inout|ignore|/|`T &&`| `INOUT(v)` |
+|any|/|save|`static`| `INOUT(v)` |
+|any|parameter|save|`static const`| `INOUT(v)` |
+|any|parameter|/|`const T`| `INOUT(v)` |
+|in|any|/|`const T &`| `INOUT(v)` |
+|out|any|/|`T &`| `INOUT(v)` |
+|inout|any|/|`T &&`| `INOUT(v)` |
+
+By implementation, `INOUT(v)` is simply `std::move(v)`, it just convert a `T &` to `T &&`, so it can be accepted by a `T &&` function. You must make sure `v` will not be destructed before you no long need it.
 
 Currently, all arguments are passed by pattern `INOUT`
 

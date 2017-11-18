@@ -27,7 +27,7 @@
 #include <stdint.h>
 #include "../parser/attribute.h"
 #include "../parser/parser.h"
-#include "../target/codegen.h"
+#include "../target/gen_common.h"
 #include "../parser/Function.h"
 
 
@@ -44,8 +44,6 @@ void release_buff();
 #define YYDEBUG 1
 #define YYERROR_VERBOSE
 #define YYINITDEPTH 2000
-//// static is necessary, or will cause lnk
-static char codegen_buf[MAX_CODE_LENGTH];
 
 // update pos os non-terminal tokens(terminal tokens have pos updated in flex using update_flex and update_yylval) 
 void update_pos(ParseNode & current) {
@@ -218,7 +216,7 @@ using namespace std;
 				// if is array reduce immediately and goto `var_def` 
 				// do not parse array slices here because this is difficult 
 				ARG_IN dimen_slice = YY2ARG($3);
-				ParseNode newnode = gen_variabledesc_from_dimenslice(dimen_slice);
+				ParseNode newnode = gen_token(Term{ TokenMeta::NT_VARIABLEDESC, WHENDEBUG_OREMPTYSTR("NT_VARIABLEDESC GENERATED IN VARDEF") }, dimen_slice);
 				set_variabledesc_attr(newnode, boost::none, boost::none, boost::none, dimen_slice, boost::none, boost::none, boost::none, boost::none, boost::none);
 				$$ = RETURN_NT(newnode);
 				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($4));
@@ -231,7 +229,7 @@ using namespace std;
 
 				ParseNode slice = promote_exp_to_slice(exp_to);
 				ParseNode dimen_slice = gen_promote("", TokenMeta::NT_DIMENSLICE, slice);
-				ParseNode newnode = gen_variabledesc_from_dimenslice(dimen_slice);
+				ParseNode newnode = gen_token(Term{ TokenMeta::NT_VARIABLEDESC, WHENDEBUG_OREMPTYSTR("NT_VARIABLEDESC GENERATED IN VARDEF") }, dimen_slice);
 				set_variabledesc_attr(newnode, boost::none, boost::none, boost::none, dimen_slice, boost::none, boost::none, boost::none, boost::none, boost::none);
 				$$ = RETURN_NT(newnode);
 				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($4));
@@ -508,7 +506,7 @@ using namespace std;
 			{
 				ARG_IN exp = YY2ARG($3);
 				ARG_IN argtable = YY2ARG($1);
-				$$ = RETURN_NT(gen_flattern(exp, argtable, "%s, %s", TokenMeta::NT_ARGTABLE_PURE, true));
+				$$ = RETURN_NT(gen_flatten(exp, argtable, "%s, %s", TokenMeta::NT_ARGTABLE_PURE, true));
 				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($3));
 				CLEAN_RIGHT($1, $2, $3);
 			}
@@ -535,7 +533,7 @@ using namespace std;
 				******************/
 				ARG_IN slice = YY2ARG($3);
 				ARG_IN dimen_slice = YY2ARG($1);
-				$$ = RETURN_NT(gen_flattern(slice, dimen_slice, "%s, %s", TokenMeta::NT_DIMENSLICE, true));
+				$$ = RETURN_NT(gen_flatten(slice, dimen_slice, "%s, %s", TokenMeta::NT_DIMENSLICE, true));
 				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($3));
 				CLEAN_RIGHT($1, $2, $3);
 			}
@@ -548,7 +546,7 @@ using namespace std;
 				******************/
 				ARG_IN exp = YY2ARG($3);
 				ARG_IN dimen_slice = YY2ARG($1);
-				$$ = RETURN_NT(gen_flattern(exp, dimen_slice, "%s, %s", TokenMeta::NT_DIMENSLICE, true));
+				$$ = RETURN_NT(gen_flatten(exp, dimen_slice, "%s, %s", TokenMeta::NT_DIMENSLICE, true));
 				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($3));
 				CLEAN_RIGHT($1, $2, $3);
 			}
@@ -560,8 +558,8 @@ using namespace std;
 				if (argtable.get_token() == TokenMeta::NT_ARGTABLE_PURE)
 				{
 					// IMPORTANT: can't promote here, or `s(i, 1:j)` cause error, ref `regen_slice`
-					//newnode = gen_flattern(slice, promote_argtable_to_dimenslice(argtable), "%s, %s", TokenMeta::NT_DIMENSLICE, true);
-					newnode = gen_flattern(slice, argtable, "%s, %s", TokenMeta::NT_DIMENSLICE, true);
+					//newnode = gen_flatten(slice, promote_argtable_to_dimenslice(argtable), "%s, %s", TokenMeta::NT_DIMENSLICE, true);
+					newnode = gen_flatten(slice, argtable, "%s, %s", TokenMeta::NT_DIMENSLICE, true);
 				}
 				else {
 					print_error("Illegal dimen_slice", argtable);
@@ -1730,7 +1728,7 @@ using namespace std;
 			{
 				ARG_IN case_stmt_elem = YY2ARG($1);
 				ARG_IN case_stmt = YY2ARG($2);
-				ParseNode newnode = gen_flattern(case_stmt_elem, case_stmt, "%s\n%s", TokenMeta::NT_CASES);
+				ParseNode newnode = gen_flatten(case_stmt_elem, case_stmt, "%s\n%s", TokenMeta::NT_CASES);
 				$$ = RETURN_NT(newnode);
 				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($2));
 				CLEAN_RIGHT($1, $2);
@@ -1865,7 +1863,7 @@ using namespace std;
 			{
 				ARG_IN wrapper = YY2ARG($1);
 				ARG_IN wrappers = YY2ARG($3);
-				ParseNode newnode = gen_flattern(wrapper, wrappers, "%s\n%s", TokenMeta::NT_WRAPPERS);
+				ParseNode newnode = gen_flatten(wrapper, wrappers, "%s\n%s", TokenMeta::NT_WRAPPERS);
 				$$ = RETURN_NT(newnode);
 				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($3));
 				CLEAN_RIGHT($1, $2, $3);
@@ -1891,7 +1889,7 @@ void update_yylval(Term & current_term) {
 	ParseNode newnode{ TokenizerState(get_tokenizer_state()) , nullptr, nullptr };
 	yylval = RETURN_NT(newnode);
 }
-static void yyerror(const char* s)
+void yyerror(const char* s)
 {
 	// fprintf(stderr, "%s", s);
 	print_error(string(s), YY2ARG(yylval));

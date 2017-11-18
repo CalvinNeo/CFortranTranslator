@@ -104,7 +104,7 @@ LABEL_BEGIN:
 			}
 		}
 		END_STR:
-			   __nop();
+		b;
 	}
 	else if (*b == '&')
 	{

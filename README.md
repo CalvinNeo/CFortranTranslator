@@ -1,10 +1,12 @@
 ﻿# CFortranTranslator
 
-A translator from Fortran90/Fortran77(ISO/IEC 1539:1991) to C++14
+A translator from Fortran90/Fortran77(ISO/IEC 1539:1991) to C++
 
 Fortran is an efficient tool in scientific calculation. However sometimes translating old fortran codes to C++ will enable more programming abstraction, better GUI framework support, higher performance IDE and easier interaction.
 
 This translator is not intended to improve existing codes, but to make convenience for those who need features of C++ and remain fortran traits and performance as much as possible.
+
+[![Build Status](https://travis-ci.org/CalvinNeo/CFortranTranslator.svg?branch=master)](https://travis-ci.org/CalvinNeo/CFortranTranslator)
 
 ## Features
 
@@ -40,9 +42,9 @@ The whole project, including both the translator itself and fortran standrad lib
     51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 # Install
-## Build project
+## Build project in Windows
 ### Dependencies
-1. MSVC 2015
+1. MSVC(e.g. Visual Studio 2015)
 2. win\_flex(win\_flex\_bison 2.4.5, flex 2.5.37)
 3. win\_bison(win\_flex\_bison 2.4.5, bison 2.7)
 4. boost(1.60)
@@ -63,25 +65,45 @@ bjam --toolset=msvc-14.0 address-model=64
 3. Add [/src/grammar/custom\_build\_rules/win\_flex\_bison\_custom\_build.props](/src/grammar/custom\_build\_rules/win\_flex\_bison\_custom\_build.props)
 
 ### Build by MSBuild
-run [/vcbuild/vcbuild.cmd](/vcbuild/vcbuild.cmd)
+run [/build/vcbuild.cmd](/build/vcbuild.cmd)
 
 [You can get Visual C++ Build Tools here](http://landinghub.visualstudio.com/visual-cpp-build-tools)
+
 all built production will be in [/bin](/bin)
 
 ### Build by NMake
-run [/vcbuild/winmake.cmd](/vcbuild/winmake.cmd) to get a x64 Release binary
+run [/build/winmake.cmd](/build/winmake.cmd) to get a x64 Release binary
 
 ### Build By Visual Studio
-open [/vsbuild/CFortranTranslator.sln]([/vsbuild/CFortranTranslator.sln)
+open [/vsbuild/CFortranTranslator.sln](/vsbuild/CFortranTranslator.sln)
+
+## Build project in Ubuntu
+### Dependencies
+1. g++(e.g. g++ 5.4.0)
+2. bison
+3. boost
+
+### Configure boost
+Install boost by
+
+	sudo apt-get install libboost-all-dev
+### Configure bison
+Install bison by
+
+	sudo apt-get install bison
+### make
+
+	cd build && make
 
 ## Use fortran standard library
-fortran standard library requires compiler support at least C++14 standard
+fortran standard library requires compiler support at least C++14 standard(with several C++17 std functions)
 
 ## Run with arguments
 
     -f file_name : translate file_name into C++
     -d : use debug mode
     -C : use c-style array
+    -F 90/77 : specify Fortran standard, by default the translator accept a mixed Fortran77/90 codes
 
 # The "hello world" demo
 1. use the following command to generate target C++ code
@@ -96,11 +118,11 @@ Only fatal errors hinderring parsing will be reported by translator.
 
 Debug origin fortran code or generated C++ code is recommended.
 
-# Demo
-several demos are provided in [demos](/demos)
+# More demos
+several demos are provided in [/demos](/demos)
 
 # Docs
 ref [/docs/brief.md](/docs/brief.md)
 
-# Develop
+## Develop details guide
 refer to [/docs/Develop.md](/docs/Develop.md) to have an general understanding of implementation of this project

@@ -18,8 +18,7 @@
 */
 
 #pragma once
-
-
+// this file functions as an api
 #include "../parser/context.h"
 #include "../parser/attribute.h"
 #include "gen_config.h"
@@ -27,62 +26,12 @@
 
 #define WHENDEBUG_OREMPTYSTR(STR) WHENDEBUG(STR, "")
 
-TokenizerState gen_flex(Term term);
-/****************
-* `gen_token` generate token from several or none childs by given **Term**
-* Usage:
-* if the node generate a invariant string, use `gen_token`, otherwise, `gen_promote`
-*****************/
-inline ParseNode gen_token(Term term) {
-	// four `_pos` is set by update_pos in for90.y
-	return ParseNode(gen_flex(term), nullptr);
+inline TokenizerState gen_flex(const Term & term) {
+	TokenizerState f;
+	f.CurrentTerm = term;
+	f.line_pos = f.parse_len = f.parse_line = f.parse_pos = 0;
+	return f;
 }
-template <typename ... Args>
-ParseNode gen_token(Term term, Args&& ... args) {
-	ParseNode newnode = gen_token(term);
-	newnode.addlist(std::forward<Args>(args)...);
-	return newnode;
-}
-ParseNode gen_dummy();
-
-/****************
-* `gen_promote` generate token from several or none childs by given **pattern**
-* Usage:
-* if the node generate a string depend on its child by given rule, use `gen_promote`, otherwise, `gen_token`
-*****************/
-template<typename ... Args>
-void sprintf_wrapper(std::string format, Args&& ... args) {
-	sprintf(codegen_buf, format.c_str(), [&](const ParseNode & x) {return x.get_what().c_str(); }(args)...);
-}
-template <typename ... Args>
-ParseNode gen_promote(std::string rule, TokenMeta_T merged_token_meta, Args&& ... items) {
-	sprintf_wrapper(rule, std::forward<Args>(items)...);
-	ParseNode newnode = gen_token(Term{ merged_token_meta, string(codegen_buf) });
-	newnode.addlist(std::forward<Args>(items)...);
-	return newnode;
-}
-/****************
-* `gen_flattern` append an item to a list
-*****************/
-ParseNode gen_flattern(ARG_IN item, ARG_IN list, std::string merge_rule, TokenMeta_T merged_token_meta = TokenMeta::USE_DEFAULT_VALUE, bool left_recursion = false);
-/****************
-* `gen_merge` merge two lists
-*****************/
-ParseNode gen_merge(ARG_IN list1, ARG_IN list2, std::string merge_rule, TokenMeta_T merged_token_meta);
-
-template <typename Iterator, typename F>
-std::string make_str_list(Iterator begin, Iterator end, F handler, std::string delim = ", ") {
-	std::string r;
-	for (auto i = begin; i != end; i++)
-	{
-		if (i != begin) {
-			r += delim;
-		}
-		r += handler(*i);
-	}
-	return r;
-}
-
 
 typedef std::vector<std::string> SliceIndexInfo;
 //typedef std::vector<std::string> SliceSizeInfo;
@@ -136,17 +85,16 @@ void regen_hiddendo_exprex(FunctionInfo * finfo, ParseNode & hiddendo, std::func
 
 // var def
 ParseNode gen_vardef(ARG_IN type_nospec, ARG_IN variable_desc, ARG_IN paramtable);
+ParseNode gen_vardef_from_default(ARG_IN type, std::string name);
 std::string gen_vardef_array_initial_str(FunctionInfo * finfo, VariableInfo * vinfo, const ParseNode & additional_desc);
 std::string gen_vardef_scalar_initial_str(FunctionInfo * finfo, VariableInfo * vinfo);
-std::string get_variable_name(const ParseNode & entity_variable);
+std::string get_variable_name(ARG_IN entity_variable);
 SliceBoundInfo get_lbound_size_from_slice(const ParseNode & slice);
-ParseNode gen_vardef_from_default(ARG_IN type, std::string name);
 
 // hidden do
 #define get_all_declared get_all_declared_vinfo
-
 std::vector<VariableInfo *> get_all_declared_vinfo(FunctionInfo * finfo, ARG_IN suite);
-std::vector<ParseNode *> get_all_declared_by_node(FunctionInfo * finfo, ParseNode & suite);
+std::vector<ParseNode *> get_all_declared_nodes(FunctionInfo * finfo, ParseNode & suite);
 ParseNode gen_hiddendo(ARG_IN argtable, ARG_IN index, ARG_IN from, ARG_IN to, TokenMeta_T return_token = TokenMeta::NT_HIDDENDO);
 std::vector<ParseNode *> get_nested_hiddendo_layers(ParseNode & hiddendo);
 std::vector<ParseNode *> get_parent_hiddendo_layers(ParseNode & hiddendo);
@@ -162,34 +110,13 @@ ParseNode promote_exp_to_keyvalue(ARG_IN paramtable_elem);
 ParseNode promote_argtable_to_paramtable(ARG_IN paramtable);
 ParseNode gen_pure_paramtable(ARG_IN paramtable_elem);
 ParseNode gen_pure_paramtable(ARG_IN paramtable_elem, ARG_IN paramtable, bool left_recursion = false);
-ParseNode gen_dimenslice(ARG_IN dimen_slice);
-ParseNode gen_argtable(ARG_IN argtable);
 ParseNode gen_array_from_paramtable(ARG_IN argtable);
 void foreach_paramtable(const ParseNode & pn, std::function<void(const ParseNode &)> f, bool recursion_direction_right);
 void set_variabledesc_attr(ParseNode & vardescattr_node, boost::optional<bool> reference, boost::optional<bool> constant, boost::optional<bool> optional
 	, boost::optional<ParseNode> slice, boost::optional<int> kind, boost::optional<bool> save, boost::optional<bool> allocatable, boost::optional<bool> target, boost::optional<bool> pointer);
 VariableDesc & get_variabledesc_attr(ParseNode & vardescattr_node);
-ParseNode gen_variabledesc_from_dimenslice(ARG_IN dimen_slice);
-ParseNode gen_variabledesc_from_dimenslice();
 std::string gen_paramtable_str(FunctionInfo * finfo, const std::vector<std::string> & paramtable_info, bool with_name = true);
 
-template <typename Iterator1, typename Iterator2>
-std::string gen_sliceinfo_str(Iterator1 x_begin, Iterator1 x_end, Iterator2 y_begin, Iterator2 y_end) {
-	std::string x_str, y_str;
-	x_str = make_str_list(x_begin, x_end, [&](auto x) { return x; });
-	y_str = make_str_list(y_begin, y_end, [&](auto x) { return x; });
-	std::sprintf(codegen_buf, "{%s}, {%s}", x_str.c_str(), y_str.c_str());
-	return std::string(codegen_buf);
-}
-
-template <typename Iterator, typename Func1, typename Func2>
-SliceBoundInfo get_sliceinfo_base(Iterator begin, Iterator end, Func1 get_x, Func2 get_y) {
-	SliceIndexInfo x(end - begin);
-	SliceIndexInfo y(end - begin);
-	std::transform(begin, end, x.begin(), get_x);
-	std::transform(begin, end, y.begin(), get_y);
-	return std::make_tuple(x, y);
-}
 
 // type
 ParseNode gen_implicit_type(FunctionInfo * finfo, std::string name);
@@ -221,6 +148,6 @@ void get_full_paramtable(FunctionInfo * finfo);
 std::string get_mapped_function_name(std::string origin_name);
 std::string gen_function_signature(FunctionInfo * finfo, int style = 0);
 
-
+// program 
 void gen_fortran_program(ARG_IN wrappers);
 void do_trans(const std::string & src);

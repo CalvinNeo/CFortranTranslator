@@ -47,15 +47,7 @@ void ParseNode::setattr(ParseAttr * pa) {
 	this->attr = pa;
 	pa->parsenode = this;
 }
-ParseNode & ParseNode::get(int child_index) {
-	return *(this->child[child_index]);
-}
-const ParseNode & ParseNode::get(int child_index) const {
-	return *(const_cast<const ParseNode *>(this)->child[child_index]);
-}
-const ParseNode & ParseNode::const_get(int child_index) const {
-	return *(const_cast<const ParseNode *>(this)->child[child_index]);
-}
+
 ParseNode::~ParseNode()
 {
 	delete attr;
@@ -65,12 +57,13 @@ ParseNode::~ParseNode()
 	}
 }
 ParseNode::ParseNode(const ParseNode & pn)
-{ 
+{
 	this->fs = pn.fs;
 	this->father = pn.father;
-	this->attr = (pn.attr == nullptr ? nullptr: pn.attr->clone());
+	this->attr = (pn.attr == nullptr ? nullptr : pn.attr->clone());
 	for (int i = 0; i < pn.length(); i++)
 	{
+		// perform memberwise copy
 		if (pn.child[i] != nullptr) {
 			this->addchild(pn.get(i));
 		}
@@ -116,7 +109,8 @@ void ParseNode::addchildptr(ParseNode * ptrn, bool add_back) {
 	}
 }
 
-void ParseNode::addchild(const ParseNode & n, bool add_back ) {
+void ParseNode::addchild(const ParseNode & n, bool add_back) {
+	// add a copy of n to ParseTree
 	this->addchildptr(new ParseNode(n), add_back);
 }
 
@@ -131,7 +125,7 @@ void ParseNode::replace(int childid, const ParseNode & pn) {
 void preorder(ParseNode * ptree) {
 	using namespace std;
 	ParseNode * p;
-	stack< pair< ParseNode * , int> > s;
+	stack<pair<ParseNode *, int>> s;
 
 	s.push(make_pair(ptree, 0));
 	while (!s.empty())
@@ -139,7 +133,7 @@ void preorder(ParseNode * ptree) {
 		p = s.top().first;
 		int deep = s.top().second;
 		s.pop();
-		if (p->length()==0) {
+		if (p->length() == 0) {
 			cout << string(deep * 2, ' ') << (int)p->get_token() << ", " << "TERMINAL " << p->get_what() << endl;
 		}
 		else {

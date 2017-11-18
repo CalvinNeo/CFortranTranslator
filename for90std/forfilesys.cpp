@@ -18,6 +18,7 @@
 */
 
 #include "forfilesys.h"
+#include "utils.h"
 #include <map>
 
 namespace for90std {
@@ -77,7 +78,7 @@ namespace for90std {
 
 		// 9.3.4.7
 		s = position.value_or("asis");
-		transform(s.begin(), s.end(), s.begin(), tolower);
+		transform(s.begin(), s.end(), s.begin(), to_lower);
 		if (s == "rewind") {
 			// REWIND positions an existing file at its initial point.
 			doappend = false;
@@ -95,7 +96,7 @@ namespace for90std {
 		}
 
 		s = access.value_or("sequential");
-		transform(s.begin(), s.end(), s.begin(), tolower);
+		transform(s.begin(), s.end(), s.begin(), to_lower);
 		if (s == "sequential") {
 
 		}
@@ -107,7 +108,7 @@ namespace for90std {
 		}
 
 		s = status.value_or("unknown");
-		transform(s.begin(), s.end(), s.begin(), tolower);
+		transform(s.begin(), s.end(), s.begin(), to_lower);
 		if (s == "new") {
 			docreate = true;
 			doreplace = false;
@@ -130,7 +131,7 @@ namespace for90std {
 		}
 
 		s = action.value_or("readwrite");
-		transform(s.begin(), s.end(), s.begin(), tolower);
+		transform(s.begin(), s.end(), s.begin(), to_lower);
 		if (s == "read") {
 			doread = true;
 			dowrite = false;

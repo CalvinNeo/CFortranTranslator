@@ -28,8 +28,8 @@ namespace for90std {
 	// specialization `forslice` of std::string
 	inline std::string forslice(std::string str, const slice_info<int> & tp) {
 		// use `slice_info<int>` to avoid narrow casting
-		if (tp.to >= str.size()) {
-			size_t appendlen = tp.to + 1 - str.size() + 1;
+		if (tp.to >= (int)str.length()) {
+			size_t appendlen = tp.to + 1 - (int)str.size() + 1;
 			str += std::string(appendlen, ' ');
 		}
 		if (tp.step == 1) {

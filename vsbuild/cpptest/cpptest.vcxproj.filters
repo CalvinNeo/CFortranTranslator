@@ -38,9 +38,6 @@
     <ClInclude Include="..\..\for90std\for90std.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\for90std\for1array.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\for90std\forfilesys.h">
       <Filter>头文件</Filter>
     </ClInclude>
@@ -63,6 +60,9 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="..\..\for90std\forstring.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\for90std\for1array.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

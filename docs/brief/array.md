@@ -1,12 +1,13 @@
 # array
 ## fortran-style array and c-style array
 
-1. fortran store array in a **column-first order**
+1. fortran array is in **column-first order**
     - for a 2d array, it means when initializing a 1d array by sequence, it follows the order of `a(1)(1) -> a(2)(1) -> a(1)(2) -> a(1)(2)` 
-    - similarly, for a nd array, rank 1 increase by 1 first, when rank 1 equals to upper bound it wrap back and rank 2 increase by 1..., rank n increase the last.
+    - similarly, for a nd array, index increase from the left-most to the right-most
     - for details refer to `array_builder` rule in [/src/grammar/for90.y](/src/grammar/for90.y)
 2. fortran array is **1**-indexed array, and it can be negative; each dimension of C++ style array is **0**-indexed array
-3. fortran array **rank** start from 1, C++ array **dimension** start from 0, parameter for most `for-` functions are index of rank, though they are called "dim" in standard, they are called `fordim` in this implementation
+3. fortran array **rank**(also called dim in Fortran standard, but called fordim in order to distinguish with C++'s dimension) start from 1, C++ array **dimension** start from 0
+	- parameter for most `for-` functions use **rank** other than dimension, in order to be compactable with Fortran source codes.
 4. `#define USE_FORARRAY` to use fortran style array, `#define USE_CARRAY` to use c style array
 5. `farray` set no limit to rank, in fortran90, the maximun rank is 7
 
@@ -21,8 +22,7 @@
 `tp` has length `X`, represents `slice_info<fsize_t>` data of the first `X` dimension, `X` is not always equal to `farr.dimension`
 
 ## farray
-`farray` is a multi-dimentional valarray
-
+`farray` is a multi-dimentional array defined in [/for90std/farray.h](/for90std/farray.h). 
 **DON'T** call member function of `farray` directly
 
 1. construct an array
@@ -54,9 +54,9 @@
         farray(const farray<T> & m) // copy constructor
         ```
 
-2. assign value to an array
+2. assign value to an array without chaning shape
 
-    ALL these functions do **NOT** change the shape of `farr` itself. They practically called `operator=`
+    ALL these functions do **NOT** change the shape of `farr` itself. They all call `operator=` by implemetation.
     - assign from a list: 
 
         ```
@@ -119,7 +119,7 @@
 
 |fortran|C++| explanation |
 |:-:|:-:|:-:|
-|get|`a(1, 2, 3, 4)` or `a({1, 2, 3, 4})` or `a[{1, 2, 3, 4}]` or `forslice(a, {1, 2, 3, 4})`| |
+|get|`a(1, 2, 3, 4)` or `a({1, 2, 3, 4})` or `a[{1, 2, 3, 4}]` or `a(1)(2)(3)(4)`| |
 |forslice|`a[{{1, 3, 1}, {1, 4}, {5}, {}}]` or `forslice(a, {{1, 3, 1}, {1, 4}, {5}}, {})`| |
 |reshape|forreshape| |
 |spread|not implemented yet| |
@@ -132,3 +132,9 @@
 |size, lbound, ubound|forsize, forlbound, forubound| |
 |matmul, dot_product|not implemented yet| |
 |eoshift, cshift|not implemented yet| |
+
+### Inside farray
+Though fortran-style array is different from c-style array, only need to consider relationship with flattened 1d array
+1. handle a named array: [/src/target/gen_vardef.cpp](/src/target/gen_vardef.cpp)
+2. define a array variable: [/src/target/gen_vardef.cpp](/src/target/gen_vardef.cpp)
+3. handle array slice: [/src/target/gen_callable.cpp](/src/target/gen_callable.cpp)

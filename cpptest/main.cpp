@@ -7,10 +7,18 @@
 /**********************************************************************/
 #include "../for90std/for90std.h"
 #define USE_FORARRAY
+void fun(farray<int> && f) {
+	f(1) = 999;
+}
 int main()
 {
 	const char * aaa = "hello, wolrd!";
 	const char * fff = "%s\n";
+	farray<int> a = make_init_list({ 1,2,3,4 });
+	bool b1 = forany(a == 1);
+
+	fun(INOUT(a));
+	forprintfree(a);
 	forprint(fff, aaa);
 	stop();
 	return 0;

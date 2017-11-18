@@ -21,6 +21,7 @@
 #include <string>
 #include <cstring>
 #include <cstdlib>
+#include "utils.h"
 
 namespace for90std {
 	// parsing from string
@@ -46,7 +47,7 @@ namespace for90std {
 		return a;
 	}
 	bool to_bool(std::string x) {
-		std::transform(x.begin(), x.end(), x.begin(), ::tolower);
+		std::transform(x.begin(), x.end(), x.begin(), to_lower);
 		return !x.empty() && (std::strcmp(x.c_str(), "true") == 0 || atoi(x.c_str()) != 0);
 	}
 }

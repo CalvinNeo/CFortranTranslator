@@ -315,7 +315,7 @@ ParseNode gen_suite(ARG_IN item, ARG_IN list) {
 		if (item.get_token() == TokenMeta::NT_INTERFACE)
 		{
 			// case 3, interface_decl
-			newnode = gen_flattern(item, list, "%s%s", TokenMeta::NT_SUITE);
+			newnode = gen_flatten(item, list, "%s%s", TokenMeta::NT_SUITE);
 		}
 		else if (item.get_token() == TokenMeta::NT_SUITE) {
 			// case 1, labeled_stmts
@@ -323,7 +323,7 @@ ParseNode gen_suite(ARG_IN item, ARG_IN list) {
 		}
 		else {
 			// case 2, stmt
-			newnode = gen_flattern(item, list, "%s\n%s", TokenMeta::NT_SUITE);
+			newnode = gen_flatten(item, list, "%s\n%s", TokenMeta::NT_SUITE);
 		}
 	}
 	return newnode;
