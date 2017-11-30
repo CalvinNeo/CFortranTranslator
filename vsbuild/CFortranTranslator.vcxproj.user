@@ -4,6 +4,7 @@
     <LocalDebuggerCommandArguments>-Ff demos\1.txt </LocalDebuggerCommandArguments>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
     <LocalDebuggerWorkingDirectory>$(ProjectDir)..\</LocalDebuggerWorkingDirectory>
+    <LocalDebuggerCommand>$(ProjectDir)..\bin\$(TargetName)_D$(TargetExt)</LocalDebuggerCommand>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Develop|x64'">
     <LocalDebuggerCommandArguments>-d</LocalDebuggerCommandArguments>

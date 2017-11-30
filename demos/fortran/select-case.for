@@ -1,4 +1,4 @@
-program
+subroutine T_select_case
 	real::x, y
 	read *, x
 	select case (x >= 0)
@@ -8,4 +8,4 @@ program
 			y = -x
 	end select
 	print *, x, y
-end program
+end subroutine

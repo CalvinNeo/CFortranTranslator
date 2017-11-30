@@ -6,7 +6,7 @@ Fortran is an efficient tool in scientific calculation. However sometimes transl
 
 This translator is not intended to improve existing codes, but to make convenience for those who need features of C++ and remain fortran traits and performance as much as possible.
 
-[![Build Status](https://travis-ci.org/CalvinNeo/CFortranTranslator.svg?branch=master)](https://travis-ci.org/CalvinNeo/CFortranTranslator)
+[![Build Status](https://travis-ci.org/CalvinNeo/CFortranTranslator.svg?branch=master)](https://travis-ci.org/CalvinNeo/CFortranTranslator)  [![Coverage Status](https://coveralls.io/repos/github/CalvinNeo/CFortranTranslator/badge.svg?branch=master)](https://coveralls.io/github/CalvinNeo/CFortranTranslator?branch=master)
 
 ## Features
 
@@ -96,7 +96,11 @@ Install bison by
 	cd build && make
 
 ## Use fortran standard library
-fortran standard library requires compiler support at least C++14 standard(with several C++17 std functions)
+**for90std** is a simple and undone implementation of fortran's library 
+for90std requires compiler support at least C++14 standard(with several C++17 std functions)
+with the following statement to include for90std
+
+    #include "for90std/for90std.h"
 
 ## Run with arguments
 
@@ -114,7 +118,7 @@ fortran standard library requires compiler support at least C++14 standard(with 
 	you can either use [/cpptest/winmake.cmd](/cpptest/winmake.cmd) to build your code, or build them in cpptest project
 
 # Debug
-Only fatal errors hinderring parsing will be reported by translator. 
+Only fatal errors hindering parsing will be reported by translator. 
 
 Debug origin fortran code or generated C++ code is recommended.
 

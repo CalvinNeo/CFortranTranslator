@@ -1,4 +1,4 @@
-function kwargs(a, b, c) result (r)
+function T_kwargs_function_kwargs(a, b, c) result (r)
 	implicit none
 	integer::r, a, b, c
 	integer::i ! must declare i
@@ -7,10 +7,10 @@ function kwargs(a, b, c) result (r)
 		r = r + 1
 	end do
 end function
-program
+subroutine T_kwargs_function
 	implicit none
-	integer::kwargs, s 
+	integer::T_kwargs_function_kwargs, s 
 	open(100, file = "1.txt", status = "")
-	s = kwargs(1, b = 3, c = 3)
+	s = T_kwargs_function_kwargs(1, b = 3, c = 3)
 	print *, s
-end program
+end subroutine

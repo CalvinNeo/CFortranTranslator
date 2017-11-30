@@ -132,7 +132,7 @@ void regen_paramtable(FunctionInfo * finfo, ParseNode & paramtable) {
 			{
 				print_error("NT_DIMENSLICE and NT_PARAMTABLE_PURE", paramtable);
 			}
-			else if (paramtable_type = TokenMeta::NT_DIMENSLICE) {
+			else if (paramtable_type == TokenMeta::NT_DIMENSLICE) {
 				// don't need changing
 			}
 		}
@@ -146,7 +146,7 @@ void regen_paramtable(FunctionInfo * finfo, ParseNode & paramtable) {
 			{
 				// don't need changing
 			}
-			else if (paramtable_type = TokenMeta::NT_DIMENSLICE) {
+			else if (paramtable_type == TokenMeta::NT_DIMENSLICE) {
 				print_error("NT_KEYVALUE and NT_DIMENSLICE", paramtable);
 			}
 		}
@@ -157,35 +157,36 @@ void regen_paramtable(FunctionInfo * finfo, ParseNode & paramtable) {
 	for (int i = 0; i < paramtable.length(); i++)
 	{
 		if (paramtable_type == TokenMeta::NT_PARAMTABLE_PURE) {
-			ParseNode & x = paramtable.get(i);
-			if (x.get_token() == TokenMeta::NT_KEYVALUE)
+			ParseNode & item = paramtable.get(i);
+			if (item.get_token() == TokenMeta::NT_KEYVALUE)
 			{
-				regen_exp(finfo, x.get(0));
-				if (x.get(1).get_token() == TokenMeta::NT_VARIABLEINITIALDUMMY)
+				ParseNode & keyvalue = item;
+				regen_exp(finfo, keyvalue.get(0));
+				if (keyvalue.get(1).get_token() == TokenMeta::NT_VARIABLEINITIALDUMMY)
 				{
 
 				}
 				else
 				{
-					regen_exp(finfo, x.get(1));
+					regen_exp(finfo, keyvalue.get(1));
 				}
-				paramtable.replace(i, x);
+				paramtable.replace(i, keyvalue);
 			}
 			else {
-				ParseNode y = gen_promote("%s = %s", TokenMeta::NT_KEYVALUE, x, gen_token(Term{ TokenMeta::NT_VARIABLEINITIALDUMMY, "" }));
-				regen_exp(finfo, y);
-				paramtable.replace(i, y);
+				ParseNode keyvalue = gen_promote("%s = %s", TokenMeta::NT_KEYVALUE, item, gen_token(Term{ TokenMeta::NT_VARIABLEINITIALDUMMY, "" }));
+				regen_exp(finfo, keyvalue);
+				paramtable.replace(i, keyvalue);
 			}
 		}
 		else if (paramtable_type == TokenMeta::NT_DIMENSLICE) {
-			ParseNode & x = paramtable.get(i);
-			regen_exp(finfo, x);
-			paramtable.replace(i, x);
+			ParseNode & slice = paramtable.get(i);
+			regen_exp(finfo, slice);
+			paramtable.replace(i, slice);
 		}
 		else {
-			ParseNode & x = paramtable.get(i);
-			regen_exp(finfo, x);
-			paramtable.replace(i, x);
+			ParseNode & item = paramtable.get(i);
+			regen_exp(finfo, item);
+			paramtable.replace(i, item);
 		}
 	}
 	string paramtable_str = make_str_list(paramtable.begin(), paramtable.end(), [&](ParseNode * pn) {

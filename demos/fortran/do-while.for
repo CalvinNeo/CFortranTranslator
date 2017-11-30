@@ -1,4 +1,4 @@
-program
+subroutine T_do_while
 	implicit none
 	integer::x, n, i = 0, m = 0
 	real::aver, sum = 0
@@ -13,4 +13,4 @@ program
 	end do
 	aver = sum / m
 	print *, aver
-end program
+end subroutine

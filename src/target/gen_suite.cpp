@@ -25,11 +25,11 @@ std::vector<ParseNode *> get_all_commons(FunctionInfo * finfo, ParseNode & suite
 	* NOT including implicit declared variables
 	*****/
 	std::vector<ParseNode *> declared_commons;
-	for (int i = 0; i < suite.length(); i++)
+	for (ParseNode * stmtptr : suite)
 	{
-		ParseNode & stmti = suite.get(i);
+		ParseNode & stmti = *stmtptr;
 		if (stmti.get_token() == TokenMeta::NT_COMMONBLOCK) {
-			declared_commons.push_back(&stmti);
+			declared_commons.push_back(stmtptr);
 		}
 	}
 	return declared_commons;
@@ -223,15 +223,17 @@ void regen_all_variables(FunctionInfo * finfo, ParseNode & oldsuite) {
 }
 
 void regen_all_variables_decl_str(FunctionInfo * finfo, ParseNode & oldsuite) {
-
 	/**********************************
-	*	join declarations of all variable declarations stmts together
+	* this function join declarations of all variable declarations stmts together
+	* IMPORTANT
+	* in earlier versions, `regen_all_variables_decl_str` and `regen_all_variables` compose one bigger function `gen_joined_declarations`
+	* and `regen_function` is not divided into two parts, as is mentionedd in `regen_function_2`
 	***********************************/
 	string variable_declarations;
 	forall_variable_in_function(get_context().current_module, finfo->local_name, [&](const std::pair<std::string, VariableInfo *> & p) {
 		VariableInfo * vinfo = p.second;
 		string local_name = vinfo->local_name;
-
+		
 		if (p.second->declared)
 		{
 			// this variable is in paramtable, do not need to generate declaration for it in function body
@@ -245,7 +247,8 @@ void regen_all_variables_decl_str(FunctionInfo * finfo, ParseNode & oldsuite) {
 					commonblock = add_commonblock(vinfo->commonblock_name);
 				}
 				/**********************************
-				* USE commonblock def
+				* in earlier versions, using `vinfo->type` rather than `commonblock_vinfo->type`, this is wrong.
+				* now using `commonblock_vinfo->type`, so all infomation about common block is gathered before this function is called
 				***********************************/
 				VariableInfo * commonblock_vinfo = commonblock->variables[vinfo->commonblock_index];
 				ParseNode & type = commonblock_vinfo->type;

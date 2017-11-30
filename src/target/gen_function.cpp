@@ -20,7 +20,7 @@
 #include "gen_common.h"
 
 std::string gen_paramtable_str(FunctionInfo * finfo, const vector<string> & paramtable_info, bool with_name) {
-	// generate C++ style parameter list
+	// generate C++ style parameter list for function def or decl
 	string paramtblstr;
 	vector<string>::const_iterator end_except_result = paramtable_info.end() - 1;
 	paramtblstr = make_str_list(paramtable_info.begin(), end_except_result, [&](const string & param_name) -> std::string {
@@ -39,9 +39,11 @@ std::string gen_paramtable_str(FunctionInfo * finfo, const vector<string> & para
 		std::string typestr = gen_qualified_typestr(type, desc, true);
 		if (with_name)
 		{
+			// generate def
 			sprintf(codegen_buf, "%s %s", typestr.c_str(), param_name.c_str());
 		}
 		else {
+			// generate decl
 			sprintf(codegen_buf, "%s", typestr.c_str());
 		}
 		return string(codegen_buf);
@@ -77,7 +79,7 @@ void get_full_paramtable(FunctionInfo * finfo) {
 				if (funcdef_node->attr != nullptr) {
 					vinfo->type = gen_type(Term{ TokenMeta::Function, gen_function_signature(interface_finfo, 1) });
 
-					if (i != paramtable_info.size() - 1) {
+					if (i + 1 != paramtable_info.size()) {
 						// `delete` ParseNode except return value 
 						vinfo->declared = true;
 					}
@@ -92,7 +94,7 @@ void get_full_paramtable(FunctionInfo * finfo) {
 				ParseNode & initial = entity_variable.get(1);
 
 				// set param_info for `regen_paramtable`
-				if (i != paramtable_info.size() - 1) {
+				if (i + 1 != paramtable_info.size()) {
 					// `delete` ParseNode except return value 
 					vinfo->declared = true;
 				}
@@ -151,12 +153,12 @@ void regen_function_1(FunctionInfo * finfo, ParseNode & functiondecl_node) {
 	*================
 	* `check_implicit_variable` is IMPORTANT here too
 	* if result_variable is "", this function will have a local variable will have a varialbe whose name is "",
-	*	then error will occurred, code like `double ;` will be generated
+	* then error will occurred, code like `double ;` will be generated
 	*================
 	* push result variable to the back of the paramtable_info stack
 	* type of result variable is set by default `void`,
-	*	so if this subprogram is a subroutine with no result variable,
-	*	it'll set by default `void`
+	* so if this subprogram is a subroutine with no result variable,
+	* it'll set by default `void`
 	*****************/
 	if (finfo->is_subroutine())
 	{
@@ -173,11 +175,13 @@ void regen_function_1(FunctionInfo * finfo, ParseNode & functiondecl_node) {
 void regen_function_2(FunctionInfo * finfo) {
 	/****************
 	* IMPORTANT
-	* MUST split regen_function into two parts `regen_function_1` and `regen_function_2`?
+	* MUST split regen_function into two parts `regen_function_1` and `regen_function_2`
 	* or some functions will have error definition about common block variables
+	* e.g. should be `farray<int>` but actually `int`
 	*================
-	* `regen_all_variables_decl_str` MUST AFTER all common blocks in this program are handled.
-	* because common definition can "rewrite" a variable's attribute, which is often onferred implicitly by their names
+	* REF `regen_all_variables_decl_str` for detailed reasons
+	* `regen_all_variables_decl_str` MUST BE AFTER all common blocks in this program are handled.
+	* because common definition can "rewrite" a variable's attribute, which is often inferred implicitly by their names
 	*----------------
 	* so in `gen_program`, the FIRST loop iterates over all functions and calls `regen_function_1` to each of them. 
 	* after this procedure, all common blocks are found.
@@ -204,7 +208,7 @@ void regen_function_2(FunctionInfo * finfo) {
 
 void regen_function(FunctionInfo * finfo, ParseNode & functiondecl_node) {
 	/****************
-	*	fortran90 does not declare type of arguments in function declaration statement
+	* fortran90 does not declare type of arguments in function declaration statement
 	*****************/
 	regen_function_1(finfo, functiondecl_node);
 	regen_function_2(finfo);

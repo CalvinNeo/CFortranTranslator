@@ -37,7 +37,7 @@ struct TypeAttr : public ParseAttr {
 	std::string name;
 
 	TypeAttr() : ParseAttr() {}
-	TypeAttr(const TypeAttr & ta) {
+	TypeAttr(const TypeAttr & ta) : ParseAttr(ta){
 		this->name = ta.name;
 	}
 	ParseAttr * clone() { return new TypeAttr(*this); }
@@ -50,7 +50,7 @@ struct VariableAttr : public ParseAttr {
 	VariableInfo * vinfoptr = nullptr;
 
 	VariableAttr(VariableInfo * vptr) : ParseAttr(), vinfoptr(vptr) {}
-	VariableAttr(const VariableAttr & va) {
+	VariableAttr(const VariableAttr & va) : ParseAttr(va) {
 		// do not call `clone()` else will cause stackoverflow
 		// do NOT copy vinfoptr because vinfoptr pointer to VariableInfo in get_context()
 		this->vinfoptr = va.vinfoptr;
@@ -67,9 +67,9 @@ struct VariableDescAttr : public ParseAttr {
 	VariableDesc desc;
 
 	VariableDescAttr() : ParseAttr() {}
-	VariableDescAttr(const VariableDescAttr & va) {
+	VariableDescAttr(const VariableDescAttr & vda) : ParseAttr(vda) {
 		// do not call `clone()` else will cause stackoverflow
-		this->desc = va.desc;
+		this->desc = vda.desc;
 	}
 	ParseAttr * clone() { return new VariableDescAttr(*this); }
 
@@ -83,7 +83,7 @@ struct VariableDescAttr : public ParseAttr {
 struct FunctionAttr : public ParseAttr {
 	FunctionInfo * finfoptr;
 	FunctionAttr(FunctionInfo * fptr) : ParseAttr(), finfoptr(fptr) {}
-	FunctionAttr(const FunctionAttr & fa) {
+	FunctionAttr(const FunctionAttr & fa) : ParseAttr(fa) {
 		// do not call `clone()` else will cause stackoverflow
 		this->finfoptr = fa.finfoptr;
 	}

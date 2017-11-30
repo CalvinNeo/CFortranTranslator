@@ -151,7 +151,7 @@ std::string gen_qualified_typestr(const ParseNode & type_spec, VariableDesc & va
 		else {
 			sprintf(codegen_buf, "for1array<%s>", base_typename.c_str());
 			base_typename = string(codegen_buf);
-			for (int sliceid = vardesc.slice.get_value_or(ParseNode{}).length() - 2; sliceid >= 0; sliceid--)
+			for (int sliceid = vardesc.slice.get().length() - 2; sliceid >= 0; sliceid--)
 			{
 				sprintf(codegen_buf, "for1array<%s>", base_typename.c_str());
 				base_typename = string(codegen_buf);

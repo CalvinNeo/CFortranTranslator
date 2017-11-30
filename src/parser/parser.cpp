@@ -250,31 +250,31 @@ std::string compose_error_piece() {
 
 void print_error(const std::string & error_info, const ParseNode & node) {
 	using namespace std;
-	printf("\nError : %s\n", error_info.c_str());
-	printf("(line %d:%d, index = %d, len = %d), current token is %s(id = %d) : \"%s\" \n"
+	fprintf(stderr, "\nError : %s\n", error_info.c_str());
+	fprintf(stderr, "(line %d:%d, index = %d, len = %d), current token is %s(id = %d) : \"%s\" \n"
 		, node.fs.parse_line + 1, node.fs.line_pos, node.fs.parse_pos, node.fs.parse_len
 		, get_intent_name(node.get_token()).c_str(), node.get_token(), node.to_string().c_str());
 	string cont = compose_error_piece();
-	printf("%s", cont.c_str());
+	fprintf(stderr, "%s", cont.c_str());
 }
 
 void print_error(const std::string & error_info) {
 	using namespace std;
-	printf("\nError : %s\n", error_info.c_str());
+	fprintf(stderr, "\nError : %s\n", error_info.c_str());
 }
 void fatal_error(const std::string & error_info) {
 	using namespace std;
-	printf("\nFatal : %s\n", error_info.c_str());
+	fprintf(stderr, "\nFatal : %s\n", error_info.c_str());
 	abort();
 }
 void fatal_error(const std::string & error_info, const ParseNode & node) {
 	using namespace std;
-	printf("\nFatal : %s\n", error_info.c_str());
-	printf("(line %d:%d, index = %d, len = %d), current token is %s(id = %d) : \"%s\" \n"
+	fprintf(stderr, "\nFatal : %s\n", error_info.c_str());
+	fprintf(stderr, "(line %d:%d, index = %d, len = %d), current token is %s(id = %d) : \"%s\" \n"
 		, node.fs.parse_line + 1, node.fs.line_pos, node.fs.parse_pos, node.fs.parse_len
 		, get_intent_name(node.get_token()).c_str(), node.get_token(), node.to_string().c_str());
 	string cont = compose_error_piece();
-	printf("%s", cont.c_str());
+	fprintf(stderr, "%s", cont.c_str());
 	abort();
 }
 

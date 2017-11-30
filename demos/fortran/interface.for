@@ -1,4 +1,4 @@
-subroutine add(do_add)
+subroutine T_interface_add(do_add)
 	interface
 		function do_add() result (a)
 			integer::a
@@ -6,7 +6,7 @@ subroutine add(do_add)
 	end interface
 end subroutine
 
-subroutine sub(do_sub)
+subroutine T_interface_sub(do_sub)
 	interface
 		function do_sub() result (b)
 			integer::b

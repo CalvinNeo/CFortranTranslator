@@ -1,3 +1,5 @@
+subroutine T_paramtable
+
 A(1, 2, 3)
 B()
 C(1, 2:2, 3)
@@ -7,3 +9,5 @@ E(1, c = 2, d = 3)
 c C(1, 2:2, 3)
 c D(1:2, 2, 3)
 c E(1, c = 2, d = 3)
+
+end subroutine

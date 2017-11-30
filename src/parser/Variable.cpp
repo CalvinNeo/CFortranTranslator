@@ -70,14 +70,14 @@ void forall_variable_in_function(std::string module_name, std::string function_n
 		fatal_error("@ function name is removed: " + function_name);
 	}
 	else {
-		for (std::map < std::string, VariableInfo* >::iterator iter = get_context().variables.begin(); iter != get_context().variables.end(); iter++)
+		for(std::map<std::string, VariableInfo *>::value_type & pr : get_context().variables )
 		{
 			// the last `::` is ery important
 			// consider
 			// variable in the same function `suf` and `suffix`
-			if (boost::starts_with(iter->first, module_name + "::" + function_name + "::"))
+			if (boost::starts_with(pr.first, module_name + "::" + function_name + "::"))
 			{
-				func(*iter);
+				func(pr);
 			}
 		}
 	}

@@ -18,6 +18,22 @@
       <Platform>x64</Platform>
     </ProjectConfiguration>
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\for90std\farray.h" />
+    <ClInclude Include="..\for90std\for1array.h" />
+    <ClInclude Include="..\for90std\for90std.h" />
+    <ClInclude Include="..\for90std\forarray_common.h" />
+    <ClInclude Include="..\for90std\forfilesys.h" />
+    <ClInclude Include="..\for90std\forlang.h" />
+    <ClInclude Include="..\for90std\formath.h" />
+    <ClInclude Include="..\for90std\forstdio.h" />
+    <ClInclude Include="..\for90std\forstring.h" />
+    <ClInclude Include="..\for90std\fortime.h" />
+    <ClInclude Include="..\for90std\utils.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\cpptest\main.cpp" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{4ECA6379-116F-460C-8D1D-027CF73D6DF9}</ProjectGuid>
     <RootNamespace>cpptest</RootNamespace>
@@ -115,26 +131,6 @@
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
   </ItemDefinitionGroup>
-  <ItemGroup>
-    <ClCompile Include="..\..\cpptest\main.cpp" />
-    <ClCompile Include="..\..\for90std\farray.cpp" />
-    <ClCompile Include="..\..\for90std\for90std.cpp" />
-    <ClCompile Include="..\..\for90std\forfilesys.cpp" />
-    <ClCompile Include="..\..\for90std\forlang.cpp" />
-    <ClCompile Include="..\..\for90std\forstdio.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="..\..\for90std\farray.h" />
-    <ClInclude Include="..\..\for90std\for1array.h" />
-    <ClInclude Include="..\..\for90std\for90std.h" />
-    <ClInclude Include="..\..\for90std\forarray_common.h" />
-    <ClInclude Include="..\..\for90std\forfilesys.h" />
-    <ClInclude Include="..\..\for90std\forlang.h" />
-    <ClInclude Include="..\..\for90std\formath.h" />
-    <ClInclude Include="..\..\for90std\forstdio.h" />
-    <ClInclude Include="..\..\for90std\forstring.h" />
-    <ClInclude Include="..\..\for90std\utils.h" />
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

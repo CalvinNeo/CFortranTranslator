@@ -1,4 +1,4 @@
-program
+subroutine test_divide_exactly_by_3
 	implicit none 
 	integer::n,m
 	read (*,*) n
@@ -9,4 +9,4 @@ program
 		case default
 			write (*, '(1x,i6,2x,a)') n, 'can not be divided exactly by 3'
 	end select
-end program
+end subroutine

@@ -15,55 +15,43 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\for90std\for90std.cpp">
+    <ClInclude Include="..\for90std\farray.h">
       <Filter>头文件</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\for90std\forfilesys.cpp">
+    </ClInclude>
+    <ClInclude Include="..\for90std\for1array.h">
       <Filter>头文件</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\for90std\forlang.cpp">
+    </ClInclude>
+    <ClInclude Include="..\for90std\for90std.h">
       <Filter>头文件</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\for90std\forstdio.cpp">
+    </ClInclude>
+    <ClInclude Include="..\for90std\forarray_common.h">
       <Filter>头文件</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\cpptest\main.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\for90std\farray.cpp">
+    </ClInclude>
+    <ClInclude Include="..\for90std\forfilesys.h">
       <Filter>头文件</Filter>
-    </ClCompile>
+    </ClInclude>
+    <ClInclude Include="..\for90std\forlang.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="..\for90std\formath.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="..\for90std\forstdio.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="..\for90std\forstring.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="..\for90std\fortime.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="..\for90std\utils.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\for90std\for90std.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\for90std\forfilesys.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\for90std\forlang.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\for90std\formath.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\for90std\forstdio.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\for90std\farray.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\for90std\forarray_common.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\for90std\utils.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\for90std\forstring.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\for90std\for1array.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
+    <ClCompile Include="..\cpptest\main.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

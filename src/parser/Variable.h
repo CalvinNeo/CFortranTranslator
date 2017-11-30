@@ -21,6 +21,16 @@
 #include "parser.h"
 #include <boost/optional/optional.hpp>
 
+#define _BOOST_VERSION_MAJOR_ (BOOST_VERSION / 100000)
+#define _BOOST_VERSION_MINOR_ (BOOST_VERSION / 100 % 10000)
+
+#if (_BOOST_VERSION_MAJOR_ < 1 && _BOOST_VERSION_MINOR_ <= 55) || defined(BOOST_NO_CXX11_REF_QUALIFIERS)
+#define _value_or get_value_or
+#else
+#define _value_or value_or
+#endif 
+
+
 // checks whether value is modified after initialization
 template<class T>
 struct dirty {
@@ -109,23 +119,23 @@ struct VariableDesc {
 	VariableDesc(boost::optional<bool> reference, boost::optional<bool> constant, boost::optional<bool> optional, boost::optional<ParseNode> slice
 		, boost::optional<int> kind, boost::optional<bool> save, boost::optional<bool> allocatable, boost::optional<bool> target, boost::optional<bool> pointer) {
 		if (reference.is_initialized())
-			this->reference = reference.get_value_or(this->reference);
+			this->reference = reference._value_or(this->reference);
 		if (constant.is_initialized())
-			this->constant = constant.get_value_or(this->constant);
+			this->constant = constant._value_or(this->constant);
 		if (optional.is_initialized())
-			this->optional = optional.get_value_or(this->optional);
+			this->optional = optional._value_or(this->optional);
 		if (slice.is_initialized())
 			this->slice = slice;
 		if (kind.is_initialized())
-			this->kind = kind.get_value_or(this->kind);
+			this->kind = kind._value_or(this->kind);
 		if (save.is_initialized())
-			this->save = save.get_value_or(this->save);
+			this->save = save._value_or(this->save);
 		if (allocatable.is_initialized())
-			this->allocatable = allocatable.get_value_or(this->allocatable);
+			this->allocatable = allocatable._value_or(this->allocatable);
 		if (target.is_initialized())
-			this->target = target.get_value_or(this->target);
+			this->target = target._value_or(this->target);
 		if (pointer.is_initialized())
-			this->pointer = pointer.get_value_or(this->pointer);
+			this->pointer = pointer._value_or(this->pointer);
 	}
 };
 

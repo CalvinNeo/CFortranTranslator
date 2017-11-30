@@ -1,4 +1,4 @@
-program
+subroutine test_ohms_raw
 	implicit none
 	real::i, r0, r1, r2, r12, r, u
 	r0 = 100.0; r1 = 20.0; r2 = 50.0
@@ -8,4 +8,4 @@ program
 	i = u / r
 	write (*,*) 'R=', r
 	write (*,*) "I=", i
-end program
+endsubroutine

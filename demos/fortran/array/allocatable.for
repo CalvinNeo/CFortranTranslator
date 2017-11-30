@@ -1,3 +1,0 @@
-REAL A(:),B(:,:,:)
-ALLOCATABLE A,B
-ALLOCATE(A(-2:40),B(3,3,3))

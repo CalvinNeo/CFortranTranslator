@@ -1,4 +1,4 @@
-program
+subroutine test_fibonacci
 	implicit none
 	integer,dimension(1:10)::a
 	integer::i
@@ -7,4 +7,4 @@ program
 		a(i) = a(i - 2) + a(i - 1)
 	end do
 	write (*, '1X, 5I8') a
-end program
+end subroutine

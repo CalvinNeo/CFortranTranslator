@@ -203,7 +203,7 @@ The `intent`, `parameter`, `save` specification generate codes following rules:
 |out|any|/|`T &`| `INOUT(v)` |
 |inout|any|/|`T &&`| `INOUT(v)` |
 
-By implementation, `INOUT(v)` is simply `std::move(v)`, it just convert a `T &` to `T &&`, so it can be accepted by a `T &&` function. You must make sure `v` will not be destructed before you no long need it.
+By implementation, `INOUT(v)` is simply `std::move(v)`, it just convert a `T &` to `T &&`, so it can be accepted by a `T &&` function. You must make sure `v` will not be destructed before you no long need it and `v` is an left value before you use `&(INOUT(v))`.
 
 Currently, all arguments are passed by pattern `INOUT`
 

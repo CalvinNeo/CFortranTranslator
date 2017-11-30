@@ -1,4 +1,4 @@
-program array_test
+subroutine test_updown_triangle
 	implicit none
 	integer,dimension(5,5)::m
 	character(len=30)::ch=''
@@ -15,4 +15,4 @@ program array_test
 	do i = 1, 5
 		print '(1xa, 5i4)', ch(1:4*(i-1)+1), m(i,i:5)
 	end do
-end program
+end subroutine

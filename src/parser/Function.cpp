@@ -50,11 +50,11 @@ FunctionInfo * add_function(std::string module_name, std::string function_name, 
 
 
 void forall_function_in_module(std::string module_name, std::function<void(std::pair<std::string, FunctionInfo *>)> func) {
-	for (std::map <std::string, FunctionInfo *>::iterator iter = get_context().functions.begin(); iter != get_context().functions.end(); iter++)
+	for(std::map <std::string, FunctionInfo *>::value_type & pr : get_context().functions)
 	{
-		if (boost::starts_with(iter->first, module_name + "::"))
+		if (boost::starts_with(pr.first, module_name + "::"))
 		{
-			func(*iter);
+			func(pr);
 		}
 	}
 }

@@ -1,4 +1,4 @@
-program
+subroutine T_if_else
 	implicit none
 	real::x, y, z
 	write (*,*) 'INPUT X'
@@ -14,4 +14,4 @@ program
 		z = cos(x)
 	end if
 	write (*,*) 'X=', x, 'Y=', Y, 'Z=', z
-end  program
+end subroutine

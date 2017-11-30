@@ -60,14 +60,14 @@ AGAIN:
 	p = simpler_yylex();
 #endif
 	term = get_tokenizer_state().CurrentTerm;
-	if (p == YY_CRLF || (p == NULL))
+	if (p == YY_CRLF || (p == NULL)) // this `NULL` is better not be replaced by `nullptr`
 	{
 		if (get_tokenizer_context().terminal_cache_line.size() != 0)
 		{
 			get_tokenizer_context().terminal_cache.push_back(std::make_tuple(p, get_tokenizer_state().CurrentTerm));
-			for (int i = 0; i < get_tokenizer_context().terminal_cache_line.size(); i++)
+			for (std::tuple<int, Term> & cache: get_tokenizer_context().terminal_cache_line)
 			{
-				get_tokenizer_context().terminal_cache.push_back(get_tokenizer_context().terminal_cache_line[i]);
+				get_tokenizer_context().terminal_cache.push_back(cache);
 			}
 			get_tokenizer_context().terminal_cache_line.clear();
 			goto AGAIN;

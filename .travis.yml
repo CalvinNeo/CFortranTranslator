@@ -18,6 +18,7 @@ matrix:
 
 before_install:
     - eval "${MATRIX_EVAL}"
+    - sudo pip install -U cpp-coveralls
 
 install:
   - sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-6 90
@@ -26,4 +27,7 @@ install:
 
 script: 
   - cd build/ 
-  - make
+  - make build_cov
+  
+after_success:
+  - make run_coveralls

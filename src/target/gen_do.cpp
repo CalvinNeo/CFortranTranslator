@@ -22,7 +22,7 @@
 void regen_do(FunctionInfo * finfo, ParseNode & do_stmt) {
 	ParseNode & suite = do_stmt.get(0);
 	regen_suite(finfo, suite, true);
-	sprintf(codegen_buf, "do{\n%s}", tabber(suite.get_what()).c_str());
+	sprintf(codegen_buf, "while(true){\n%s}", tabber(suite.get_what()).c_str());
 	do_stmt.fs.CurrentTerm = Term{ TokenMeta::NT_DO, string(codegen_buf) };
 }
 
@@ -104,11 +104,11 @@ SliceBoundInfo get_lbound_size_from_hiddendo(FunctionInfo * finfo, ParseNode & h
 SliceBoundInfo get_lbound_ubound_from_hiddendo(FunctionInfo * finfo, ParseNode & hiddendo, std::vector<ParseNode *> hiddendo_layer) {
 	SliceBoundInfo lb_ub = get_sliceinfo_base(hiddendo_layer.begin(), hiddendo_layer.end()
 		, [&](ParseNode * x) {
-		regen_exp(finfo, x->get(2));
-		return x->get(2).get_what();
-	}, [&](ParseNode * x) {
-		regen_exp(finfo, x->get(3));
-		return x->get(3).get_what();
+			regen_exp(finfo, x->get(2));
+			return x->get(2).get_what();
+		} , [&](ParseNode * x) {
+			regen_exp(finfo, x->get(3));
+			return x->get(3).get_what();
 	});
 	return lb_ub;
 }
@@ -164,23 +164,27 @@ void regen_hiddendo_expr(FunctionInfo * finfo, ParseNode & hiddendo, std::functi
 		/**************************************
 		* generate the following lambda
 		*======================================
-		*		return [](fsize_t a, fsize_t b, fsize_t c){
-		*			// actual codes
-		*		}(current[0], current[1], ...);
+		*```
+		*	return [](fsize_t a, fsize_t b, fsize_t c){
+		*		// actual codes
+		*	}(current[0], current[1], ...);
+		*```
 		*======================================
-		*	`current` is a `fsize_t *` array.
-		*	length of `current` = dimension
-		*	count of parameter of this lambda = dimension
+		* `current` is a `fsize_t *` array.
+		* length of `current` = dimension
+		* count of parameter of this lambda = dimension
 		*======================================
-		*	usage of this lambda is to
-		*	feed current to each parameters:
-		*	current[0] -> a
-		*	current[1] -> b
-		*	current[2] -> c
-		*	so actual codes can directly use names, not a `fsize_t *` array
+		* usage of this lambda is to
+		* feed current to each parameters:
+		* current[0] -> a
+		* current[1] -> b
+		* current[2] -> c
+		* so actual codes can directly use names, not a `fsize_t *` array
 		*======================================
-		*	WHY NEED THIS WORKAROUND?
-		*	because we need a iterative function, not a deep for-loop
+		* WHY NEED THIS WORKAROUND?
+		* because we need a iterative function, not a deep for-loop, 
+		* in order to make implied-do a expression rather than a structure,
+		* to satisfy fortran's feature
 		***************************************/
 		sprintf(codegen_buf, "[&](%s){\n%s}", indexer_str.c_str(), tabber(innermost_code).c_str());
 		string lambda_def = string(codegen_buf);

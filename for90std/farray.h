@@ -54,7 +54,7 @@ namespace for90std {
 		*	return false:	the end of iteration
 		*	return true:	continue iteration
 		***************/
-		// perform `f` once
+		// call `f` by `cur` once
 		f(cur);
 		cur[cur_dim] ++;
 		if (cur[cur_dim] < LBound[cur_dim] + size[cur_dim])
@@ -110,7 +110,7 @@ namespace for90std {
 		typedef T * iterator;
 		typedef const T * const_iterator;
 		typedef std::reverse_iterator<iterator> reverse_iterator;
-		typedef  std::reverse_iterator<const_iterator> const_reverse_iterator;
+		typedef std::reverse_iterator<const_iterator> const_reverse_iterator;
 
 		size_type LBound(int dim) const {
 			return lb[dim];
@@ -672,7 +672,8 @@ auto power(const farray<T1> & x, const T2 & y) {
 	}
 	template <typename T>
 	farray<T> make_init_list(const farray<T> & narr) {
-		// this function is to for compacity
+		// this "identity" specification is for compacity
+		// ref gen_arraybuilder.cpp
 		return _RTN(narr);
 	}
 

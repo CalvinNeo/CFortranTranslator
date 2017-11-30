@@ -24,7 +24,7 @@
 #include "gen_config.h"
 #include <boost/lexical_cast.hpp>
 
-#define WHENDEBUG_OREMPTYSTR(STR) WHENDEBUG(STR, "")
+#define WHEN_DEBUG_OR_EMPTY(STR) WHENDEBUG(STR, "")
 
 inline TokenizerState gen_flex(const Term & term) {
 	TokenizerState f;
@@ -53,6 +53,8 @@ void regen_read(FunctionInfo * finfo, ParseNode & stmt);
 void regen_write(FunctionInfo * finfo, ParseNode & stmt);
 void regen_print(FunctionInfo * finfo, ParseNode & stmt);
 std::string regen_vardef(FunctionInfo * finfo, VariableInfo * vinfo, std::string alias_name = "", bool save_to_node = true);
+std::string regen_vardef_array_initial_str(FunctionInfo * finfo, VariableInfo * vinfo, ParseNode & slice_node); // only called by regen_vardef
+std::string regen_vardef_scalar_initial_str(FunctionInfo * finfo, VariableInfo * vinfo); // only called by regen_vardef
 void regen_function(FunctionInfo * finfo, ParseNode & functiondecl_node);
 void regen_function_1(FunctionInfo * finfo, ParseNode & functiondecl_node);
 void regen_function_2(FunctionInfo * finfo);
@@ -82,24 +84,22 @@ void regen_hiddendo_exprex(FunctionInfo * finfo, ParseNode & hiddendo);
 void regen_hiddendo_exprex(FunctionInfo * finfo, ParseNode & hiddendo, std::function<void(ParseNode &)> regen_innermost);
 
 
+SliceBoundInfo get_lbound_size_from_slice(FunctionInfo * finfo, ParseNode & dimen_slice);
+SliceBoundInfo get_lbound_size_from_hiddendo(FunctionInfo * finfo, ParseNode & hiddendo, std::vector<ParseNode *> hiddendo_layer);
+SliceBoundInfo get_lbound_ubound_from_hiddendo(FunctionInfo * finfo, ParseNode & hiddendo, std::vector<ParseNode *> hiddendo_layer);
+std::vector<VariableInfo *> get_all_declared_vinfo(FunctionInfo * finfo, ARG_IN suite);
+std::vector<ParseNode *> get_all_declared_nodes(FunctionInfo * finfo, ParseNode & suite);
 
 // var def
 ParseNode gen_vardef(ARG_IN type_nospec, ARG_IN variable_desc, ARG_IN paramtable);
 ParseNode gen_vardef_from_default(ARG_IN type, std::string name);
-std::string gen_vardef_array_initial_str(FunctionInfo * finfo, VariableInfo * vinfo, const ParseNode & additional_desc);
-std::string gen_vardef_scalar_initial_str(FunctionInfo * finfo, VariableInfo * vinfo);
 std::string get_variable_name(ARG_IN entity_variable);
-SliceBoundInfo get_lbound_size_from_slice(const ParseNode & slice);
 
 // hidden do
 #define get_all_declared get_all_declared_vinfo
-std::vector<VariableInfo *> get_all_declared_vinfo(FunctionInfo * finfo, ARG_IN suite);
-std::vector<ParseNode *> get_all_declared_nodes(FunctionInfo * finfo, ParseNode & suite);
 ParseNode gen_hiddendo(ARG_IN argtable, ARG_IN index, ARG_IN from, ARG_IN to, TokenMeta_T return_token = TokenMeta::NT_HIDDENDO);
 std::vector<ParseNode *> get_nested_hiddendo_layers(ParseNode & hiddendo);
 std::vector<ParseNode *> get_parent_hiddendo_layers(ParseNode & hiddendo);
-SliceBoundInfo get_lbound_size_from_hiddendo(FunctionInfo * finfo, ParseNode & hiddendo, std::vector<ParseNode *> hiddendo_layer);
-SliceBoundInfo get_lbound_ubound_from_hiddendo(FunctionInfo * finfo, ParseNode & hiddendo, std::vector<ParseNode *> hiddendo_layer);
 
 // slices and paramtables
 ParseNode promote_exp_to_slice(ARG_IN exp);

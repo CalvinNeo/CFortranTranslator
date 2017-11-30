@@ -50,9 +50,9 @@ vector<ParseNode *> get_all_declared_nodes(FunctionInfo * finfo, ParseNode & sui
 	* NOT including implicit declared variables
 	***************/
 	vector<ParseNode *> declared_variables;
-	for (int i = 0; i < suite.length(); i++)
+	for (ParseNode * stmtptr : suite)
 	{
-		ParseNode & stmti = suite.get(i);
+		ParseNode & stmti = *stmtptr;
 		if (stmti.get_token() == TokenMeta::NT_VARIABLEDEFINESET) {
 			ParseNode & vardef_set = stmti;
 			declared_variables.insert(declared_variables.end(), vardef_set.begin(), vardef_set.end());
@@ -60,9 +60,9 @@ vector<ParseNode *> get_all_declared_nodes(FunctionInfo * finfo, ParseNode & sui
 		else if (stmti.get_token() == TokenMeta::NT_INTERFACE && stmti.length() > 0) {
 			// interface function
 			ParseNode & wrappers = stmti.get(0);
-			for (int i = 0; i < wrappers.length(); i++)
+			for (ParseNode *  wrapperptr : wrappers)
 			{
-				ParseNode & wrapper = wrappers.get(i);
+				ParseNode & wrapper = *wrapperptr;
 				if (wrapper.get_token() == TokenMeta::NT_PROGRAM) {
 					fatal_error("no program in interface");
 				}
@@ -258,21 +258,21 @@ std::string regen_stmt(FunctionInfo * finfo, ParseNode & stmt) {
 				VariableInfo * vinfo = get_variable(get_context().current_module, finfo->local_name, name);
 				if (vinfo == nullptr)
 				{
+					// normal case
 				}
 				else {
 					// this interface Function_Decl variable is declared by `check_implicit_variable`
 					// overwrite previous node
 					delete_variable(get_context().current_module, finfo->local_name, name);
-					vinfo = add_variable(get_context().current_module, finfo->local_name, name, VariableInfo{});
 				}
-				ParseNode t = gen_type(Term{ TokenMeta::Function_Decl, "" });
+				vinfo = add_variable(get_context().current_module, finfo->local_name, name, VariableInfo{});
 				vinfo->commonblock_index = 0;
 				vinfo->commonblock_name = "";
 				vinfo->desc = VariableDesc();
 				vinfo->implicit_defined = false;
-				vinfo->type = t;
+				vinfo->type = gen_type(Term{ TokenMeta::Function_Decl, "" });
 				vinfo->entity_variable = gen_vardef_from_default(vinfo->type, "");
-				vinfo->vardef_node = &wrapper; 
+				vinfo->vardef_node = &wrapper;
 			}
 		}
 	}
@@ -291,11 +291,6 @@ std::string regen_stmt(FunctionInfo * finfo, ParseNode & stmt) {
 		regen_print(finfo, stmt);
 		newsuitestr += stmt.get_what();
 		comment_start = 2;
-	}
-	// compound stmt
-	else if (stmt.get_token() == TokenMeta::NT_DO) {
-		newsuitestr += stmt.get_what();
-		newsuitestr += '\n';
 	}
 	else if (stmt.get_token() == TokenMeta::NT_IF) {
 		regen_if(finfo, stmt);
@@ -331,11 +326,12 @@ std::string regen_stmt(FunctionInfo * finfo, ParseNode & stmt) {
 	{
 		ParseNode & type_decl = stmt.get(0);
 		ParseNode & paramtable = stmt.get(1);
-		for (int i = 0; i < paramtable.length(); i++)
+		for (ParseNode * rangeptr : paramtable)
 		{
-			ParseNode & range = paramtable.get(i);
+			ParseNode & range = *rangeptr;
 			if (range.length() == 3 && range.get(2).get_token() == TokenMeta::Minus)
 			{
+				// 'A' - 'Z' generates a range
 				char start = range.get(0).get_what()[0];
 				char end = range.get(1).get_what()[0];
 				if (start > end)
@@ -356,9 +352,9 @@ std::string regen_stmt(FunctionInfo * finfo, ParseNode & stmt) {
 	else if (stmt.get_token() == TokenMeta::NT_ALLOCATE_STMT)
 	{
 		ParseNode & paramtable = stmt.get(0);
-		for (int i = 0; i < paramtable.length(); i++)
+		for (ParseNode * arrptr : paramtable)
 		{
-			ParseNode & arr = paramtable.get(i); // NT_FUNCTIONARRAY
+			ParseNode & arr = *arrptr; // NT_FUNCTIONARRAY
 			ParseNode & arr_name = arr.get(0);
 			ParseNode & dimen_slice = arr.get(1);
 			if (dimen_slice.get_token() == TokenMeta::NT_DIMENSLICE)

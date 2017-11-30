@@ -26,6 +26,7 @@
 #include <algorithm>
 #include <numeric>
 #include <memory>
+#include <iterator>
 #include "../target/gen_config.h"
 #include "for90.tab.h"
 #include "simple_lexer.h"
@@ -36,16 +37,16 @@ SimplerContext & get_simpler_context() {
 	return sc;
 };
 
-static std::function<bool(char)> is_comment_beginning = [&](char ch) {
+static bool is_comment_beginning(char ch) {
 	SimplerContext & sc = get_simpler_context();
 	return (ch == '!') // `!`-beginning comments can start any where
 		|| (sc.newline_marker && (ch == 'c' || ch == 'C'));
 };
-static std::function<bool(char)> is_name = [&](char ch) {
+static bool is_name(char ch) {
 	return (ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z') || ch == '_';
 };
-static std::function<bool(char)> is_int = [&](char ch) {
-	return ch >= '0' && ch <= '9';
+static bool is_int(char ch) {
+	return (ch >= '0' && ch <= '9');
 };
 static bool is_blank(char ch) {
 	return (ch == ' ' || ch == '\t');
@@ -72,35 +73,39 @@ static bool check_continuation(char & return_char) {
 	const std::string & s = sc.code;
 	int new_line_p = p + 1;
 	int continuation_symbol_p = -1;
-	bool do_continuation = false;
+	bool valid_continuation = false;
 	if (new_line_p + FORTRAN_CONTINUATION_SPACE < s.size())
 	{
 		// begin with 5 blanks(or numbers which are label, although useless)
-		bool first_5 = std::accumulate(s.begin() + new_line_p, s.begin() + new_line_p + FORTRAN_CONTINUATION_SPACE, true, [](bool r, char y) {
+		bool valid_label = std::accumulate(s.begin() + new_line_p, s.begin() + new_line_p + FORTRAN_CONTINUATION_SPACE, true, [](bool r, char y) {
 			return r && (is_int(y) || y == ' ');
 		});
-		if (first_5)
+		if (valid_label)
 		{
 			continuation_symbol_p = new_line_p + FORTRAN_CONTINUATION_SPACE;
 		}
 	}
 	if (continuation_symbol_p == -1 && new_line_p + 1 < s.size()) {
-		// begin with 1 tab, this rule compromise to some wrong codes
-		bool first_tab = s[new_line_p] == '\t';
-		if (first_tab)
+		// test whether this line begins with 1 tab
+		// this rule compromise to some non std codes(e.g. in Fortran PowerStation)
+		bool begin_with_tab = s[new_line_p] == '\t';
+		if (begin_with_tab)
 		{
 			continuation_symbol_p = new_line_p + 1;
 		}
 	}
 	if (continuation_symbol_p != -1)
 	{
-		do_continuation = continuation_symbol_p < s.size()
+		valid_continuation = continuation_symbol_p < s.size()
 			&& !is_blank(s[continuation_symbol_p])
 			&& s[continuation_symbol_p] != '\n'
-			&& !is_name(s[continuation_symbol_p]); // continuation mark can't be alpha char
+			&& !is_name(s[continuation_symbol_p]) // continuation mark can't be alpha characters
+			&& s[continuation_symbol_p] != '!'
+			&& s[continuation_symbol_p] != ';'
+		; 
 												   // if there's leading blanks
-		if (do_continuation) {
-			// `continuation_symbol_p` is a continuation mark
+		if (valid_continuation) {
+			// `continuation_symbol_p` is position of continuation mark
 			p = continuation_symbol_p + 1;
 			// skip leading blanks because of continuation
 			return_char = s[p++];
@@ -112,7 +117,7 @@ static bool check_continuation(char & return_char) {
 	else {
 		return_char = s[p++];
 	}
-	return do_continuation;
+	return valid_continuation;
 }
 static char get_complete_char() {
 	/****************
@@ -133,6 +138,7 @@ static char get_complete_char() {
 	int old_p = p;
 	char return_char = 0;
 	std::function<void()> handle_newline = [&]() {
+		// this function handle when encoutering '\n', and is NECESSARY even if there is continuation
 		get_tokenizer_state().parse_line++;
 		sc.in_string_literal = 0;
 		sc.label_border = FORTRAN_CONTINUATION_SPACE + 1;
@@ -144,6 +150,7 @@ static char get_complete_char() {
 	};
 	if (p >= s.size())
 	{
+		// if reach end, return 0
 		goto RETURN_CHAR;
 	}
 	BEGINNING:
@@ -151,13 +158,14 @@ static char get_complete_char() {
 	{
 		// `new_line_p` is the first character of next line
 		if (check_continuation(return_char)) {
+			// if next line begin with continuation
 		}
 		handle_newline();
 	}
 	else if (s[p] == '\r')
 	{
 		// Windows's newline marker is '\r\n', while in linux is '\n'
-#if defined(_MSC_VER)
+#if defined(_MSC_VER) && !defined(POSIX)
 		goto NORMAL;
 #else
 		// in Linux, simply discard
@@ -168,7 +176,17 @@ static char get_complete_char() {
 	else if (is_normal_parse() && is_comment_beginning(s[p])) {
 		std::string comment_str;
 		while (p < s.size() && s[p] != '\n') {
-			comment_str += s[p];
+			if (s[p] == '\r')
+			{
+#if defined(_MSC_VER) && !defined(POSIX)
+				comment_str += s[p];
+#else
+				// in Linux, simply discard
+#endif
+			}
+			else {
+				comment_str += s[p];
+			}
 			p++;
 		}
 		// now s[p] == '\n'
@@ -219,12 +237,8 @@ static char pull_complete_char() {
 	SimplerContext & sc = get_simpler_context();
 	if (!sc.item_cache.empty())
 	{
-		for (int i = 0; i < sc.item_cache.size(); i++) {
-			std::string & s = sc.item_cache[i];
-			for (auto s_iter = s.rbegin(); s_iter < s.rend(); s_iter++)
-			{
-				sc.char_cache.push_back(*s_iter);
-			}
+		for (std::string & s : sc.item_cache){
+			std::copy(s.rbegin(), s.rend(), std::back_inserter(sc.char_cache));
 		}
 		sc.item_cache.clear();
 	}
@@ -777,14 +791,16 @@ NOP_REPEAT:
 					else {
 						// duplicate label names may exist in different subprograms(function/subroutine)
 					}
+					return_term = Term{ TokenMeta::Do, "do" };
+					return_token = YY_DO;
 				}
 				else {
 					sc.item_cache.push_back(maybe_label_name);
+					goto NORMAL_KEYWORD;
 				}
-				return_term = Term{ TokenMeta::Do, "do" };
-				return_token = YY_DO;
 			}
 			else {
+				NORMAL_KEYWORD:
 				// YY_WORD
 				check_keyword(cur, [&](const KeywordMeta & kinfo, const std::string & actual_name) {
 					// this is a keyword

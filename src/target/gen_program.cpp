@@ -26,9 +26,6 @@ R202 program-unit is main-program
 	or block-data
 */
 
-
-void add_function_forward(ARG_IN function_decl);
-
 void gen_fortran_program(ARG_IN wrappers) {
 	std::string codes;
 	std::string main_code;
@@ -36,9 +33,10 @@ void gen_fortran_program(ARG_IN wrappers) {
 
 	FunctionInfo * program_info = add_function("", "program", FunctionInfo());
 	ParseNode script_program = gen_token(Term{ TokenMeta::NT_SUITE , "" });
-	for (int i = 0; i < get_context().program_tree.length(); i++)
+		
+	for (ParseNode * wrapper_ptr : get_context().program_tree)
 	{
-		ParseNode & wrapper = get_context().program_tree.get(i);
+		ParseNode & wrapper = *wrapper_ptr;
 		if (wrapper.get_token() == TokenMeta::NT_SUITE)
 		{
 			for (int j = 0; j < wrapper.length(); j++)
@@ -76,9 +74,9 @@ void gen_fortran_program(ARG_IN wrappers) {
 	// regen all subprogram's step 1: generate subprogram's code
 	// create function, generate function body
 	get_context().current_module = "";
-	for (int i = 0; i < get_context().program_tree.length(); i++)
+	for (ParseNode * wrapper_ptr : get_context().program_tree)
 	{
-		ParseNode & wrapper = get_context().program_tree.get(i); 
+		ParseNode & wrapper = *wrapper_ptr;
 		if(wrapper.get_token() == TokenMeta::NT_FUNCTIONDECLARE)
 		{
 			ParseNode & variable_function = wrapper.get(1);
@@ -93,17 +91,17 @@ void gen_fortran_program(ARG_IN wrappers) {
 	// this MUST before generate subprogram's code(`regen_function_2`), ref `regen_function_2` for reason
 	// if you move this code block under the "regen all subprogram's step 2" block, errors will occur when processing file *For3d14.for*
 	std::string common_decls;
-	for (std::map<std::string, CommonBlockInfo *>::iterator iter = get_context().commonblocks.begin(); iter != get_context().commonblocks.end(); iter++)
+	for (std::map<std::string, CommonBlockInfo *>::value_type & pr : get_context().commonblocks)
 	{
-		string s = gen_common_definition(iter->first).get_what();
+		string s = gen_common_definition(pr.first).get_what();
 		common_decls += s;
 	}
 
 	// regen all subprogram's step 2: generate subprogram's code
 	// generate function signature
-	for (int i = 0; i < get_context().program_tree.length(); i++)
+	for (ParseNode * wrapper_ptr : get_context().program_tree)
 	{
-		ParseNode & wrapper = get_context().program_tree.get(i);
+		ParseNode & wrapper = *wrapper_ptr;
 		if (wrapper.get_token() == TokenMeta::NT_FUNCTIONDECLARE)
 		{
 			ParseNode & variable_function = wrapper.get(1);
@@ -132,9 +130,18 @@ void gen_fortran_program(ARG_IN wrappers) {
 			forward_decls += ";\n";
 		}
 	});
-	codes = forward_decls + codes;
 
-	
+
+	/************
+	* PROGRAM STRUCTURE
+	* 
+	* common blocks
+	* forward function decls
+	* function definitions
+	* the `main` program
+	*************/
+	codes = forward_decls + codes;
 	codes = common_decls + codes;
+
 	get_context().program_tree.get_what() = codes;
 }

@@ -68,8 +68,7 @@ void regen_function_array(FunctionInfo * finfo, ParseNode & callable) {
 		}
 		callable.fs.CurrentTerm = Term{ TokenMeta::NT_FUCNTIONARRAY,  array_str };
 	}
-	else if(argtable.get_token() == TokenMeta::NT_ARGTABLE_PURE 
-		|| argtable.get_token() == TokenMeta::NT_PARAMTABLE_PURE){
+	else if(argtable.token_equals(TokenMeta::NT_ARGTABLE_PURE, TokenMeta::NT_PARAMTABLE_PURE) ){
 		// function call(with or without kwargs) OR array section
 		if (is_fortran_function(finfo, head_name))
 		{
@@ -81,18 +80,18 @@ void regen_function_array(FunctionInfo * finfo, ParseNode & callable) {
 		}
 		string argtable_str;
 		/**************
-		*	If a function have keyword parameters, it should logged in `get_context().func_kwargs`NT_ARRAYBUILDER
-		*	`get_context().func_kwargs` records every keyword paramters' information
+		* If a function have keyword parameters, it should logged in `get_context().func_kwargs`
+		* `get_context().func_kwargs` records every keyword paramters' information
 		***************/
 		auto map_func = get_context().func_kwargs.find(head_name); 
 
 		/**************
-		*	valid_kwargs is true iif any keyword arguments 
-		*	come before normal arguments
+		* valid_kwargs is true iif any keyword arguments 
+		* come before normal arguments
 		***************/
 		bool valid_kwargs_test = false;
 		/**************
-		*	number of non-kwarg parameters
+		* number of non-kwarg parameters
 		***************/
 		int normal_count = 0; 
 		map<string, string> kw_args;

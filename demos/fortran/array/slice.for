@@ -1,4 +1,4 @@
-program array_test
+subroutine T_array_slice
 	implicit none
 	integer, dimension(2, 2, 2)::a = (/1, 2, 3, 4, 5, 6, 7, 8/)
 	print *, a(1, 1, 1)
@@ -10,4 +10,4 @@ program array_test
 	print *, a(1:2, 1:1, 1)
 	print *, shape(a(1:2, 1:1, 1))
 
-end program
+end subroutine

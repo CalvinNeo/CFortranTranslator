@@ -1,4 +1,4 @@
-program
+subroutine test_inverse_sum
 	implicit none
 	integer::n, i = 1
 	real::t, s = 0.0
@@ -10,4 +10,4 @@ program
 		if(i > n) then exit
 	end do
 	print *, "sum=", s
-end program
+end subroutine

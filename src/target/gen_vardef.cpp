@@ -25,8 +25,7 @@ static bool isnumber(std::string str) {
 	});
 }
 
-SliceBoundInfo get_lbound_size_from_slice(const ParseNode & slice) {
-
+SliceBoundInfo get_lbound_size_from_slice(FunctionInfo * finfo, ParseNode & dimen_slice) {
 	/*****************
 	* because the usage of `boost::optional<ParseNode> desc.slice`
 	* below if-stmt is useless
@@ -35,11 +34,15 @@ SliceBoundInfo get_lbound_size_from_slice(const ParseNode & slice) {
 	//	return make_tuple(std::vector<int>(), std::vector<int>());
 	//}
 	*****************/
-
-	std::vector<std::string> lb(slice.length()), sz(slice.length());
-	if (slice.get_token() == TokenMeta::NT_ARGTABLE_PURE)
+	for (ParseNode * slice : dimen_slice)
 	{
-		return get_sliceinfo_base(slice.begin(), slice.end()
+		// IMPORTANT necessary to call `regen_slice`
+		regen_slice(finfo, *slice);
+	}
+	std::vector<std::string> lb(dimen_slice.length()), sz(dimen_slice.length());
+	if (dimen_slice.get_token() == TokenMeta::NT_ARGTABLE_PURE)
+	{
+		return get_sliceinfo_base(dimen_slice.begin(), dimen_slice.end()
 			, [](const ParseNode * x) {
 				return "1";
 			}
@@ -47,52 +50,71 @@ SliceBoundInfo get_lbound_size_from_slice(const ParseNode & slice) {
 				return x->get_what();
 		});
 	}
-	else {
-		return get_sliceinfo_base(slice.begin(), slice.end()
+	else if (dimen_slice.get_token() == TokenMeta::NT_DIMENSLICE) {
+		return get_sliceinfo_base(dimen_slice.begin(), dimen_slice.end()
 			, [](const ParseNode * x) {
-				if (isnumber(x->get(0).get_what()))
+				if (x->get_token() == TokenMeta::NT_SLICE)
 				{
-					int l = std::atoi(x->get(0).get_what().c_str());
-					return to_string(l);
+					if (isnumber(x->get(0).get_what()))
+					{
+						int l = std::atoi(x->get(0).get_what().c_str());
+						return to_string(l);
+					}
+					else {
+						return x->get(0).get_what();
+					}
 				}
 				else {
-					return x->get(0).get_what();
+					// if x is not NT_SLICE but a scalar, then x must represent the size of this dimension
+					// arr(size, from:to) -> arr(1:size, from:to)
+					return string("1");
 				}
 			}
 			, [](const ParseNode * x) {
-				if (isnumber(x->get(1).get_what()) && isnumber(x->get(0).get_what()))
+				if (x->get_token() == TokenMeta::NT_SLICE)
 				{
-					int u = std::atoi(x->get(1).get_what().c_str()); 
-					int l = std::atoi(x->get(0).get_what().c_str()); 
-					return to_string(u - l + 1);
+					if (isnumber(x->get(1).get_what()) && isnumber(x->get(0).get_what()))
+					{
+						// we can do this computing at "compile" time
+						int u = std::atoi(x->get(1).get_what().c_str());
+						int l = std::atoi(x->get(0).get_what().c_str());
+						return to_string(u - l + 1);
+					}
+					else {
+						// if there's variables
+						sprintf(codegen_buf, "%s - %s + 1", x->get(1).get_what().c_str(), x->get(0).get_what().c_str());
+						return string(codegen_buf);
+					}
 				}
 				else {
-					sprintf(codegen_buf, "%s - %s + 1", x->get(1).get_what().c_str(), x->get(0).get_what().c_str());
-					return string(codegen_buf);
+					return x->get_what();
 				}
 		});
+	}
+	else {
+		fatal_error("invalid slice");
 	}
 }
 
 
-std::string gen_vardef_array_initial_str(FunctionInfo * finfo, VariableInfo * vinfo, const ParseNode & additional_desc) {
+std::string regen_vardef_array_initial_str(FunctionInfo * finfo, VariableInfo * vinfo, ParseNode & slice_node) {
 	ParseNode & entity_variable = vinfo->entity_variable;
 	string alias_name = get_variable_name(entity_variable);
 	string arr_decl = "";
 	// entity_variable is 
 	// NT_VARIABLE_ENTITY(entity_variable) -> NT_FUCNTIONARRAY(entity_variable_name) -> (UnknownVariant, NT_ARGTABLE_PURE)/NT_VARIABLE_ENTITY
 	// or NT_VARIABLE_ENTITY(entity_variable) -> (UnknownVariant, NT_VARIABLEINITIALDUMMY or else)
-	bool dynamic_array = false;
-	for (int i = 0; i < additional_desc.length(); i++)
+	bool is_dynamic_array = false;
+	for (ParseNode * slice : slice_node)
 	{
-		const ParseNode & slice = additional_desc.get(i);
-		if (slice.get_token() == TokenMeta::NT_SLICE && slice.get(0).get_token() == TokenMeta::NT_VARIABLEINITIALDUMMY)
+		// IMPORTANT `regen_slice` is called in get_lbound_size_from_slice
+		if (slice->get_token() == TokenMeta::NT_SLICE && slice->get(0).get_token() == TokenMeta::NT_VARIABLEINITIALDUMMY)
 		{
-			dynamic_array = true;
+			is_dynamic_array = true;
 		}
 	}
 
-	SliceBoundInfo shape = get_lbound_size_from_slice(additional_desc);
+	SliceBoundInfo shape = get_lbound_size_from_slice(finfo, slice_node);
 	const std::vector<std::string> & lbound_vec = get<0>(shape);
 	const std::vector<std::string> & size_vec = get<1>(shape);
 	int dimension = (int)lbound_vec.size();
@@ -100,7 +122,7 @@ std::string gen_vardef_array_initial_str(FunctionInfo * finfo, VariableInfo * vi
 		// default initialize
 		if (get_context().parse_config.usefarray) {
 			// farray
-			if (dynamic_array)
+			if (is_dynamic_array)
 			{
 				sprintf(codegen_buf, "{}");
 				arr_decl += string(codegen_buf);
@@ -155,7 +177,7 @@ std::string get_variable_name(const ParseNode & entity_variable) {
 	}
 }
 
-std::string gen_vardef_scalar_initial_str(FunctionInfo * finfo, VariableInfo * vinfo) {
+std::string regen_vardef_scalar_initial_str(FunctionInfo * finfo, VariableInfo * vinfo) {
 	ParseNode & entity_variable = vinfo->entity_variable;
 	ParseNode & entity_variable_name = entity_variable.get(0);
 	ParseNode & entity_variable_initial = entity_variable.get(1);
@@ -244,7 +266,7 @@ std::string regen_vardef(FunctionInfo * finfo, VariableInfo * vinfo, std::string
 	*	desc.slice.is_initialized() == true or,
 	*	desc.allocatable == true
 	*****************/
-	bool do_arr = vinfo->is_array();
+	bool do_arr = vinfo->is_array() || is_function_array(entity_variable);
 	string var_decl, type_str;
 	/*****************
 	* IMPORTANT
@@ -256,12 +278,32 @@ std::string regen_vardef(FunctionInfo * finfo, VariableInfo * vinfo, std::string
 		alias_name = get_variable_name(entity_variable);
 	}
 	// entity_variable is NT_VARIABLE_ENTITY
-	if(desc.slice.is_initialized()){
-		// ARRAY with slice info
+	if (do_arr)
+	{
+		if (is_function_array(entity_variable)) {
+			// ARRAY declared by `DIMENSION a(10)`
+			// OVERRIDE original dimension attr
+			ParseNode & entity_variable_name = entity_variable.get(0);
+			// add slice attribute to vardescattr.desc
+			ParseNode & argtable = entity_variable_name.get(1);
+			desc.slice = argtable;
+		}
+		else if (desc.slice.is_initialized()) {
+			// ARRAY with slice info
+		}
+		else if (desc.allocatable.get())
+		{
+			// ARRAY decl by `ALLOCATABLE`
+			desc.slice = gen_token(Term{ TokenMeta::NT_DIMENSLICE, WHEN_DEBUG_OR_EMPTY("DIMENSLICE FOR ALLOCATABLE") });
+		}
+
+		// get slice info
 		type_str = gen_qualified_typestr(type_nospec, desc, false);
-		sprintf(codegen_buf, "%s %s", type_str.c_str(), alias_name.c_str());
+		string initial = regen_vardef_array_initial_str(finfo, vinfo, desc.slice.get());
+		sprintf(codegen_buf, "%s %s %s", type_str.c_str(), alias_name.c_str(), initial.c_str());
 		var_decl = string(codegen_buf);
-		var_decl += gen_vardef_array_initial_str(finfo, vinfo, desc.slice.get_value_or(ParseNode{}));
+
+		// ARRAY with slice info
 		if (vinfo->vardef_node == nullptr)
 		{
 			// considered to be implicit defined
@@ -271,24 +313,7 @@ std::string regen_vardef(FunctionInfo * finfo, VariableInfo * vinfo, std::string
 		{
 			vinfo->vardef_node->get_what() = var_decl;
 		}
-	}
-	else if (is_function_array(entity_variable)) {
-		// ARRAY declared by `DIMENSION a(10)`
-		// OVERRIDE original dimension attr
-		ParseNode & entity_variable_name = entity_variable.get(0);
-		// add slice attribute to vardescattr.desc
-		ParseNode & argtable = entity_variable_name.get(1);
-		desc.slice = argtable;
-		// get slice info
-		type_str = gen_qualified_typestr(type_nospec, desc, false);
-		sprintf(codegen_buf, "%s %s", type_str.c_str(), alias_name.c_str());
-		var_decl = string(codegen_buf);
-		var_decl += gen_vardef_array_initial_str(finfo, vinfo, desc.slice.get_value_or(ParseNode{}));
-		if (save_to_node)
-		{
-			vinfo->vardef_node->get_what() = var_decl;
-		}
-	}
+	} 
 	else if (type_nospec.get_token() == TokenMeta::Function)
 	{
 		// Function
@@ -309,7 +334,7 @@ std::string regen_vardef(FunctionInfo * finfo, VariableInfo * vinfo, std::string
 		type_str = gen_qualified_typestr(type_nospec, desc, false);
 		sprintf(codegen_buf, "%s %s", type_str.c_str(), alias_name.c_str());
 		var_decl = string(codegen_buf);
-		var_decl += gen_vardef_scalar_initial_str(finfo, vinfo);
+		var_decl += regen_vardef_scalar_initial_str(finfo, vinfo);
 		if (vinfo->vardef_node == nullptr)
 		{
 			// considered to be implicitly defined

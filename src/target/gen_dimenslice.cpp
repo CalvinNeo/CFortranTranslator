@@ -86,9 +86,14 @@ void regen_slice(FunctionInfo * finfo, ParseNode & slice) {
 	}
 	else {
 		/***********
-		* if dimen_slice is like `a(1:2, 3, 4)`,
+		* if dimen_slice has 3 components `a(1:2, 3, 4)`,
 		*	`1:2` is NT_SLICE
 		*	`3` and `4` is not NT_SLICE, they are literals
+		* 
+		* Whu don'r promote?
+		* because in `a(1:2, 3, 4)` can be component of an array decl, where 3 and 4 can easyly be translated into {3, 3}, {4, 4}
+		* but `a(1:2, 3, 4)` can also be index of an array, and it returns a scalar, 
+		* if changed to ``a(1:2, 3:3, 4:4)`, it will return a array, as effect of array slicing
 		***********/
 		regen_exp(finfo, slice);
 	}

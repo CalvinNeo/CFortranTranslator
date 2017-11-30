@@ -260,7 +260,7 @@
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>%boost_dir%\stage\lib;%boost_dir%\libs;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <OutputFile>../bin/$(TargetName)$(TargetExt)</OutputFile>
+      <OutputFile>../bin/$(TargetName)_D$(TargetExt)</OutputFile>
     </Link>
     <Flex>
       <Debug>false</Debug>

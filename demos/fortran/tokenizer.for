@@ -1,3 +1,4 @@
+subroutine T_tokenizer
 1..gt.2.
 1..le..2
 1e2..eq..3
@@ -23,4 +24,6 @@ KKK.GT.1..OR.KKK.EQ.2.
 	  IF (X) THEN		!comment with comma,
 	  endif
 	  
-	  185      FORMAT(1X,'ERROR! THE GOODMAN NO.=',I5) ! `!` in format-stmt shouldn't be translated into comment start
+185      FORMAT(1X,'ERROR! THE GOODMAN NO.=',I5) ! `!` in format-stmt shouldn't be translated into comment start
+	  
+end subroutine

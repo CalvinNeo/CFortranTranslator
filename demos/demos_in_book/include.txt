@@ -1,0 +1,12 @@
+test_cylinder
+test_divide_exactly_by_3
+test_fibonacci
+test_inverse_sum
+test_is_prime
+test_month_days
+test_narcissistic_number
+test_ohms_raw
+test_online_negative_number_count
+test_print_absolute_maxmin
+test_sum
+test_updown_triangle

@@ -61,7 +61,10 @@ bool maybe_return_array(FunctionInfo * finfo, const ParseNode & elem) {
 		}
 	}
 	else if (elem.get_token() == TokenMeta::NT_FUCNTIONARRAY){
-		// hard to determine, so return true
+		// 1. function may return either array or non-array
+		// 2. a NT_FUCNTIONARRAY can be either a array slice(which returns either an array or a scalar) or a function
+		// hard to determine, though it's possible to do that, however, this project is not a compiler
+		// so return true
 		string varname = elem.get(0).get_what();
 		VariableInfo * vinfo = get_variable(get_context().current_module, finfo->local_name, varname);
 		FunctionInfo * f = get_function(get_context().current_module, varname);
@@ -128,12 +131,11 @@ void regen_arraybuilder(FunctionInfo * finfo, ParseNode & array_builder) {
 			// all elements in the array builder is scalar
 			// can init array from initializer_list of initial value
 			sprintf(codegen_buf, "make_init_list(%s)", argtable.get_what().c_str());
-			arr_decl += string(codegen_buf);
+			arr_decl = string(codegen_buf);
 		}
 		else {
 			// must init array from another farray/for1array
-			arr_decl += "forconcat({";
-			arr_decl += make_str_list(argtable.begin(), argtable.end(), [&](ParseNode * p) {
+			string subarrays = make_str_list(argtable.begin(), argtable.end(), [&](ParseNode * p) {
 				ParseNode & elem = *p;
 				if (elem.get_token() == TokenMeta::NT_HIDDENDO) {
 
@@ -152,6 +154,8 @@ void regen_arraybuilder(FunctionInfo * finfo, ParseNode & array_builder) {
 						sprintf(codegen_buf, "make_init_list(%s)", elem.get_what().c_str());
 					}
 					else {
+						// because forconcat only concat between arrays, so use `make_init_list` to promote a scalar to array
+						// IMPORTANT, TODO an specification `farray<T> make_init_list(const farray<T> & narr)` make sure no action should be performed to an array
 						sprintf(codegen_buf, "make_init_list(%s)", elem.get_what().c_str());
 					}
 				}
@@ -167,8 +171,7 @@ void regen_arraybuilder(FunctionInfo * finfo, ParseNode & array_builder) {
 				}
 				return string(codegen_buf);
 			});
-
-			arr_decl += "})";
+			arr_decl = "forconcat({" + subarrays + "})";
 		}
 	}
 	else

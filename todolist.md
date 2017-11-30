@@ -49,6 +49,8 @@
 - optimize performance
     - `gen_merge`
     - `RETURN_NT` eliminate copy from `T` to `T *`
+- range
+    - ref `ConfigImplicit`
 
 ## todolist(bugfix)
 - ~~if slice can be a scalar x and equal to (1: x + 1), there will be conflict in argtable~~
@@ -92,4 +94,5 @@
 - enum-reflect.h can not calculate value like `Void - 100`, refer `make_enum_table`'s TODO
 - change `VariableInfo::vardef_node` from pointer to  `ParseNode`
 - interface function's `local_name`,  ref `get_full_paramtable`
+- `regen_exp` and `regen_slice` should be called exactly once in `get_sliceinfo_base` method
 
