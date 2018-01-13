@@ -22,7 +22,6 @@
 #include "../parser/context.h"
 #include "../parser/attribute.h"
 #include "gen_config.h"
-#include <boost/lexical_cast.hpp>
 
 #define WHEN_DEBUG_OR_EMPTY(STR) WHENDEBUG(STR, "")
 
@@ -49,6 +48,7 @@ bool is_int(const ParseNode & x);
 bool is_floating(const ParseNode & x);
 bool is_fortran_function(FunctionInfo * finfo, std::string name);
 
+// Regen functions
 void regen_read(FunctionInfo * finfo, ParseNode & stmt);
 void regen_write(FunctionInfo * finfo, ParseNode & stmt);
 void regen_print(FunctionInfo * finfo, ParseNode & stmt);
@@ -83,51 +83,53 @@ void regen_hiddendo_expr(FunctionInfo * finfo, ParseNode & hiddendo, std::functi
 void regen_hiddendo_exprex(FunctionInfo * finfo, ParseNode & hiddendo);
 void regen_hiddendo_exprex(FunctionInfo * finfo, ParseNode & hiddendo, std::function<void(ParseNode &)> regen_innermost);
 
-
+// In-context functions
 SliceBoundInfo get_lbound_size_from_slice(FunctionInfo * finfo, ParseNode & dimen_slice);
 SliceBoundInfo get_lbound_size_from_hiddendo(FunctionInfo * finfo, ParseNode & hiddendo, std::vector<ParseNode *> hiddendo_layer);
 SliceBoundInfo get_lbound_ubound_from_hiddendo(FunctionInfo * finfo, ParseNode & hiddendo, std::vector<ParseNode *> hiddendo_layer);
-std::vector<VariableInfo *> get_all_declared_vinfo(FunctionInfo * finfo, ARG_IN suite);
+std::vector<VariableInfo *> get_all_declared_vinfo(FunctionInfo * finfo, const ParseNode & suite);
 std::vector<ParseNode *> get_all_declared_nodes(FunctionInfo * finfo, ParseNode & suite);
+VariableInfo * check_implicit_variable(FunctionInfo * finfo, const std::string & name);
+ParseNode gen_implicit_type(FunctionInfo * finfo, std::string name);
+ParseNode require_format_index(FunctionInfo * finfo, std::string format_index);
+void get_full_paramtable(FunctionInfo * finfo);
+std::string gen_function_signature(FunctionInfo * finfo, int style = 0);
+std::string gen_paramtable_str(FunctionInfo * finfo, const std::vector<std::string> & paramtable_info, bool with_name = true);
 
 // var def
-ParseNode gen_vardef(ARG_IN type_nospec, ARG_IN variable_desc, ARG_IN paramtable);
-ParseNode gen_vardef_from_default(ARG_IN type, std::string name);
-std::string get_variable_name(ARG_IN entity_variable);
+ParseNode gen_vardef(const ParseNode & type_nospec, const ParseNode & variable_desc, const ParseNode & paramtable);
+ParseNode gen_vardef_from_default(const ParseNode & type, std::string name);
+std::string get_variable_name(const ParseNode & entity_variable);
 
 // hidden do
 #define get_all_declared get_all_declared_vinfo
-ParseNode gen_hiddendo(ARG_IN argtable, ARG_IN index, ARG_IN from, ARG_IN to, TokenMeta_T return_token = TokenMeta::NT_HIDDENDO);
+ParseNode gen_hiddendo(const ParseNode & argtable, const ParseNode & index, const ParseNode & from, const ParseNode & to, TokenMeta_T return_token = TokenMeta::NT_HIDDENDO);
 std::vector<ParseNode *> get_nested_hiddendo_layers(ParseNode & hiddendo);
 std::vector<ParseNode *> get_parent_hiddendo_layers(ParseNode & hiddendo);
 
 // slices and paramtables
-ParseNode promote_exp_to_slice(ARG_IN exp);
-ParseNode promote_argtable_to_dimenslice(ARG_IN argtable);
+ParseNode promote_exp_to_slice(const ParseNode & exp);
+ParseNode promote_argtable_to_dimenslice(const ParseNode & argtable);
 ParseNode gen_keyvalue_from_name(std::string name);
-ParseNode gen_keyvalue_from_exp(ARG_IN variable, ARG_IN initial);
-ParseNode promote_exp_to_keyvalue(ARG_IN paramtable_elem);
-ParseNode promote_argtable_to_paramtable(ARG_IN paramtable);
-ParseNode gen_pure_paramtable(ARG_IN paramtable_elem);
-ParseNode gen_pure_paramtable(ARG_IN paramtable_elem, ARG_IN paramtable, bool left_recursion = false);
-ParseNode gen_array_from_paramtable(ARG_IN argtable);
+ParseNode gen_keyvalue_from_exp(const ParseNode & variable, const ParseNode & initial);
+ParseNode promote_exp_to_keyvalue(const ParseNode & paramtable_elem);
+ParseNode promote_argtable_to_paramtable(const ParseNode & paramtable);
+ParseNode gen_pure_paramtable(const ParseNode & paramtable_elem);
+ParseNode gen_pure_paramtable(ParseNode & paramtable_elem, ParseNode & paramtable, bool left_recursion = false);
+ParseNode gen_arraybuilder_from_paramtable(const ParseNode & argtable);
 void foreach_paramtable(const ParseNode & pn, std::function<void(const ParseNode &)> f, bool recursion_direction_right);
 void set_variabledesc_attr(ParseNode & vardescattr_node, boost::optional<bool> reference, boost::optional<bool> constant, boost::optional<bool> optional
 	, boost::optional<ParseNode> slice, boost::optional<int> kind, boost::optional<bool> save, boost::optional<bool> allocatable, boost::optional<bool> target, boost::optional<bool> pointer);
 VariableDesc & get_variabledesc_attr(ParseNode & vardescattr_node);
-std::string gen_paramtable_str(FunctionInfo * finfo, const std::vector<std::string> & paramtable_info, bool with_name = true);
-
 
 // type
-ParseNode gen_implicit_type(FunctionInfo * finfo, std::string name);
-ParseNode gen_type(ARG_IN type_nospec, ARG_IN _type_kind);
-ParseNode gen_type(ARG_IN type_nospec);
+ParseNode gen_type(const ParseNode & type_nospec, const ParseNode & _type_kind);
+ParseNode gen_type(const ParseNode & type_nospec);
 ParseNode gen_type(Term typeterm);
 std::string gen_qualified_typestr(const ParseNode & type_spec, VariableDesc & vardesc, bool in_paramtable);
 
 // label
-void log_format_index(std::string format_index, ARG_IN format);
-ParseNode require_format_index(FunctionInfo * finfo, std::string format_index);
+void log_format_index(std::string format_index, const ParseNode & format);
 
 // copyrights
 std::string gen_rights(std::string filename, std::string author);
@@ -135,19 +137,15 @@ ParseNode gen_header();
 
 // common
 ParseNode gen_common_definition(std::string common_name);
-ParseNode gen_common(ARG_IN commonname_node, ARG_IN paramtable);
-VariableInfo * check_implicit_variable(FunctionInfo * finfo, const std::string & name);
+ParseNode gen_common(const ParseNode & commonname_node, const ParseNode & paramtable);
 ParseNode gen_comment(std::string comment, bool line_comment = true);
 CommonBlockInfo * add_commonblock(std::string commonblock_name);
 CommonBlockInfo * get_commonblock(std::string commonblock_name);
 
 // function decl
-ParseNode gen_function(ARG_IN variable_function, ARG_IN paramtable, ARG_IN variable_result, ARG_IN suite);
-ParseNode gen_suite(ARG_IN item, ARG_IN list);
-void get_full_paramtable(FunctionInfo * finfo);
+ParseNode gen_suite(const ParseNode & item, const ParseNode & list);
 std::string get_mapped_function_name(std::string origin_name);
-std::string gen_function_signature(FunctionInfo * finfo, int style = 0);
 
 // program 
-void gen_fortran_program(ARG_IN wrappers);
+void gen_fortran_program(const ParseNode & wrappers);
 void do_trans(const std::string & src);

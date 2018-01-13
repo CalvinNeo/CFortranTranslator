@@ -7,7 +7,7 @@ subroutine test_inverse_sum
 		t = 1.0 / i
 		s = s + t
 		i = i + 1
-		if(i > n) then exit
+		if(i > n) exit
 	end do
 	print *, "sum=", s
 end subroutine

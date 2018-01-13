@@ -26,7 +26,7 @@ std::string gen_io_argtable_str(FunctionInfo * finfo, ParseNode & argtable, std:
 	regen_paramtable(finfo, argtable);
 	string res = make_str_list(argtable.begin(), argtable.end(), [&](ParseNode * p) {
 		ParseNode & pn = *p;
-		if (pn.get_token() == TokenMeta::NT_HIDDENDO)
+		if (pn.token_equals(TokenMeta::NT_HIDDENDO))
 		{
 			// wrap with ImpliedDo
 			regen_hiddendo_expr(finfo, pn, [&](ParseNode & innermost_argtable) {
@@ -70,7 +70,7 @@ std::string gen_io_argtable_strex(FunctionInfo * finfo, ParseNode & argtable, st
 		std::string current_index = "";
 		int hidden_level = 0;
 		std::function<void(ParseNode &)> handler = [&](ParseNode & argtable_item) {
-			if (argtable_item.get_token() == TokenMeta::NT_HIDDENDO)
+			if (argtable_item.token_equals(TokenMeta::NT_HIDDENDO))
 			{
 				// implied-do item
 				// wrap with ImpliedDo
@@ -81,6 +81,7 @@ std::string gen_io_argtable_strex(FunctionInfo * finfo, ParseNode & argtable, st
 
 				vector<ParseNode *> hiddendo_layers = get_parent_hiddendo_layers(argtable_item);
 				SliceBoundInfo lb_ub;
+				// use int to prevent overflow
 				for (int i = (int)hiddendo_layers.size() - 1; i >= 0 ; i--)
 				{
 					if (i == 0)
@@ -145,7 +146,7 @@ void regen_read(FunctionInfo * finfo, ParseNode & stmt) {
 	ParseNode & argtable = stmt.get(1);
 	string device = io_info.get(0).to_string();
 	bool is_stdio = (device == "-1" || device == "" || device == "0");
-	std::string argtable_str = gen_io_argtable_strex(finfo, argtable, "read", io_info.get(1).get_token() == TokenMeta::NT_AUTOFORMATTER);
+	std::string argtable_str = gen_io_argtable_strex(finfo, argtable, "read", io_info.get(1).token_equals(TokenMeta::NT_AUTOFORMATTER));
 
 	if (argtable.length() == 0)
 	{
@@ -153,7 +154,7 @@ void regen_read(FunctionInfo * finfo, ParseNode & stmt) {
 		// e.g. `read(*,*)`
 		sprintf(codegen_buf, "stop();\n");
 	}
-	else if (io_info.get(1).get_token() == TokenMeta::NT_AUTOFORMATTER) {
+	else if (io_info.get(1).token_equals(TokenMeta::NT_AUTOFORMATTER)) {
 		if (is_stdio) {
 			// device = "5"; // stdin
 			sprintf(codegen_buf, "forreadfree(stdin%s %s);\n", (argtable_str==""?"":","), argtable_str.c_str());
@@ -165,7 +166,7 @@ void regen_read(FunctionInfo * finfo, ParseNode & stmt) {
 	else {
 		string fmt;
 		string label_name = io_info.get(1).to_string();
-		if (io_info.get(1).get_token() == TokenMeta::NT_FORMATTER_LOCATION)
+		if (io_info.get(1).token_equals(TokenMeta::NT_FORMATTER_LOCATION))
 		{
 			fmt = require_format_index(finfo, label_name).to_string();
 		}
@@ -195,8 +196,8 @@ void regen_write(FunctionInfo * finfo, ParseNode & stmt) {
 	ParseNode & argtable = stmt.get(1);
 	string device = io_info.get(0).to_string();
 	bool is_stdio = (device == "-1" || device == "" || device == "0");
-	std::string argtable_str = gen_io_argtable_strex(finfo, argtable, "write", io_info.get(1).get_token() == TokenMeta::NT_AUTOFORMATTER);
-	if (io_info.get(1).get_token() == TokenMeta::NT_AUTOFORMATTER) {
+	std::string argtable_str = gen_io_argtable_strex(finfo, argtable, "write", io_info.get(1).token_equals(TokenMeta::NT_AUTOFORMATTER));
+	if (io_info.get(1).token_equals(TokenMeta::NT_AUTOFORMATTER)) {
 		if (is_stdio) {
 			// device = "6"; // stdout
 			sprintf(codegen_buf, "forwritefree(stdout%s %s);\n", (argtable_str == "" ? "" : ","), argtable_str.c_str());
@@ -207,7 +208,7 @@ void regen_write(FunctionInfo * finfo, ParseNode & stmt) {
 	}
 	else {
 		string fmt;
-		if (io_info.get(1).get_token() == TokenMeta::NT_FORMATTER_LOCATION)
+		if (io_info.get(1).token_equals(TokenMeta::NT_FORMATTER_LOCATION))
 		{
 			fmt = require_format_index(finfo, io_info.get(1).to_string()).to_string();
 		} else{
@@ -232,13 +233,13 @@ void regen_write(FunctionInfo * finfo, ParseNode & stmt) {
 void regen_print(FunctionInfo * finfo, ParseNode & stmt) {
 	const ParseNode & io_info = stmt.get(0);
 	ParseNode & argtable = stmt.get(1);
-	std::string argtable_str = gen_io_argtable_strex(finfo, argtable, "print", io_info.get(1).get_token() == TokenMeta::NT_AUTOFORMATTER);
-	if (io_info.get(1).get_token() == TokenMeta::NT_AUTOFORMATTER) {
+	std::string argtable_str = gen_io_argtable_strex(finfo, argtable, "print", io_info.get(1).token_equals(TokenMeta::NT_AUTOFORMATTER));
+	if (io_info.get(1).token_equals(TokenMeta::NT_AUTOFORMATTER)) {
 		sprintf(codegen_buf, "forprintfree(%s);\n", argtable_str.c_str());
 	}
 	else {
 		string fmt;
-		if (io_info.get(1).get_token() == TokenMeta::NT_FORMATTER_LOCATION)
+		if (io_info.get(1).token_equals(TokenMeta::NT_FORMATTER_LOCATION))
 		{
 			fmt = require_format_index(finfo, io_info.get(1).to_string()).to_string();
 		}
@@ -310,7 +311,7 @@ for90std::IOFormat parse_ioformatter(const std::string & src) {
 	********************/
 	int stat = 0; 
 	std::vector<int> repeat;
-	std::vector<int> repeat_from;
+	std::vector<size_t> repeat_from;
 	/********************
 	*	`instant_defined = true` means this repeat counter is attached to a edit descriptor, e.g. `2I`,
 	*	not a parenthesis, e.g. `2(I, F)`
@@ -334,7 +335,7 @@ for90std::IOFormat parse_ioformatter(const std::string & src) {
 		}
 	};
 
-	for (int i = 0; i < (int)src.size(); i++)
+	for (size_t i = 0; i < src.size(); i++)
 	{
 		ch = tolower(src[i]);
 		switch (ch)
@@ -427,20 +428,19 @@ for90std::IOFormat parse_ioformatter(const std::string & src) {
 			{
 				// precision
 				// have previous i, e, f, a, x, is component of std::string prec
-				int j = i + 1;
-				for (; j < (int)src.size() && src[j] >= '0' && src[j] <= '9'; j++);
+				size_t j = i + 1;
+				for (; j < src.size() && src[j] >= '0' && src[j] <= '9'; j++);
 				prec = src.substr(i, j - i).c_str();
 				i = j - 1;
 			}
 			else {
 				// repeat 
-				int j = i + 1;
-				for (; j < (int)src.size() && src[j] >= '0' && src[j] <= '9'; j++);
+				size_t j = i + 1;
+				for (; j < src.size() && src[j] >= '0' && src[j] <= '9'; j++);
 				// IMPORTANT in level repeat.size() - 1 BEFORE push_back, or will cause `rt += buf;` failure
 
 				instant_defined = true;
-				int t = std::atoi(src.substr(i, j - i).c_str());
-				instant_rep = t;
+				instant_rep = std::atoi(src.substr(i, j - i).c_str());
 				//repeat.push_back(t);
 				i = j - 1;
 			}
@@ -448,8 +448,8 @@ for90std::IOFormat parse_ioformatter(const std::string & src) {
 		case '.':
 			if (stat == 1)
 			{
-				int j = i + 1;
-				for (; j < (int)src.size() && src[j] >= '0' && src[j] <= '9'; j++);
+				size_t j = i + 1;
+				for (; j < src.size() && src[j] >= '0' && src[j] <= '9'; j++);
 				prec += src.substr(i, j - i);
 				i = j - 1;
 			}
@@ -466,7 +466,7 @@ for90std::IOFormat parse_ioformatter(const std::string & src) {
 
 			repeat.push_back(instant_rep);
 			// 重复从'('的下一个字符开始
-			repeat_from.push_back((int)rt.size());
+			repeat_from.push_back(rt.size());
 			reversion_start = (int)rt.size();
 			break;
 		case ')':
@@ -495,7 +495,7 @@ for90std::IOFormat parse_ioformatter(const std::string & src) {
 
 			term_editing();
 			// add  `\n`
-			for (; i < (int)src.size() && src[i] == '/' ; i++) {
+			for (; i < src.size() && src[i] == '/' ; i++) {
 				rt += "\\n";
 			}
 			i--;
@@ -505,7 +505,7 @@ for90std::IOFormat parse_ioformatter(const std::string & src) {
 			break;
 		case '\"':
 			descriptor = "";
-			for (i++; i < (int)src.size() && src[i] != '\"'; i++)
+			for (i++; i < src.size() && src[i] != '\"'; i++)
 			{
 				if (src[i] != '\'') {
 					descriptor += src[i];
@@ -521,7 +521,7 @@ for90std::IOFormat parse_ioformatter(const std::string & src) {
 			break;
 		case '\'':
 			descriptor = "";
-			for (i++; i < (int)src.size() && src[i] != '\''; i++)
+			for (i++; i < src.size() && src[i] != '\''; i++)
 			{
 				if (src[i] != '\"') {
 					descriptor += src[i];
@@ -539,7 +539,7 @@ for90std::IOFormat parse_ioformatter(const std::string & src) {
 		{
 			int start = i;
 			// line continuation
-			for (i++; i < (int)src.size() && src[i] == ' '; i++)
+			for (i++; i < src.size() && src[i] == ' '; i++)
 			{
 				rt += src[i];
 			}

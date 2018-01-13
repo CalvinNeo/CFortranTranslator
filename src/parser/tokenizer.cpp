@@ -64,6 +64,8 @@ AGAIN:
 	{
 		if (get_tokenizer_context().terminal_cache_line.size() != 0)
 		{
+			// POLICY: finish all parsing of one line/document before return it's ending token `YY_CRLF`/`YY_NULL`
+			// if reaching line end or EOF, but the terminal_cache_line is not empty. Immediately parse what's in the terminal_cache_line before return an YY_CRLF/YY_NULL.
 			get_tokenizer_context().terminal_cache.push_back(std::make_tuple(p, get_tokenizer_state().CurrentTerm));
 			for (std::tuple<int, Term> & cache: get_tokenizer_context().terminal_cache_line)
 			{
@@ -245,7 +247,7 @@ const vector<KeywordMeta> keywords = {
 		, TokenMeta::META_ANY
 		, YY_EQV
 	}
-	, KeywordMeta{".neqv"
+	, KeywordMeta{".neqv."
 		, TokenMeta::META_ANY
 		, YY_NEQV
 	}

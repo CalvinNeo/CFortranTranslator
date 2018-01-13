@@ -19,15 +19,14 @@
 
 #include "gen_common.h"
 
-ParseNode gen_array_from_paramtable(ARG_IN argtable) {
+ParseNode gen_arraybuilder_from_paramtable(const ParseNode & argtable) {
 	/*****************
 	* give initial value
 	* `B(1:2:3)` can be either a single-element argtable or a exp, depending on what `B` is
 	* in light of this, reduction conflicts can be raised, 
-	* promote argtable/dimen_slice to paramtable, in order to defer anaslysis
+	* promote argtable/dimen_slice to paramtable, in order to defer analysis
 	*****************/
-	ParseNode newnode = gen_token(Term{ TokenMeta::NT_ARRAYBUILDER_LIST, argtable.to_string() }, argtable);
-	return newnode;
+	return gen_token(Term{ TokenMeta::NT_ARRAYBUILDER_LIST, argtable.to_string() }, argtable);
 }
 
 bool maybe_return_array(FunctionInfo * finfo, const ParseNode & elem) {
@@ -41,10 +40,10 @@ bool maybe_return_array(FunctionInfo * finfo, const ParseNode & elem) {
 	* if you want to distinguish between function and array semanticly,
 	*	use `is_fortran_function`
 	*****************/
-	if (elem.get_token() == TokenMeta::NT_HIDDENDO) {
+	if (elem.token_equals(TokenMeta::NT_HIDDENDO)) {
 		return true;
 	}
-	else if (elem.get_token() == TokenMeta::UnknownVariant) {
+	else if (elem.token_equals(TokenMeta::UnknownVariant)) {
 		VariableInfo * vinfo = get_variable(get_context().current_module, finfo->local_name, elem.to_string());
 		if (vinfo != nullptr)
 		{
@@ -60,7 +59,7 @@ bool maybe_return_array(FunctionInfo * finfo, const ParseNode & elem) {
 			return true;
 		}
 	}
-	else if (elem.get_token() == TokenMeta::NT_FUCNTIONARRAY){
+	else if (elem.token_equals(TokenMeta::NT_FUCNTIONARRAY)){
 		// 1. function may return either array or non-array
 		// 2. a NT_FUCNTIONARRAY can be either a array slice(which returns either an array or a scalar) or a function
 		// hard to determine, though it's possible to do that, however, this project is not a compiler
@@ -99,7 +98,7 @@ bool maybe_return_array(FunctionInfo * finfo, const ParseNode & elem) {
 			return true;
 		}
 	}
-	else if (elem.get_token() == TokenMeta::NT_ARGTABLE_PURE){
+	else if (elem.token_equals(TokenMeta::NT_ARGTABLE_PURE)){
 		// hard to determine, so return true
 		return true;
 	}
@@ -117,7 +116,7 @@ bool maybe_return_array(FunctionInfo * finfo, const ParseNode & elem) {
 void regen_arraybuilder(FunctionInfo * finfo, ParseNode & array_builder) {
 	// wrap arraybuilder.fs.CurrentTerm.what with make_farray function
 	string arr_decl;
-	if (array_builder.get_token() == TokenMeta::NT_ARRAYBUILDER_LIST)
+	if (array_builder.token_equals(TokenMeta::NT_ARRAYBUILDER_LIST))
 	{
 		// if array is assigned by an `(/` `/)` constructor
 		bool concat_array = false;
@@ -137,7 +136,7 @@ void regen_arraybuilder(FunctionInfo * finfo, ParseNode & array_builder) {
 			// must init array from another farray/for1array
 			string subarrays = make_str_list(argtable.begin(), argtable.end(), [&](ParseNode * p) {
 				ParseNode & elem = *p;
-				if (elem.get_token() == TokenMeta::NT_HIDDENDO) {
+				if (elem.token_equals(TokenMeta::NT_HIDDENDO)) {
 
 					vector<ParseNode *> hiddendo_layer = get_nested_hiddendo_layers(elem);
 					SliceBoundInfo lb_size = get_lbound_size_from_hiddendo(finfo, elem, hiddendo_layer);
@@ -159,7 +158,7 @@ void regen_arraybuilder(FunctionInfo * finfo, ParseNode & array_builder) {
 						sprintf(codegen_buf, "make_init_list(%s)", elem.get_what().c_str());
 					}
 				}
-				else if (elem.get_token() == TokenMeta::NT_ARGTABLE_PURE)
+				else if (elem.token_equals(TokenMeta::NT_ARGTABLE_PURE))
 				{
 					// a list of elements
 					regen_paramtable(finfo, elem);

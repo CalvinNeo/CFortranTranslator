@@ -20,7 +20,7 @@
 #include "gen_common.h"
 
 
-ParseNode promote_exp_to_slice(ARG_IN exp) {
+ParseNode promote_exp_to_slice(const ParseNode & exp) {
 	// exp -> (UBOUND_DELTA_STR, exp)
 	ParseNode lit = gen_token(Term{ TokenMeta::META_INTEGER, UBOUND_DELTA_STR });
 	ParseNode exp0 = gen_token(Term{ TokenMeta::NT_EXPRESSION, UBOUND_DELTA_STR }, lit);
@@ -28,7 +28,7 @@ ParseNode promote_exp_to_slice(ARG_IN exp) {
 	return newnode;
 }
 
-ParseNode promote_argtable_to_dimenslice(ARG_IN argtable) {
+ParseNode promote_argtable_to_dimenslice(const ParseNode & argtable) {
 	ParseNode newnode = gen_token(Term{ TokenMeta::NT_DIMENSLICE, "" });
 	for (int i = 0; i < argtable.length(); i++)
 	{
@@ -38,19 +38,22 @@ ParseNode promote_argtable_to_dimenslice(ARG_IN argtable) {
 }
 
 void regen_slice(FunctionInfo * finfo, ParseNode & slice) {
-	if (slice.get_token() == TokenMeta::NT_SLICE) {
+	if (slice.token_equals(TokenMeta::NT_SLICE)) {
 		bool empty_slice = false;
 		// use slice_info_arr to handle default situation
 		string slice_info_arr[] = { UBOUND_DELTA_STR, UBOUND_DELTA_STR, UBOUND_DELTA_STR };
-		for (int j = 0; j < slice.length(); j++)
+		int j = 0;
+		for (ParseNode * item : slice)
 		{
-			if (slice.get(j).get_token() == TokenMeta::NT_VARIABLEINITIALDUMMY) {
+			ParseNode & exp = *item;
+			if (exp.token_equals(TokenMeta::NT_VARIABLEINITIALDUMMY)) {
 				// a(:)
 				empty_slice = true;
 			}
 			else {
-				regen_exp(finfo, slice.get(j));
-				slice_info_arr[j] = slice.get(j).to_string();
+				regen_exp(finfo, exp);
+				slice_info_arr[j] = exp.to_string();
+				j++;
 			}
 		}
 		if (empty_slice) {

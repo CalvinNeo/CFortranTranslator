@@ -5,8 +5,8 @@ subroutine test_online_negative_number_count
 	integer::num = 0
 	do
 		read *, x
-		if(x==0) then exit
-		if(x>0) then cycle
+		if(x==0) exit
+		if(x>0) cycle
 		num = num + 1
 		sum = sum + x
 	end do

@@ -34,7 +34,7 @@ namespace std {
 }
 #endif
 
-namespace for90std {
+_NAMESPACE_FORTRAN_BEGIN
 
 #define CHECK_AND_SET(A, INITIAL) if (!A.inited()) { \
 		A = INITIAL; \
@@ -186,4 +186,4 @@ namespace for90std {
 	#define IN(X) X
 	#define OUT(X) X
 	#define SS(X) std::string(X)
-}
+_NAMESPACE_FORTRAN_END

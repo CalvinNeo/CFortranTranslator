@@ -30,27 +30,21 @@
 #define __MAKE_ENUM_HELPER(...) struct EnumTableHelper { 																\
 		int from_name(std::string name) { 																				\
 			std::map<std::string, int>::const_iterator iter = m.find(name); 											\
-			assert(iter != m.end()); 																					\
-			return iter->second; 																						\
+			return iter != m.end() ? iter->second : 0; 																	\
 		} 																												\
 		std::string from_value(int value) { 																			\
 			std::map<std::string, int>::const_iterator iter = 															\
 				std::find_if(m.begin(), m.end() 																		\
 					, [&](const std::pair<std::string, int> & p) {return p.second == value;  }); 						\
-			assert(iter != m.end()); 																					\
-			return iter->first; 																						\
+			return iter != m.end() ? iter->first : " "; 																\
 		} 																												\
-		EnumTableHelper() {																								\
-			::make_enum_table(m, input_str);																			\
-		} 																												\
+		EnumTableHelper() { ::make_enum_table(m, input_str);	} 														\
 	public:																												\
 		std::map<std::string, int> m; 																					\
 		const std::string input_str = #__VA_ARGS__;																		\
 	}; 																													\
-	inline EnumTableHelper & get_enum_table() { 																		\
-		static EnumTableHelper table; 																					\
-		return table;																									\
-	}
+	inline EnumTableHelper & get_enum_table() { static EnumTableHelper table; return table;	}
+	
 #define MAKE_ENUM(T, ...) __MAKE_ENUM_DECL(T, __VA_ARGS__); \
 	__MAKE_ENUM_HELPER(__VA_ARGS__) 
 // 注意不能在这里给__VA_ARGS__加上#，否则ADD_ENUM不能被展开（不能在参数列表中展开）

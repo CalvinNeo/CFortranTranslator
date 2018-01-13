@@ -239,26 +239,26 @@ namespace TokenMeta {
 		ADD_ENUM(ConfigImplicit, -1012),
 
 		/***************************************
-		*	NT_PARAMTABLE is a deprecated
-		*	currently, rule `paramtable` must be of the following TokenMeta:
-		*	1) NT_ARGTABLE_PURE
-		*	2) NT_DIMENSLICE
-		*	3) NT_PARAMTABLE_PURE
+		* NT_PARAMTABLE is a deprecated
+		* currently, rule `paramtable` must be of the following TokenMeta:
+		* 1) NT_ARGTABLE_PURE
+		* 2) NT_DIMENSLICE
+		* 3) NT_PARAMTABLE_PURE
 		****************************************/
 		ADD_ENUM(NT_PARAMTABLE, -2001),
 		ADD_ENUM(NT_FORMATTER, -2002),
 		/***************************************
-		*	ref. 9.4.1.1 list-directed input/output statement
+		* ref. 9.4.1.1 list-directed input/output statement
 		****************************************/
 		ADD_ENUM(NT_AUTOFORMATTER, -2003), /* the second `*` sign of write (*,*), xxx */
 		/***************************************
-		*	NT_ARGTABLE is a deprecated, ref NT_PARAMTABLE
+		* NT_ARGTABLE is a deprecated, ref NT_PARAMTABLE
 		****************************************/
 		ADD_ENUM(NT_ARGTABLE, -2004),
 		ADD_ENUM(NT_FUNCTIONDECLARE, -2005),
 		/***************************************
 		* a statement that defines a list of variables , such as `int a = 2, b, c` ,
-		*	will create 3 NT_VARIABLEDEFINE node , which are all sons to a NT_VARIABLEDEFINESET node
+		* will create 3 NT_VARIABLEDEFINE node , which are all sons to a NT_VARIABLEDEFINESET node
 		****************************************/
 		ADD_ENUM(NT_VARIABLEDEFINE, -2006), 
 		ADD_ENUM(NT_STATEMENT, -2007),
@@ -267,65 +267,65 @@ namespace TokenMeta {
 		ADD_ENUM(NT_ELSEIF, -2010),
 		ADD_ENUM(NT_DO, -2011),
 		/***************************************
-		*	NT_VARIABLE_ENTITY is a pair (name, initial_value)
-		*	, means the name of the variable and it's initial(default) value representively
+		* NT_VARIABLE_ENTITY is a pair (name, initial_value),
+		* means the name of the variable and it's initial(default) value representively
 		****************************************/
 		ADD_ENUM(NT_VARIABLE_ENTITY, -2012),
 		ADD_ENUM(NT_KEYVALUE, NT_VARIABLE_ENTITY),
 		/***************************************
-		*	in fortran, function's parameter list declarations don't include type of parameters
-		*	, definition of parameters is placed in main body of function
-		*	ParseNode token of variables in parameter list is NT_DECLAREDVARIABLE rather than NT_VARIABLE_ENTITY
-		*	, because it's actual declaration is in the function's body
-		* ALSO REFER `paramtable_info` in FUnction.h
+		* in fortran, function's parameter list declarations don't include type of parameters,
+		* definition of parameters is placed in main body of function
+		* ParseNode token of variables in parameter list is NT_DECLAREDVARIABLE rather than NT_VARIABLE_ENTITY,
+		* because it's actual declaration is in the function's body
+		* ALSO REFER `paramtable_info` in Function.h
 		*========================================
-		*	UPDATE:
-		*	NT_DECLAREDVARIABLE is now DEPRECATED
-		*	use `vinfo->declared = true` instead of `vardefnode->get_token() = NT_VARIABLE_ENTITY`
+		* UPDATE:
+		* NT_DECLAREDVARIABLE is now DEPRECATED
+		* use `vinfo->declared = true` instead of `vardefnode->get_token() = NT_VARIABLE_ENTITY`
 		****************************************/
 		ADD_ENUM(NT_DECLAREDVARIABLE, -2013), 
 		ADD_ENUM(NT_SUITE, -2014),
 		ADD_ENUM(NT_FUCNTIONARRAY, -2015),
 		/***************************************
-		*	NT_ARRAYBUILDER_LAMBDA is a deprecated
+		* NT_ARRAYBUILDER_LAMBDA is a deprecated
 		****************************************/
 		ADD_ENUM(NT_ARRAYBUILDER_LAMBDA, -2016), 
 		ADD_ENUM(NT_ARRAYBUILDER_LIST, -2017),
 		/***************************************
-		*	NT_DIMENSLICE is a section-subscript-list in fortran
-		*	, which is a list of section-subscript concated by ','
+		* NT_DIMENSLICE is a section-subscript-list in fortran,
+		* which is a list of section-subscript concated by ','
 		*=======================================
-		*	EX:
-		*	`1:2, 3:4`
-		*	`1`
-		*	`1, 2`
+		* EX:
+		* `1:2, 3:4`
+		* `1`
+		* `1, 2`
 		****************************************/
 		ADD_ENUM(NT_DIMENSLICE, -2018),
 		/***************************************
-		*	NT_PARAMTABLE_DIMENSLICE is a deprecated, ref NT_PARAMTABLE
+		* NT_PARAMTABLE_DIMENSLICE is a deprecated, ref NT_PARAMTABLE
 		****************************************/
 		ADD_ENUM(NT_PARAMTABLE_DIMENSLICE, -2019),
 		/***************************************
-		*	NT_SLICE is a section-subscript in fortran
-		*	, which any of a subscript-triplet or a scalar-int-expr or a vector-subscript
+		* NT_SLICE is a section-subscript in fortran,
+		* which any of a subscript-triplet or a scalar-int-expr or a vector-subscript
 		****************************************/
 		ADD_ENUM(NT_SLICE, -2020),
 		ADD_ENUM(NT_VARIABLEDESC, -2021),
 		/***************************************
-		*	NT_VARIABLEINITIALDUMMY is used when a NT_VARIABLE_ENTITY has no initial value
+		* NT_VARIABLEINITIALDUMMY is used when a NT_VARIABLE_ENTITY has no initial value
 		****************************************/
 		ADD_ENUM(NT_VARIABLEINITIALDUMMY, -2022),
 		/***************************************
-		*	this ParseNode do not exist but ParseNode * can not be nullptr so this is placeholder
+		* this ParseNode do not exist but ParseNode * can not be nullptr so this is placeholder
 		*========================================
 		* UPDATE
 		* use NT_DUMMY instead
 		****************************************/
 		ADD_ENUM(NT_VOID, -2023),
 		/***************************************
-		*	UPDATE:
-		*	NT_ARRAYBUILDER is now DEPRECATED
-		*	all array builder is NT_ARRAYBUILDER_LIST now
+		* UPDATE:
+		* NT_ARRAYBUILDER is now DEPRECATED
+		* all array builder is NT_ARRAYBUILDER_LIST now
 		****************************************/
 		ADD_ENUM(NT_ARRAYBUILDER, -2024), 
 		ADD_ENUM(NT_ARGTABLE_PURE, -2025),
@@ -358,7 +358,7 @@ namespace TokenMeta {
 
 		ADD_ENUM(NT_DUMMY, -9999),
 		/***************************************
-		*	use given default value when passed as argument
+		* use given default value when passed as argument
 		****************************************/
 		ADD_ENUM(USE_DEFAULT_VALUE, -10000)
 	)

@@ -145,6 +145,3 @@ const std::map<std::string, std::vector<KeywordParamInfo>> sysfunc_args = {
 
 
 const std::string cpp_header = "#include\"for90std.h\" \n";
-
-
-

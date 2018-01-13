@@ -72,10 +72,9 @@ ParseNode gen_comment(std::string comment, bool line_comment) {
 }
 
 void insert_comments(ParseNode & newnode) {
-	for (size_t i = 0; i < get_tokenizer_context().comments.size(); i++)
+	for (const std::string & comment : get_tokenizer_context().comments)
 	{
-		std::string c = get_tokenizer_context().comments[i];
-		newnode.addchild(gen_comment(c, false));
+		newnode.addchild(gen_comment(comment, false));
 	}
 	get_tokenizer_context().comments.clear();
 }

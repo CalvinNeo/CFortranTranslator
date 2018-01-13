@@ -20,26 +20,26 @@
 #include "forstdio.h"
 #include "forfilesys.h"
 
-namespace for90std{
-	void forrewind(int unit, foroptional<int> iostat, foroptional<forlabel> err) {
-		forrewind(get_file(unit), iostat, err);
-	};
-	void forbackspace(int unit, foroptional<int> iostat, foroptional<forlabel> err) {
-		forbackspace(get_file(unit), iostat, err);
-	};	
-	void forrewind(FILE * f, foroptional<int> iostat, foroptional<forlabel> err) {
-		std::rewind(f);
-	};
-	void forbackspace(FILE * f, foroptional<int> iostat, foroptional<forlabel> err) {
-		while (std::fseek(f, -1L, SEEK_CUR) == 0) {
-			char ch = std::fgetc(f);
-			if (ch == '\n')
-			{
-				return;
-			}
-			else {
-				std::fseek(f, -1L, SEEK_CUR);
-			}
+_NAMESPACE_FORTRAN_BEGIN
+void forrewind(int unit, foroptional<int> iostat, foroptional<forlabel> err) {
+	forrewind(get_file(unit), iostat, err);
+};
+void forbackspace(int unit, foroptional<int> iostat, foroptional<forlabel> err) {
+	forbackspace(get_file(unit), iostat, err);
+};	
+void forrewind(FILE * f, foroptional<int> iostat, foroptional<forlabel> err) {
+	std::rewind(f);
+};
+void forbackspace(FILE * f, foroptional<int> iostat, foroptional<forlabel> err) {
+	while (std::fseek(f, -1L, SEEK_CUR) == 0) {
+		char ch = std::fgetc(f);
+		if (ch == '\n')
+		{
+			return;
 		}
-	};
-}
+		else {
+			std::fseek(f, -1L, SEEK_CUR);
+		}
+	}
+};
+_NAMESPACE_FORTRAN_END

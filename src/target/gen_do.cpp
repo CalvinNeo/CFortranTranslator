@@ -56,7 +56,7 @@ void regen_do_while(FunctionInfo * finfo, ParseNode & do_stmt) {
 std::vector<ParseNode *> get_nested_hiddendo_layers(ParseNode & hiddendo) {
 	std::vector<ParseNode *> hiddendo_layer;
 	ParseNode * pn = &hiddendo;
-	while (pn->get_token() == TokenMeta::NT_HIDDENDO) {
+	while (pn->token_equals(TokenMeta::NT_HIDDENDO)) {
 		hiddendo_layer.push_back(pn);
 		if (pn->length() > 0 
 			&& pn->get(0).length() > 0 // NT_ARGTABLE_PURE
@@ -74,12 +74,11 @@ std::vector<ParseNode *> get_nested_hiddendo_layers(ParseNode & hiddendo) {
 std::vector<ParseNode *> get_parent_hiddendo_layers(ParseNode & hiddendo) {
 	std::vector<ParseNode *> hiddendo_layer;
 	ParseNode * pn = &hiddendo;
-	while (pn->get_token() == TokenMeta::NT_HIDDENDO) {
+	while (pn->token_equals(TokenMeta::NT_HIDDENDO)) {
 		hiddendo_layer.push_back(pn);
 		if (pn->father != nullptr // NT_ARGTABLE_PURE
 			&& pn->father->father != nullptr // NT_HIDDENDO
-			&& pn->father->father->get_token() == TokenMeta::NT_HIDDENDO
-			) {
+			&& pn->father->father->token_equals(TokenMeta::NT_HIDDENDO) ) {
 			pn = pn->father->father;
 		}
 		else {
@@ -272,7 +271,7 @@ void regen_hiddendo_exprex(FunctionInfo * finfo, ParseNode & hiddendo) {
 	});
 }
 
-ParseNode gen_hiddendo(ARG_IN argtable, ARG_IN index, ARG_IN from, ARG_IN to, TokenMeta_T return_token) {
+ParseNode gen_hiddendo(const ParseNode & argtable, const ParseNode & index, const ParseNode & from, const ParseNode & to, TokenMeta_T return_token) {
 	/**************************************
 	* this function handles 1 layer at 1 time,
 	*	it simply expands the hidden do into a `for` statement

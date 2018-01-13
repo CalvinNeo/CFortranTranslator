@@ -26,7 +26,7 @@ R202 program-unit is main-program
 	or block-data
 */
 
-void gen_fortran_program(ARG_IN wrappers) {
+void gen_fortran_program(const ParseNode & wrappers) {
 	std::string codes;
 	std::string main_code;
 	get_context().program_tree = wrappers;
@@ -37,21 +37,21 @@ void gen_fortran_program(ARG_IN wrappers) {
 	for (ParseNode * wrapper_ptr : get_context().program_tree)
 	{
 		ParseNode & wrapper = *wrapper_ptr;
-		if (wrapper.get_token() == TokenMeta::NT_SUITE)
+		if (wrapper.token_equals(TokenMeta::NT_SUITE))
 		{
 			for (int j = 0; j < wrapper.length(); j++)
 			{
 				script_program.addchild(wrapper.get(j));
 			}
 		}
-		else if (wrapper.get_token() == TokenMeta::NT_PROGRAM_EXPLICIT)
+		else if (wrapper.token_equals(TokenMeta::NT_PROGRAM_EXPLICIT))
 		{
 			for (int j = 0; j < wrapper.get(0).length(); j++)
 			{
 				script_program.addchild(wrapper.get(0).get(j));
 			}
 		}
-		else if (wrapper.get_token() == TokenMeta::NT_FUNCTIONDECLARE)
+		else if (wrapper.token_equals(TokenMeta::NT_FUNCTIONDECLARE))
 		{
 			get_context().current_module = "";
 			ParseNode & variable_function = wrapper.get(1);
@@ -62,7 +62,7 @@ void gen_fortran_program(ARG_IN wrappers) {
 			*************/
 			FunctionInfo * finfo = add_function(get_context().current_module, variable_function.get_what(), FunctionInfo{});
 		}
-		else if (wrapper.get_token() == TokenMeta::NT_DUMMY)
+		else if (wrapper.token_equals(TokenMeta::NT_DUMMY))
 		{
 			// YY_END
 		}
@@ -77,7 +77,7 @@ void gen_fortran_program(ARG_IN wrappers) {
 	for (ParseNode * wrapper_ptr : get_context().program_tree)
 	{
 		ParseNode & wrapper = *wrapper_ptr;
-		if(wrapper.get_token() == TokenMeta::NT_FUNCTIONDECLARE)
+		if(wrapper.token_equals(TokenMeta::NT_FUNCTIONDECLARE))
 		{
 			ParseNode & variable_function = wrapper.get(1);
 			FunctionInfo * finfo = get_function(get_context().current_module, variable_function.get_what());
@@ -102,7 +102,7 @@ void gen_fortran_program(ARG_IN wrappers) {
 	for (ParseNode * wrapper_ptr : get_context().program_tree)
 	{
 		ParseNode & wrapper = *wrapper_ptr;
-		if (wrapper.get_token() == TokenMeta::NT_FUNCTIONDECLARE)
+		if (wrapper.token_equals(TokenMeta::NT_FUNCTIONDECLARE))
 		{
 			ParseNode & variable_function = wrapper.get(1);
 			FunctionInfo * finfo = get_function(get_context().current_module, variable_function.get_what());

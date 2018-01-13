@@ -20,25 +20,34 @@
 #include <iostream>  
 #include <sstream>
 #include <fstream>
-#include "parser/parser.h"
+#include <ctime>
 #include <stdio.h>
+#include <chrono>
 #include "target/codegen.h"
 #include "../for90std/for90std.h"
-#include <numeric>
 #include "develop.h"
 #include "getopt2.h"
 
-using namespace std;
+using namespace std; 
+
+inline uint64_t get_current_ms() {
+	using namespace std::chrono;
+	time_point<system_clock, milliseconds> timepoint_now = time_point_cast<milliseconds>(system_clock::now());;
+	auto tmp = duration_cast<milliseconds>(timepoint_now.time_since_epoch());
+	std::time_t timestamp = tmp.count();
+	return (uint64_t)timestamp;
+}
 
 int main(int argc, char* argv[], char* env[])
 {
 	int opt;
 	std::string code;
-
+	int print_tree = (int)false;
 	struct option opts[] = { 
 		{ "fortran", optional_argument, nullptr, 'F' },
 		{ "file", required_argument, nullptr, 'v' },
 		{ "debug", no_argument, nullptr, 'd' },
+		{ "tree", no_argument, &print_tree, true },
 		{ 0, 0, 0, 0 } 
 	};
 
@@ -73,12 +82,19 @@ int main(int argc, char* argv[], char* env[])
 		debug();
 	}
 	else if(get_context().parse_config.hasfile){
+		uint64_t start_time = get_current_ms();
 		do_trans(code);
+		uint64_t end_time = get_current_ms();
+		fprintf(stderr, "Cost time:%lld\n", end_time - start_time);
 		cout << get_context().program_tree.get_what() << endl;
 		// preorder(&program_tree);
 	}
 	else {
 
+	}
+	if (print_tree)
+	{
+		preorder(&get_context().program_tree);
 	}
 #ifdef _DEBUG
 	system("pause");

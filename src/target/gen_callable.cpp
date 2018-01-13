@@ -44,11 +44,11 @@ void regen_function_array(FunctionInfo * finfo, ParseNode & callable) {
 	ParseNode & argtable = callable.get(1);
 	string head_name = get_mapped_function_name(callable_head.to_string());
 	bool is_sysfunc = sysfunc_args.find(head_name) != sysfunc_args.end();
-	if (argtable.get_token() == TokenMeta::NT_DIMENSLICE ) {
+	if (argtable.token_equals(TokenMeta::NT_DIMENSLICE)) {
 		// array section
 		string array_str;
 		bool is_slice = std::accumulate(argtable.begin(), argtable.end(), false, [](bool x, ParseNode * y) {
-			return (y->get_token() == TokenMeta::NT_SLICE) || x;
+			return y->token_equals(TokenMeta::NT_SLICE) || x;
 		});
 
 		if (is_slice) {
@@ -99,9 +99,9 @@ void regen_function_array(FunctionInfo * finfo, ParseNode & callable) {
 		for (int i = 0; i < argtable.length(); i++)
 		{
 			ParseNode & elem = argtable.get(i);
-			if (elem.get_token() == TokenMeta::NT_KEYVALUE) {
+			if (elem.token_equals(TokenMeta::NT_KEYVALUE)) {
 				// MAYBE kwarg, MAYBE normal arg
-				if (elem.get(1).get_token() == TokenMeta::NT_VARIABLEINITIALDUMMY)
+				if (elem.get(1).token_equals(TokenMeta::NT_VARIABLEINITIALDUMMY))
 				{
 					// normal argument
 					regen_exp(finfo, elem.get(0));

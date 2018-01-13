@@ -18,6 +18,7 @@
 */
 
 #pragma once
+#include "fordefs.h"
 #include "forlang.h"
 #include "formath.h"
 #include "forstdio.h"

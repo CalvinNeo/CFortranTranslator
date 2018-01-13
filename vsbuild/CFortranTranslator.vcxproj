@@ -41,7 +41,6 @@
     <ClCompile Include="..\src\parser\Function.cpp" />
     <ClCompile Include="..\src\parser\Intent.cpp" />
     <ClCompile Include="..\src\parser\parser.cpp" />
-    <ClCompile Include="..\src\parser\scanner.cpp" />
     <ClCompile Include="..\src\parser\tokenizer.cpp" />
     <ClCompile Include="..\src\parser\Variable.cpp" />
     <ClCompile Include="..\src\target\gen_common.cpp" />
@@ -73,6 +72,7 @@
     <ClInclude Include="..\for90std\for1array.h" />
     <ClInclude Include="..\for90std\for90std.h" />
     <ClInclude Include="..\for90std\forarray_common.h" />
+    <ClInclude Include="..\for90std\fordefs.h" />
     <ClInclude Include="..\for90std\forfilesys.h" />
     <ClInclude Include="..\for90std\forlang.h" />
     <ClInclude Include="..\for90std\formath.h" />
@@ -192,6 +192,7 @@
     <LinkIncremental>true</LinkIncremental>
     <OutDir>../bin/</OutDir>
     <IntDir>../bin/obj/debug/</IntDir>
+    <TargetName>$(ProjectName)_D</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Develop|x64'">
     <LinkIncremental>true</LinkIncremental>
@@ -260,7 +261,7 @@
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>%boost_dir%\stage\lib;%boost_dir%\libs;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <OutputFile>../bin/$(TargetName)_D$(TargetExt)</OutputFile>
+      <OutputFile>../bin/$(TargetName)$(TargetExt)</OutputFile>
     </Link>
     <Flex>
       <Debug>false</Debug>

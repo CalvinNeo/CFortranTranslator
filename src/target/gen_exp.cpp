@@ -19,7 +19,7 @@
 #include "gen_common.h"
 
 void regen_exp(FunctionInfo * finfo, ParseNode & exp) {
-	if (exp.get_token() == TokenMeta::NT_EXPRESSION)
+	if (exp.token_equals(TokenMeta::NT_EXPRESSION))
 	{
 		if (exp.length() == 2)
 		{
@@ -50,29 +50,29 @@ void regen_exp(FunctionInfo * finfo, ParseNode & exp) {
 	}
 	else if(is_literal(exp))
 	{
-		if (exp.get_token() == TokenMeta::String)
+		if (exp.token_equals(TokenMeta::String))
 		{
 			sprintf(codegen_buf, "SS(%s)", exp.get_what().c_str());
 			exp.get_what() = string(codegen_buf);
 		}
 	}
-	else if (exp.get_token() == TokenMeta::UnknownVariant)
+	else if (exp.token_equals(TokenMeta::UnknownVariant))
 	{
 		check_implicit_variable(finfo, exp.to_string());
 	}
-	else if (exp.get_token() == TokenMeta::NT_FUCNTIONARRAY)
+	else if (exp.token_equals(TokenMeta::NT_FUCNTIONARRAY))
 	{
 		regen_function_array(finfo, exp);
 	}
-	else if (exp.get_token() == TokenMeta::NT_HIDDENDO)
+	else if (exp.token_equals(TokenMeta::NT_HIDDENDO))
 	{
 		regen_hiddendo_exprex(finfo, exp);
 	}
-	else if (exp.get_token() == TokenMeta::Comments)
+	else if (exp.token_equals(TokenMeta::Comments))
 	{
 		
 	}
-	else if (exp.get_token() == TokenMeta::NT_ARRAYBUILDER_LIST)
+	else if (exp.token_equals(TokenMeta::NT_ARRAYBUILDER_LIST))
 	{
 		regen_arraybuilder(finfo, exp);
 	}

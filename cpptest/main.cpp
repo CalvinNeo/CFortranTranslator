@@ -11,6 +11,11 @@
 int main()
 {
 	forprintfree("hello, world!");
+	forprintfree( formap([&](int x) {return x + 1; }, 1) );
+	farray<int> a({ 1 }, { 3 });
+	a = make_init_list({1, 2, 3});
+	forprintfree(formap([&](int x) {return x + 1; }, 1));
+	forprintfree(formap([&](int x) {return x + 1; }, a));
 	stop();
 	return 0;
 }

@@ -21,12 +21,10 @@
 // this file includes implemetations of common functions
 // IMPORTANT: this file should be and only be included by every "gen_xxx.cpp" and ".y" files
 #include "codegen.h"
-#include <vector>
-#include <string>
 #include <numeric>
+#include <boost/lexical_cast.hpp>
 
 using namespace std;
-
 
 // use static instead of extern will make build fast
 #ifdef _DEBUG
@@ -52,12 +50,23 @@ ParseNode gen_token(const Term & term, Args&& ... args) {
 	newnode.addlist(std::forward<Args>(args)...);
 	return newnode;
 }
-
+inline void reuse_token(ParseNode & newnode, const Term & term) {
+	newnode.fs.CurrentTerm = term;
+}
+template <typename ... Args>
+void reuse_token(ParseNode & newnode, const Term & term, Args&& ... args) {
+	newnode.fs.CurrentTerm = term;
+	//ParseNode * nptr[] = { ([](ParseNode & nd) {return &nd; })(args)... };
+	//for (size_t i = 0; i < sizeof...(args); i++) {
+	//	newnode.addpointer(nptr[i]);
+	//}
+	int _[] = { (newnode.addpointer(([](ParseNode & nd) {return &nd; })(args)), 0)... };
+}
 /****************
 * `gen_reset` copies given ParseNode, and reset it's term
 * Usage:
 *****************/
-inline ParseNode gen_reset(ARG_IN pn, const Term & newterm) {
+inline ParseNode gen_reset(const ParseNode & pn, const Term & newterm) {
 	ParseNode newnode = pn;
 	newnode.fs.CurrentTerm = newterm;
 	return newnode;
@@ -68,11 +77,13 @@ inline ParseNode gen_dummy() {
 /****************
 * `gen_flatten` append an item to a list
 *****************/
-ParseNode gen_flatten(ARG_IN item, ARG_IN list, std::string merge_rule, TokenMeta_T merged_token_meta = TokenMeta::USE_DEFAULT_VALUE, bool left_recursion = false);
+ParseNode gen_flatten(const ParseNode & item, const ParseNode & list, std::string merge_rule, TokenMeta_T merged_token_meta = TokenMeta::USE_DEFAULT_VALUE, bool left_recursion = false);
+void reuse_flatten(ParseNode & newnode, ParseNode & item, ParseNode & list, std::string merge_rule, TokenMeta_T merged_token_meta = TokenMeta::USE_DEFAULT_VALUE, bool left_recursion = false);
 /****************
 * `gen_merge` merge two lists
 *****************/
-ParseNode gen_merge(ARG_IN list1, ARG_IN list2, std::string merge_rule, TokenMeta_T merged_token_meta);
+ParseNode gen_merge(const ParseNode & list1, const ParseNode & list2, std::string merge_rule, TokenMeta_T merged_token_meta); 
+void reuse_merge(ParseNode & newnode, ParseNode & list1, ParseNode & list2, std::string merge_rule, TokenMeta_T merged_token_meta);
 
 template <typename Iterator, typename F>
 std::string make_str_list(Iterator begin, Iterator end, F handler, std::string delim = ", ") {
@@ -89,21 +100,19 @@ std::string make_str_list(Iterator begin, Iterator end, F handler, std::string d
 
 
 /****************
-* `sprintf_wrapper` wraps sprintf, so it can accept `format` of `std::string` while `sprintf` only accepts `const char *`
-* Usage:
-*****************/
-template<typename ... Args>
-void sprintf_wrapper(std::string format, Args&& ... args) {
-	sprintf(codegen_buf, format.c_str(), [&](const ParseNode & x) {return x.get_what().c_str(); }(args)...);
-}
-/****************
-* `gen_promote` generate token from several or none childs by given **pattern**
+* `gen_promote` is improves `gen_token` function, so you can provide a format string of merge rule
 * Usage:
 * if the node generate a string depend on its child by given rule, use `gen_promote`, otherwise, `gen_token`
 *****************/
 template <typename ... Args>
+void reuse_promote(ParseNode & newnode, std::string rule, TokenMeta_T merged_token_meta, Args&& ... items) {
+	sprintf(codegen_buf, rule.c_str(), [&](const ParseNode & x) {return x.get_what().c_str(); }(items)...);
+	newnode.fs = gen_flex(Term{ merged_token_meta, string(codegen_buf) });
+	int _[] = { (newnode.addpointer(([](ParseNode & nd) {return &nd; })(items)), 0)... };
+}
+template <typename ... Args>
 ParseNode gen_promote(std::string rule, TokenMeta_T merged_token_meta, Args&& ... items) {
-	sprintf_wrapper(rule, std::forward<Args>(items)...);
+	sprintf(codegen_buf, rule.c_str(), [&](const ParseNode & x) {return x.get_what().c_str(); }(items)...);
 	ParseNode newnode = gen_token(Term{ merged_token_meta, string(codegen_buf) });
 	newnode.addlist(std::forward<Args>(items)...);
 	return newnode;

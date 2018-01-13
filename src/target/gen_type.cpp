@@ -19,7 +19,7 @@
 
 #include "gen_common.h"
 
-ParseNode gen_type(ARG_IN type_nospec, ARG_IN _type_kind) {
+ParseNode gen_type(const ParseNode & type_nospec, const ParseNode & _type_kind) {
 	// attach _type_kind to type_nospec nonterminal
 	ParseNode newnode = type_nospec;
 	// now base_typename translated in pre_map
@@ -27,7 +27,7 @@ ParseNode gen_type(ARG_IN type_nospec, ARG_IN _type_kind) {
 	return newnode;
 }
 
-ParseNode gen_type(ARG_IN type_nospec) {
+ParseNode gen_type(const ParseNode & type_nospec) {
 	// promote type_nospec to default type_spec nonterminal
 	ParseNode newnode = type_nospec;
 	// now base_typename translated in pre_map
@@ -66,7 +66,7 @@ void promote_type(ParseNode & type_nospec, VariableDesc & vardesc) {
 	// merge type_spec and variable_desc attr
 	vardesc.merge(dynamic_cast<VariableDescAttr *>(type_nospec.attr)->desc);
 	if (vardesc.kind.isdirty()) {
-		if (type_nospec.get_token() == TokenMeta::Int) {
+		if (type_nospec.token_equals(TokenMeta::Int)) {
 			if (vardesc.kind == 1) {
 				type_nospec.fs.CurrentTerm = Term{ TokenMeta::Int8, "int8_t" };
 			}
@@ -80,7 +80,7 @@ void promote_type(ParseNode & type_nospec, VariableDesc & vardesc) {
 				type_nospec.fs.CurrentTerm = Term{ TokenMeta::Int64, "int64_t" };
 			}
 		}
-		else if (type_nospec.get_token() == TokenMeta::Float) {
+		else if (type_nospec.token_equals(TokenMeta::Float)) {
 			if (vardesc.kind < 4) {
 				type_nospec.fs.CurrentTerm = Term{ TokenMeta::Float, "float" };
 			}
@@ -96,7 +96,7 @@ void promote_type(ParseNode & type_nospec, VariableDesc & vardesc) {
 
 std::string gen_qualified_typestr(const ParseNode & type_spec, VariableDesc & vardesc, bool in_paramtable) {
 	string var_pattern;
-	if (type_spec.get_token() == TokenMeta::Function)
+	if (type_spec.token_equals(TokenMeta::Function))
 	{
 		var_pattern = "%s";
 	}
@@ -169,7 +169,7 @@ void regen_type(ParseNode & type_decl, FunctionInfo * finfo, VariableInfo * vinf
 	* type decl: X_Decl
 	* type name: X
 	*****************/
-	if (type_decl.get_token() == TokenMeta::Implicit_Decl)
+	if (type_decl.token_equals(TokenMeta::Implicit_Decl))
 	{
 		/*****************
 		* type is implicit
@@ -183,13 +183,14 @@ void regen_type(ParseNode & type_decl, FunctionInfo * finfo, VariableInfo * vinf
 		type_decl.fs.CurrentTerm = deduced_type.fs.CurrentTerm;
 		type_decl.setattr(new VariableDescAttr());
 	}
-	else if (type_decl.get_token() == TokenMeta::Function_Decl)
+	else if (type_decl.token_equals(TokenMeta::Function_Decl))
 	{
 		// generate `std::function`
 		type_decl.get_what() = gen_function_signature(finfo, 1);
 		type_decl.get_token() = TokenMeta::Function;
 	}
 	else {
+		// from type decl to type
 		type_decl.get_token() = type_decl.get_token() + 100;
 	}
 	promote_type(type_decl, vinfo->desc);

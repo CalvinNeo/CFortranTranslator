@@ -20,12 +20,10 @@
 #ifdef DEBUG
 #include <cstdio>
 #include <iostream>
-#endif // DEBUG
+#endif // _DEBUG
 
 #include <functional>
-#include <algorithm>
 #include <numeric>
-#include <memory>
 #include <iterator>
 #include "../target/gen_config.h"
 #include "for90.tab.h"
@@ -119,6 +117,11 @@ static bool check_continuation(char & return_char) {
 	}
 	return valid_continuation;
 }
+
+#if (defined(_MSC_VER) || defined(_WIN32) || defined(_WIN64)) && (!defined(POSIX))
+#define HAS_CRLF 
+#else
+#endif
 static char get_complete_char() {
 	/****************
 	* DO NOT CALL THIS FUNCTION DIRECTLY, CALL `pull_complete_char` INSTEAD
@@ -165,7 +168,7 @@ static char get_complete_char() {
 	else if (s[p] == '\r')
 	{
 		// Windows's newline marker is '\r\n', while in linux is '\n'
-#if defined(_MSC_VER) && !defined(POSIX)
+#if defined HAS_CRLF
 		goto NORMAL;
 #else
 		// in Linux, simply discard
@@ -178,7 +181,7 @@ static char get_complete_char() {
 		while (p < s.size() && s[p] != '\n') {
 			if (s[p] == '\r')
 			{
-#if defined(_MSC_VER) && !defined(POSIX)
+#if defined HAS_CRLF
 				comment_str += s[p];
 #else
 				// in Linux, simply discard
@@ -829,7 +832,9 @@ NOP_REPEAT:
 					// operator
 					res += cur;
 					next_nonblank_item(cur);
-					assert(cur == ".");
+					if (cur != ".") {
+						fatal_error("Syntex error.");
+					}
 					res += cur;
 					check_keyword(res, [&](const KeywordMeta & kinfo, const std::string & actual_name) {
 						// this is a keyword

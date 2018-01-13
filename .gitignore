@@ -50,6 +50,7 @@ vsbuild/Release/
 presentation/
 ~m4*
 *.diagsession
+*.vspx
 demos/test_workplace/
 bin/
 bin/CFortranTranslator.exe

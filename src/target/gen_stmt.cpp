@@ -35,7 +35,7 @@ void regen_simple_stmt(FunctionInfo * finfo, ParseNode & stmt) {
 	}
 }
 
-vector<VariableInfo *> get_all_declared_vinfo(FunctionInfo * finfo, ARG_IN suite) {
+vector<VariableInfo *> get_all_declared_vinfo(FunctionInfo * finfo, const ParseNode & suite) {
 	vector<VariableInfo *> declared_variables_and_functions;
 	forall_variable_in_function(get_context().current_module, finfo->local_name, [&](const std::pair<std::string, VariableInfo *> p) {
 		declared_variables_and_functions.push_back(p.second);
@@ -53,20 +53,20 @@ vector<ParseNode *> get_all_declared_nodes(FunctionInfo * finfo, ParseNode & sui
 	for (ParseNode * stmtptr : suite)
 	{
 		ParseNode & stmti = *stmtptr;
-		if (stmti.get_token() == TokenMeta::NT_VARIABLEDEFINESET) {
+		if (stmti.token_equals(TokenMeta::NT_VARIABLEDEFINESET)) {
 			ParseNode & vardef_set = stmti;
 			declared_variables.insert(declared_variables.end(), vardef_set.begin(), vardef_set.end());
 		}
-		else if (stmti.get_token() == TokenMeta::NT_INTERFACE && stmti.length() > 0) {
+		else if (stmti.token_equals(TokenMeta::NT_INTERFACE) && stmti.length() > 0) {
 			// interface function
 			ParseNode & wrappers = stmti.get(0);
 			for (ParseNode *  wrapperptr : wrappers)
 			{
 				ParseNode & wrapper = *wrapperptr;
-				if (wrapper.get_token() == TokenMeta::NT_PROGRAM) {
+				if (wrapper.token_equals(TokenMeta::NT_PROGRAM)) {
 					fatal_error("no program in interface");
 				}
-				else if (wrapper.get_token() == TokenMeta::NT_FUNCTIONDECLARE) {
+				else if (wrapper.token_equals(TokenMeta::NT_FUNCTIONDECLARE)) {
 					// wrapper.child[1] is function name
 					declared_variables.push_back(const_cast<ParseNode *>(&wrapper));
 				}
@@ -101,18 +101,18 @@ std::string regen_stmt(FunctionInfo * finfo, ParseNode & stmt) {
 	std::string newsuitestr;
 	int comment_start = -1;
 	// exp, leet_stmt, control_stmt
-	if (stmt.get_token() == TokenMeta::NT_STATEMENT) {
+	if (stmt.token_equals(TokenMeta::NT_STATEMENT)) {
 		regen_simple_stmt(finfo, stmt);
 		newsuitestr += stmt.get_what();
 		newsuitestr += '\n';
 		comment_start = 1;
 	}
-	else if (stmt.get_token() == TokenMeta::NT_CONTROL_STMT) {
-		if (stmt.length() > 0 && stmt.get(0).get_token() == TokenMeta::Return) {
+	else if (stmt.token_equals(TokenMeta::NT_CONTROL_STMT)) {
+		if (stmt.length() > 0 && stmt.get(0).token_equals(TokenMeta::Return)) {
 			newsuitestr += stmt.get_what();
 			newsuitestr += '\n';
 		}
-		else if (stmt.get(0).get_token() == TokenMeta::Goto)
+		else if (stmt.get(0).token_equals(TokenMeta::Goto))
 		{
 			sprintf(codegen_buf, "goto LABEL_%s_%s;", finfo->local_name.c_str(), stmt.get_what().c_str());
 			newsuitestr += string(codegen_buf);
@@ -124,18 +124,18 @@ std::string regen_stmt(FunctionInfo * finfo, ParseNode & stmt) {
 		}
 	}
 	// format
-	else if (stmt.get_token() == TokenMeta::NT_FORMAT) {
+	else if (stmt.token_equals(TokenMeta::NT_FORMAT)) {
 
 	}
 	// var_def
-	else if (stmt.get_token() == TokenMeta::NT_VARIABLEDEFINESET)
+	else if (stmt.token_equals(TokenMeta::NT_VARIABLEDEFINESET))
 	{
 		ParseNode & vardef_set = stmt;
 		// examine all variable define stmt
 		for (int j = 0; j < vardef_set.length(); j++)
 		{
 			ParseNode & vardef_node = vardef_set.get(j);
-			if (vardef_node.get_token() == TokenMeta::Comments)
+			if (vardef_node.token_equals(TokenMeta::Comments))
 			{
 				comment_start = j;
 				break;
@@ -148,7 +148,7 @@ std::string regen_stmt(FunctionInfo * finfo, ParseNode & stmt) {
 				// declared function
 			}
 			else {
-				if (vardef_node.get_token() == TokenMeta::NT_VARIABLEDEFINE) {
+				if (vardef_node.token_equals(TokenMeta::NT_VARIABLEDEFINE)) {
 					// for every variable, generate independent definition
 					VariableInfo * vinfo = get_variable(get_context().current_module, finfo->local_name, name);
 					bool new_variable = (vinfo == nullptr);
@@ -221,7 +221,7 @@ std::string regen_stmt(FunctionInfo * finfo, ParseNode & stmt) {
 					}
 					vinfo->vardef_node = new ParseNode(vardef_node); 
 				}
-				else if (vardef_node.get_token() == TokenMeta::NT_DECLAREDVARIABLE) {
+				else if (vardef_node.token_equals(TokenMeta::NT_DECLAREDVARIABLE)) {
 					// declared variable
 					fatal_error("NT_DECLAREDVARIABLE is removed");
 				}
@@ -229,30 +229,30 @@ std::string regen_stmt(FunctionInfo * finfo, ParseNode & stmt) {
 		}
 	}
 	// comment
-	else if (stmt.get_token() == TokenMeta::Comments) {
+	else if (stmt.token_equals(TokenMeta::Comments)) {
 		newsuitestr += stmt.get_what();
 		newsuitestr += "\n";
 	}
 	// common
-	else if (stmt.get_token() == TokenMeta::NT_COMMONBLOCK) {
+	else if (stmt.token_equals(TokenMeta::NT_COMMONBLOCK)) {
 		regen_common(finfo, stmt);
 		newsuitestr += stmt.get_what();
 	}
 	// dummy
-	else if (stmt.get_token() == TokenMeta::NT_DUMMY) {
+	else if (stmt.token_equals(TokenMeta::NT_DUMMY)) {
 
 	}
 	// interface
-	else if (stmt.get_token() == TokenMeta::NT_INTERFACE) {
+	else if (stmt.token_equals(TokenMeta::NT_INTERFACE)) {
 		ParseNode & wrappers = stmt.get(0);
 		for (int i = 0; i < wrappers.length(); i++)
 		{
 			ParseNode & wrapper = wrappers.get(i);
 			// wrapper is `NT_FUNCTION_DECLARE`
-			if (wrapper.get_token() == TokenMeta::NT_PROGRAM) {
+			if (wrapper.token_equals(TokenMeta::NT_PROGRAM)) {
 				fatal_error("illegal program struct in interface");
 			}
-			else if (wrapper.get_token() == TokenMeta::NT_FUNCTIONDECLARE) {
+			else if (wrapper.token_equals(TokenMeta::NT_FUNCTIONDECLARE)) {
 				// wrapper.child[1] is function name
 				string name = wrapper.get(1).get_what();
 				VariableInfo * vinfo = get_variable(get_context().current_module, finfo->local_name, name);
@@ -277,59 +277,59 @@ std::string regen_stmt(FunctionInfo * finfo, ParseNode & stmt) {
 		}
 	}
 	// input/output stmt
-	else if (stmt.get_token() == TokenMeta::NT_READ_STMT) {
+	else if (stmt.token_equals(TokenMeta::NT_READ_STMT)) {
 		regen_read(finfo, stmt);
 		newsuitestr += stmt.get_what();
 		comment_start = 2;
 	}
-	else if (stmt.get_token() == TokenMeta::NT_WRITE_STMT) {
+	else if (stmt.token_equals(TokenMeta::NT_WRITE_STMT)) {
 		regen_write(finfo, stmt);
 		newsuitestr += stmt.get_what();
 		comment_start = 2;
 	}
-	else if (stmt.get_token() == TokenMeta::NT_PRINT_STMT) {
+	else if (stmt.token_equals(TokenMeta::NT_PRINT_STMT)) {
 		regen_print(finfo, stmt);
 		newsuitestr += stmt.get_what();
 		comment_start = 2;
 	}
-	else if (stmt.get_token() == TokenMeta::NT_IF) {
+	else if (stmt.token_equals(TokenMeta::NT_IF)) {
 		regen_if(finfo, stmt);
 		newsuitestr += stmt.get_what();
 		newsuitestr += '\n';
 	}
-	else if (stmt.get_token() == TokenMeta::NT_ELSEIF) {
+	else if (stmt.token_equals(TokenMeta::NT_ELSEIF)) {
 		regen_elseif(finfo, stmt);
 		newsuitestr += stmt.get_what();
 		newsuitestr += '\n';
 	}
-	else if (stmt.get_token() == TokenMeta::NT_DO) {
+	else if (stmt.token_equals(TokenMeta::NT_DO)) {
 		regen_do(finfo, stmt);
 		newsuitestr += stmt.get_what();
 		newsuitestr += '\n';
 	}
-	else if (stmt.get_token() == TokenMeta::NT_DORANGE) {
+	else if (stmt.token_equals(TokenMeta::NT_DORANGE)) {
 		regen_do_range(finfo, stmt);
 		newsuitestr += stmt.get_what();
 		newsuitestr += '\n';
 	}
-	else if (stmt.get_token() == TokenMeta::NT_WHILE) {
+	else if (stmt.token_equals(TokenMeta::NT_WHILE)) {
 		regen_do_while(finfo, stmt);
 		newsuitestr += stmt.get_what();
 		newsuitestr += '\n';
 	}
-	else if (stmt.get_token() == TokenMeta::NT_SELECT) {
+	else if (stmt.token_equals(TokenMeta::NT_SELECT)) {
 		regen_select(finfo, stmt);
 		newsuitestr += stmt.get_what();
 		newsuitestr += '\n';
 	}
-	else if (stmt.get_token() == TokenMeta::ConfigImplicit)
+	else if (stmt.token_equals(TokenMeta::ConfigImplicit))
 	{
 		ParseNode & type_decl = stmt.get(0);
 		ParseNode & paramtable = stmt.get(1);
 		for (ParseNode * rangeptr : paramtable)
 		{
 			ParseNode & range = *rangeptr;
-			if (range.length() == 3 && range.get(2).get_token() == TokenMeta::Minus)
+			if (range.length() == 3 && range.get(2).token_equals(TokenMeta::Minus))
 			{
 				// 'A' - 'Z' generates a range
 				char start = range.get(0).get_what()[0];
@@ -349,7 +349,7 @@ std::string regen_stmt(FunctionInfo * finfo, ParseNode & stmt) {
 			}
 		}
 	}
-	else if (stmt.get_token() == TokenMeta::NT_ALLOCATE_STMT)
+	else if (stmt.token_equals(TokenMeta::NT_ALLOCATE_STMT))
 	{
 		ParseNode & paramtable = stmt.get(0);
 		for (ParseNode * arrptr : paramtable)
@@ -357,10 +357,10 @@ std::string regen_stmt(FunctionInfo * finfo, ParseNode & stmt) {
 			ParseNode & arr = *arrptr; // NT_FUNCTIONARRAY
 			ParseNode & arr_name = arr.get(0);
 			ParseNode & dimen_slice = arr.get(1);
-			if (dimen_slice.get_token() == TokenMeta::NT_DIMENSLICE)
+			if (dimen_slice.token_equals(TokenMeta::NT_DIMENSLICE))
 			{
 			}
-			else if (dimen_slice.get_token() == TokenMeta::NT_ARGTABLE_PURE)
+			else if (dimen_slice.token_equals(TokenMeta::NT_ARGTABLE_PURE))
 			{
 
 			}
@@ -380,11 +380,11 @@ std::string regen_stmt(FunctionInfo * finfo, ParseNode & stmt) {
 		// normal stmt
 		print_error("Unknown Statement", stmt);
 	}
-	for (int i = 0; i < stmt.length(); i++)
+	for (ParseNode * item : stmt)
 	{
-		if (stmt.get(i).get_token() == TokenMeta::Comments)
+		if (item->token_equals(TokenMeta::Comments))
 		{
-			newsuitestr += stmt.get(i).get_what();
+			newsuitestr += item->get_what();
 			newsuitestr += "\n";
 		}
 	}

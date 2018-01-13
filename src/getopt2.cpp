@@ -124,7 +124,7 @@ int _getopt_impl(int argc, char * const argv[], const char * optstring, const st
 		}
 		else if (longopptr->flag == nullptr)
 		{
-			// use short anme case
+			// use short name case
 			optname = longopptr->name[0];
 			goto HANDLE_CACHED;
 		}

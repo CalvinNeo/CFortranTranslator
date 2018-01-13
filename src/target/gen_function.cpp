@@ -70,7 +70,7 @@ void get_full_paramtable(FunctionInfo * finfo) {
 
 		if(vinfo != nullptr) // definition in suite
 		{
-			if (vinfo->type.get_token() == TokenMeta::Function) {
+			if (vinfo->type.token_equals(TokenMeta::Function)) {
 				// function declared in an interface block
 				ParseNode * funcdef_node = vinfo->vardef_node;
 				FunctionInfo * interface_finfo = add_function(get_context().current_module, finfo->local_name + "@" + vinfo->local_name, FunctionInfo{});
@@ -107,14 +107,6 @@ void get_full_paramtable(FunctionInfo * finfo) {
 	return;
 }
 
-
-ParseNode gen_function(ARG_IN variable_function, ARG_IN paramtable, ARG_IN variable_result, ARG_IN suite) {
-	ParseNode newnode = gen_token(Term{ TokenMeta::NT_FUNCTIONDECLARE, ""});
-	ParseNode kvparamtable = promote_argtable_to_paramtable(paramtable); // a flattened parameter list with all keyvalue elements
-	newnode.addlist(ParseNode(), variable_function, kvparamtable, variable_result, suite);
-	return newnode;
-}
-
 void regen_function_1(FunctionInfo * finfo, ParseNode & functiondecl_node) {
 	ParseNode & variable_function = functiondecl_node.get(1);
 	assert(variable_function.get_what() == finfo->local_name);
@@ -134,6 +126,7 @@ void regen_function_1(FunctionInfo * finfo, ParseNode & functiondecl_node) {
 	* compose parameter list
 	*****************/
 	std::vector<std::string> & paramtable_info = finfo->funcdesc.paramtable_info;
+	regen_paramtable(finfo, kvparamtable);
 	for (auto iter = kvparamtable.begin(); iter < kvparamtable.end(); iter++)
 	{
 		/****************

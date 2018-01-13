@@ -98,6 +98,7 @@ Install bison by
 ## Use fortran standard library
 **for90std** is a simple and undone implementation of fortran's library 
 for90std requires compiler support at least C++14 standard(with several C++17 std functions)
+
 with the following statement to include for90std
 
     #include "for90std/for90std.h"
@@ -108,8 +109,10 @@ with the following statement to include for90std
     -d : use debug mode
     -C : use c-style array
     -F 90/77 : specify Fortran standard, by default the translator accept a mixed Fortran77/90 codes
+        **Currently, Unicode encoding is not supported**
 
-# The "hello world" demo
+# Demo
+## The "hello world" demo
 1. use the following command to generate target C++ code
     ```
     CFortranTranslator.exe -Ff demos/helloworld.f90 > target.cpp
@@ -117,13 +120,16 @@ with the following statement to include for90std
 2. build *target.cpp*, modify `#include "../for90std/for90std.h"` to ensure you include the right path of for90std library
 	you can either use [/cpptest/winmake.cmd](/cpptest/winmake.cmd) to build your code, or build them in cpptest project
 
+## More demos
+several demos are provided in [/demos](/demos)
+
+## Make tests
+run [/demos/merge_test.py](/demos/merge_test.py) to generate a `*.form.test` file by merging codes from all `.for`/`.f90` files in a certain folder.
+
 # Debug
 Only fatal errors hindering parsing will be reported by translator. 
 
-Debug origin fortran code or generated C++ code is recommended.
-
-# More demos
-several demos are provided in [/demos](/demos)
+Debuging origin fortran code or generated C++ code is recommended.
 
 # Docs
 ref [/docs/brief.md](/docs/brief.md)

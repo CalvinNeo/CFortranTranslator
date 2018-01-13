@@ -28,7 +28,7 @@ std::vector<ParseNode *> get_all_commons(FunctionInfo * finfo, ParseNode & suite
 	for (ParseNode * stmtptr : suite)
 	{
 		ParseNode & stmti = *stmtptr;
-		if (stmti.get_token() == TokenMeta::NT_COMMONBLOCK) {
+		if (stmti.token_equals(TokenMeta::NT_COMMONBLOCK)) {
 			declared_commons.push_back(stmtptr);
 		}
 	}
@@ -44,18 +44,18 @@ void regen_suite(FunctionInfo * finfo, ParseNode & oldsuite, bool is_partial) {
 	std::string newsuitestr;
 
 	// regen format
-	if (oldsuite.get_token() == TokenMeta::NT_SUITE)
+	if (oldsuite.token_equals(TokenMeta::NT_SUITE))
 	{
 		for (int i = 0; i < oldsuite.length(); i++)
 		{
 			ParseNode & stmt = oldsuite.get(i);
-			if (stmt.get_token() == TokenMeta::Label) {
+			if (stmt.token_equals(TokenMeta::Label)) {
 				int j = i + 1;
 				if (j < oldsuite.length())
 				{
 					// make sure j in within bound
-					ARG_IN next_stmt = oldsuite.get(j);
-					if (next_stmt.get_token() == TokenMeta::NT_FORMAT)
+					const ParseNode & next_stmt = oldsuite.get(j);
+					if (next_stmt.token_equals(TokenMeta::NT_FORMAT))
 					{
 						/*****************
 						* generate EMPTY code for format stmt
@@ -77,18 +77,18 @@ void regen_suite(FunctionInfo * finfo, ParseNode & oldsuite, bool is_partial) {
 	}
 
 	// regen other stmt
-	if (oldsuite.get_token() == TokenMeta::NT_SUITE)
+	if (oldsuite.token_equals(TokenMeta::NT_SUITE))
 	{
 		for (int i = 0; i < oldsuite.length(); i++)
 		{
 			ParseNode & stmt = oldsuite.get(i);
-			if (stmt.get_token() == TokenMeta::Label) {
+			if (stmt.token_equals(TokenMeta::Label)) {
 				int j = i + 1;
 				if (j < oldsuite.length())
 				{
 					// make sure j in within bound
-					ARG_IN next_stmt = oldsuite.get(j);
-					if (next_stmt.get_token() == TokenMeta::NT_FORMAT)
+					const ParseNode & next_stmt = oldsuite.get(j);
+					if (next_stmt.token_equals(TokenMeta::NT_FORMAT))
 					{
 						// handled in the prev loop
 					}
@@ -270,7 +270,7 @@ void regen_all_variables_decl_str(FunctionInfo * finfo, ParseNode & oldsuite) {
 				ParseNode & local_type = vinfo->type;
 				VariableDesc & desc = vinfo->desc;
 				ParseNode & entity_variable = vinfo->entity_variable;
-				if (local_type.get_token() == TokenMeta::Function)
+				if (local_type.token_equals(TokenMeta::Function))
 				{
 					// interface
 					sprintf(codegen_buf, "");
@@ -286,25 +286,25 @@ void regen_all_variables_decl_str(FunctionInfo * finfo, ParseNode & oldsuite) {
 	return;
 }
 
-ParseNode gen_suite(ARG_IN item, ARG_IN list) {
+ParseNode gen_suite(const ParseNode & item, const ParseNode & list) {
 	/*******************
-	*	item can be of the following 3 cases:
-	*	1) labeled_stmts
-	*		including NT_SUITE node
-	*	2) stmt
-	*		including normal stmt node
-	*	3) interface_decl
-	*		including NT_INTERFACE node
+	* item can be of the following 3 cases:
+	* 1) labeled_stmts
+	*	including NT_SUITE node
+	* 2) stmt
+	*	including normal stmt node
+	* 3) interface_decl
+	*	including NT_INTERFACE node
 	********************/
 	ParseNode newnode;
-	if (list.get_token() == TokenMeta::NT_DUMMY)
+	if (list.token_equals(TokenMeta::NT_DUMMY))
 	{
-		if (item.get_token() == TokenMeta::NT_INTERFACE)
+		if (item.token_equals(TokenMeta::NT_INTERFACE))
 		{
 			// case 3, interface_decl
 			newnode = gen_promote("", TokenMeta::NT_SUITE, item);
 		}
-		else if (item.get_token() == TokenMeta::NT_SUITE){
+		else if (item.token_equals(TokenMeta::NT_SUITE)){
 			// case 1, labeled_stmts
 			newnode = item;
 		}
@@ -315,14 +315,14 @@ ParseNode gen_suite(ARG_IN item, ARG_IN list) {
 	}
 	else
 	{
-		if (item.get_token() == TokenMeta::NT_INTERFACE)
+		if (item.token_equals(TokenMeta::NT_INTERFACE))
 		{
 			// case 3, interface_decl
 			newnode = gen_flatten(item, list, "%s%s", TokenMeta::NT_SUITE);
 		}
-		else if (item.get_token() == TokenMeta::NT_SUITE) {
+		else if (item.token_equals(TokenMeta::NT_SUITE)) {
 			// case 1, labeled_stmts
-			newnode = gen_merge(item, list, "%s\n%s", TokenMeta::NT_SUITE) ;
+			newnode = gen_merge(item, list, "%s\n%s", TokenMeta::NT_SUITE);
 		}
 		else {
 			// case 2, stmt

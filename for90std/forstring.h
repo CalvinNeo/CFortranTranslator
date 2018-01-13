@@ -18,46 +18,43 @@
 */
 
 #pragma once
-#include <iostream>
-#include <cstdio>
 #include <string>
 #include <cctype>
-#include <locale>
 
-namespace for90std {
-	// specialization `forslice` of std::string
-	inline std::string forslice(std::string str, const slice_info<int> & tp) {
-		// use `slice_info<int>` to avoid narrow casting
-		if (tp.to >= (int)str.length()) {
-			size_t appendlen = tp.to + 1 - (int)str.size() + 1;
-			str += std::string(appendlen, ' ');
-		}
-		if (tp.step == 1) {
-			return str.substr(tp.fr, tp.to - tp.fr + 1);
-		}
-		else {
-			std::string newstr;
-			for (size_t i = tp.fr; (int)i <= tp.to; i += tp.step)
-			{
-				newstr += str[i];
-			}
-			return newstr;
-		}
+_NAMESPACE_FORTRAN_BEGIN
+// specialization `forslice` of std::string
+inline std::string forslice(std::string str, const slice_info<int> & tp) {
+	// use `slice_info<int>` to avoid narrow casting
+	if (tp.to >= (int)str.length()) {
+		size_t appendlen = tp.to + 1 - (int)str.size() + 1;
+		str += std::string(appendlen, ' ');
 	}
-
-	inline std::string foradjustl(std::string s) {
-		// ltrim
-		s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](int ch) {
-			return !std::isspace(ch);
-		}));
-		return s;
+	if (tp.step == 1) {
+		return str.substr(tp.fr, tp.to - tp.fr + 1);
 	}
-
-	inline std::string foradjustr(std::string s) {
-		s.erase(std::find_if(s.rbegin(), s.rend(), [](int ch) {
-			return !std::isspace(ch);
-		}).base(), s.end());
-		return s;
+	else {
+		std::string newstr;
+		for (size_t i = tp.fr; (int)i <= tp.to; i += tp.step)
+		{
+			newstr += str[i];
+		}
+		return newstr;
 	}
-
 }
+
+inline std::string foradjustl(std::string s) {
+	// ltrim
+	s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](int ch) {
+		return !std::isspace(ch);
+	}));
+	return s;
+}
+
+inline std::string foradjustr(std::string s) {
+	s.erase(std::find_if(s.rbegin(), s.rend(), [](int ch) {
+		return !std::isspace(ch);
+	}).base(), s.end());
+	return s;
+}
+
+_NAMESPACE_FORTRAN_END

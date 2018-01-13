@@ -18,192 +18,212 @@
 */
 
 #pragma once
-#include <vector>
-#include <algorithm>
-#include <functional>
 #include <type_traits>
 #include <limits>
 #include <cassert>
 #include <cfloat>
+#include <string>
+#include <cctype>
+#include <algorithm>
+#include <cstring>
+#include "fordefs.h"
 
-namespace for90std {
-	struct foroptional_dummy {};
-	extern foroptional_dummy None;
-	template <typename T>
-	struct foroptional
-	{
-		operator T() const {
-			assert(inited());
-			return *value_ptr;
-		}
-		foroptional<T> & operator= (const T & newv) {
+_NAMESPACE_FORTRAN_BEGIN
+struct foroptional_dummy {};
+extern const foroptional_dummy None;
+template <typename T>
+struct foroptional
+{
+	operator T() const {
+		assert(inited());
+		return *value_ptr;
+	}
+	foroptional<T> & operator= (const T & newv) {
+		delete value_ptr;
+		value_ptr = new T(newv);
+		return *this;
+	}
+	foroptional<T> & operator= (const foroptional<T> & newv) {
+		if (newv.inited())
+		{
 			delete value_ptr;
-			value_ptr = new T(newv);
-			return *this;
+			value_ptr = new T(newv.const_get());
 		}
-		foroptional<T> & operator= (const foroptional<T> & newv) {
-			if (newv.inited())
-			{
-				delete value_ptr;
-				value_ptr = new T(newv.const_get());
-			}
-			else {
-				delete value_ptr;
-				value_ptr = nullptr;
-			}
-			return *this;
-		}
-		foroptional<T> & operator= (const foroptional_dummy & dummy) {
-			delete value_ptr;
-			value_ptr = nullptr;
-			return *this;
-		}
-		foroptional(const T & newv){
-			// code here is not initialize but operator=
-			delete value_ptr;
-			value_ptr = new T(newv);
-		}
-		foroptional(const foroptional<T> & newv) {
-			// copy constructor
-			if (newv.inited())
-			{
-				// explicitly call copy constructor to avoid 
-				delete value_ptr;
-				value_ptr = new T(newv.const_get());
-			}
-			else {
-				delete value_ptr;
-				value_ptr = nullptr;
-			}
-		}
-		foroptional(const foroptional_dummy & dummy) {
+		else {
 			delete value_ptr;
 			value_ptr = nullptr;
 		}
-		foroptional() {
+		return *this;
+	}
+	foroptional<T> & operator= (const foroptional_dummy & dummy) {
+		delete value_ptr;
+		value_ptr = nullptr;
+		return *this;
+	}
+	foroptional(const T & newv){
+		// code here is not initialize but operator=
+		delete value_ptr;
+		value_ptr = new T(newv);
+	}
+	foroptional(const foroptional<T> & newv) {
+		// copy constructor
+		if (newv.inited())
+		{
+			// explicitly call copy constructor to avoid 
+			delete value_ptr;
+			value_ptr = new T(newv.const_get());
+		}
+		else {
 			delete value_ptr;
 			value_ptr = nullptr;
 		}
-		bool inited() const {
-			return value_ptr != nullptr;
-		}
-		T & get() {
+	}
+	foroptional(const foroptional_dummy & dummy) {
+		delete value_ptr;
+		value_ptr = nullptr;
+	}
+	foroptional() {
+		delete value_ptr;
+		value_ptr = nullptr;
+	}
+	bool inited() const {
+		return value_ptr != nullptr;
+	}
+	T & get() {
+		return *value_ptr;
+	}
+	const T & get() const {
+		return *value_ptr;
+	}
+	const T & const_get() const {
+		return *value_ptr;
+	}
+
+	const T & value_or(const T & def){
+		if (inited())
+		{
 			return *value_ptr;
 		}
-		const T & get() const {
+		else {
+			return def;
+		}
+	}
+	template<typename F>
+	const T & value_or_eval(F f) {
+		if (inited())
+		{
 			return *value_ptr;
 		}
-		const T & const_get() const {
-			return *value_ptr;
+		else {
+			return f();
 		}
-
-		const T & value_or(const T & def){
-			if (inited())
-			{
-				return *value_ptr;
-			}
-			else {
-				return def;
-			}
-		}
-		template<typename F>
-		const T & value_or_eval(F f) {
-			if (inited())
-			{
-				return *value_ptr;
-			}
-			else {
-				return f();
-			}
-		}
-
-	protected:
-		T * value_ptr = nullptr;
-	};
-
-
-	template <typename T>
-	bool forpresent(const foroptional<T> & x) {
-		return x.inited();
 	}
 
+protected:
+	T * value_ptr = nullptr;
+};
 
-	// type cast from general type
-	template<typename T>
-	int to_int(T x, foroptional<int> kind = foroptional<int>()) {
-		return (int)x;
-	}
-	template<typename T>
-	long long to_longlong(T x, foroptional<int> kind = foroptional<int>()) {
-		return (long long)x;
-	}
-	template<typename T>
-	long double to_longdouble(T x, foroptional<int> kind = foroptional<int>()) {
-		return (long double)x;
-	}
-	template<typename T>
-	double to_double(T x, foroptional<int> kind = foroptional<int>()) {
-		return (double)x;
-	}
-	// type cast from string
-	inline int to_int(std::string x, foroptional<int> kind);
-	inline long long to_longlong(std::string x, foroptional<int> kind);
-	inline double to_double(std::string x, foroptional<int> kind);
-	inline long double to_longdouble(std::string x, foroptional<int> kind);
 
-	inline int8_t forhuge(int8_t x) {
-		return INT8_MAX;
-	}
-	inline int16_t forhuge(int16_t x) {
-		return INT16_MAX;
-	}
-	inline int32_t forhuge(int32_t x) {
-		return INT32_MAX;
-	}
-	inline int64_t forhuge(int64_t x) {
-		return INT64_MAX;
-	}
-	inline float forhuge(float x) {
-		return FLT_MAX;
-	}
-	inline double forhuge(double x) {
-		return DBL_MAX;
-	}
-	inline long double forhuge(long double x) {
-		return LDBL_MAX;
-	}
-
-	inline float fortiny(float x) {
-		return FLT_MIN;
-	}
-	inline double fortiny(double x) {
-		return DBL_MIN;
-	}
-	inline long double fortiny(long double x) {
-		return LDBL_MIN;
-	}
-
-	template<typename T>
-	T forhuge() {
-		return std::numeric_limits<T>::max();
-	}
-	template<typename T>
-	T fortiny() {
-		return std::numeric_limits<T>::max();
-	}
-
-	inline void nop() {
-		
-	}
-	template <typename T>
-	void stop(T t) {
-		std::system("pause");
-	}
-	inline void stop() {
-		std::system("pause");
-	}
-
-	struct forlabel {
-
-	};
+template <typename T>
+bool forpresent(const foroptional<T> & x) {
+	return x.inited();
 }
+
+// type cast from general type
+template<typename T>
+int to_int(T x, foroptional<int> kind = None) {
+	return (int)x;
+}
+template<typename T>
+long long to_longlong(T x, foroptional<int> kind = None) {
+	return (long long)x;
+}
+template<typename T>
+long double to_longdouble(T x, foroptional<int> kind = None) {
+	return (long double)x;
+}
+template<typename T>
+double to_double(T x, foroptional<int> kind = None) {
+	return (double)x;
+}
+// type cast from string
+inline int to_int(std::string x, foroptional<int> kind = None) {
+	int a;
+	sscanf(x.c_str(), "%d", &a);
+	return a;
+}
+inline long long to_longlong(std::string x, foroptional<int> kind = None) {
+	long long a;
+	sscanf(x.c_str(), "%lld", &a);
+	return a;
+}
+inline long double to_longdouble(std::string x, foroptional<int> kind = None) {
+	long double a;
+	sscanf(x.c_str(), "%LF", &a);
+	return a;
+}
+inline double to_double(std::string x, foroptional<int> kind = None) {
+	double a;
+	sscanf(x.c_str(), "%lf", &a);
+	return a;
+}
+inline bool to_bool(std::string x) {	std::transform(x.begin(), x.end(), x.begin(), [](const char ch) {return std::tolower(ch); });
+	return !x.empty() && (std::strcmp(x.c_str(), "true") == 0 || std::atoi(x.c_str()) != 0);
+}
+
+inline int8_t forhuge(int8_t x) {
+	return INT8_MAX;
+}
+inline int16_t forhuge(int16_t x) {
+	return INT16_MAX;
+}
+inline int32_t forhuge(int32_t x) {
+	return INT32_MAX;
+}
+inline int64_t forhuge(int64_t x) {
+	return INT64_MAX;
+}
+inline float forhuge(float x) {
+	return FLT_MAX;
+}
+inline double forhuge(double x) {
+	return DBL_MAX;
+}
+inline long double forhuge(long double x) {
+	return LDBL_MAX;
+}
+
+inline float fortiny(float x) {
+	return FLT_MIN;
+}
+inline double fortiny(double x) {
+	return DBL_MIN;
+}
+inline long double fortiny(long double x) {
+	return LDBL_MIN;
+}
+
+template<typename T>
+T forhuge() {
+	return std::numeric_limits<T>::max();
+}
+template<typename T>
+T fortiny() {
+	return std::numeric_limits<T>::max();
+}
+
+inline void nop() {
+		
+}
+template <typename T>
+void stop(T t) {
+	std::system("pause");
+}
+inline void stop() {
+	std::system("pause");
+}
+
+struct forlabel {
+
+};
+_NAMESPACE_FORTRAN_END

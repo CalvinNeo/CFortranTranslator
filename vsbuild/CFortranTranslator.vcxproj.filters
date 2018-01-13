@@ -42,9 +42,6 @@
     <ClCompile Include="..\src\parser\parser.cpp">
       <Filter>parser</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\parser\scanner.cpp">
-      <Filter>parser</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\parser\tokenizer.cpp">
       <Filter>parser</Filter>
     </ClCompile>
@@ -211,6 +208,9 @@
       <Filter>target</Filter>
     </ClInclude>
     <ClInclude Include="..\for90std\forstring.h">
+      <Filter>for90std</Filter>
+    </ClInclude>
+    <ClInclude Include="..\for90std\fordefs.h">
       <Filter>for90std</Filter>
     </ClInclude>
   </ItemGroup>

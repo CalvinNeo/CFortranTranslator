@@ -42,48 +42,17 @@ void do_trans(const std::string & src) {
 	get_context().program_tree.get_what() = gen_header().to_string() + get_context().program_tree.to_string();
 }
 
-ParseNode flatten_bin(ParseNode & pn, bool recursion_direction_right) {
-	// it' DEPRECATED because it create a whole new tree
+ParseNode flatten_bin(const ParseNode & pn, bool recursion_direction_right) {
+	// it's DEPRECATED because it create a whole new tree
 	// THIS ALGORITHM FLATTERNS A LEFT/RIGHT-RECURSIVE BINARY TREE
-	if (pn.length() == 2) {
-		ParseNode newp = ParseNode();
-		// child[0] is the only data node
-		if (recursion_direction_right)
-		{
-			// pn.child[1] is a **list** of ALREADY flattened elements
-			// child[0] is 1 
-			// child[1] is [2, 3, 4, 5]
-			newp.addchild(pn.get(0));
-			for (int i = 0; i < pn.get(1).length(); i++)
-			{
-				newp.addchild(pn.get(1).get(i));
-			}
-		}
-		else {
-			// pn.child[0] is a **list** of ALREADY flattened elements 
-			// child[0] is [2, 3, 4, 5]
-			// child[1] is 1 
-			for (int i = 0; i < pn.get(0).length(); i++)
-			{
-				newp.addchild(pn.get(0).get(i));
-			}
-			newp.addchild(pn.get(1));
-		}
-		newp.fs = pn.fs;
-		newp.father = pn.father;
-		if (pn.attr != nullptr) {
-			newp.setattr(pn.attr->clone());
-		}
-		return newp;
-	}
-	else {
-		return pn;
-	}
+	ParseNode newp = ParseNode{pn};
+	flatten_bin_inplace(newp, recursion_direction_right);
+	return newp;
 }
 
 void flatten_bin_inplace(ParseNode & pn, bool recursion_direction_right) {
 	if (pn.length() == 2) {
-		ParseNode * list, *item;
+		ParseNode * list, * item;
 		if (recursion_direction_right)
 		{
 			list = &pn.get(1);
@@ -96,10 +65,16 @@ void flatten_bin_inplace(ParseNode & pn, bool recursion_direction_right) {
 		pn.child.clear();
 		if (recursion_direction_right)
 		{
+			// pn.child[1] is a **list** of ALREADY flattened elements
+			// child[0] is 1 
+			// child[1] is [2, 3, 4, 5]
 			pn.child.push_back(item);
 		}
 		for (int i = 0; i < list->length(); i++)
 		{
+			// pn.child[0] is a **list** of ALREADY flattened elements 
+			// child[0] is [2, 3, 4, 5]
+			// child[1] is 1 
 			pn.child.push_back(&list->get(i));
 		}
 		list->child.clear(); // must clear child vector or list will delete it's child recursively in its dtor
@@ -120,50 +95,65 @@ void flatten_bin_inplace(ParseNode & pn, bool recursion_direction_right) {
 }
 
 
-ParseNode gen_flatten(ARG_IN item, ARG_IN list, std::string merge_rule, TokenMeta_T merged_token_meta, bool left_recursion) {
+ParseNode gen_flatten(const ParseNode & item, const ParseNode & list, std::string merge_rule, TokenMeta_T merged_token_meta, bool left_recursion) {
+	ParseNode newnode{};
+	reuse_flatten(newnode, *new ParseNode(item), *new ParseNode(list), merge_rule, merged_token_meta, left_recursion);
+	return newnode;
+}
+
+void reuse_flatten(ParseNode & newnode, ParseNode & item, ParseNode & list, std::string merge_rule, TokenMeta_T merged_token_meta, bool left_recursion) {
 	// make fs
 	if (left_recursion)
 	{
 		sprintf(codegen_buf, merge_rule.c_str(), list.to_string().c_str(), item.to_string().c_str());
+		newnode.fs.line_pos = list.fs.line_pos;
+		newnode.fs.parse_pos = list.fs.parse_pos;
 	}
 	else {
 		sprintf(codegen_buf, merge_rule.c_str(), item.to_string().c_str(), list.to_string().c_str());
+		newnode.fs.line_pos = item.fs.line_pos;
+		newnode.fs.parse_pos = item.fs.parse_pos;
 	}
 	if (merged_token_meta == TokenMeta::USE_DEFAULT_VALUE) {
 		merged_token_meta = list.get_token();
 	}
-	// make new node
-	ParseNode nn = gen_token(Term{ merged_token_meta, string(codegen_buf) });
+	newnode.fs = gen_flex(Term{ merged_token_meta, string(codegen_buf) });
+	newnode.fs.parse_line = item.fs.parse_line;
+	newnode.fs.parse_len = item.fs.parse_len + list.fs.parse_len;
 	if (left_recursion)
 	{
-		nn.addlist(list, item);
+		newnode.addpointer(&list);
+		newnode.addpointer(&item);
 	}
 	else {
-		nn.addlist(item, list);
+		newnode.addpointer(&item);
+		newnode.addpointer(&list);
 	}
 	// do inplace flatten on new node
 	if (left_recursion)
 	{
-		flatten_bin_inplace(nn, false);
+		flatten_bin_inplace(newnode, false);
 	}
 	else {
-		flatten_bin_inplace(nn, true);
+		flatten_bin_inplace(newnode, true);
 	}
-	return nn;
 }
 
+ParseNode gen_merge(const ParseNode & list1, const ParseNode & list2, std::string merge_rule, TokenMeta_T merged_token_meta) {
+	ParseNode newnode{};
+	reuse_merge(newnode, *new ParseNode(list1), *new ParseNode(list2), merge_rule, merged_token_meta);
+	return newnode;
+}
 
-ParseNode gen_merge(ARG_IN list1, ARG_IN list2, std::string merge_rule, TokenMeta_T merged_token_meta) {
+void reuse_merge(ParseNode & newnode, ParseNode & list1, ParseNode & list2, std::string merge_rule, TokenMeta_T merged_token_meta) {
 	sprintf(codegen_buf, merge_rule.c_str(), list1.to_string().c_str(), list2.to_string().c_str());
-	ParseNode nn = gen_token(Term{ merged_token_meta, string(codegen_buf) });
+	newnode.fs = gen_flex(Term{ merged_token_meta, string(codegen_buf) });
 	for (int i = 0; i < list1.length(); i++)
 	{
-		nn.addchild(list1.get(i));
-	}
+		newnode.addpointer(&list1.get(i));
+	}	
 	for (int i = 0; i < list2.length(); i++)
 	{
-		nn.addchild(list2.get(i));
+		newnode.addpointer(&list2.get(i));
 	}
-	return nn;
 }
-

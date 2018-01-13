@@ -30,16 +30,16 @@ ParseNode gen_keyvalue_from_name(std::string name) {
 	return newnode;
 }
 
-ParseNode gen_keyvalue_from_exp(ARG_IN variable, ARG_IN initial) {
+ParseNode gen_keyvalue_from_exp(const ParseNode & variable, const ParseNode & initial) {
 	ParseNode newnode = gen_token(Term{ TokenMeta::NT_VARIABLE_ENTITY, variable.get_what() }, variable, initial);
 	return newnode;
 }
 
-ParseNode promote_exp_to_keyvalue(ARG_IN paramtable_elem) {
+ParseNode promote_exp_to_keyvalue(const ParseNode & paramtable_elem) {
 	/************************
 	* this function promote a `exp` to a new ParseNode of NT_KEYVALUE `(x, initial)`,
 	*************************/
-	if (paramtable_elem.get_token() == TokenMeta::NT_KEYVALUE) {
+	if (paramtable_elem.token_equals(TokenMeta::NT_KEYVALUE)) {
 		// keyvalue pair
 		return paramtable_elem;
 	}
@@ -48,20 +48,20 @@ ParseNode promote_exp_to_keyvalue(ARG_IN paramtable_elem) {
 	}
 }
 
-ParseNode gen_pure_paramtable(ARG_IN paramtable_elem) {
-	if (paramtable_elem.get_token() == TokenMeta::NT_DIMENSLICE) {
+ParseNode gen_pure_paramtable(const ParseNode & paramtable_elem) {
+	if (paramtable_elem.token_equals(TokenMeta::NT_DIMENSLICE)) {
 		print_error("Can't generate paramtable from dimen_slice", paramtable_elem);
 		return gen_reset(paramtable_elem, Term{ TokenMeta::NT_DIMENSLICE, "DIMENSLICE GENERATED IN REGEN_SUITE" });
 	}
-	else if(paramtable_elem.get_token() == TokenMeta::NT_ARGTABLE_PURE) {
+	else if(paramtable_elem.token_equals(TokenMeta::NT_ARGTABLE_PURE)) {
 		print_error("Can't generate paramtable from pure argtable", paramtable_elem);
 		// promote dimen_slice to parameter list
 		return gen_reset(paramtable_elem, Term{ TokenMeta::NT_ARGTABLE_PURE, "ARGTABLE GENERATED IN REGEN_SUITE" });
 	}
-	else if(paramtable_elem.get_token() == TokenMeta::NT_KEYVALUE){
+	else if(paramtable_elem.token_equals(TokenMeta::NT_KEYVALUE)){
 		return gen_token(Term{ TokenMeta::NT_PARAMTABLE_PURE, paramtable_elem.to_string() }, paramtable_elem);
 	}
-	else if (paramtable_elem.get_token() == TokenMeta::NT_PARAMTABLE_PURE) {
+	else if (paramtable_elem.token_equals(TokenMeta::NT_PARAMTABLE_PURE)) {
 		return paramtable_elem;
 	}
 	else {
@@ -71,7 +71,7 @@ ParseNode gen_pure_paramtable(ARG_IN paramtable_elem) {
 }
 
 
-ParseNode gen_pure_paramtable(ARG_IN paramtable_elem, ARG_IN paramtable, bool left_recursion) {
+ParseNode gen_pure_paramtable(ParseNode & paramtable_elem, ParseNode & paramtable, bool left_recursion) {
 	ParseNode newnode;
 	bool to_param = is_paramtable(paramtable_elem) || is_paramtable(paramtable);
 	bool all_param = is_paramtable(paramtable_elem) && is_paramtable(paramtable);
@@ -81,8 +81,13 @@ ParseNode gen_pure_paramtable(ARG_IN paramtable_elem, ARG_IN paramtable, bool le
 	bool all_arg = is_argtable(paramtable_elem) && is_argtable(paramtable);
 
 	if (all_param) {
-		// all keyvalue pair 
+		// all keyvalue pair
+#ifdef USE_REUSE
 		newnode = gen_flatten(paramtable_elem, paramtable, "%s, %s", TokenMeta::NT_PARAMTABLE_PURE, left_recursion);
+		//newnode = gen_flatten_reused(paramtable_elem, paramtable, "%s, %s", TokenMeta::NT_PARAMTABLE_PURE, left_recursion);
+#else
+		newnode = gen_flatten(paramtable_elem, paramtable, "%s, %s", TokenMeta::NT_PARAMTABLE_PURE, left_recursion);
+#endif
 	}
 	else if(to_param){
 		// there is keyvalue pair
@@ -104,7 +109,7 @@ ParseNode gen_pure_paramtable(ARG_IN paramtable_elem, ARG_IN paramtable, bool le
 	return newnode;
 }
 
-ParseNode promote_argtable_to_paramtable(ARG_IN paramtable) {
+ParseNode promote_argtable_to_paramtable(const ParseNode & paramtable) {
 	/************************
 	* this function map every element `x` in a argtable to a keyvalue by `promote_exp_to_keyvalue`, 
 	* and return a flat parameter list
@@ -122,7 +127,7 @@ void regen_paramtable(FunctionInfo * finfo, ParseNode & paramtable) {
 	for (int i = 0; i < paramtable.length(); i++)
 	{
 		const ParseNode & elem = paramtable.get(i);
-		if (elem.get_token() == TokenMeta::NT_SLICE)
+		if (elem.token_equals(TokenMeta::NT_SLICE))
 		{
 			if (paramtable_type == TokenMeta::NT_ARGTABLE_PURE)
 			{
@@ -136,7 +141,7 @@ void regen_paramtable(FunctionInfo * finfo, ParseNode & paramtable) {
 				// don't need changing
 			}
 		}
-		else if (elem.get_token() == TokenMeta::NT_KEYVALUE)
+		else if (elem.token_equals(TokenMeta::NT_KEYVALUE))
 		{
 			if (paramtable_type == TokenMeta::NT_ARGTABLE_PURE)
 			{
@@ -158,11 +163,11 @@ void regen_paramtable(FunctionInfo * finfo, ParseNode & paramtable) {
 	{
 		if (paramtable_type == TokenMeta::NT_PARAMTABLE_PURE) {
 			ParseNode & item = paramtable.get(i);
-			if (item.get_token() == TokenMeta::NT_KEYVALUE)
+			if (item.token_equals(TokenMeta::NT_KEYVALUE))
 			{
 				ParseNode & keyvalue = item;
 				regen_exp(finfo, keyvalue.get(0));
-				if (keyvalue.get(1).get_token() == TokenMeta::NT_VARIABLEINITIALDUMMY)
+				if (keyvalue.get(1).token_equals(TokenMeta::NT_VARIABLEINITIALDUMMY))
 				{
 
 				}
@@ -170,7 +175,6 @@ void regen_paramtable(FunctionInfo * finfo, ParseNode & paramtable) {
 				{
 					regen_exp(finfo, keyvalue.get(1));
 				}
-				paramtable.replace(i, keyvalue);
 			}
 			else {
 				ParseNode keyvalue = gen_promote("%s = %s", TokenMeta::NT_KEYVALUE, item, gen_token(Term{ TokenMeta::NT_VARIABLEINITIALDUMMY, "" }));
@@ -181,12 +185,10 @@ void regen_paramtable(FunctionInfo * finfo, ParseNode & paramtable) {
 		else if (paramtable_type == TokenMeta::NT_DIMENSLICE) {
 			ParseNode & slice = paramtable.get(i);
 			regen_exp(finfo, slice);
-			paramtable.replace(i, slice);
 		}
 		else {
 			ParseNode & item = paramtable.get(i);
 			regen_exp(finfo, item);
-			paramtable.replace(i, item);
 		}
 	}
 	string paramtable_str = make_str_list(paramtable.begin(), paramtable.end(), [&](ParseNode * pn) {
@@ -201,14 +203,14 @@ void foreach_paramtable(const ParseNode & pn, std::function<void(const ParseNode
 	do {
 		int from, to;
 		/************
-		*	pn->length() == 0: empty parameter list
-		*	pn->length() == 1: parameter list with a single element
-		*	pn->length() == 2: probably non-flatten parameter list
+		* pn->length() == 0: empty parameter list
+		* pn->length() == 1: parameter list with a single element
+		* pn->length() == 2: probably non-flatten parameter list
 		**************/
 		bool possible_length = (pp->length() == 2);
 		if (recursion_direction_right)
 		{
-			if (possible_length && pp->get(1).get_token() == TokenMeta::NT_PARAMTABLE_PURE)
+			if (possible_length && pp->get(1).token_equals(TokenMeta::NT_PARAMTABLE_PURE))
 			{
 				from = 1;
 			}
@@ -221,7 +223,7 @@ void foreach_paramtable(const ParseNode & pn, std::function<void(const ParseNode
 		}
 		if (recursion_direction_right)
 		{
-			if (possible_length && pp->get(0).get_token() == TokenMeta::NT_PARAMTABLE_PURE)
+			if (possible_length && pp->get(0).token_equals(TokenMeta::NT_PARAMTABLE_PURE))
 			{
 				to = pp->length() - 1;
 			}
@@ -240,5 +242,5 @@ void foreach_paramtable(const ParseNode & pn, std::function<void(const ParseNode
 		{
 			pp = (recursion_direction_right ? &pp->get(1) : &pp->get(0));
 		}
-	} while (pp->get_token() == TokenMeta::NT_PARAMTABLE_PURE);
+	} while (pp->token_equals(TokenMeta::NT_PARAMTABLE_PURE));
 }

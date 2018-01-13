@@ -40,7 +40,7 @@ SliceBoundInfo get_lbound_size_from_slice(FunctionInfo * finfo, ParseNode & dime
 		regen_slice(finfo, *slice);
 	}
 	std::vector<std::string> lb(dimen_slice.length()), sz(dimen_slice.length());
-	if (dimen_slice.get_token() == TokenMeta::NT_ARGTABLE_PURE)
+	if (dimen_slice.token_equals(TokenMeta::NT_ARGTABLE_PURE))
 	{
 		return get_sliceinfo_base(dimen_slice.begin(), dimen_slice.end()
 			, [](const ParseNode * x) {
@@ -50,10 +50,10 @@ SliceBoundInfo get_lbound_size_from_slice(FunctionInfo * finfo, ParseNode & dime
 				return x->get_what();
 		});
 	}
-	else if (dimen_slice.get_token() == TokenMeta::NT_DIMENSLICE) {
+	else if (dimen_slice.token_equals(TokenMeta::NT_DIMENSLICE)) {
 		return get_sliceinfo_base(dimen_slice.begin(), dimen_slice.end()
 			, [](const ParseNode * x) {
-				if (x->get_token() == TokenMeta::NT_SLICE)
+				if (x->token_equals(TokenMeta::NT_SLICE))
 				{
 					if (isnumber(x->get(0).get_what()))
 					{
@@ -71,7 +71,7 @@ SliceBoundInfo get_lbound_size_from_slice(FunctionInfo * finfo, ParseNode & dime
 				}
 			}
 			, [](const ParseNode * x) {
-				if (x->get_token() == TokenMeta::NT_SLICE)
+				if (x->token_equals(TokenMeta::NT_SLICE))
 				{
 					if (isnumber(x->get(1).get_what()) && isnumber(x->get(0).get_what()))
 					{
@@ -108,7 +108,7 @@ std::string regen_vardef_array_initial_str(FunctionInfo * finfo, VariableInfo * 
 	for (ParseNode * slice : slice_node)
 	{
 		// IMPORTANT `regen_slice` is called in get_lbound_size_from_slice
-		if (slice->get_token() == TokenMeta::NT_SLICE && slice->get(0).get_token() == TokenMeta::NT_VARIABLEINITIALDUMMY)
+		if (slice->token_equals(TokenMeta::NT_SLICE) && slice->get(0).token_equals(TokenMeta::NT_VARIABLEINITIALDUMMY))
 		{
 			is_dynamic_array = true;
 		}
@@ -118,7 +118,7 @@ std::string regen_vardef_array_initial_str(FunctionInfo * finfo, VariableInfo * 
 	const std::vector<std::string> & lbound_vec = get<0>(shape);
 	const std::vector<std::string> & size_vec = get<1>(shape);
 	int dimension = (int)lbound_vec.size();
-	if (entity_variable.get(1).get_token() == TokenMeta::NT_VARIABLEINITIALDUMMY) {
+	if (entity_variable.get(1).token_equals(TokenMeta::NT_VARIABLEINITIALDUMMY)) {
 		// default initialize
 		if (get_context().parse_config.usefarray) {
 			// farray
@@ -154,7 +154,7 @@ std::string regen_vardef_array_initial_str(FunctionInfo * finfo, VariableInfo * 
 
 
 std::string get_variable_name(const ParseNode & entity_variable) {
-	if (entity_variable.get_token() == TokenMeta::NT_VARIABLE_ENTITY)
+	if (entity_variable.token_equals(TokenMeta::NT_VARIABLE_ENTITY))
 	{
 		const ParseNode & entity_variable_name = entity_variable.get(0);
 		if (is_function_array(entity_variable))
@@ -163,7 +163,7 @@ std::string get_variable_name(const ParseNode & entity_variable) {
 			// NT_VARIABLE_ENTITY(entity_variable) -> NT_FUCNTIONARRAY(entity_variable_name) -> (UnknownVariant, NT_ARGTABLE_PURE)
 			return entity_variable_name.get(0).get_what();
 		}
-		else if (entity_variable_name.length() == 3 && entity_variable_name.get(2).get_token() == TokenMeta::Multiply) {
+		else if (entity_variable_name.length() == 3 && entity_variable_name.get(2).token_equals(TokenMeta::Multiply)) {
 			// character a*1
 			return entity_variable_name.get(0).get_what();
 		}
@@ -182,7 +182,7 @@ std::string regen_vardef_scalar_initial_str(FunctionInfo * finfo, VariableInfo *
 	ParseNode & entity_variable_name = entity_variable.get(0);
 	ParseNode & entity_variable_initial = entity_variable.get(1);
 	// from entity_variable
-	if (entity_variable_initial.get_token() == TokenMeta::NT_VARIABLEINITIALDUMMY) {
+	if (entity_variable_initial.token_equals(TokenMeta::NT_VARIABLEINITIALDUMMY)) {
 		// if initial value is not dummy but `exp` 
 		if (is_int(vinfo->type) ) {
 			sprintf(codegen_buf, " = 0");
@@ -219,21 +219,21 @@ std::string regen_vardef_scalar_initial_str(FunctionInfo * finfo, VariableInfo *
 	return string(codegen_buf);
 }
 
-ParseNode gen_vardef_from_default(ARG_IN type, std::string name) {
+ParseNode gen_vardef_from_default(const ParseNode & type, std::string name) {
 	ParseNode newnode = gen_token(Term{ TokenMeta::NT_VARIABLEDEFINE, name });
 	newnode.addlist(type // type
-		, gen_token(Term{ TokenMeta::NT_VARIABLEDESC, "NT_VARIABLEDESC" }) // variable_desc with default desc
+		, gen_token(Term{ TokenMeta::NT_VARIABLEDESC, WHEN_DEBUG_OR_EMPTY("NT_VARIABLEDESC") }) // variable_desc with default desc
 		, gen_keyvalue_from_name(name) // variable_entity
 	);
 	return newnode;
 }
 
-ParseNode gen_vardef(ARG_IN type_nospec, ARG_IN variable_desc, ARG_IN paramtable) {
+ParseNode gen_vardef(const ParseNode & type_nospec, const ParseNode & variable_desc, const ParseNode & paramtable) {
 	ParseNode kvparamtable = promote_argtable_to_paramtable(paramtable); // a flattened paramtable with all keyvalue elements
-	ParseNode newnode = gen_token(Term{ TokenMeta::NT_VARIABLEDEFINESET, "VARDEFSET GENERATED IN REGEN_SUITE" });
+	ParseNode newnode = gen_token(Term{ TokenMeta::NT_VARIABLEDEFINESET, WHEN_DEBUG_OR_EMPTY("VARDEFSET GENERATED IN REGEN_SUITE") });
 	for (int i = 0; i < kvparamtable.length(); i++)
 	{
-		ParseNode newvardef = gen_token(Term{ TokenMeta::NT_VARIABLEDEFINE, "VARDEF GENERATED IN REGEN_SUITE" });
+		ParseNode newvardef = gen_token(Term{ TokenMeta::NT_VARIABLEDEFINE, WHEN_DEBUG_OR_EMPTY("VARDEF GENERATED IN REGEN_SUITE") });
 		ParseNode & variable_entity = kvparamtable.get(i);
 		newvardef.addlist(type_nospec, variable_desc, variable_entity);
 
@@ -314,7 +314,7 @@ std::string regen_vardef(FunctionInfo * finfo, VariableInfo * vinfo, std::string
 			vinfo->vardef_node->get_what() = var_decl;
 		}
 	} 
-	else if (type_nospec.get_token() == TokenMeta::Function)
+	else if (type_nospec.token_equals(TokenMeta::Function))
 	{
 		// Function
 		type_str = gen_qualified_typestr(type_nospec, desc, false);

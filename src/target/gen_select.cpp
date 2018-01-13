@@ -25,21 +25,21 @@ void regen_select(FunctionInfo * finfo, ParseNode & select_stmt) {
 	select_stmt.fs.CurrentTerm = Term{ TokenMeta::NT_SELECT, "" };
 	string case_default;
 	bool first_if = true;
-	for (int i = 0; i < case_stmt.length(); i++)
+	for (ParseNode * item : case_stmt)
 	{
-		ParseNode & case_stmt_elem = case_stmt.get(i);
+		ParseNode & case_stmt_elem = *item;
 		ParseNode & dimen_slice = case_stmt_elem.get(0);
 		ParseNode & body = case_stmt_elem.get(1);
 		regen_suite(finfo, body, true);
 
-		if (dimen_slice.get_token() == TokenMeta::NT_DUMMY)
+		if (dimen_slice.token_equals(TokenMeta::NT_DUMMY))
 		{
 			sprintf(codegen_buf, "else {\n%s}\n", tabber(body.to_string()).c_str());
 			case_default = string(codegen_buf);
 		}
 		else {
 			string conditions;
-			if (dimen_slice.get_token() == TokenMeta::NT_DIMENSLICE) {
+			if (dimen_slice.token_equals(TokenMeta::NT_DIMENSLICE)) {
 				// NT_DIMENSLICE
 				conditions = make_str_list(dimen_slice.begin(), dimen_slice.end(), [&](ParseNode * px) {
 					ParseNode & x = *px;
@@ -49,7 +49,7 @@ void regen_select(FunctionInfo * finfo, ParseNode & select_stmt) {
 					return string(codegen_buf);
 				}, "||");
 			}
-			else if (dimen_slice.get_token() == TokenMeta::NT_ARGTABLE_PURE) {
+			else if (dimen_slice.token_equals(TokenMeta::NT_ARGTABLE_PURE)) {
 				// NT_ARGTABLE_PURE
 				conditions = make_str_list(dimen_slice.begin(), dimen_slice.end(), [&](ParseNode * px) {
 					ParseNode & x = *px;

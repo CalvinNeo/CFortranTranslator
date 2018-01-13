@@ -34,8 +34,8 @@ void regen_if(FunctionInfo * finfo, ParseNode & if_stmt) {
 	}
 	true_str = tabber(suite_true.get_what());
 
-	if (elseif.get_token() == TokenMeta::NT_DUMMY) {
-		if (suite_else.get_token() == TokenMeta::NT_DUMMY) {
+	if (elseif.token_equals(TokenMeta::NT_DUMMY)) {
+		if (suite_else.token_equals(TokenMeta::NT_DUMMY)) {
 			// neither elseif or suite_else
 			sprintf(codegen_buf, "if (%s) {\n%s}", exp.get_what().c_str(), true_str.c_str());
 		}
@@ -47,7 +47,7 @@ void regen_if(FunctionInfo * finfo, ParseNode & if_stmt) {
 	}
 	else {
 		regen_elseif(finfo, elseif);
-		if (suite_else.get_token() == TokenMeta::NT_DUMMY) {
+		if (suite_else.token_equals(TokenMeta::NT_DUMMY)) {
 			// bare elseif
 
 			sprintf(codegen_buf, "if (%s) {\n%s}\n%s", exp.get_what().c_str(), true_str.c_str(), elseif.get_what().c_str());
@@ -70,7 +70,7 @@ void regen_elseif(FunctionInfo * finfo, ParseNode & elseif_stmt) {
 
 	string true_str = tabber(suite_true.get_what());
 
-	if (elseif.get_token() == TokenMeta::NT_DUMMY) {
+	if (elseif.token_equals(TokenMeta::NT_DUMMY)) {
 		sprintf(codegen_buf, "else if(%s) {\n%s}", exp.get_what().c_str(), true_str.c_str());
 	}
 	else {

@@ -17,12 +17,9 @@
 *   51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
-#include "forlang.h"
-#include <cstring>
-#include <cstdlib>
-#include "utils.h"
-#include <algorithm>
+#pragma once
 
-_NAMESPACE_FORTRAN_BEGIN
-const foroptional_dummy None;
-_NAMESPACE_FORTRAN_END
+#define _NAMESPACE_FORTRAN_BEGIN namespace for90std {
+#define _NAMESPACE_FORTRAN_END }
+#define _NAMESPACE_HIDDEN_BEGIN namespace {
+#define _NAMESPACE_HIDDEN_END }

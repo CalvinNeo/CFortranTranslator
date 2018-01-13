@@ -52,7 +52,7 @@ CommonBlockInfo * add_commonblock(std::string commonblock_name) {
 	return get_context().commonblocks[commonblock_name];
 }
 
-ParseNode gen_common(ARG_IN commonname_node, ARG_IN paramtable) {
+ParseNode gen_common(const ParseNode & commonname_node, const ParseNode & paramtable) {
 	// the unique blank COMMON block must be declared in the main program.
 	ParseNode kvparamtable = promote_argtable_to_paramtable(paramtable);
 	ParseNode newnode = gen_token(Term{ TokenMeta::NT_COMMONBLOCK, "" }, commonname_node, kvparamtable);
@@ -108,9 +108,15 @@ void regen_common(FunctionInfo * finfo, ParseNode & common_block) {
 		}
 		local_vinfo->desc.constant = false;
 		/******************
-		*	do not set
-		*	`local_vinfo->desc.reference = true;`
-		*	because common block definition(which is a struct) should not contain `T &`
+		* do not set
+		* `local_vinfo->desc.reference = true`
+		* because common block's definition(which is a struct) should not contain `T &`
+		* ```
+		* int b = 1;
+		* struct CB{
+		*     int & a = b; // this is wrong
+		* };
+		* ```
 		******************/
 	}
 	// codes are actually generated in gen_suite
@@ -122,8 +128,6 @@ ParseNode gen_common_definition(std::string commonblock_name) {
 	int i = 0;
 	string struct_str = make_str_list(common_variables.begin(), common_variables.end(), [&](VariableInfo * vinfo) {
 		std::string common_varname = "_" + to_string(++i);
-		//sprintf(codegen_buf, "%s %s;", gen_qualified_typestr(vinfo.type, vinfo.desc, false).c_str(), common_varname.c_str());
-
 		std::string var_decl = regen_vardef(get_function("", ""), vinfo, common_varname, false) + ";";
 		return var_decl;
 	}, "\n");
@@ -140,9 +144,9 @@ ParseNode gen_common_definition(std::string commonblock_name) {
 
 VariableInfo * check_implicit_variable(FunctionInfo * finfo, const std::string & name) {
 	/******************
-	*	this function must be called AFTER the AST is finished construct, by `regen_exp` function
-	*	for all variables in function body that not appear in `finfo->desc->declared_variables`, 
-	*	mark them as implicit variables and generate its definition
+	* this function must be called AFTER the AST is finished construct, by `regen_exp` function
+	* for all variables in function body that not appear in `finfo->desc->declared_variables`, 
+	* mark them as implicit variables and generate its definition
 	* NOTICE:
 	* this function only works on `exp` nodes, not including variable declaration(`vardef` nodes), etc.
 	*******************/
@@ -153,7 +157,7 @@ VariableInfo * check_implicit_variable(FunctionInfo * finfo, const std::string &
 		ParseNode implicit_type = gen_implicit_type(finfo, name);
 		vinfo->commonblock_index = 0; 
 		vinfo->commonblock_name = ""; 
-		vinfo->desc = VariableDesc(); 
+		vinfo->desc = VariableDesc{};
 		vinfo->implicit_defined = true; 
 		vinfo->type = implicit_type; 
 		vinfo->entity_variable = gen_keyvalue_from_name(name); 
@@ -161,7 +165,7 @@ VariableInfo * check_implicit_variable(FunctionInfo * finfo, const std::string &
 		ParseNode vardef_node = gen_vardef_from_default(implicit_type, name);
 		vinfo->vardef_node = new ParseNode(vardef_node); 
 	}
-	else if (vinfo->type.get_token() == TokenMeta::Implicit_Decl )
+	else if (vinfo->type.token_equals(TokenMeta::Implicit_Decl))
 	{
 		vinfo->type = gen_implicit_type(finfo, name); 
 	}

@@ -54,6 +54,7 @@ ParseNode::~ParseNode()
 	for (int i = 0; i < length(); i++)
 	{
 		delete child[i];
+		child[i] = nullptr;
 	}
 }
 ParseNode::ParseNode(const ParseNode & pn)
@@ -68,7 +69,7 @@ ParseNode::ParseNode(const ParseNode & pn)
 			this->addchild(pn.get(i));
 		}
 		else {
-			this->addchildptr(nullptr);
+			this->addpointer(nullptr);
 		}
 	}
 }
@@ -97,7 +98,7 @@ ParseNode & ParseNode::operator= (const ParseNode & pn) {
 	}
 }
 
-void ParseNode::addchildptr(ParseNode * ptrn, bool add_back) {
+void ParseNode::addpointer(ParseNode * ptrn, bool add_back) {
 	if (ptrn != nullptr) {
 		ptrn->father = this;
 	}
@@ -111,7 +112,7 @@ void ParseNode::addchildptr(ParseNode * ptrn, bool add_back) {
 
 void ParseNode::addchild(const ParseNode & n, bool add_back) {
 	// add a copy of n to ParseTree
-	this->addchildptr(new ParseNode(n), add_back);
+	this->addpointer(new ParseNode(n), add_back);
 }
 
 void ParseNode::replace(int childid, const ParseNode & pn) {
@@ -126,7 +127,6 @@ void preorder(ParseNode * ptree) {
 	using namespace std;
 	ParseNode * p;
 	stack<pair<ParseNode *, int>> s;
-
 	s.push(make_pair(ptree, 0));
 	while (!s.empty())
 	{
@@ -134,10 +134,10 @@ void preorder(ParseNode * ptree) {
 		int deep = s.top().second;
 		s.pop();
 		if (p->length() == 0) {
-			cout << string(deep * 2, ' ') << (int)p->get_token() << ", " << "TERMINAL " << p->get_what() << endl;
+			printf("%s[T](%s) %s\n", string(deep, '\t').c_str(), get_intent_name(p->get_token()).c_str(), p->get_what().substr(0, max(10, (int)p->get_what().size())).c_str());
 		}
 		else {
-			cout << string(deep * 2, ' ') << (int)p->get_token() << ", " << "NON-TERMINAL" << p->get_what() << endl;
+			printf("%s[NT](%s) %s\n", string(deep, '\t').c_str(), get_intent_name(p->get_token()).c_str(), p->get_what().substr(0, max(10, (int)p->get_what().size())).c_str());
 			// i must be int, not size_t
 			for (int i = p->length() - 1; i >= 0; i--)
 			{

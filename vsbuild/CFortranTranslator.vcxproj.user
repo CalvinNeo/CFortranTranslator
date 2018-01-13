@@ -1,10 +1,10 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <LocalDebuggerCommandArguments>-Ff demos\1.txt </LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>-Ff demos\1.txt --tree </LocalDebuggerCommandArguments>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
     <LocalDebuggerWorkingDirectory>$(ProjectDir)..\</LocalDebuggerWorkingDirectory>
-    <LocalDebuggerCommand>$(ProjectDir)..\bin\$(TargetName)_D$(TargetExt)</LocalDebuggerCommand>
+    <LocalDebuggerCommand>$(ProjectDir)..\bin\$(TargetName)$(TargetExt)</LocalDebuggerCommand>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Develop|x64'">
     <LocalDebuggerCommandArguments>-d</LocalDebuggerCommandArguments>

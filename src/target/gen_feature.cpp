@@ -24,7 +24,7 @@ bool is_dimenslice(const ParseNode & elem) {
 	return elem.token_equals(TokenMeta::NT_DIMENSLICE, TokenMeta::NT_SLICE) ;
 }
 bool is_argtable(const ParseNode & elem) {
-	return elem.get_token() == TokenMeta::NT_ARGTABLE_PURE ||
+	return elem.token_equals(TokenMeta::NT_ARGTABLE_PURE) ||
 		(is_element(elem) || is_exp(elem) );
 }
 bool is_paramtable(const ParseNode & elem) {
@@ -33,7 +33,7 @@ bool is_paramtable(const ParseNode & elem) {
 
 bool is_function_array(const ParseNode & entity_variable) {
 	const ParseNode & entity_variable_name = entity_variable.get(0);
-	if (entity_variable_name.get_token() == TokenMeta::NT_FUCNTIONARRAY)
+	if (entity_variable_name.token_equals(TokenMeta::NT_FUCNTIONARRAY))
 	{
 		return true;
 	}
