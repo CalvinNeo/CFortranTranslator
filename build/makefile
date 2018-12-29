@@ -2,7 +2,8 @@ EXE=CFortranTranslator
 CXX=g++
 
 CFLAGS_NO = -fno-rtti -fno-exceptions 
-
+cov_comp = -fprofile-arcs -ftest-coverage -fno-inline
+cov_lnk = -fprofile-arcs -ftest-coverage --coverage -fno-inline 
 NO_WARN = -Wno-unused-label -Wno-unused-variable -Wno-char-subscripts -Wno-unused-but-set-variable -Wno-unused-value 
 NO_WARN_DEBUGING = -Wno-format-security -Wno-sign-compare -Wno-format-zero-length
 CFLAGS = -Wall -DPOSIX -g -O3 -fpermissive -fPIC -std=c++17 $(NO_WARN) $(NO_WARN_DEBUGING)
@@ -15,9 +16,10 @@ OBJ_MAIN_ROOT = $(OBJ_ROOT)/src
 OBJ_GRAMMAR_ROOT = $(OBJ_ROOT)/src/grammar
 OBJ_PARSER_ROOT = $(OBJ_ROOT)/src/parser
 OBJ_TARGET_ROOT = $(OBJ_ROOT)/src/target
-EXE_ROOT = ../bin
+EXE_ROOT = $(SRC_ROOT)/bin
 GCOV_ROOT = $(OBJ_ROOT)
 
+# Not all files in a folder is included
 OBJ_FOR90 = $(OBJ_FOR90_ROOT)/farray.$(OBJ_EXT)    $(OBJ_FOR90_ROOT)/for90std.$(OBJ_EXT)    $(OBJ_FOR90_ROOT)/forfilesys.$(OBJ_EXT)    $(OBJ_FOR90_ROOT)/forlang.$(OBJ_EXT)    $(OBJ_FOR90_ROOT)/forstdio.$(OBJ_EXT)
 OBJ_MAIN = $(OBJ_MAIN_ROOT)/develop.$(OBJ_EXT)    $(OBJ_MAIN_ROOT)/main.$(OBJ_EXT)     $(OBJ_MAIN_ROOT)/getopt2.$(OBJ_EXT)
 OBJ_GRAMMAR = $(OBJ_GRAMMAR_ROOT)/simple_lexer.$(OBJ_EXT)    $(OBJ_GRAMMAR_ROOT)/for90.tab.$(OBJ_EXT)
@@ -40,8 +42,18 @@ SRCS += $(wildcard $(SRC_ROOT)/src/parser/*.h)
 SRCS += $(wildcard $(SRC_ROOT)/src/target/*.h)
 SRCS += $(wildcard $(SRC_ROOT)/src/grammar/*.y)
 
+all: $(EXE) lib
+
 $(EXE): out $(EXE_ROOT)
 	mv $(EXE) $(EXE_ROOT)/$(EXE)
+
+install: 
+	sudo cp -rf $(SRC_ROOT)/for90std/ /usr/local/include
+	sudo cp -rf $(EXE_ROOT)/$(EXE) /usr/bin/$(EXE)
+	sudo cp -rf $(EXE_ROOT)/for90std.a /usr/local/lib/for90std.a
+	
+lib: $(OBJ_FOR90)
+	ar rvs $(EXE_ROOT)/for90std.a $(OBJ_FOR90)
 
 out: CFLAGS_COV = 
 out: make_dir gen_bison $(OBJS) 
@@ -51,17 +63,29 @@ build_cov: CFLAGS_COV = -fprofile-arcs -ftest-coverage
 build_cov: make_dir gen_bison $(OBJS) 
 	$(CXX) $(CFLAGS) $(CFLAGS_COV) --coverage -o $(EXE) $(OBJS) -L/usr/lib/ -lboost_system -lboost_exception
 
+lib_cov: CFLAGS_COV = -fprofile-arcs -ftest-coverage 
+lib_cov: $(OBJ_FOR90)
+	ar rvs $(EXE_ROOT)/for90std.a $(OBJ_FOR90)
 
-get_ans:
-	python ../demos/merge_test.py ../demos/fortran/ ../demos/merge n
-	python ../demos/merge_test.py ../demos/fortran77/ ../demos/merge y
-	./CFortranTranslator -fF ../demos/merge.for.test
-	python ../demos/merge_test.py ../demos/snippet/ ../demos/merge n
-	./CFortranTranslator -fF ../demos/merge.for.test --tree 
-	python ../demos/merge_test.py ../demos/error/ ../demos/merge n
-	./CFortranTranslator -fF ../demos/merge.for.test
+test_fortran:
+	python $(SRC_ROOT)/demos/merge_test.py $(SRC_ROOT)/demos/fortran/ $(SRC_ROOT)/demos/merge n
+	python $(SRC_ROOT)/demos/merge_test.py $(SRC_ROOT)/demos/fortran77/ $(SRC_ROOT)/demos/merge y
+	./CFortranTranslator -fF $(SRC_ROOT)/demos/merge.for.test
+	python $(SRC_ROOT)/demos/merge_test.py $(SRC_ROOT)/demos/snippet/ $(SRC_ROOT)/demos/merge n
+	./CFortranTranslator -fF $(SRC_ROOT)/demos/merge.for.test --tree 
+	python $(SRC_ROOT)/demos/merge_test.py ../demos/error/ $(SRC_ROOT)/demos/merge n
+	./CFortranTranslator -fF $(SRC_ROOT)/demos/merge.for.test
 
-run_cov: get_ans
+test_for90std: install
+	cd $(SRC_ROOT)/demos/for90std && make clean
+	cd $(SRC_ROOT)/demos/for90std && make MODE=$(MODE)
+	cd $(SRC_ROOT)/demos/for90std && ./io
+	cd $(SRC_ROOT)/demos/for90std && ./farray
+	cd $(SRC_ROOT)/demos/for90std && ./filesys
+
+run_cov: 
+	make test_fortran
+	make test_for90std MODE=$(MODE)
 	gcov $(OBJ_GRAMMAR_ROOT)/for90.tab.cpp
 	gcov -r -o $(OBJ_FOR90_ROOT)/*.gcno
 	for name in `ls -al . | awk '{print $$NF}'| grep '.gcov$$' `;do mv $$name $(OBJ_FOR90_ROOT)/;done
@@ -75,7 +99,7 @@ run_cov: get_ans
 	for name in `ls -al . | awk '{print $$NF}'| grep '.gcov$$' `;do mv $$name $(OBJ_TARGET_ROOT)/;done
 
 run_cov2: $(GCOVS)
-$(GCOVS): get_ans
+$(GCOVS): test_fortran test_for90std
 	gcov -r -o "$(patsubst $(GCOV_ROOT)%,$(OBJ_ROOT)%,$(@D))" "$(patsubst $(GCOV_ROOT)%,$(SRC_ROOT)%,$(@D))/$(patsubst %gcov,%cpp,$(@F))"
 #	if [ -f "./$(@F)" ]; then mv "./$(@F)" $@; fi
 
@@ -83,11 +107,15 @@ run_lcov: $(OBJ_ROOT)
 	lcov -c -o CFortranTranslator.lcov.info -d $(OBJ_ROOT)/
 	genhtml CFortranTranslator.lcov.info -o CFortranTranslatorLCovHTML
 
-run_coveralls_local: get_ans
-	coveralls -b ./ -r ../ --exclude ./for90std --exclude ./src/grammar/for90.tab.cpp --exclude ./src/grammar/for90.flex.cpp --dryrun  --verbose --gcov-options '\-r'
+run_coveralls_local: 
+	make test_fortran
+	make test_for90std MODE=$(MODE)
+	coveralls -b ./ -r ../ --exclude ./for90std --exclude ./demos/for90std --exclude ./src/grammar/for90.tab.cpp --exclude ./src/grammar/for90.flex.cpp --dryrun  --verbose --gcov-options '\-r'
 
-run_coveralls: get_ans
-	coveralls -b ./ -r ../ --exclude ./for90std --exclude ./src/grammar/for90.tab.cpp --exclude ./src/grammar/for90.flex.cpp --gcov-options '\-r'
+run_coveralls: 
+	make test_fortran
+	make test_for90std MODE=$(MODE)
+	coveralls -b ./ -r ../ --exclude ./for90std --exclude ./demos/for90std --exclude ./src/grammar/for90.tab.cpp --exclude ./src/grammar/for90.flex.cpp --gcov-options '\-r'
 
 tests: build_cov run_cov
 

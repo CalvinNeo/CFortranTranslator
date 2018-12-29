@@ -167,7 +167,8 @@ inline double to_double(std::string x, foroptional<int> kind = None) {
 	sscanf(x.c_str(), "%lf", &a);
 	return a;
 }
-inline bool to_bool(std::string x) {	std::transform(x.begin(), x.end(), x.begin(), [](const char ch) {return std::tolower(ch); });
+inline bool to_bool(std::string x) {
+	std::transform(x.begin(), x.end(), x.begin(), [](const char ch) {return std::tolower(ch); });
 	return !x.empty() && (std::strcmp(x.c_str(), "true") == 0 || std::atoi(x.c_str()) != 0);
 }
 

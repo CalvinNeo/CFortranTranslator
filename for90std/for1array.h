@@ -262,6 +262,8 @@ void f1a_resize(for1array<_Container_value_type> & farr
 	_f1a_resize_impl<_DTYPE, _Container_value_type >(farr, 0, lower_bound, size);
 }
 
+_NAMESPACE_HIDDEN_BEGIN
+
 template<typename _DTYPE, typename _Container_value_type, typename _Iterator, typename = void>
 void _f1a_init_impl(for1array<_DTYPE> & farr, int deep
 	, const std::vector<fsize_t> & lower_bound
@@ -297,6 +299,7 @@ template<typename _DTYPE, typename _Container_value_type, typename _Iterator
 		}
 	}
 };
+_NAMESPACE_HIDDEN_END
 
 template<typename _DTYPE, typename _Container_value_type>
 void f1a_init(for1array<_Container_value_type> & farr
@@ -326,6 +329,7 @@ fornarray<_InnerT, D> f1a_gen(const std::vector<fsize_t> & lower_bound
 	return n;
 };
 
+_NAMESPACE_HIDDEN_BEGIN
 template<typename _Container_value_type, typename _DTYPE, typename _Iterator, typename _Return, typename = void>
 void _f1a_flatmapped_impl(for1array<_DTYPE> & farr, int deep
 	, const std::vector<fsize_t> & next_iter_delta
@@ -359,6 +363,7 @@ template<typename _Container_value_type, typename _DTYPE, typename _Iterator, ty
 		}
 	}
 };
+_NAMESPACE_HIDDEN_END
 
 template<typename _Container_value_type, typename _Return, typename _Iterator>
 void f1a_flatmapped(for1array<_Container_value_type> & farr, _Iterator begin, _Iterator end
@@ -405,6 +410,7 @@ auto f1a_flattenedptr(for1array<_Container_value_type> & farr)
 //
 //#endif
 
+_NAMESPACE_HIDDEN_BEGIN
 template<typename T>
 auto _f1a_init_hiddendo(typename for1array<T>::size_type start, typename for1array<T>::size_type end
 	, std::function<T(typename for1array<T>::size_type) > get_T)
@@ -416,12 +422,15 @@ auto _f1a_init_hiddendo(typename for1array<T>::size_type start, typename for1arr
 	}
 	return rt;
 }
+_NAMESPACE_HIDDEN_END
+
 template <typename T>
 auto f1a_init_hiddendo(typename for1array<T>::size_type from, typename for1array<T>::size_type to, T lambda)
 	-> for1array<typename function_traits<T>::result_type> {
 	return _f1a_init_hiddendo<typename function_traits<decltype(lambda)>::result_type>(from, to, lambda);
 }
 
+_NAMESPACE_HIDDEN_BEGIN
 template <typename T, int X, int D>
 struct _f1aslice_impl {
 	static auto get(const for1array<T> & farr, const slice_info<fsize_t>(&tp)[X]) {
@@ -434,7 +443,8 @@ struct _f1aslice_impl<T, X, 0> {
 		return farr.slice(tp[X - 1].fr, tp[X - 1].to, tp[X - 1].step);
 	}
 };
-	
+_NAMESPACE_HIDDEN_END
+
 template <typename T, int DUMMY = 0, int X>
 for1array<T> forslice(const for1array<T> & farr, const slice_info<fsize_t>(&tp)[X]) {
 	return _f1aslice_impl<T, X, X - 1>::get(farr, tp);

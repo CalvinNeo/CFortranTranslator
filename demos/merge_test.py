@@ -1,5 +1,7 @@
 #coding:utf8
 
+# merge_test.py MERGES all demo FORTRAN codes into one output_file, so you can build them as a test.
+
 # files
 import os, sys
 import shutil

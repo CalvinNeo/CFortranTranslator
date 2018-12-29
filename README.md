@@ -56,8 +56,8 @@ bjam --toolset=msvc-14.0 address-model=64
 ```
 
 - configure boost
-    1. add **boost\_dir** directory to additional include library
-    2. add **boost\_dir/libs** and **boost\_dir/stage/lib** to additional library directory
+    1. Add **boost\_dir** directory to additional include library
+    2. Add **boost\_dir/libs** and **boost\_dir/stage/lib** to additional library directory
 
 ### Configure winflex and winbison
 1. On the Project menu, choose Project Dependencies.
@@ -65,17 +65,17 @@ bjam --toolset=msvc-14.0 address-model=64
 3. Add [/src/grammar/custom\_build\_rules/win\_flex\_bison\_custom\_build.props](/src/grammar/custom\_build\_rules/win\_flex\_bison\_custom\_build.props)
 
 ### Build by MSBuild
-run [/build/vcbuild.cmd](/build/vcbuild.cmd)
+Run [/build/vcbuild.cmd](/build/vcbuild.cmd)
 
-[You can get Visual C++ Build Tools here](http://landinghub.visualstudio.com/visual-cpp-build-tools)
+You can get Visual C++ Build Tools [here(Not available now)](http://landinghub.visualstudio.com/visual-cpp-build-tools) or [here](https://visualstudio.microsoft.com/zh-hans/downloads/)
 
-all built production will be in [/bin](/bin)
+All built production will be in [/bin](/bin)
 
 ### Build by NMake
-run [/build/winmake.cmd](/build/winmake.cmd) to get a x64 Release binary
+Run [/build/winmake.cmd](/build/winmake.cmd) to get a x64 Release binary
 
 ### Build By Visual Studio
-open [/vsbuild/CFortranTranslator.sln](/vsbuild/CFortranTranslator.sln)
+Open [/vsbuild/CFortranTranslator.sln](/vsbuild/CFortranTranslator.sln)
 
 ## Build project in Ubuntu
 ### Dependencies
@@ -91,40 +91,48 @@ Install boost by
 Install bison by
 
 	sudo apt-get install bison
-### make
+### Make
 
 	cd build && make
+	make install
 
-## Use fortran standard library
-**for90std** is a simple and undone implementation of fortran's library 
+## Fortran standard library(for90std)
+**for90std** is a simple implementation of fortran's library and is yet to be done
+
 for90std requires compiler support at least C++14 standard(with several C++17 std functions)
 
-with the following statement to include for90std
+With the following statement to include for90std module
 
     #include "for90std/for90std.h"
 
-## Run with arguments
+### cpptest
+[cpptest](/cpptest) is a C++ project template for you to test for90std.
+
+## Run CFortranTranslator with arguments
 
     -f file_name : translate file_name into C++
+        **Currently, Unicode encoding is not supported**
     -d : use debug mode
     -C : use c-style array
     -F 90/77 : specify Fortran standard, by default the translator accept a mixed Fortran77/90 codes
-        **Currently, Unicode encoding is not supported**
 
 # Demo
 ## The "hello world" demo
-1. use the following command to generate target C++ code
+1. Use the following command to generate target C++ code
     ```
     CFortranTranslator.exe -Ff demos/helloworld.f90 > target.cpp
     ```
-2. build *target.cpp*, modify `#include "../for90std/for90std.h"` to ensure you include the right path of for90std library
-	you can either use [/cpptest/winmake.cmd](/cpptest/winmake.cmd) to build your code, or build them in cpptest project
+2. Build *target.cpp*, modify `#include "../for90std/for90std.h"` to ensure you include the right path of for90std library.
+	You can either use [/cpptest/winmake.cmd](/cpptest/winmake.cmd) to build your code, or build them in cpptest project.
 
 ## More demos
-several demos are provided in [/demos](/demos)
+### Translator Demos
+Several demos are provided in [/demos](/demos).
+Run [/demos/merge_test.py](/demos/merge_test.py) to generate a `*.form.test` file by merging codes from all `.for`/`.f90` files in a certain folder. Then you can convert the merged Fortran code into C++.
 
-## Make tests
-run [/demos/merge_test.py](/demos/merge_test.py) to generate a `*.form.test` file by merging codes from all `.for`/`.f90` files in a certain folder.
+### for90std Demos
+Several demos are provided in [/demos/for90std](/demos/for90std).
+Make sure you have google-test library before test.
 
 # Debug
 Only fatal errors hindering parsing will be reported by translator. 
@@ -132,7 +140,7 @@ Only fatal errors hindering parsing will be reported by translator.
 Debuging origin fortran code or generated C++ code is recommended.
 
 # Docs
-ref [/docs/brief.md](/docs/brief.md)
+see [/docs/brief.md](/docs/brief.md)
 
 ## Develop details guide
-refer to [/docs/Develop.md](/docs/Develop.md) to have an general understanding of implementation of this project
+see [/docs/Develop.md](/docs/Develop.md) to have an general understanding of implementation of this project.

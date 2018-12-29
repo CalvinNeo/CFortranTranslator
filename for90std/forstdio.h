@@ -24,9 +24,10 @@
 #include <string>
 #include <fstream>
 #include <complex>
+#include <cctype>
 
 // If forced reversion occurs, FORTRAN 77 advances to the next record and rescans the format, starting with the right-most left parenthesis, including any repeat-count indicators. It then re-uses this part of the format. If there are no inner parenthesis in the FORMAT statement, then the entire format is reused.
-// Èô±à¼­·û±íÖÐº¬ÓÐÖØ¸´Ê¹ÓÃµÄ±à¼­·û×é£¬Èç2(2X,F3)£¬Ôòµ±ËùÓÐ±à¼­·ûÓÃÍêÖ®ºó£¬·µ»ØÖÁ×îÓÒ±ßµÄ×óÀ¨ºÅ¿ªÊ¼£¬Èç¹ûÃ»ÓÐ×óÀ¨ºÅ£¬ÔòÊ¹ÓÃÈ«²¿
+// è‹¥ç¼–è¾‘ç¬¦è¡¨ä¸­å«æœ‰é‡å¤ä½¿ç”¨çš„ç¼–è¾‘ç¬¦ç»„ï¼Œå¦‚2(2X,F3)ï¼Œåˆ™å½“æ‰€æœ‰ç¼–è¾‘ç¬¦ç”¨å®Œä¹‹åŽï¼Œè¿”å›žè‡³æœ€å³è¾¹çš„å·¦æ‹¬å·å¼€å§‹ï¼Œå¦‚æžœæ²¡æœ‰å·¦æ‹¬å·ï¼Œåˆ™ä½¿ç”¨å…¨éƒ¨
 //If format control encounters the rightmost parenthesis of a complete format specification and another effective
 //input / output list item is not specified, format control terminates.However, if another effective input / output list
 //item is specified, the file is positioned in a manner identical to the way it is positioned when a slash edit
@@ -67,16 +68,16 @@ struct ImpliedDo {
 
 	//}
 	//ImpliedDo & operator=(const ImpliedDo & x) {
-	//	if (this == &x) return *this;
-	//	dim = x.dim;
-	//	cur_dim = x.cur_dim;
-	//	lb = new fsize_t[dim];
-	//	sz = new fsize_t[dim];
-	//	cur = new fsize_t[dim];
-	//	std::copy_n(x.lb, dim, lb);
-	//	std::copy_n(x.sz, dim, sz);
-	//	std::copy_n(x.cur, dim, cur);
-	//	return *this;
+	//  if (this == &x) return *this;
+	//  dim = x.dim;
+	//  cur_dim = x.cur_dim;
+	//  lb = new fsize_t[dim];
+	//  sz = new fsize_t[dim];
+	//  cur = new fsize_t[dim];
+	//  std::copy_n(x.lb, dim, lb);
+	//  std::copy_n(x.sz, dim, sz);
+	//  std::copy_n(x.cur, dim, cur);
+	//  return *this;
 	//}
 	~ImpliedDo() {
 		if (lb != nullptr)
@@ -110,6 +111,14 @@ struct ImpliedDo {
 		};
 		_map_impl_next(newf, cur, dim, cur_dim, lb, sz);
 		return cps_retrieve();
+	}
+	bool get_next(T & x){
+		auto newf = [&](fsize_t * _) {
+			// move from expiring value to `ans`
+			//ans = std::move(f(_));
+			x = f(_);
+		};
+		return _map_impl_next(newf, cur, dim, cur_dim, lb, sz);
 	}
 
 	int dim;
@@ -231,19 +240,25 @@ struct IOFormat {
 	}
 
 	std::string next_editing() const {
+		/*****************
+		*   a  %d  %d
+		*      1   2
+		*   st is at pos 1
+		*   we want to find pos 2
+		*****************/
 		std::string editing;
 		size_t st = index();
 		assert(st >= size() || fmt[st] == '%'); // start with an editing
 		size_t e = fmt.find_first_of('%', st + 1); // find next editing
 		if (e == std::string::npos) {
-			// the last editing
+			// st is the last editing
 			if (reversion_end == (int)fmt.size())
 			{
-				editing = fmt.substr(st, e - st);
-				index() = e;
+				editing = fmt.substr(st, size() - st) + "\n";
+				index() = size();
 			}
 			else {
-				editing = fmt.substr(st, reversion_end - st);
+				editing = fmt.substr(st, size() - st) + "\n";
 				index() = reversion_end;
 			}
 		}
@@ -283,12 +298,11 @@ struct IOFormat {
 	std::string fmt;
 };
 
-
+_NAMESPACE_HIDDEN_BEGIN
 inline void _forwrite_noargs(FILE * f, IOFormat & format) {
 	fprintf(f, format.strip_front().c_str());
 	return;
 }
-
 template <typename T>
 void _str_fprintf(FILE * f, const std::string & _format, const T & x) {
 	fprintf(f, _format.c_str(), x);
@@ -296,7 +310,7 @@ void _str_fprintf(FILE * f, const std::string & _format, const T & x) {
 inline void _str_fprintf(FILE * f, const std::string & _format, const std::string & x) {
 	fprintf(f, _format.c_str(), x.c_str());
 }
-
+_NAMESPACE_HIDDEN_END
 
 // format
 // write formatted step 2
@@ -313,18 +327,7 @@ inline void _forwrite_one(FILE * f, IOFormat & format, const std::string & x) {
 	std::string ed = format.next_editing();
 	fprintf(f, ed.c_str(), x.c_str());
 };
-//template <typename T>
-//void _forwrite_one_arr1(FILE * f, IOFormat & format, const T & x) {
-//	// clear front
-//	_forwrite_noargs(f, format);
-//	typedef typename f1a_gettype<T>::type _InnerT;
-//	std::vector<_InnerT> vec = f1a_flattened(x);
-//	for (size_t i = 0; i < vec.size(); i++)
-//	{
-//		_forwrite_dispatch(f, format, vec[i]);
-//	}
-//	return;
-//};
+
 template <typename T>
 void _forwrite_one_arrf(FILE * f, IOFormat & format, const farray<T> & x) {
 	// clear front
@@ -337,10 +340,7 @@ void _forwrite_one_arrf(FILE * f, IOFormat & format, const farray<T> & x) {
 	return;
 };
 // write formatted step 1
-//template <typename T>
-//void _forwrite_dispatch(FILE * f, IOFormat & format, const for1array<T> & x) {
-//	_forwrite_one_arr1(f, format, x);
-//};
+
 template <typename T>
 void _forwrite_dispatch(FILE * f, IOFormat & format, const farray<T> & x) {
 	_forwrite_one_arrf(f, format, x);
@@ -421,31 +421,18 @@ void _forwritefree_one(FILE * f, T x) {
 	fprintf(f, "[object %s] %p", typeid(T).name(), &x);
 };
 
-//template <typename T>
-//void _forwritefree_one_arr1(FILE * f, const for1array<T> &  x) {
-//	typedef typename f1a_gettype<T>::type _InnerT;
-//	std::vector<_InnerT> vec = f1a_flattened(x);
-//	for (size_t i = 0; i < vec.size(); i++)
-//	{
-//		_forwritefree_one(f, vec[i]);
-//		fprintf(f, "\t");
-//	}
-//};
 template <typename T>
 void _forwritefree_one_arrf(FILE * f, const farray<T> & x) {
 	auto iter = x.cbegin();
 	for (fsize_t i = 0; i < x.flatsize(); i++)
 	{
+		if(i > 0) fprintf(f, "\t");
 		_forwritefree_one(f, *(iter + i));
-		fprintf(f, "\t");
 	}
 	fprintf(f, "\n");
 };
 // write free step 1
-//template <typename T>
-//void _forwritefree_dispatch(FILE * f, const for1array<T> & x) {
-//	_forwritefree_one_arr1(f, x);
-//};
+
 template <typename T>
 void _forwritefree_dispatch(FILE * f, const farray<T> & x) {
 	_forwritefree_one_arrf(f, x);
@@ -456,20 +443,27 @@ void _forwritefree_dispatch(FILE * f, const T & x) {
 };
 template <typename ... Types>
 void _forwritefree_dispatch(FILE * f, const IOStuff<Types...> & iostuff) {
+	bool first = true;
 	foreach_tuple(iostuff.tp, [&](auto x) {
+		if(first) first = false; else fprintf(f, "\t");
 		_forwritefree_dispatch(f, x);
 	});
 };
 template <typename T, typename F>
 void _forwritefree_dispatch(FILE * f, const ImpliedDo<T, F> & l) {
+	bool first = true;
 	while (l.has_next())
 	{
+		if(first) first = false; else fprintf(f, "\t");
 		const T & x = l.get_next();
 		_forwritefree_dispatch(f, x);
 	}
 };
 
 // write free step 0
+inline void forwritefree(FILE * f) {
+	fprintf(f, "\n");
+};
 template <typename T, typename... Args>
 void forwritefree(FILE * f, const T & x, Args&&... args) {
 	_forwritefree_dispatch(f, x);
@@ -481,18 +475,15 @@ void forwritefree(FILE * f, const T & x) {
 	_forwritefree_dispatch(f, x);
 	fprintf(f, "\n");
 };
-inline void forwritefree(FILE * f) {
-	fprintf(f, "\n");
+
+
+inline void forprintfree() {
+	forwritefree(stdout, "\n");
 };
-
-
 template <typename T, typename... Args>
 void forprintfree(const T & x, Args&&... args) {
 	// no format
 	forwritefree(stdout, x, std::forward<Args>(args)...);
-};
-inline void forprintfree() {
-	forwritefree(stdout, "\n");
 };
 
 template <typename T, typename... Args>
@@ -523,19 +514,11 @@ void _str_fscanf(FILE * f, const std::string & _format, T & x) {
 	fscanf(f, _format.c_str(), &x);
 }
 inline void _str_fscanf(FILE * f, const std::string & _format, std::string & x) {
-	//		std::ifstream ifs(f);
-	//		ifs >> x;
-	const unsigned N = 1024;
-	while (true) {
-		std::vector<char> buf(N);
-		size_t read = fread((void *)&buf[0], 1, N, f);
-		if (read) {
-			x.append(buf.begin(), buf.end());
-		}
-		if (read < N) {
-			break;
-		}
-	}
+	// std::ifstream ifs(f);
+	// ifs >> x;
+	char buf[1024];
+	fscanf(f, _format.c_str(), buf);
+	x = buf;
 }
 
 // read formatted step 2
@@ -551,10 +534,6 @@ inline void _forread_one(FILE * f, IOFormat & format, std::string & x) {
 	std::string fmt = format.next_editing();
 	_str_fscanf(f, fmt, x);
 };
-//template <typename T>
-//void _forread_one_arr1(FILE * f, IOFormat & format, for1array<T> & x) {
-
-//};
 template <typename T>
 void _forread_one_arrf(FILE * f, IOFormat & format, farray<T> & x) {
 	// clear front
@@ -566,16 +545,15 @@ void _forread_one_arrf(FILE * f, IOFormat & format, farray<T> & x) {
 	}
 };
 // read formatted step 1
-//template <typename T>
-//void _forread_dispatch(FILE * f, IOFormat & format, for1array<T> * x) {
-//	_forread_one_arr1(f, format, *x);
-//};
 template <typename T>
 void _forread_dispatch(FILE * f, IOFormat & format, farray<T> * x) {
 	_forread_one_arrf(f, format, *x);
 };
 template <typename T>
 void _forread_dispatch(FILE * f, IOFormat & format, T * x) {
+	_forread_one(f, format, *x);
+};
+inline void _forread_one(FILE * f, IOFormat & format, std::string * x) {
 	_forread_one(f, format, *x);
 };
 template <typename ... Types>
@@ -628,7 +606,7 @@ inline void _forreadfree_one(FILE * f, long double & x) {
 	fscanf(f, "%Lf", &x);
 };
 inline void _forreadfree_one(FILE * f, std::string & x) {
-	_str_fscanf(f, "", x);
+	_str_fscanf(f, "%s", x);
 };
 inline void _forreadfree_one(FILE * f, bool & x) {
 	char bool_str[10];
@@ -644,16 +622,11 @@ inline void _forreadfree_one(FILE * f, bool & x) {
 inline void _forreadfree_one(FILE * f, char * x) {
 	fscanf(f, "%s", x);
 };
-//template <typename T>
-//void _forreadfree_one(FILE * f, T & x) {
-//	std::ifstream ifs(f);
-//	ifs >> x;
-//};
+inline void _forreadfree_one(FILE * f, char & x) {
+	fscanf(f, "%c", &x);
+};
 
-//template <typename T>
-//void _forreadfree_one_arr1(FILE * f, for1array<T> & x) {
 
-//};
 template <typename T>
 void _forreadfree_one_arrf(FILE * f, farray<T> & x) {
 	auto iter = x.begin();
@@ -663,10 +636,7 @@ void _forreadfree_one_arrf(FILE * f, farray<T> & x) {
 	}
 };
 // read free step 1
-//template <typename T>
-//void _forreadfree_dispatch(FILE * f, for1array<T> * x) {
-//	_forreadfree_one_arr1(f, *x);
-//};
+
 template <typename T>
 void _forreadfree_dispatch(FILE * f, farray<T> * x) {
 	_forreadfree_one_arrf(f, *x);
@@ -683,6 +653,19 @@ void _forreadfree_dispatch(FILE * f, IOStuff<Types...> & iostuff) {
 };
 template <typename T, typename F>
 void _forreadfree_dispatch(FILE * f, ImpliedDo<T, F> & l) {
+	while (l.has_next())
+	{
+		_forreadfree_dispatch(f, l.get_next());
+	}
+};
+template <typename ... Types>
+void _forreadfree_dispatch(FILE * f, IOStuff<Types...> && iostuff) {
+	foreach_tuple(iostuff.tp, [&](auto & x) {
+		_forreadfree_dispatch(f, x);
+	});
+};
+template <typename T, typename F>
+void _forreadfree_dispatch(FILE * f, ImpliedDo<T, F> && l) {
 	while (l.has_next())
 	{
 		_forreadfree_dispatch(f, l.get_next());

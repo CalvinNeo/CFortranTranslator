@@ -25,14 +25,13 @@
 #include "forarray_common.h"
 #include "forlang.h"
 
-
 _NAMESPACE_FORTRAN_BEGIN
+_NAMESPACE_HIDDEN_BEGIN
 #ifdef _DEBUG
 #define _RTN(X) X
 #else
 #define _RTN(X) X
 #endif
-_NAMESPACE_HIDDEN_BEGIN
 template <typename size_type>
 static void _map_impl_reset(size_type * cur, int dimension, int & curdim, const size_type * LBound, const size_type * size) {
 	std::copy_n(LBound, dimension, cur);
@@ -98,6 +97,7 @@ static void _map_impl(F f, int dimension, const size_type * LBound, const size_t
 	delete[] cur;
 }
 _NAMESPACE_HIDDEN_END
+
 template <typename T>
 struct farray {
 	typedef T value_type;
@@ -224,8 +224,16 @@ struct farray {
 		return get(index);
 	}
 
-	operator T() {
-		// if this farray has only one element, it can be cast to a scalar
+	operator bool() {
+		// Return true if all elements in the array is true, otherwise false
+		for(auto iter = begin(); iter != end(); iter++){
+			if(!*iter) return false;
+		}
+		return true;
+	}
+	template <typename U, typename = std::enable_if_t<std::is_same<T, U>::value && !std::is_same<T, bool>::value>>
+	operator U() {
+		// If this farray has only one element, it can be cast to a scalar
 		assert(flatsize() == 1);
 		return *cbegin();
 	}
@@ -278,7 +286,16 @@ struct farray {
 	MAKE_ARITH_OPERATORS_UNARY(*=, *);
 	MAKE_ARITH_OPERATORS_UNARY(/=, /);
 
+	private:
+	void __transpose2d() {
+
+	}
+	public:
 	void transpose() {
+		if (this->dimension == 2) {
+			__transpose2d();
+			//return;
+		}
 		T * na = new T[flatsize()];
 		map([&](T & item, const fsize_t * cur) {
 			fsize_t oldindex = 0;
@@ -305,6 +322,7 @@ struct farray {
 		std::reverse(sz, sz + dimension);
 		fa_layer_delta(this->sz, this->sz + dimension, delta);
 	}
+
 
 	template <typename F>
 	void map(F f) const {
@@ -400,8 +418,8 @@ struct farray {
 		{
 			flatsize += farrs[i].flatsize();
 		}
-		this->parr = new T[flatsize];
-		auto parr_iter = parr;
+		this->parr = new T[flatsize]();
+		T * parr_iter = parr;
 		for (int i = 0; i < X; i++)
 		{
 			std::copy_n(farrs[i].cbegin(), farrs[i].flatsize(), parr_iter);
@@ -461,9 +479,10 @@ struct farray {
 		*	A scalar is conformable with any array
 		*	A rank-one array may be constructed from scalars and other arrays and may be reshaped into any allowable array shape
 		***************/
-		// implicitly use a scalr to initialize an array, so shape of array is undetermined
-		reset_array({ 1 }, { 1 });
-		reset_value(scalar);
+		// Implicitly use a scalr to initialize an array, so shape of array is undetermined
+		int lower_bound[] = {1}, size[] = {1}, v[] = {scalar};
+		reset_array(1, lower_bound, size);
+		reset_value(v, v + 1);
 	}
 	//explicit farray(int dim)  noexcept: is_view(false) {
 	// 
@@ -484,6 +503,8 @@ struct farray {
 	}
 	farray<T> & move_from(farray<T> && m) {
 		if (this == &m) return *this;
+		delete[] lb; delete[] sz; delete[] delta;
+		clear();
 		this->dimension = m.dimension;
 		this->lb = m.lb; 
 		this->sz = m.sz;
@@ -510,6 +531,7 @@ struct farray {
 		// only reset value, remain original shape
 		// use `move_from`, or call `reset_array` before using `operator=`, if you want to move the entire array
 		if (this == &x) return *this;
+		delete [] this->parr;
 		this->parr = x.parr;
 		x.parr = nullptr;
 		return *this;
@@ -517,6 +539,7 @@ struct farray {
 	~farray() {
 		if (!is_view) {
 			delete[] parr;
+			parr = nullptr;
 		}
 		delete[] lb; delete[] sz; delete[] delta;
 	}
@@ -528,43 +551,43 @@ protected:
 
 template <typename T1, typename T2> 
 auto power(const farray<T1> & x, const farray<T2> & y) { 
-assert(x.flatsize() == y.flatsize()); 
-decltype(std::declval<T1>() * std::declval<T2>()) narr(x);
-std::transform(narr.begin(), narr.end(), x.cbegin(), narr.begin(), [](auto m, auto n) {return power(m, n); });
-return _RTN(narr);
+	assert(x.flatsize() == y.flatsize()); 
+	decltype(std::declval<T1>() * std::declval<T2>()) narr(x);
+	std::transform(narr.begin(), narr.end(), x.cbegin(), narr.begin(), [](auto m, auto n) {return power(m, n); });
+	return _RTN(narr);
 }
 template <typename T1, typename T2>
 auto power(const T1 & x, const farray<T2> & y) {
-decltype(std::declval<T1>() * std::declval<T2>()) narr(y);
-std::transform(narr.begin(), narr.end(), narr.begin(), [&](auto m) {return power(x, m); });
-return _RTN(narr);
+	decltype(std::declval<T1>() * std::declval<T2>()) narr(y);
+	std::transform(narr.begin(), narr.end(), narr.begin(), [&](auto m) {return power(x, m); });
+	return _RTN(narr);
 }
 template <typename T1, typename T2>
 auto power(const farray<T1> & x, const T2 & y) {
-decltype(std::declval<T1>() * std::declval<T2>()) narr(x);
-std::transform(narr.begin(), narr.end(), narr.begin(), [&](auto m) {return power(m, y); });
-return _RTN(narr);
+	decltype(std::declval<T1>() * std::declval<T2>()) narr(x);
+	std::transform(narr.begin(), narr.end(), narr.begin(), [&](auto m) {return power(m, y); });
+	return _RTN(narr);
 }
 
 #define _MAKE_ARITH_OPERATORS_BIN(op, op2) template <typename T> \
-farray<T> operator op(const farray<T> & x, const farray<T> & y) { \
-	assert(x.flatsize() == y.flatsize()); \
-	farray<T> narr(x); \
-	narr op2 y; \
-	return _RTN(narr); \
-} \
-template <typename T> \
-farray<T> operator op(const T & x, const farray<T> & y) { \
-	farray<T> narr(y); \
-	narr op2 x; \
-	return _RTN(narr); \
-} \
-template <typename T> \
-farray<T> operator op(const farray<T> & x, const T & y) { \
-	farray<T> narr(x); \
-	narr op2 y; \
-	return _RTN(narr); \
-}
+	farray<T> operator op(const farray<T> & x, const farray<T> & y) { \
+		assert(x.flatsize() == y.flatsize()); \
+		farray<T> narr(x); \
+		narr op2 y; \
+		return _RTN(narr); \
+	} \
+	template <typename T> \
+	farray<T> operator op(const T & x, const farray<T> & y) { \
+		farray<T> narr(y); \
+		narr op2 x; \
+		return _RTN(narr); \
+	} \
+	template <typename T> \
+	farray<T> operator op(const farray<T> & x, const T & y) { \
+		farray<T> narr(x); \
+		narr op2 y; \
+		return _RTN(narr); \
+	}
 // do not use `operator ## op` for std compacity, `operator` is a seprated token
 _MAKE_ARITH_OPERATORS_BIN(+, +=);
 _MAKE_ARITH_OPERATORS_BIN(-, -=);
@@ -572,33 +595,33 @@ _MAKE_ARITH_OPERATORS_BIN(*, *=);
 _MAKE_ARITH_OPERATORS_BIN(/, /=);
 
 #define _MAKE_CMP_OPERATORS(op, id_cond) template <typename T> \
-farray<bool> operator op(const farray<T> & x, const farray<T> & y) { \
-	assert(x.flatsize() == y.flatsize()); \
-	if (&x == &y) { \
-		id_cond; \
-	} \
-	farray<bool> narr(x.dimension, x.LBound(), x.size()); \
-	narr.map([&](bool & item, const fsize_t * cur) { \
-		item = (x.const_get(cur, cur + x.dimension) op y.const_get(cur, cur + y.dimension)); \
-	}); \
-	return _RTN(narr); \
-} \
-template <typename T> \
-farray<bool> operator op(const T & x, const farray<T> & y) { \
-	farray<bool> narr(x.dimension, x.LBound(), x.size()); \
+	farray<bool> operator op(const farray<T> & x, const farray<T> & y) { \
+		assert(x.flatsize() == y.flatsize()); \
+		if (&x == &y) { \
+			id_cond; \
+		} \
+		farray<bool> narr(x.dimension, x.LBound(), x.size()); \
 		narr.map([&](bool & item, const fsize_t * cur) { \
-			item = (x op y.const_get(cur, cur + y.dimension)); \
-	}); \
-	return _RTN(narr); \
-} \
-template <typename T> \
-farray<bool> operator op(const farray<T> & x, const T & y) { \
-	farray<bool> narr(x.dimension, x.LBound(), x.size()); \
-	narr.map([&](bool & item, const fsize_t * cur) { \
-		item = (x.const_get(cur, cur + x.dimension) op y); \
-	}); \
-	return _RTN(narr); \
-}
+			item = (x.const_get(cur, cur + x.dimension) op y.const_get(cur, cur + y.dimension)); \
+		}); \
+		return _RTN(narr); \
+	} \
+	template <typename T> \
+	farray<bool> operator op(const T & x, const farray<T> & y) { \
+		farray<bool> narr(x.dimension, x.LBound(), x.size()); \
+			narr.map([&](bool & item, const fsize_t * cur) { \
+				item = (x op y.const_get(cur, cur + y.dimension)); \
+		}); \
+		return _RTN(narr); \
+	} \
+	template <typename T> \
+	farray<bool> operator op(const farray<T> & x, const T & y) { \
+		farray<bool> narr(x.dimension, x.LBound(), x.size()); \
+		narr.map([&](bool & item, const fsize_t * cur) { \
+			item = (x.const_get(cur, cur + x.dimension) op y); \
+		}); \
+		return _RTN(narr); \
+	}
 
 _MAKE_CMP_OPERATORS(<, return false );
 _MAKE_CMP_OPERATORS(<=, return true );
@@ -683,6 +706,7 @@ farray<T> make_init_list(const farray<T> & narr) {
 	return _RTN(narr);
 }
 
+_NAMESPACE_HIDDEN_BEGIN
 template <typename T, int X, typename _Iterator_In, typename _Iterator_Out>
 void _forslice_impl(const slice_info<fsize_t>(&tp)[X], const farray<T> & farr, int deep, const fsize_t * delta_out, const fsize_t * delta_in
 	, _Iterator_Out bo, _Iterator_Out eo, _Iterator_In bi, _Iterator_In ei)
@@ -707,6 +731,8 @@ void _forslice_impl(const slice_info<fsize_t>(&tp)[X], const farray<T> & farr, i
 		}
 	}
 };
+_NAMESPACE_HIDDEN_END
+
 template <typename T, int X>
 auto forslice(const farray<T> & farr, const slice_info<fsize_t>(&tp)[X]) {
 	// by fortran standard, slice must return by ref
@@ -782,6 +808,7 @@ fsize_t forsize(const farray<T> & farr, int fordim = 1) {
 //}
 using mask_wrapper_t = farray<bool>;
 
+_NAMESPACE_HIDDEN_BEGIN
 template <typename T, typename F>
 farray<T> _forloc_impl(F predicate, const farray<T> & farr, int fordim, foroptional<mask_wrapper_t> mask = None ) {
 	// if the array has zero size, or all of the elements of MASK are .FALSE., then the result is an array of zeroes. Similarly, if DIM is supplied and all of the elements of MASK along a given row are zero, the result value for that row is zero. 
@@ -817,6 +844,8 @@ farray<T> _forloc_impl(F predicate, const farray<T> & farr, foroptional<mask_wra
 	});
 	return _RTN(loc);
 }
+_NAMESPACE_HIDDEN_END
+
 template <typename T, typename F>
 T formap(F f, T x) {
 	// generally, `formap` just call `f(x)`
@@ -971,6 +1000,7 @@ inline fsize_t forcount(mask_wrapper_t mask) {
 	}, 0, mask, None);
 }
 
+_NAMESPACE_HIDDEN_BEGIN
 template <typename T, typename F>
 T _forcmpval_impl(F predicate, const T & initial_value, const farray<T> & farr, foroptional<mask_wrapper_t> mask = None) {
 	return forreduce([&](const T & op1, const T & op2) -> T {
@@ -999,6 +1029,7 @@ farray<T> _forcmpval_impl(F predicate, const T & initial_value, const farray<T> 
 		}
 	}, ans, farr, dim, mask);
 }
+_NAMESPACE_HIDDEN_END
 
 template <typename T>
 farray<T> formaxloc(const farray<T> & farr, foroptional<int> fordim, foroptional<mask_wrapper_t> mask = None) {

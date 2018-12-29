@@ -40,7 +40,7 @@ struct TypeAttr : public ParseAttr {
 	TypeAttr(const TypeAttr & ta) : ParseAttr(ta){
 		this->name = ta.name;
 	}
-	ParseAttr * clone() { return new TypeAttr(*this); }
+	ParseAttr * clone() override { return new TypeAttr(*this); }
 	~TypeAttr() {
 	}
 	// void merge(const VariableDescAttr & pa) {  }
@@ -55,7 +55,7 @@ struct VariableAttr : public ParseAttr {
 		// do NOT copy vinfoptr because vinfoptr pointer to VariableInfo in get_context()
 		this->vinfoptr = va.vinfoptr;
 	}
-	ParseAttr * clone() { return new VariableAttr(*this); }
+	ParseAttr * clone() override { return new VariableAttr(*this); }
 	~VariableAttr() {
 	}
 };
@@ -71,7 +71,7 @@ struct VariableDescAttr : public ParseAttr {
 		// do not call `clone()` else will cause stackoverflow
 		this->desc = vda.desc;
 	}
-	ParseAttr * clone() { return new VariableDescAttr(*this); }
+	ParseAttr * clone() override { return new VariableDescAttr(*this); }
 
 	void merge(const VariableDescAttr & x2) {
 		desc.merge(x2.desc);
@@ -87,11 +87,8 @@ struct FunctionAttr : public ParseAttr {
 		// do not call `clone()` else will cause stackoverflow
 		this->finfoptr = fa.finfoptr;
 	}
-	ParseAttr * clone() { return new FunctionAttr(*this); }
+	ParseAttr * clone() override { return new FunctionAttr(*this); }
 
-	void merge(const FunctionAttr & x2) {
-
-	}
 	~FunctionAttr() {
 	}
 };

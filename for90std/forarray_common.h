@@ -92,6 +92,7 @@ std::vector<fsize_t> fa_layer_delta(Iterator size_begin, Iterator size_end) {
 template<typename In_Iter, typename Out_Iter>
 void fa_layer_delta(In_Iter size_begin, In_Iter size_end, Out_Iter out_begin) {
 	fsize_t s = 1;
+	// TODO use partial_sum or exclusive_scan/inclusive_scan
 	std::transform(size_begin, size_end, out_begin, [&s](fsize_t x) {fsize_t ans = s; s *= x; return ans; });
 }
 #else

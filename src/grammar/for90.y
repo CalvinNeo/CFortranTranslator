@@ -102,7 +102,7 @@ using namespace std;
 
 %token /*_YY_VOID*/ YY_IGNORE_THIS YY_CRLF
 %token /*_YY_OP*/ YY_GT YY_GE YY_EQ YY_LE YY_LT YY_NEQ YY_NEQV YY_EQV YY_ANDAND YY_OROR YY_NOT YY_POWER YY_DOUBLECOLON YY_NEG YY_POS YY_EXPONENT 
-%token /*_YY_TYPE*/ YY_INTEGER YY_FLOAT YY_WORD YY_OPERATOR YY_STRING YY_ILLEGAL YY_COMPLEX YY_TRUE YY_FALSE YY_FORMAT_STMT YY_COMMENT
+%token /*_YY_TYPE*/ YY_INTEGER YY_FLOAT YY_WORD YY_OPERATOR /* Lead to error YY_OPERATOR_UNARY */ YY_STRING YY_ILLEGAL YY_COMPLEX YY_TRUE YY_FALSE YY_FORMAT_STMT YY_COMMENT
 %token /*_YY_CONTROL_FLOW*/ YY_LABEL YY_END YY_IF YY_THEN YY_ELSE YY_ELSEIF YY_ENDIF YY_DO YY_ENDDO YY_CONTINUE YY_BREAK YY_EXIT YY_CYCLE YY_WHILE YY_ENDWHILE YY_WHERE YY_ENDWHERE YY_CASE YY_ENDCASE YY_SELECT YY_ENDSELECT YY_GOTO YY_DOWHILE YY_DEFAULT 
 %token /*_YY_DELIM*/ YY_PROGRAM YY_ENDPROGRAM YY_FUNCTION YY_ENDFUNCTION YY_RECURSIVE YY_RESULT YY_SUBROUTINE YY_ENDSUBROUTINE YY_MODULE YY_ENDMODULE YY_BLOCK YY_ENDBLOCK YY_INTERFACE YY_ENDINTERFACE YY_COMMON YY_DATA
 %token /*_YY_DESCRIBER*/ YY_IMPLICIT YY_NONE YY_USE YY_PARAMETER YY_ENTRY YY_DIMENSION YY_ARRAYBUILDER_START YY_ARRAYBUILDER_END YY_INTENT YY_IN YY_OUT YY_INOUT YY_OPTIONAL YY_LEN YY_KIND YY_SAVE YY_ALLOCATABLE YY_TARGET YY_POINTER
@@ -112,6 +112,16 @@ using namespace std;
 %token /*_YY_SYSFUNCTION*/ YY_ALLOCATE
 
 
+/******************* 
+* TODO: As it's appeared in `exp` rules,
+* we must assign priority to `YY_OPERATOR`
+* inorder to avoid shift-reduce conflict.
+* According to fortran, unary operators have highest priority,
+* while binary operators have lowest priority.
+* ref http://krsna.lamost.org/popular/fortran/8.htm
+* Error on For3d14.for
+*******************/
+// %left YY_OPERATOR
 %left YY_EQV YY_NEQV
 %left YY_OROR
 %left YY_ANDAND
@@ -122,10 +132,11 @@ using namespace std;
 %left '+' '-' 
 %left '*' '/' 
 /******************* 
-*	YY_POWER is right associative
-*	x**y**z -> x**(y**z) 
+* YY_POWER is right associative
+* x**y**z -> x**(y**z) 
 *******************/
 %right YY_POWER 
+// %right YY_OPERATOR_UNARY // Error on For3d14.for
 
 %start fortran_program
 
@@ -1420,6 +1431,8 @@ using namespace std;
 
     var_def : type_spec variable_desc YY_DOUBLECOLON paramtable
 			{
+				// TODO: Here may be a shift-reduce confliction, because `variable_desc` can be empty,
+				// when confronting ',', both reducing to variable_desc or shifting may make sense.
 				ARG_OUT type_spec = YY2ARG($1);
 				ARG_OUT variable_desc = YY2ARG($2);
 				ARG_OUT paramtable = YY2ARG($4);

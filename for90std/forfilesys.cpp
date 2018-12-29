@@ -23,8 +23,8 @@
 #include "utils.h"
 
 _NAMESPACE_FORTRAN_BEGIN
-static std::map<int, FILE *> filenos;
-static bool forfilesys_inited = false;
+std::map<int, FILE *> filenos;
+bool forfilesys_inited = false;
 FILE * get_file(int unit) {
 	if (!forfilesys_inited) flush_fileno();
 	auto iter = filenos.find(unit);
@@ -156,11 +156,6 @@ void foropenfile(int unit, foroptional<int> iostat, foroptional<forlabel> err, f
 		mode = flag_replace + flag_rw;
 	}
 	filenos[unit] = fopen(file.get().c_str(), mode.c_str());
-	if (filenos[unit] == 0)
-	{
-		// if not exist then create
-		filenos[unit] = fopen(file.get().c_str(), "w+");
-	}
 	if (position.value_or("rewind") == "")
 	{
 		fseek(filenos[unit], 0, SEEK_SET);
