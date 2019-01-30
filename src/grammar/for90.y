@@ -199,7 +199,7 @@ using namespace std;
 	variable_desc_elem : YY_INTENT '(' YY_IN ')'
 			{
 				ParseNode newnode = gen_token(Term{ TokenMeta::NT_VARIABLEDESC, WHEN_DEBUG_OR_EMPTY("NT_VARIABLEDESC GENERATED IN") }); // intent(in)
-				set_variabledesc_attr(newnode, true, true, boost::none, boost::none, boost::none, boost::none, boost::none, boost::none, boost::none);
+				set_variabledesc_attr(newnode, true, true, boost::none, boost::none, boost::none, boost::none, boost::none, boost::none, boost::none, boost::none);
 				$$ = RETURN_NT(newnode);
 				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($4));
 				CLEAN_DELETE($1, $2, $3, $4);
@@ -207,7 +207,7 @@ using namespace std;
 		| YY_INTENT '(' YY_OUT ')'
 			{
 				ParseNode newnode = gen_token(Term{ TokenMeta::NT_VARIABLEDESC, WHEN_DEBUG_OR_EMPTY("NT_VARIABLEDESC GENERATED IN") }); // intent(out)
-				set_variabledesc_attr(newnode, true, false, boost::none, boost::none, boost::none, boost::none, boost::none, boost::none, boost::none);
+				set_variabledesc_attr(newnode, true, false, boost::none, boost::none, boost::none, boost::none, boost::none, boost::none, boost::none, boost::none);
 				$$ = RETURN_NT(newnode);
 				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($4));
 				CLEAN_DELETE($1, $2, $3, $4);
@@ -216,7 +216,7 @@ using namespace std;
 		| YY_INTENT '(' YY_INOUT ')'
 			{
 				ParseNode newnode = gen_token(Term{ TokenMeta::NT_VARIABLEDESC, WHEN_DEBUG_OR_EMPTY("NT_VARIABLEDESC GENERATED IN") }); // intent(inout)
-				set_variabledesc_attr(newnode, true, false, boost::none, boost::none, boost::none, boost::none, boost::none, boost::none, boost::none);
+				set_variabledesc_attr(newnode, true, false, boost::none, boost::none, boost::none, boost::none, boost::none, boost::none, boost::none, true);
 				$$ = RETURN_NT(newnode);
 				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($4));
 				CLEAN_DELETE($1, $2, $3, $4);
@@ -228,7 +228,7 @@ using namespace std;
 				// do not parse array slices here because this is difficult 
 				ARG_OUT dimen_slice = YY2ARG($3);
 				ParseNode newnode = gen_token(Term{ TokenMeta::NT_VARIABLEDESC, WHEN_DEBUG_OR_EMPTY("NT_VARIABLEDESC GENERATED IN VARDEF") }, dimen_slice);
-				set_variabledesc_attr(newnode, boost::none, boost::none, boost::none, dimen_slice, boost::none, boost::none, boost::none, boost::none, boost::none);
+				set_variabledesc_attr(newnode, boost::none, boost::none, boost::none, dimen_slice, boost::none, boost::none, boost::none, boost::none, boost::none, boost::none);
 				$$ = RETURN_NT(newnode);
 				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($4));
 				CLEAN_DELETE($1, $2, $3, $4);
@@ -241,7 +241,7 @@ using namespace std;
 				ParseNode slice = promote_exp_to_slice(exp_to);
 				ParseNode dimen_slice = gen_promote("", TokenMeta::NT_DIMENSLICE, slice);
 				ParseNode newnode = gen_token(Term{ TokenMeta::NT_VARIABLEDESC, WHEN_DEBUG_OR_EMPTY("NT_VARIABLEDESC GENERATED IN VARDEF") }, dimen_slice);
-				set_variabledesc_attr(newnode, boost::none, boost::none, boost::none, dimen_slice, boost::none, boost::none, boost::none, boost::none, boost::none);
+				set_variabledesc_attr(newnode, boost::none, boost::none, boost::none, dimen_slice, boost::none, boost::none, boost::none, boost::none, boost::none, boost::none);
 				$$ = RETURN_NT(newnode);
 				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($4));
 				CLEAN_DELETE($1, $2, $3, $4);
@@ -250,7 +250,7 @@ using namespace std;
 		| YY_DIMENSION 
 			{
 				ParseNode newnode = gen_token(Term{ TokenMeta::NT_VARIABLEDESC, WHEN_DEBUG_OR_EMPTY("NT_VARIABLEDESC GENERATED IN") });
-				set_variabledesc_attr(newnode, boost::none, boost::none, boost::none, boost::none, boost::none, boost::none, boost::none, boost::none, boost::none);
+				set_variabledesc_attr(newnode, boost::none, boost::none, boost::none, boost::none, boost::none, boost::none, boost::none, boost::none, boost::none, boost::none);
 				$$ = RETURN_NT(newnode);
 				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($1));
 				CLEAN_DELETE($1);
@@ -259,7 +259,7 @@ using namespace std;
 		| YY_OPTIONAL
 			{
 				ParseNode newnode = gen_token(Term{ TokenMeta::NT_VARIABLEDESC, WHEN_DEBUG_OR_EMPTY("NT_VARIABLEDESC GENERATED IN") }); // optional
-				set_variabledesc_attr(newnode, boost::none, boost::none, true, boost::none, boost::none, boost::none, boost::none, boost::none, boost::none);
+				set_variabledesc_attr(newnode, boost::none, boost::none, true, boost::none, boost::none, boost::none, boost::none, boost::none, boost::none, boost::none);
 				$$ = RETURN_NT(newnode);
 				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($1));
 				CLEAN_DELETE($1);
@@ -268,7 +268,7 @@ using namespace std;
 			{
 				// const value
 				ParseNode newnode = gen_token(Term{ TokenMeta::NT_VARIABLEDESC, WHEN_DEBUG_OR_EMPTY("NT_VARIABLEDESC GENERATED IN") }); // const
-				set_variabledesc_attr(newnode, boost::none, true, boost::none, boost::none, boost::none, boost::none, boost::none, boost::none, boost::none);
+				set_variabledesc_attr(newnode, boost::none, true, boost::none, boost::none, boost::none, boost::none, boost::none, boost::none, boost::none, boost::none);
 				$$ = RETURN_NT(newnode);
 				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($1));
 				CLEAN_DELETE($1);
@@ -277,7 +277,7 @@ using namespace std;
 			{
 				// static value 
 				ParseNode newnode = gen_token(Term{ TokenMeta::NT_VARIABLEDESC, WHEN_DEBUG_OR_EMPTY("NT_VARIABLEDESC GENERATED IN") }); // static
-				set_variabledesc_attr(newnode, boost::none, boost::none, boost::none, boost::none, boost::none, true, boost::none, boost::none, boost::none);
+				set_variabledesc_attr(newnode, boost::none, boost::none, boost::none, boost::none, boost::none, true, boost::none, boost::none, boost::none, boost::none);
 				$$ = RETURN_NT(newnode);
 				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($1));
 				CLEAN_DELETE($1);
@@ -286,7 +286,7 @@ using namespace std;
 			{
 				/* allocatable value */
 				ParseNode newnode = gen_token(Term{ TokenMeta::NT_VARIABLEDESC, WHEN_DEBUG_OR_EMPTY("NT_VARIABLEDESC GENERATED IN") }); // allocatable
-				set_variabledesc_attr(newnode, boost::none, boost::none, boost::none, boost::none, boost::none, boost::none, true, boost::none, boost::none);
+				set_variabledesc_attr(newnode, boost::none, boost::none, boost::none, boost::none, boost::none, boost::none, true, boost::none, boost::none, boost::none);
 				$$ = RETURN_NT(newnode);
 				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($1));
 				CLEAN_DELETE($1);
@@ -295,7 +295,7 @@ using namespace std;
 			{
 				// target value
 				ParseNode newnode = gen_token(Term{ TokenMeta::NT_VARIABLEDESC, WHEN_DEBUG_OR_EMPTY("NT_VARIABLEDESC GENERATED IN") }); // target
-				set_variabledesc_attr(newnode, boost::none, boost::none, boost::none, boost::none, boost::none, boost::none, boost::none, true, boost::none);
+				set_variabledesc_attr(newnode, boost::none, boost::none, boost::none, boost::none, boost::none, boost::none, boost::none, true, boost::none, boost::none);
 				$$ = RETURN_NT(newnode);
 				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($1));
 				CLEAN_DELETE($1);
@@ -337,7 +337,7 @@ using namespace std;
 
 				/* type size */
 				ParseNode newnode = gen_token(Term{ TokenMeta::NT_VARIABLEDESC, "NT_VARIABLEDESC" });
-				set_variabledesc_attr(newnode, boost::none, boost::none, boost::none, boost::none, kind, boost::none, boost::none, boost::none, boost::none);
+				set_variabledesc_attr(newnode, boost::none, boost::none, boost::none, boost::none, kind, boost::none, boost::none, boost::none, boost::none, boost::none);
 				$$ = RETURN_NT(newnode);
 				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($3));
 				CLEAN_DELETE($1, $2, $3);
@@ -352,7 +352,7 @@ using namespace std;
 
 				/* string length */
 				ParseNode newnode = gen_token(Term{ TokenMeta::NT_VARIABLEDESC, WHEN_DEBUG_OR_EMPTY("NT_VARIABLEDESC GENERATED IN") });
-				set_variabledesc_attr(newnode, boost::none, boost::none, boost::none, boost::none, len, boost::none, boost::none, boost::none, boost::none);
+				set_variabledesc_attr(newnode, boost::none, boost::none, boost::none, boost::none, len, boost::none, boost::none, boost::none, boost::none, boost::none);
 				$$ = RETURN_NT(newnode);
 				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($3));
 				CLEAN_DELETE($1, $2, $3);
@@ -1468,7 +1468,7 @@ using namespace std;
 				ARG_OUT paramtable = YY2ARG($2);
 				ParseNode type_spec = gen_token(Term {TokenMeta::Implicit_Decl, ""});
 				ParseNode variable_desc = gen_token(Term{ TokenMeta::NT_VARIABLEDESC, WHEN_DEBUG_OR_EMPTY("NT_VARIABLEDESC GENERATED IN ") });
-				set_variabledesc_attr(variable_desc, boost::none, boost::none, boost::none, boost::none, boost::none, boost::none, boost::none, boost::none, boost::none);
+				set_variabledesc_attr(variable_desc, boost::none, boost::none, boost::none, boost::none, boost::none, boost::none, boost::none, boost::none, boost::none, boost::none);
 				$$ = RETURN_NT(gen_vardef(type_spec, variable_desc, paramtable));
 				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($2));
 				CLEAN_DELETE($1, $2);

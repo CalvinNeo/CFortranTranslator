@@ -116,7 +116,10 @@ std::string gen_qualified_typestr(const ParseNode & type_spec, VariableDesc & va
 			}
 		}
 		else {
-			if (vardesc.reference) {
+			if(vardesc.inout_reference){
+				var_pattern = "%s &&";
+			}
+			else if (vardesc.reference) {
 				if (vardesc.constant) {
 					var_pattern = "const %s &";
 				}

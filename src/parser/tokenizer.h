@@ -35,7 +35,6 @@ struct Term {
 //#define USE_LEX
 
 struct TokenizerState {
-	// ´Ê·¨·ÖÎö
 	Term CurrentTerm;
 	int parse_pos = 0;
 	int parse_line = 0;
@@ -57,6 +56,8 @@ struct TokenizerContext {
 	std::function<void()> unload_code;
 };
 TokenizerContext & get_tokenizer_context();
+void reset_tokenizer_context();
+
 
 extern const std::vector<KeywordMeta> keywords;
 extern const std::map<std::string, std::vector<std::string> > forward1;

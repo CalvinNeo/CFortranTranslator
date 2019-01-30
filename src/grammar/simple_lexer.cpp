@@ -35,6 +35,18 @@ SimplerContext & get_simpler_context() {
 	return sc;
 };
 
+void reset_simpler_context(){
+	get_simpler_context().reset();
+	get_simpler_context().pos = 0;
+	get_simpler_context().code = "";
+	get_simpler_context().newline_marker = true;
+	get_simpler_context().label_border = FORTRAN_CONTINUATION_SPACE + 1;
+	get_simpler_context().in_string_literal = 0;
+	get_simpler_context().in_format_stmt = false;
+	get_simpler_context().char_cache.clear();
+	get_simpler_context().item_cache.clear();
+}
+
 static bool is_comment_beginning(char ch) {
 	SimplerContext & sc = get_simpler_context();
 	return (ch == '!') // `!`-beginning comments can start any where
@@ -528,7 +540,7 @@ static bool check_frac(const std::string & cur, std::string & res) {
 		next_nonblank_item(cur2);
 		bool all_digit = std::accumulate(cur2.begin(), cur2.end(), true, [](bool b, char x) {
 			return b && (is_int(x));
-		});
+		}) && cur2 != "";
 		if (all_digit)
 		{
 			// float
@@ -550,10 +562,10 @@ static bool check_frac(const std::string & cur, std::string & res) {
 			next_nonblank_item(cur2);
 			bool all_digit = std::accumulate(cur2.begin(), cur2.end(), true, [](bool b, char x) {
 				return b && (is_int(x));
-			});
+			}) && cur2 != "";
 			bool all_alpha = std::accumulate(cur2.begin(), cur2.end(), true, [](bool b, char x) {
 				return b && (is_name(x));
-			});
+			}) && cur2 != "";
 			// if all digit
 			if (all_digit) {
 				// float, definitely
@@ -606,18 +618,23 @@ static bool check_expo(const std::string & pre, std::string & res) {
 	char exp_mark = pull_complete_char();
 	if (is_within(exp_mark, std::vector<char>{ 'E', 'e', 'D', 'd'}))
 	{
+		res += "e";
+		AGAIN:
 		next_nonblank_item(cur);
 		if (is_int(cur[0]))
 		{
 			bool is_fl = check_frac(cur, cur2);
-			res += ("e" + cur2);
+			res += cur2;
 			flag = true;
 		}
 		else if (cur[0] == '.')
 		{
 			bool is_fl = check_frac(".", cur2);
-			res += ("e" + cur2);
+			res += cur2;
 			flag = true;
+		}else if(cur[0] == '-' || cur[0] == '+'){
+			res += cur[0];
+			goto AGAIN;
 		}
 		else {
 			fatal_error("Tokenizer error: incompelete exponent");
@@ -685,10 +702,10 @@ NOP_REPEAT:
 		if (is_int(cur[0])) {
 			// int or float
 			std::string cur2, res;
-			check_frac(cur, cur2);
+			bool is_fl = check_frac(cur, cur2);
 			res += cur2;
-			bool is_fl = check_expo(res, cur2);
-			if (is_fl)
+			bool is_expo = check_expo(res, cur2);
+			if (is_fl || is_expo)
 			{
 				return_term = Term{ TokenMeta::Float, cur2 };
 				return_token = YY_FLOAT;

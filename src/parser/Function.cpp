@@ -60,5 +60,9 @@ void forall_function_in_module(std::string module_name, std::function<void(std::
 }
 
 void clear_functions() {
-
+	for(std::map <std::string, FunctionInfo *>::value_type & pr : get_context().functions)
+	{
+		delete pr.second;
+	}
+	get_context().functions.clear();
 }

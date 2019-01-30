@@ -128,13 +128,13 @@ struct ImpliedDo {
 };
 
 template <int D, typename F>
-auto make_implieddo(const fsize_t(&_lb)[D], const fsize_t(&_to)[D], F func) {
-	typedef typename function_traits<decltype(func)>::result_type T;
+auto make_implieddo(const fsize_t(&_lb)[D], const fsize_t(&_to)[D], F&& func) {
+	typedef typename function_traits<std::remove_reference_t<decltype(func)>>::result_type T;
 	return ImpliedDo<T, F>{D, (fsize_t *)_lb, (fsize_t *)_to, func};
 };
 template <int D, typename F>
-auto make_implieddo(fsize_t * _lb, fsize_t * _to, F func) {
-	typedef typename function_traits<decltype(func)>::result_type T;
+auto make_implieddo(fsize_t * _lb, fsize_t * _to, F&& func) {
+	typedef typename function_traits<std::remove_reference_t<decltype(func)>>::result_type T;
 	return ImpliedDo<T, F>{D, _lb, _to, func};
 };
 

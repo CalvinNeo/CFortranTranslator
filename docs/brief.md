@@ -1,25 +1,25 @@
-# target code
-ref [/src/grammar/for90.y](/src/grammar/for90.y) for all accepted grammar
+# Target code
+See [/src/grammar/for90.y](/src/grammar/for90.y) for all accepted grammar
 
-## fortran's special grammar
+## Fortran's special grammar
 
-1. you can rename keyword parameter in `interface` block
-2. you can use anonymous grammar structures
-3. declaration/specification is not forced before any other statements
-    according to fortran standard, declaration/specification(sudh as variable declarations and interfaces) statements must before all executable constructs(2.3.1)
-    however, there's no such restriction in this translator 
+1. You can rename keyword parameter in `interface` block
+2. You can use anonymous grammar structures
+3. Declaration/specification is not forced before any other statements
+    According to Fortran standard, declaration/specification(sudh as variable declarations and interfaces) statements must before all executable constructs(2.3.1)
+    However, there's no such restriction in this translator 
 
 ### implied-do
-all implied-do will be translated in to struct `ImpliedDo`:
+All implied-do will be translated in to struct `ImpliedDo`:
 `ImpliedDo(int D, fsize_t * fr, fsize_t * to, F func )`
 
-- this implied-do loop has `D` layers, the outmost layer is layer 0, the innermost layer is layer (D - 1)
-- layer `i` loops in range `[fr[i], to[i]]`
+- This implied-do loop has `D` layers, the outmost layer is layer 0, the innermost layer is layer (D - 1)
+- Layer `i` loops in range `[fr[i], to[i]]`
 - `F func` should have signature like `[&](fsize_t * current){return X}`, where `current` points to a size `D` array giving current index of each loop layer
 
 ### io-implied-do
 
-ref [/src/target/gen_io.cpp](/src/target/gen_io.cpp)
+See [/src/target/gen_io.cpp](/src/target/gen_io.cpp)
 
 > R916 io-implied-do is ( io-implied-do-object-list , io-implied-do-control )
 > R917 io-implied-do-object is input-item or output-item
@@ -34,11 +34,11 @@ For input function like `forreadfree` and `forread`, the `io-implied-do-object-l
 
 For output function like `forwritefree` and `forwrite`, the `io-implied-do-object-list` must be a *expr*(R915), so `F f` can return anything.
 
-Here is a simple fortran's io-implied-do demo
+Here is a simple Fortran's io-implied-do demo
 ```
 WRITE(2,*) ((A(I,J),B(I),J=1,i),I=2,10)
 ```
-and this will be transformed into
+And this will be transformed into
 ```
 forwritefree(get_file(2), make_implieddo({2}, {10}, [&](const fsize_t * current_i){
 		return [&](fsize_t i){
@@ -64,29 +64,29 @@ IOStuff<Types...> make_iostuff(const std::tuple<Types...> & _tp) {
 }
 ```
 
-read/write a `IOStuff` is to read/write every element of `IOStuff` in order
+Read/write a `IOStuff` is to read/write every element of `IOStuff` in order
 
 #### IOFormat
 IOFormat has basic form, `IOFormat(const std::string & s, int rev_start, int rev_end)`, in which `rev_start` and `rev_end` is optional.
 
-- `formatter` is generated from fortran's format
+- `formatter` is generated from Fortran's format
 
 - `reversion_start` is a value computed by compiler, it shows index of beginning of the repeat string (ref. 10.3), while `reversion_end` shows this end of repeat string
 ```
 WRITE(2,"(I)\n") 1,2,3,4,5
 ```
-will be translated into
+Will be translated into
 ```
 forwrite(get_file(2), IOFormat{"%d", 0, 2}, 1, 2, 3, 4, 5);
 ```
 
-## array
-ref [brief/array.md](brief/array.md)
+## Array
+See [brief/array.md](brief/array.md)
 
-## types
-### type mapping
+## Types
+### Type mapping
 
-|fortran|C++|
+|Fortran|C++|
 |:-:|:-:|
 |INTEGER(unspecified kind)|`int`|
 |INTEGER(kind = 1)|`int8_t`|
@@ -102,9 +102,9 @@ ref [brief/array.md](brief/array.md)
 |CHARACTER|`std::string`|
 |array|`farray<T>`|
 
-### type casting
+### Type casting
 
-|fortran|C++|
+|Fortran|C++|
 |:-:|:-:|
 |`INTEGER()`|`to_int`|
 |`REAL()`|`to_double`|
@@ -114,23 +114,23 @@ ref [brief/array.md](brief/array.md)
 |`CHAR()`|`to_string`|
 
 
-## variables
-1. variable names in fortran are **case-insensitive**, and their names will be translated into lower case.
-2. variable names that conflicts with C++ keywords and standard library functions will be renamed with a `R_` surfix
+## Variables
+1. Variable names in Fortran are **case-insensitive**, and their names will be translated into lower case.
+2. Variable names that conflicts with C++ keywords and standard library functions will be renamed with a `R_` surfix
 
-### common block
+### Common block
 
-common blocks, can be accessed by any of the scoping units in an executable program
+Common blocks, can be accessed by any of the scoping units in an executable program
 
-| common statement | C++ |
+| Common statement | C++ |
 |:-:|:-:|
 |`INTEGER::A; COMMON A`| `int & a = G.a` |
 |`INTEGER::B; COMMON /COMMON_NAME/ B`| `int & b = COMMON_NAME.b` |
 |`COMMON C`| `T & c = G.c` |
 |`COMMON /COMMON_NAME/ D`| `T & c = COMMON_NAME.c` |
 
-where T conform to fortran's implicit type deduction(refer fortran 77 standard support for detail)
-each commom block will be create a singleton struct
+Where T conform to Fortran's implicit type deduction(refer Fortran 77 standard support for detail)
+Each commom block will be create a singleton struct
 ```
 struct{
     T1 _1;
@@ -138,19 +138,19 @@ struct{
     /* common variables */
 }COMMON_NAME;
 ```
-if this common block is an unamed block, `COMMON_NAME` is by default `G`
+If this common block is an unamed block, `COMMON_NAME` is by default `G`
 
 
-## subroutines and functions
-### parameter list
-1. remove all definition of local variables which is also in parameter list
-2. optional parameter: instead of c-style optional parameter, wrap optional parameters with `foroptional<T>`, function `forpresent` functions as `present` function in fortran90
-3. keyword/named parameter: C++ don't support keyword parameters, all keyword parameter will be reorganized in normal paramtable
+## Subroutines and functions
+### Parameter list
+1. Remove all definition of local variables which is also in parameter list
+2. Optional parameter: instead of c-style optional parameter, wrap optional parameters with `foroptional<T>`, function `forpresent` functions as `present` function in Fortran90
+3. Keyword/named parameter: C++ don't support keyword parameters, all keyword parameter will be reorganized in normal paramtable
 
-### interface
+### Interface
 "functions" delcared in interface will be generated as a `std::function<...>` clause
 
-for example
+For example
 ```
 subroutine proc(a, b, fun)
 	interface
@@ -163,7 +163,7 @@ subroutine proc(a, b, fun)
 	print *, fun(a, b) 
 end subroutine
 ```
-will be translated into
+Will be translated into
 
 ```
 void proc(const int & a, const int & b, std::function<int(const int &, const int &)> fun)
@@ -174,7 +174,7 @@ void proc(const int & a, const int & b, std::function<int(const int &, const int
 
 ```
 
-### attribute specification statements
+### Attribute specification statements
 
 > The INTENT (IN) attribute specifies that the dummy argument must not be redefined or become undefined
 during the execution of the procedure.
@@ -193,7 +193,7 @@ actual argument (12.5.2.1, 12.5.2.2, 12.5.2.3).
 
 The `intent`, `parameter`, `save` specification generate codes following rules:
 
-|intent|parameter|save|C++|argument passing pattern|
+|Intent|Parameter|Save|C++|Argument passing pattern|
 |:-:|:-:|:-:|:-:|:-:|
 |/|/|/|`T &&`| `INOUT(v)` |
 |any|/|save|`static`| `INOUT(v)` |
@@ -207,14 +207,14 @@ By implementation, `INOUT(v)` is simply `std::move(v)`, it just convert a `T &` 
 
 Currently, all arguments are passed by pattern `INOUT`
 
-## operators
-1. according to R311, defined operators shouldd have NO digits in their names
+## Iperators
+1. According to R311, defined operators should have NO digits in their names
 
-    this rule is necessary, considering `2.e2.0` is float, not a operator `e2` with two operands `2` and `0`
+    This rule is necessary, considering `2.e2.0` is float, not a operator `e2` with two operands `2` and `0`
 
-### intrinsic operators
+### Intrinsic operators
 
-| fortran intrinsic operators | C++ |
+| Fortran intrinsic operators | C++ |
 |:-:|:-:|
 | `.and.` | `&&` |
 | `.or.` | `||` |
@@ -227,58 +227,58 @@ Currently, all arguments are passed by pattern `INOUT`
 | `.lt.` | `<` |
 | `.le.` | `<=` |
 
-# fortran 77 standard support
-## fixed form
+# Fortran 77 standard support
+## Fixed form
 CFortranTranslator can accept both fixed form and free form code.
 
 CFortranTranslator **WON'T** handle fixed/free part of the code respectively
 
 1. Comments(ref 3.3.2.1 Fixed form commentary)
 
-    under any condition lines begin with `C` or `c` are comments
+    Under any condition lines begin with `C` or `c` are comments
 
 2. Continuation(ref 3.3.2.3 Fixed form statement continuation)
 
     THIS DO NOT CONFORM TO FORTRAN90 STANDARD
 
-    under any condition lines is continuation when
-    1. begin with **5** **BLANKS**(not in standard) and position 6 is not blank, **or**,
-    2. (not in standard)begin with **1** **TAB**(in this case 1 TAB can consider to be equal to 5 blanks) and the next character is not blank or TAB
+    Under any condition lines is continuation when
+    1. Begin with **5** **BLANKS**(not in standard) and position 6 is not blank, **or**,
+    2. (Not in standard)Begin with **1** **TAB**(in this case 1 TAB can consider to be equal to 5 blanks) and the next character is not blank or TAB
 
-## implicit variables
+## Implicit variables
 All implicit variables will have their definitions generated in target code.
 Because of the [3-phase strategy](/docs/Develop.md)
 
-### implicit variables in parameters list
+### Implicit variables in parameters list
 Not all parameters in a `paramtable` need to be declared explicitly in the function body, if the parameter
-1. used in both `paramtable` and the function body
+1. Used in both `paramtable` and the function body
 
-    fortran 90 standard
-2. used only in `paramtable`
+    Fortran 90 standard
+2. Used only in `paramtable`
 
-    implicit definition conforming to fortran 77 standard
+    Implicit definition conforming to Fortran77 standard
 
-## subprogram
-### attribute specification statements
-fortran77 do not specify intent, target code will follow the strategy:
+## Subprogram
+### Attribute specification statements
+Fortran77 does not specify intent, target code will follow the strategy:
 
-|fortran|C++|
+|Fortran|C++|
 |:-:|:-:|
 |literals(right value)|`T &&`|
 |left value|`T &`|
 
-# implementation of fortran's inherent function
-## math
+# Implementation of Fortran's inherent function
+## Math
 
-|fortran|C++|
+|Fortran|C++|
 |:-:|:-:|
 |`min`|`min_n`|
 |`max`|`max_n`|
 
 ## IO
-### unit id mapping
+### Unit id mapping
 
-|fortran|C++|
+|Fortran|C++|
 |:-:|:-:|
 |*|`stdin`/`stdout`|
 |5|`stdin`|
@@ -286,9 +286,9 @@ fortran77 do not specify intent, target code will follow the strategy:
 |id|`get_file(id)`|
 |string|` `|
 
-### file function
+### File function
 
-|fortran|C++|
+|Fortran|C++|
 |:-:|:-:|
 |`open`|`foropenfile`|
 |`close`|`forclosefile`|
@@ -297,7 +297,7 @@ fortran77 do not specify intent, target code will follow the strategy:
 
 ### IO format
 
-|fortran|C++|
+|Fortran|C++|
 |:-:|:-:|
 |`*` and `(*,*)`|`forscanfree`/`forprintfree`|
 |`(*,formatter)`|`forscan`/`forprint`|

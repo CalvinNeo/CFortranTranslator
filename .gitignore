@@ -47,6 +47,7 @@ vsbuild/Release/
 *.output
 *.flex.cpp
 *.tab.cpp
+*.tab.hpp
 presentation/
 ~m4*
 *.diagsession

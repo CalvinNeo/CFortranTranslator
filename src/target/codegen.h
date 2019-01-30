@@ -119,7 +119,8 @@ ParseNode gen_pure_paramtable(ParseNode & paramtable_elem, ParseNode & paramtabl
 ParseNode gen_arraybuilder_from_paramtable(const ParseNode & argtable);
 void foreach_paramtable(const ParseNode & pn, std::function<void(const ParseNode &)> f, bool recursion_direction_right);
 void set_variabledesc_attr(ParseNode & vardescattr_node, boost::optional<bool> reference, boost::optional<bool> constant, boost::optional<bool> optional
-	, boost::optional<ParseNode> slice, boost::optional<int> kind, boost::optional<bool> save, boost::optional<bool> allocatable, boost::optional<bool> target, boost::optional<bool> pointer);
+	, boost::optional<ParseNode> slice, boost::optional<int> kind, boost::optional<bool> save, boost::optional<bool> allocatable, boost::optional<bool> target
+	, boost::optional<bool> pointer, boost::optional<bool> inout_reference);
 VariableDesc & get_variabledesc_attr(ParseNode & vardescattr_node);
 
 // type

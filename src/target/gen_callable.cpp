@@ -112,7 +112,7 @@ void regen_function_array(FunctionInfo * finfo, ParseNode & callable) {
 					// kwarg
 					regen_exp(finfo, elem.get(1));
 					if (map_func == get_context().func_kwargs.end()) {
-						print_error("function " + head_name + " don't have keyword paramters: " , argtable);
+						print_error("Function " + head_name + " don't have keyword paramters: " , argtable);
 					}
 					else {
 						string argname = elem.get(0).to_string();
@@ -129,7 +129,7 @@ void regen_function_array(FunctionInfo * finfo, ParseNode & callable) {
 
 				// generated code from normal_args
 				if (valid_kwargs_test) {
-					fatal_error("keyword arguments must come after normal arguments", argtable);
+					fatal_error("Keyword arguments must come after normal arguments", argtable);
 				}
 				else {
 					normal_count++;
@@ -203,7 +203,7 @@ void regen_function_array(FunctionInfo * finfo, ParseNode & callable) {
 		callable.fs.CurrentTerm = Term{ TokenMeta::NT_FUCNTIONARRAY, string(codegen_buf) };
 	}
 	else {
-		print_error("callable generate fail", callable);
+		print_error("Callable generation failed", callable);
 	}
 	return;
 }

@@ -70,5 +70,6 @@ struct SimplerContext {
 };
 
 SimplerContext & get_simpler_context();
+void reset_simpler_context();
 
 int simpler_yylex(void);

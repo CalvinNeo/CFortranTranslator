@@ -75,6 +75,7 @@ private:
 
 struct VariableDesc {
 	dirty<bool> reference = false;
+	dirty<bool> inout_reference = false;
 	dirty<bool> constant = false;
 	dirty<bool> optional = false;
 	boost::optional<ParseNode> slice = boost::none;
@@ -84,11 +85,14 @@ struct VariableDesc {
 	dirty<bool> target = false;
 	dirty<bool> pointer = false;
 	void merge(const VariableDesc & x2) {
-		if (!constant.isdirty() && x2.constant.isdirty()) {
-			constant = x2.constant;
-		}
 		if (!reference.isdirty() && x2.reference.isdirty()) {
 			reference = x2.reference;
+		}
+		if (!inout_reference.isdirty() && x2.inout_reference.isdirty()) {
+			inout_reference = x2.inout_reference;
+		}
+		if (!constant.isdirty() && x2.constant.isdirty()) {
+			constant = x2.constant;
 		}
 		if (!optional.isdirty() && x2.optional.isdirty()) {
 			optional = x2.optional;
@@ -117,9 +121,12 @@ struct VariableDesc {
 
 	}
 	VariableDesc(boost::optional<bool> reference, boost::optional<bool> constant, boost::optional<bool> optional, boost::optional<ParseNode> slice
-		, boost::optional<int> kind, boost::optional<bool> save, boost::optional<bool> allocatable, boost::optional<bool> target, boost::optional<bool> pointer) {
+		, boost::optional<int> kind, boost::optional<bool> save, boost::optional<bool> allocatable, boost::optional<bool> target
+		, boost::optional<bool> pointer, boost::optional<bool> inout_reference) {
 		if (reference.is_initialized())
 			this->reference = reference._value_or(this->reference);
+		if (inout_reference.is_initialized())
+			this->inout_reference = inout_reference._value_or(this->inout_reference);
 		if (constant.is_initialized())
 			this->constant = constant._value_or(this->constant);
 		if (optional.is_initialized())
@@ -172,10 +179,10 @@ struct VariableInfo
 	*******************/
 	ParseNode * vardef_node;
 	/******************
-	*	this flag is intended to replace the `NT_DECLAREDVARIABLE` token
-	*	if `flag` is true, this variable is declared in parameter list
+	*	this flag is intended to replace the `NT_DECLAREDVARIABLE` token.
+	*	if `flag` is true, this variable is declared in parameter list,
 	*	so don't need to generate repeated code in function body
-	* ALSO REFER `NT_DECLAREDVARIABLE` in FUnction.h
+	* ALSO REFER `NT_DECLAREDVARIABLE` in Function.h
 	*******************/
 	bool declared;
 	/******************

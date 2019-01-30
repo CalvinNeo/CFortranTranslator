@@ -29,13 +29,18 @@
 
 void reset_parser() {
 	get_context().reset_context();
+	reset_tokenizer_context();
 }
 
 void TranslateContext::reset_context() {
-	// TODO clear_commonblocks
 	labels.clear();
 	clear_variables();
-	// TODO clear_functions
+	clear_functions();
+	for(std::map<std::string, CommonBlockInfo *>::value_type & pr: get_context().commonblocks){
+		delete pr.second;
+		pr.second = nullptr;
+	}
+	get_context().commonblocks.clear();
 	func_kwargs = sysfunc_args;
 
 	// global

@@ -62,7 +62,10 @@ void delete_variable(std::string module_name, std::string function_name, std::st
 }
 
 void clear_variables() {
-
+	for(std::map<std::string, VariableInfo *>::value_type & pr: get_context().variables){
+		delete pr.second;
+	}
+	get_context().variables.clear();
 }
 
 void forall_variable_in_function(std::string module_name, std::string function_name, std::function<void(std::pair<std::string, VariableInfo *> )> func) {

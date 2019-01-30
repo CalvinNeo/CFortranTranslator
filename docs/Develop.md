@@ -17,7 +17,7 @@ Currently, CFortranTranslator use [/src/grammar/simple_lexer.cpp](/src/grammar/s
 
 simple\_lexer is a more flexible tokenizer in order to handle some features of fortran
 
-e.g. fortran's continuation can exist between a token
+e.g. Fortran's continuation can exist between a token
 ```
         inte
      *ger :: a(10)
@@ -78,13 +78,13 @@ This for90std library implements a subset of Fortran90's intrinsic functions.
 In this section, serveral specific generating rules are discussed
 ## argtable, dimen_slice, pure_paramtable
 `argtable`, `dimen_slice`, `pure_paramtable` are a list of different items seprated by `,`
-### constitution
+### Constitution
 - `argtable` is a list of `exp`(ref `is_exp()`)
 - `dimen_slice` is a list of `slice`(`NT_SLICE`) or `exp`
 - `pure_paramtable` is a list of `keyvalue`(`NT_KEYVALUE`/`NT_VARIABLE_ENTITY`) or `slice` or `exp`
     `pure_paramtable` will be re-generated in `regen_function_array` in [/src/target/gen_callable.cpp](/src/target/gen_callable.cpp)
 - `paramtable` is `argtable` or `dimen_slice` or `pure_paramtable`
-#### promotion
+#### Promotion
 - `argtable` + `slice` = `dimen_slice`, all elements in `argtable` will be promote to `slice`(with one child)
 - `argtable` + `keyvalue` = `pure_paramtable`, all elements in `argtable` will be promote to `keyvalue`
 - `dimen_slice` + `keyvalue` or `pure_paramtable` + `slice` is illegal
@@ -132,7 +132,7 @@ When using lazy gen strategy, the node of non-terminal on the left side can chan
 1. `regen_` function 
 	`regen_` functions are declared in [/src/target/codegen.h](/src/target/codegen.h)
 	
-	a `regen_` function will change its input `ParseNode &`
+	A `regen_` function will change its input `ParseNode &`
 	
 2. `gen_` function 
 	`gen_` functions are declared in [/src/target/codegen.h](/src/target/codegen.h)
@@ -144,7 +144,7 @@ When using lazy gen strategy, the node of non-terminal on the left side can chan
 	
 	Different from `gen_` function, a `gen_reused` function has input `ParseNode &`. Instead of copy some of its input like `gen_` functions do, a `gen_reused` reuse some its input, by adding pointers to them  directly.
 	
-	ref. parser:macros for more
+	See parser:macros for more
 
 ## Order of generating
 ### Upper level Nodes of AST(above stmt level)
@@ -154,7 +154,7 @@ Due to fortran's feature of implicit declaration, code above `stmt` level, inclu
 3. `regen_common` generates `common` statement code
 
 ### Variables and functions
-The implicit declaration feature should also be considered when generating variables and functions, ref. variable definition/generate functions.
+The implicit declaration feature should also be considered when generating variables and functions, see variable definition/generate functions.
 
 ## Name mapping
 Many type names and function names are mapped in order to avoid possible conflicts, the mapping is defined by `pre_map` and `funcname_map` in [/src/target/gen_config.h](/src/target/gen_config.h)
@@ -174,11 +174,11 @@ Currently, variable is generated lazily, so the whole process happens after the 
         All variables, **once** reached by the parser will be registered to symbol table, by calling `check_implicit_variable`.  
 		
 		`check_implicit_variable` checks whether this variable has been registered to `gen_context().variables` by the otehr cases already. If this variable hasn't been registed, `check_implicit_variable` will register it to `gen_context().variables` by:
-		1. add `VariableInfo` node 
+		1. Add `VariableInfo` node 
 		2. `.type` is deduced by its name in function `gen_implicit_type`
-		3. set `.implicit_defined` = `true`, if an explicit declaration of this variable is found later, `.implicit_defined` will be set back to `false` automatically.
+		3. Set `.implicit_defined` = `true`, if an explicit declaration of this variable is found later, `.implicit_defined` will be set back to `false` automatically.
 		4. `.vardef` is pointer(`!= nullptr`) to a `ParseNode` node. 
-		5. set `commonblock_name` = `""`, `commonblock_index` = `0`, if this variable is found belong to a common block, this two fields will be set.
+		5. Set `commonblock_name` = `""`, `commonblock_index` = `0`, if this variable is found belong to a common block, this two fields will be set.
 
     2. Case 2: when encounter `NT_COMMONBLOCK`(in `regen_stmt`, after the AST is built):
 
@@ -190,7 +190,7 @@ Currently, variable is generated lazily, so the whole process happens after the 
         **This is an explicit definition**
 
         These two nodes are generated into `NT_VARIABLEDEFINESET` and `NT_VARIABLEDEFINE`, in [/src/grammar/for90.y](/src/grammar/for90.y).
-        register(add a new `VariableInfo` only when the variable is never used, or **modify** the exsiting `VariableInfo`, for the most cases) corresponding `VariableInfo` to symbol table.
+        Register(add a new `VariableInfo` only when the variable is never used, or **modify** the exsiting `VariableInfo`, for the most cases) corresponding `VariableInfo` to symbol table.
 	
 	Step 1 works simultanously with `regen_` functions below suite level. After Step 1, all variables, whether explicit or implicit, are registered. However there is an exception that all implicit variables (e.g. `A`) used to initialize an variable (e.g. `B`) will not be registed until `regen_vardef` is called to `B`, in Step 2
 	
@@ -252,7 +252,7 @@ All variables(including `commom` block) and functions is now logged in [/src/Var
 `VariableInfo` and `FunctionInfo`
 
 ## VariableDesc
-| item | rule |
+| Item | Rule |
 |:-:|:-:|
 | kind | typecast_spec |
 | len | typecast_spec |

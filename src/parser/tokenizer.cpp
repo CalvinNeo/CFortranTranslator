@@ -20,6 +20,7 @@
 #include "tokenizer.h"
 #include "../grammar/for90.tab.h"
 #include "../target/gen_config.h"
+#include "../grammar/simple_lexer.h"
 
 #ifdef USE_LEX
 int pure_yylex();
@@ -37,6 +38,21 @@ TokenizerState & get_tokenizer_state() {
 TokenizerContext & get_tokenizer_context() {
 	static TokenizerContext fc;
 	return fc;
+}
+
+void reset_tokenizer_context(){
+	get_tokenizer_context().terminal_cache.clear();
+	get_tokenizer_context().terminal_cache_line.clear();
+	get_tokenizer_context().comments.clear();
+	get_tokenizer_context().load_code = [](const std::string & _code) {
+	};
+	get_tokenizer_context().unload_code = []() {
+	
+	};
+#ifdef USE_LEX
+#else
+	reset_simpler_context();
+#endif
 }
 
 int yylex(void) {
