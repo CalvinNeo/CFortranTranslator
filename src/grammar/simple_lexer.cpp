@@ -469,7 +469,7 @@ static bool next_item(std::string & res) {
 			res += ch2;
 		}
 		else if (ch2 == '>') {
-			printf("gotcha.");
+			//printf("gotcha.");
 			res += ch2;
 		}
 		else {

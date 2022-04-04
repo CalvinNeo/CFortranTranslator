@@ -138,8 +138,8 @@ using namespace std;
 *******************/
 %right YY_POWER 
 // %right YY_OPERATOR_UNARY // Error on For3d14.for
-%nonassoc '=' 
-%nonassoc YY_PLET
+//%nonassoc '=' 
+//%nonassoc YY_PLET
 
 %start fortran_program
 
@@ -1142,7 +1142,7 @@ using namespace std;
 
 	let_stmt : exp YY_PLET exp
 			{
-			    printf("in rule =>");
+			    //printf("in rule =>");
 				ARG_OUT exp1 = YY2ARG($1);
 				ARG_OUT op = YY2ARG($2);
 				ARG_OUT exp2 = YY2ARG($3);
@@ -1153,7 +1153,7 @@ using namespace std;
 			}
 		| exp '=' exp
 			{
-			    printf("in rule =");
+			    //printf("in rule =");
 				ARG_OUT exp1 = YY2ARG($1);
 				ARG_OUT op = YY2ARG($2);
 				ARG_OUT exp2 = YY2ARG($3);
