@@ -40,8 +40,11 @@
     <ClCompile Include="..\src\parser\attribute.cpp" />
     <ClCompile Include="..\src\parser\Function.cpp" />
     <ClCompile Include="..\src\parser\Intent.cpp" />
+    <ClCompile Include="..\src\parser\IntentHelper.cpp" />
     <ClCompile Include="..\src\parser\parser.cpp" />
+    <ClCompile Include="..\src\parser\scanner.cpp" />
     <ClCompile Include="..\src\parser\tokenizer.cpp" />
+    <ClCompile Include="..\src\parser\Type.cpp" />
     <ClCompile Include="..\src\parser\Variable.cpp" />
     <ClCompile Include="..\src\target\gen_common.cpp" />
     <ClCompile Include="..\src\target\gen_arraybuilder.cpp" />
@@ -90,8 +93,10 @@
     <ClInclude Include="..\src\parser\enum_reflect.h" />
     <ClInclude Include="..\src\parser\Function.h" />
     <ClInclude Include="..\src\parser\Intent.h" />
+    <ClInclude Include="..\src\parser\IntentHelper.h" />
     <ClInclude Include="..\src\parser\parser.h" />
     <ClInclude Include="..\src\parser\tokenizer.h" />
+    <ClInclude Include="..\src\parser\Type.h" />
     <ClInclude Include="..\src\parser\Variable.h" />
     <ClInclude Include="..\src\target\codegen.h" />
     <ClInclude Include="..\src\target\gen_common.h" />
@@ -113,7 +118,7 @@
     <ProjectGuid>{EEFFE8C1-37FF-4F41-9113-5996FEA58436}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>CFortranTranslator</RootNamespace>
-    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -138,7 +143,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v140</PlatformToolset>
+    <PlatformToolset>v143</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Develop|x64'" Label="Configuration">

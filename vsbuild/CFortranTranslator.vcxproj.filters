@@ -132,6 +132,15 @@
     <ClCompile Include="..\src\grammar\for90.tab.cpp">
       <Filter>grammar</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\parser\IntentHelper.cpp">
+      <Filter>parser</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\parser\scanner.cpp">
+      <Filter>parser</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\parser\Type.cpp">
+      <Filter>parser</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\for90std\for1array.h">
@@ -212,6 +221,12 @@
     </ClInclude>
     <ClInclude Include="..\for90std\fordefs.h">
       <Filter>for90std</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\parser\IntentHelper.h">
+      <Filter>parser</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\parser\Type.h">
+      <Filter>parser</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -28,6 +28,7 @@ namespace TokenMeta {
 	MAKE_ENUM(IntentMeta,  
 		// Operator
 		// in priority order
+		ADD_ENUM(PLET, 460),
 		ADD_ENUM(Dereference, 260),
 		ADD_ENUM(Reference, 261),
 
@@ -58,6 +59,7 @@ namespace TokenMeta {
 
 		ADD_ENUM(Shl, 170),
 		ADD_ENUM(Shr, 171),
+
 
 		ADD_ENUM(GT, 160),
 		ADD_ENUM(GE, 161),

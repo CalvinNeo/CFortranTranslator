@@ -101,7 +101,7 @@ using namespace std;
 //%define api.value.type union
 
 %token /*_YY_VOID*/ YY_IGNORE_THIS YY_CRLF
-%token /*_YY_OP*/ YY_GT YY_GE YY_EQ YY_LE YY_LT YY_NEQ YY_NEQV YY_EQV YY_ANDAND YY_OROR YY_NOT YY_POWER YY_DOUBLECOLON YY_NEG YY_POS YY_EXPONENT 
+%token /*_YY_OP*/ YY_GT YY_GE YY_EQ YY_LE YY_LT YY_NEQ YY_NEQV YY_EQV YY_ANDAND YY_OROR YY_NOT YY_POWER YY_DOUBLECOLON YY_NEG YY_POS YY_EXPONENT YY_PLET
 %token /*_YY_TYPE*/ YY_INTEGER YY_FLOAT YY_WORD YY_OPERATOR /* Lead to error YY_OPERATOR_UNARY */ YY_STRING YY_ILLEGAL YY_COMPLEX YY_TRUE YY_FALSE YY_FORMAT_STMT YY_COMMENT
 %token /*_YY_CONTROL_FLOW*/ YY_LABEL YY_END YY_IF YY_THEN YY_ELSE YY_ELSEIF YY_ENDIF YY_DO YY_ENDDO YY_CONTINUE YY_BREAK YY_EXIT YY_CYCLE YY_WHILE YY_ENDWHILE YY_WHERE YY_ENDWHERE YY_CASE YY_ENDCASE YY_SELECT YY_ENDSELECT YY_GOTO YY_DOWHILE YY_DEFAULT 
 %token /*_YY_DELIM*/ YY_TYPE YY_ENDTYPE YY_PROGRAM YY_ENDPROGRAM YY_FUNCTION YY_ENDFUNCTION YY_RECURSIVE YY_RESULT YY_SUBROUTINE YY_ENDSUBROUTINE YY_MODULE YY_ENDMODULE YY_BLOCK YY_ENDBLOCK YY_INTERFACE YY_ENDINTERFACE YY_COMMON YY_DATA
@@ -122,6 +122,7 @@ using namespace std;
 * Error on For3d14.for
 *******************/
 // %left YY_OPERATOR
+
 %left YY_EQV YY_NEQV
 %left YY_OROR
 %left YY_ANDAND
@@ -137,6 +138,8 @@ using namespace std;
 *******************/
 %right YY_POWER 
 // %right YY_OPERATOR_UNARY // Error on For3d14.for
+%nonassoc '=' 
+%nonassoc YY_PLET
 
 %start fortran_program
 
@@ -1137,8 +1140,20 @@ using namespace std;
 				CLEAN_DELETE($1);
 			}
 
-	let_stmt : exp '=' exp
+	let_stmt : exp YY_PLET exp
 			{
+			    printf("in rule =>");
+				ARG_OUT exp1 = YY2ARG($1);
+				ARG_OUT op = YY2ARG($2);
+				ARG_OUT exp2 = YY2ARG($3);
+				ParseNode opnew = gen_token(Term{ TokenMeta::Let, "%s =& %s" });
+				$$ = RETURN_NT(gen_promote(opnew.get_what(), TokenMeta::NT_EXPRESSION, exp1, exp2, opnew));
+				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($3));
+				CLEAN_DELETE($1, $2, $3);
+			}
+		| exp '=' exp
+			{
+			    printf("in rule =");
 				ARG_OUT exp1 = YY2ARG($1);
 				ARG_OUT op = YY2ARG($2);
 				ARG_OUT exp2 = YY2ARG($3);
@@ -1147,7 +1162,7 @@ using namespace std;
 				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($3));
 				CLEAN_DELETE($1, $2, $3);
 			}
-
+	     
 	implicit_stmt : YY_IMPLICIT YY_NONE
 			{
 				// dummy stmt

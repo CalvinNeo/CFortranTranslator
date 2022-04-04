@@ -449,7 +449,12 @@ const vector<KeywordMeta> keywords = {
 		, TokenMeta::META_ANY
 		, YY_POINTER
 	}
-
+	
+	/*
+	*/, KeywordMeta{"=>"
+			, TokenMeta::PLET
+			, YY_PLET
+	}
 	// 11 operators
 	, KeywordMeta{ "(/"
 		, TokenMeta::META_ANY

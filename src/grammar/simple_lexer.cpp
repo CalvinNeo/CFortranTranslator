@@ -468,6 +468,10 @@ static bool next_item(std::string & res) {
 		{
 			res += ch2;
 		}
+		else if (ch2 == '>') {
+			printf("gotcha.");
+			res += ch2;
+		}
 		else {
 			store_complete_char(ch2);
 		}

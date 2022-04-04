@@ -19,9 +19,12 @@
 
 #include "Intent.h"
 
+/*
 std::string get_intent_name(TokenMeta_T intent_id) {
 	return TokenMeta::get_enum_table().from_value(intent_id);
 }
+*/
+
 
 void make_enum_table(std::map<std::string, TokenMeta_T> & m, std::string str) {
 	size_t s = 0;

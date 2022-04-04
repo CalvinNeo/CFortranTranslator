@@ -60,6 +60,7 @@ std::map<TokenMeta_T, std::string> IntentName = {
 	,{ 170, "Shl" }
 	,{ 171, "Shr" }
 
+	,{ 460, "PLET" }
 	,{ 160, "GT" }
 	,{ 161, "GE" }
 	,{ 162, "EQ" }
@@ -287,10 +288,15 @@ std::map<TokenMeta_T, std::string> IntentName = {
 
 
 std::string get_intent_name(TokenMeta_T intent_id) {
+
 	if (IntentName.find(intent_id) != IntentName.end()) {
 		return IntentName[intent_id];
 	}
 	else {
-		return "!undefined!";
+		std::string res = TokenMeta::get_enum_table().from_value(intent_id);
+		if (res.empty())
+			return "!undefined!";
+		else
+			return res;
 	}
 }
