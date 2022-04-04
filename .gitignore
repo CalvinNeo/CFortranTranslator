@@ -63,3 +63,7 @@ opencoveragecpp.cmd
 
 # macOS
 .DS_Store
+
+# vs
+.vs
+out
