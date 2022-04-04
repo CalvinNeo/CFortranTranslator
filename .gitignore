@@ -35,10 +35,15 @@
 *.suo
 *.idb
 *.pdb
+
+.vs/
+out/
 vsbuild/.vs/
 vsbuild/x64/
 vsbuild/Debug/
 vsbuild/Release/
+vsbuild/CFortranTranslator.vcxproj
+vsbuild/cpptest.vcxproj
 *.opendb
 *.db
 *.lnk
