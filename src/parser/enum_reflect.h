@@ -47,7 +47,7 @@
 	
 #define MAKE_ENUM(T, ...) __MAKE_ENUM_DECL(T, __VA_ARGS__); \
 	__MAKE_ENUM_HELPER(__VA_ARGS__) 
-// ×¢Òâ²»ÄÜÔÚÕâÀï¸ø__VA_ARGS__¼ÓÉÏ#£¬·ñÔòADD_ENUM²»ÄÜ±»Õ¹¿ª£¨²»ÄÜÔÚ²ÎÊýÁÐ±íÖÐÕ¹¿ª£©
+// æ³¨æ„ä¸èƒ½åœ¨è¿™é‡Œç»™__VA_ARGS__åŠ ä¸Š#ï¼Œå¦åˆ™ADD_ENUMä¸èƒ½è¢«å±•å¼€ï¼ˆä¸èƒ½åœ¨å‚æ•°åˆ—è¡¨ä¸­å±•å¼€ï¼‰
 
 
 

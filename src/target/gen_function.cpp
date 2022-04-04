@@ -256,3 +256,52 @@ FunctionInfo * check_implicit_function(FunctionInfo * finfo, const std::string &
 
 	return ineer_info;
 }
+
+void regen_derived_type_1(TypeInfo* finfo, ParseNode& functiondecl_node) {
+	ParseNode& variable_type = functiondecl_node.get(0);
+	assert(variable_type.get_what() == finfo->local_name);
+	//ParseNode& kvparamtable = functiondecl_node.get(1);
+	ParseNode& suite = functiondecl_node.get(1);
+	
+	finfo->suite = &suite;
+	finfo->node = &functiondecl_node;
+	ParseNode& oldsuite = *finfo->suite;
+
+	// log function and set attr 
+	functiondecl_node.setattr(new FunctionAttr(finfo));
+
+	/****************
+	* compose parameter list
+	*****************/
+	//std::vector<std::string>& paramtable_info = finfo->funcdesc.paramtable_info;
+	regen_paramtable(finfo, suite);
+	//for (auto iter = kvparamtable.begin(); iter < kvparamtable.end(); iter++)
+	//{
+	//	/****************
+	//	* `check_implicit_variable` is IMPORTANT here,
+	//	*	to prevent situation that
+	//	*	a variable is only used in parameter list,
+	//	*	and not appear in function body(so it will not checked by `regen_exp`)
+	//	*****************/
+	//	ParseNode* p = *iter;
+	//	ParseNode& pn = *p;
+	//	check_implicit_variable(finfo, pn.get_what());
+	//	// refer to function suite and determine type of params
+	//	paramtable_info.push_back(pn.get_what());
+	//}
+	regen_suite(finfo, oldsuite);
+}
+
+void regen_derived_type_2(TypeInfo* tinfo) {
+	ParseNode& oldsuite = *tinfo->suite;
+	ParseNode& decl_node = *tinfo->node;
+	
+	regen_all_variables_decl_str(tinfo, oldsuite);
+
+	// generate function code 
+	sprintf(codegen_buf, "struct %s\n{\n%s};\n"
+		, tinfo->local_name.c_str()
+		, tabber(oldsuite.to_string()).c_str() // code
+	);
+	decl_node.get_what() = string(codegen_buf);
+}

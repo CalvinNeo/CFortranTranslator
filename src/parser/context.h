@@ -20,6 +20,7 @@
 #include "../parser/parser.h"
 #include "../parser/Variable.h"
 #include "../parser/Function.h"
+#include "../parser/Type.h"
 
 
 struct TranslateContext {
@@ -28,6 +29,7 @@ struct TranslateContext {
 	std::map < std::string, ParseNode > labels;
 	std::map < std::string, VariableInfo * > variables;
 	std::map < std::string, FunctionInfo * > functions;
+	std::map < std::string, TypeInfo* > types;
 	std::map<std::string, std::vector<KeywordParamInfo>> func_kwargs;
 	ParseNode program_tree;
 	std::string global_code;

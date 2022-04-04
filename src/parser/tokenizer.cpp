@@ -167,6 +167,14 @@ const vector<KeywordMeta> keywords = {
 		, TokenMeta::RBrace
 		, YY_ENDINTERFACE
 	}
+	, KeywordMeta{"endtype"
+		, TokenMeta::RBrace
+		, YY_ENDTYPE
+	}
+	, KeywordMeta{"type"
+		, TokenMeta::META_ANY
+		, YY_TYPE
+	}
 	, KeywordMeta{"do"
 		, TokenMeta::Do
 		, YY_DO
@@ -396,7 +404,7 @@ const vector<KeywordMeta> keywords = {
 		, TokenMeta::META_ANY
 		, YY_GOTO
 	}
-	// ÔÚ´Ê·¨·ÖÎöÖĞÌØ±ğ´¦Àí£¬YY_FORMATºÍNT_FORMATÎªFORMATÓï¾äµÄ´¦Àí½á¹û
+	// åœ¨è¯æ³•åˆ†æä¸­ç‰¹åˆ«å¤„ç†ï¼ŒYY_FORMATå’ŒNT_FORMATä¸ºFORMATè¯­å¥çš„å¤„ç†ç»“æœ
 	//, KeywordMeta{ "format"
 	//	, TokenMeta::NT_FORMAT
 	//	, YY_FORMAT
@@ -494,7 +502,7 @@ const std::map<std::string, std::vector<std::string> > forward1 = {
 	{"else", {"if"}}
 	, {"do", { "while" }}
 	, { "go", { "to" } }
-	,{ "end",{ "if", "do", "function", "subroutine", "program", "select", "interface" } }
+	,{ "end",{ "if", "do", "function", "subroutine", "program", "select", "interface", "type"}}
 	,{ "double",{ "precision" } }
 
 };

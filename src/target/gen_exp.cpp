@@ -76,6 +76,16 @@ void regen_exp(FunctionInfo * finfo, ParseNode & exp) {
 	{
 		regen_arraybuilder(finfo, exp);
 	}
+	else if (exp.token_equals(TokenMeta::NT_DERIVED_TYPE))
+	{
+		//regen_derived_type_1(finfo, exp);
+	}
+	else if (exp.token_equals(TokenMeta::NT_VARIABLEDEFINESET))
+	{
+	}
+	else if (exp.token_equals(TokenMeta::NT_STATEMENT))
+	{
+	}
 	else {
 		print_error("error exp: ", exp);
 	}

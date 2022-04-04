@@ -329,7 +329,7 @@ int word_parse(const char * origin_yytext) {
 	/* MUST NOT call update_flex at beginning because CutString */
 	const FlexState & fs = get_flex_state();
 	if (abandon) {
-		// Ìø¹ýÕâ¸ö×Ö·û
+		// è·³è¿‡è¿™ä¸ªå­—ç¬¦
 		abandon = false;
 		return YY_IGNORE_THIS;
 	}

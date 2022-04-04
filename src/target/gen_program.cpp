@@ -62,6 +62,12 @@ void gen_fortran_program(const ParseNode & wrappers) {
 			*************/
 			FunctionInfo * finfo = add_function(get_context().current_module, variable_function.get_what(), FunctionInfo{});
 		}
+		else if (wrapper.token_equals(TokenMeta::NT_DERIVED_TYPE))
+		{
+			get_context().current_module = "";
+			ParseNode& variable_type = wrapper.get(0);
+			TypeInfo* tinfo = add_type(get_context().current_module, variable_type.get_what(), TypeInfo{});
+		}
 		else if (wrapper.token_equals(TokenMeta::NT_DUMMY))
 		{
 			// YY_END
@@ -82,6 +88,13 @@ void gen_fortran_program(const ParseNode & wrappers) {
 			ParseNode & variable_function = wrapper.get(1);
 			FunctionInfo * finfo = get_function(get_context().current_module, variable_function.get_what());
 			regen_function_1(finfo, wrapper);
+		}
+		else if (wrapper.token_equals(TokenMeta::NT_DERIVED_TYPE))
+		{
+			ParseNode& variable_type = wrapper.get(0);
+			TypeInfo* tinfo = get_type(get_context().current_module, variable_type.get_what());
+			regen_derived_type_1(tinfo, wrapper);
+			//regen_function_1(tinfo, wrapper);
 		}
 	}
 	// main program code
@@ -108,6 +121,33 @@ void gen_fortran_program(const ParseNode & wrappers) {
 			FunctionInfo * finfo = get_function(get_context().current_module, variable_function.get_what());
 			regen_function_2(finfo);
 			codes += finfo->node->get_what();
+			codes += "\n";
+		}
+		//else if (wrapper.token_equals(TokenMeta::NT_DERIVED_TYPE))
+		//{
+		//	ParseNode& variable_type = wrapper.get(0);
+		//	//ParseNode& suite = wrapper.get(1);
+		//	TypeInfo* tinfo = get_type(get_context().current_module, variable_type.get_what());
+		//	regen_derived_type_2(tinfo);
+		//	codes += tinfo->node->get_what();
+		//	//codes += "struct " + variable_type.get_what() + "\n";
+		//	//codes += suite.get_what();
+		//	codes += "\n";
+		//}
+	}
+
+	for (std::pair<std::string, TypeInfo *> pair : get_context().types)
+	{
+		ParseNode& wrapper = *pair.second->node;
+		if (wrapper.token_equals(TokenMeta::NT_DERIVED_TYPE))
+		{
+			ParseNode& variable_type = wrapper.get(0);
+			//ParseNode& suite = wrapper.get(1);
+			TypeInfo* tinfo = get_type(get_context().current_module, variable_type.get_what());
+			regen_derived_type_2(tinfo);
+			codes += tinfo->node->get_what();
+			//codes += "struct " + variable_type.get_what() + "\n";
+			//codes += suite.get_what();
 			codes += "\n";
 		}
 	}

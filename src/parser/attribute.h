@@ -22,7 +22,7 @@
 #include "Function.h"
 #include "Variable.h"
 
-// ÊôĞÔÎÄ·¨
+// å±æ€§æ–‡æ³•
 struct ParseAttr {
 	struct ParseNode * parsenode; // observer ptr
 

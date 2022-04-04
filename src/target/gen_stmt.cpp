@@ -276,6 +276,13 @@ std::string regen_stmt(FunctionInfo * finfo, ParseNode & stmt) {
 			}
 		}
 	}
+	else if (stmt.token_equals(TokenMeta::NT_DERIVED_TYPE)) {
+		ParseNode& wrapper = stmt;
+		ParseNode& variable_type = wrapper.get(0);
+		get_context().current_module = "";
+		TypeInfo* tinfo = add_type(get_context().current_module, variable_type.get_what(), TypeInfo{});
+		regen_derived_type_1(tinfo, wrapper);
+	}
 	// input/output stmt
 	else if (stmt.token_equals(TokenMeta::NT_READ_STMT)) {
 		regen_read(finfo, stmt);

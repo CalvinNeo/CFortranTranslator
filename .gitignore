@@ -60,3 +60,6 @@ bin/CFortranTranslator.exe
 /src/grammar/useless
 *.test
 opencoveragecpp.cmd
+
+# macOS
+.DS_Store

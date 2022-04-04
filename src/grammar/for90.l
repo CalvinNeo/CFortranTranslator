@@ -433,7 +433,7 @@ static int word_parse(const char * origin_yytext) {
 	/* MUST NOT call update_flex at beginning because CutString */
 	const TokenizerState & fs = get_tokenizer_state();
 	if (get_flex_context().abandon) {
-		// Ìø¹ýÕâ¸ö×Ö·û
+		// è·³è¿‡è¿™ä¸ªå­—ç¬¦
 		get_flex_context().abandon = false;
 		return YY_IGNORE_THIS;
 	}

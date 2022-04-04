@@ -127,6 +127,14 @@ std::string gen_qualified_typestr(const ParseNode & type_spec, VariableDesc & va
 					var_pattern = "%s &";
 				}
 			}
+			else if (vardesc.pointer) {
+				if (vardesc.constant) {
+					var_pattern = "const %s *";
+				}
+				else {
+					var_pattern = "%s *";
+				}
+			}
 			else {
 				if (vardesc.constant) {
 					var_pattern = "const %s";

@@ -104,7 +104,7 @@ using namespace std;
 %token /*_YY_OP*/ YY_GT YY_GE YY_EQ YY_LE YY_LT YY_NEQ YY_NEQV YY_EQV YY_ANDAND YY_OROR YY_NOT YY_POWER YY_DOUBLECOLON YY_NEG YY_POS YY_EXPONENT 
 %token /*_YY_TYPE*/ YY_INTEGER YY_FLOAT YY_WORD YY_OPERATOR /* Lead to error YY_OPERATOR_UNARY */ YY_STRING YY_ILLEGAL YY_COMPLEX YY_TRUE YY_FALSE YY_FORMAT_STMT YY_COMMENT
 %token /*_YY_CONTROL_FLOW*/ YY_LABEL YY_END YY_IF YY_THEN YY_ELSE YY_ELSEIF YY_ENDIF YY_DO YY_ENDDO YY_CONTINUE YY_BREAK YY_EXIT YY_CYCLE YY_WHILE YY_ENDWHILE YY_WHERE YY_ENDWHERE YY_CASE YY_ENDCASE YY_SELECT YY_ENDSELECT YY_GOTO YY_DOWHILE YY_DEFAULT 
-%token /*_YY_DELIM*/ YY_PROGRAM YY_ENDPROGRAM YY_FUNCTION YY_ENDFUNCTION YY_RECURSIVE YY_RESULT YY_SUBROUTINE YY_ENDSUBROUTINE YY_MODULE YY_ENDMODULE YY_BLOCK YY_ENDBLOCK YY_INTERFACE YY_ENDINTERFACE YY_COMMON YY_DATA
+%token /*_YY_DELIM*/ YY_TYPE YY_ENDTYPE YY_PROGRAM YY_ENDPROGRAM YY_FUNCTION YY_ENDFUNCTION YY_RECURSIVE YY_RESULT YY_SUBROUTINE YY_ENDSUBROUTINE YY_MODULE YY_ENDMODULE YY_BLOCK YY_ENDBLOCK YY_INTERFACE YY_ENDINTERFACE YY_COMMON YY_DATA
 %token /*_YY_DESCRIBER*/ YY_IMPLICIT YY_NONE YY_USE YY_PARAMETER YY_ENTRY YY_DIMENSION YY_ARRAYBUILDER_START YY_ARRAYBUILDER_END YY_INTENT YY_IN YY_OUT YY_INOUT YY_OPTIONAL YY_LEN YY_KIND YY_SAVE YY_ALLOCATABLE YY_TARGET YY_POINTER
 %token /*_YY_TYPEDEF*/ YY_INTEGER_T YY_FLOAT_T YY_STRING_T YY_COMPLEX_T YY_BOOL_T YY_CHARACTER_T YY_DOUBLE_T
 %token /*_YY_COMMAND*/ YY_WRITE YY_READ YY_PRINT YY_CALL  YY_STOP YY_PAUSE YY_RETURN
@@ -300,6 +300,15 @@ using namespace std;
 				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($1));
 				CLEAN_DELETE($1);
 			}
+		| YY_POINTER
+			{
+				// target value
+				ParseNode newnode = gen_token(Term{ TokenMeta::NT_VARIABLEDESC, WHEN_DEBUG_OR_EMPTY("NT_VARIABLEDESC GENERATED IN") }); // pointer
+				set_variabledesc_attr(newnode, boost::none, boost::none, boost::none, boost::none, boost::none, boost::none, boost::none, boost::none, true, boost::none);
+				$$ = RETURN_NT(newnode);
+				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($1));
+				CLEAN_DELETE($1);
+			}
 				
 	variable_desc : ',' variable_desc_elem variable_desc
 			{
@@ -323,11 +332,11 @@ using namespace std;
 				update_pos(YY2ARG($$));
 			}
 	/*
-	*	(3) The suffix °∞ - spec°± is used consistently for specifiers, such as keyword actual arguments and
+	*	(3) The suffix ‚Äú - spec‚Äù is used consistently for specifiers, such as keyword actual arguments and
 	*		input / output statement specifiers.It also is used for type declaration attribute specifications(for
-	*			example, °∞array - spec°± in R512), and in a few other cases.
+	*			example, ‚Äúarray - spec‚Äù in R512), and in a few other cases.
 	*			(4) When reference is made to a type parameter, including the surrounding parentheses, the term
-	*		°∞selector°± is used.See, for example, °∞length - selector°±(R507) and °∞kind - selector°±(R505).
+	*		‚Äúselector‚Äù is used.See, for example, ‚Äúlength - selector‚Äù(R507) and ‚Äúkind - selector‚Äù(R505).
 	*/
 	type_selector : YY_KIND '=' YY_INTEGER
 			{
@@ -469,6 +478,18 @@ using namespace std;
 				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($1));
 				CLEAN_DELETE($1);
 			}
+		| '*'
+			{
+				ParseNode from = gen_token(Term{ TokenMeta::META_INTEGER, "foroptional<int>()" });
+				ParseNode to = gen_token(Term{ TokenMeta::META_INTEGER, "foroptional<int>()" });
+				ParseNode lb = gen_token(Term{ TokenMeta::NT_VARIABLEINITIALDUMMY, from.get_what() }, from);
+				ParseNode ub = gen_token(Term{ TokenMeta::NT_VARIABLEINITIALDUMMY, to.get_what() }, to);
+				// target code of slice depend on context
+				$$ = RETURN_NT(gen_token(Term{ TokenMeta::NT_SLICE, "" }, lb, ub));
+				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($1));
+				CLEAN_DELETE($1);
+			}
+
 
 	keyvalue : exp '=' exp
 			{
@@ -898,6 +919,31 @@ using namespace std;
 				$$ = $1;
 				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($1));
 			}
+		| inner_variable
+			{
+				$$ = $1;
+				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($1));
+			}
+			
+	inner_variable : YY_WORD '%' YY_WORD
+			{
+			
+				ARG_OUT t = YY2ARG($1);
+				ARG_OUT v = YY2ARG($3);
+				ParseNode newnode = gen_flatten(t, v, "%s.%s", TokenMeta::NT_DERIVED_TYPE);
+				$$ = RETURN_NT(newnode);
+				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($3));
+				CLEAN_DELETE($1, $2, $3);
+			}
+		| YY_WORD '%' inner_variable
+			{
+				ARG_OUT t = YY2ARG($1);
+				ARG_OUT v = YY2ARG($3);
+				ParseNode newnode = gen_flatten(t, v, "%s.%s", TokenMeta::NT_DERIVED_TYPE);
+				$$ = RETURN_NT(newnode);
+				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($3));
+				CLEAN_DELETE($1, $2, $3);
+			}
 
 	stmt : exp 
 			{
@@ -1209,6 +1255,26 @@ using namespace std;
 				CLEAN_DELETE($1, $2, $3);
 #endif
 			}
+				
+		| type_decl
+			{
+				// NT_DERIVED_TYPE
+				ARG_OUT type_decl = YY2ARG($1);
+				$$ = RETURN_NT(gen_suite(type_decl, gen_dummy()));
+				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($1));
+				CLEAN_DELETE($1);
+			}
+		| type_decl end_of_stmt suite
+			{
+				ARG_OUT type_decl = YY2ARG($1);
+				ARG_OUT suite = YY2ARG($3);
+				$$ = RETURN_NT(gen_suite(type_decl, suite));
+#ifdef USE_REUSE
+				CLEAN_DELETE($1, $2, $3);
+#else
+				CLEAN_DELETE($1, $2, $3);
+#endif
+			}
 
 	_optional_device : '*'
 			{	/******************
@@ -1380,6 +1446,24 @@ using namespace std;
 				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($1));
 				CLEAN_DELETE($1);
 			}
+		| YY_TYPE '(' YY_WORD ')'
+			{
+				$$ = RETURN_NT(gen_type(YY2ARG($3)));
+				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($4));
+				CLEAN_DELETE($1, $2, $3, $4);
+			}
+		/*| YY_TYPE '(' YY_WORD ')' ',' YY_TARGET
+			{
+				$$ = RETURN_NT(gen_type(YY2ARG($3)));
+				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($6));
+				CLEAN_DELETE($1, $2, $3, $4, $5, $6);
+			}
+		| YY_TYPE '(' YY_WORD ')' ',' YY_POINTER
+			{
+				$$ = RETURN_NT(gen_type(YY2ARG($3), YY2ARG($6)));
+				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($6));
+				CLEAN_DELETE($1, $2, $3, $4, $5, $6);
+			}*/
 
     type_spec : type_name '(' type_selector ')'
 			{
@@ -1451,6 +1535,16 @@ using namespace std;
 				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($3));
 				CLEAN_DELETE($1, $2, $3);
 			}
+		/*| YY_TYPE '(' YY_WORD ')' variable_desc paramtable
+			{
+				ARG_OUT type_spec = YY2ARG($3);
+				ARG_OUT variable_desc = YY2ARG($5);
+				ARG_OUT paramtable = YY2ARG($6);
+
+				$$ = RETURN_NT(gen_vardef(type_spec, variable_desc, paramtable));
+				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($6));
+				CLEAN_DELETE($1, $2, $3, $4, $5, $6);
+			}*/
 		| variable_desc_elem paramtable
 			{
 				ARG_OUT variable_desc_elem = YY2ARG($1);
@@ -1474,6 +1568,59 @@ using namespace std;
 				CLEAN_DELETE($1, $2);
 			}
 			*/
+
+	var_defs : var_def
+			{
+				ARG_OUT var_def = YY2ARG($1);
+				ParseNode newnode = gen_promote("%s", TokenMeta::TypeDef, var_def);
+				$$ = RETURN_NT(newnode);
+				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($1));
+				CLEAN_DELETE($1);
+			}
+		| var_def at_least_one_end_line var_defs
+			{
+				ARG_OUT var_def = YY2ARG($1);
+				ARG_OUT var_defs = YY2ARG($3);
+#ifdef USE_REUSE
+				ParseNode * newnode = new ParseNode();
+				reuse_flatten(*newnode, var_def, var_defs, "%s\n%s", TokenMeta::TypeDef);
+				$$ = newnode;
+				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($3));
+				CLEAN_REUSE($1, $3);
+				CLEAN_DELETE($2);
+#else
+				$$ = RETURN_NT(gen_flatten(var_def, var_defs, "%s\n%s", TokenMeta::TypeDef));
+				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($3));
+				CLEAN_DELETE($1, $2, $3);
+#endif
+			}
+			
+	_optional_endtype : YY_ENDTYPE
+			{
+				$$ = $1;
+				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($1));
+			}
+		| YY_END
+			{
+				$$ = $1;
+				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($1));
+			}
+		| YY_END YY_TYPE
+			{
+				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($2));
+				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($2));
+			}
+			
+	type_decl : YY_TYPE YY_WORD at_least_one_end_line suite _optional_endtype _optional_name
+			{
+				ARG_OUT variable_type = YY2ARG($2); // function name
+				ARG_OUT suite = YY2ARG($4);
+				//$$ = RETURN_NT(gen_suite(suite, gen_dummy()));
+				$$ = RETURN_NT(gen_token(Term{ TokenMeta::NT_DERIVED_TYPE, "" }, variable_type, suite));
+				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($6));
+				CLEAN_DELETE($1, $2, $3, $4, $5, $6);
+			}
+			
 	pure_paramtable : keyvalue
 			{
 				ARG_OUT paramtable_elem = YY2ARG($1);
@@ -1539,8 +1686,8 @@ using namespace std;
 				*==================
 				* Standard
 					R433 ac - implied - do is(ac - value - list, ac - implied - do - control)
-					R434 ac - implied - do - control is ac - do - variable = scalar - int - expr, °ˆ
-					°ˆ scalar - int - expr[, scalar - int - expr]
+					R434 ac - implied - do - control is ac - do - variable = scalar - int - expr, ‚ñ†
+					‚ñ† scalar - int - expr[, scalar - int - expr]
 				******************/
 				ARG_OUT argtable = YY2ARG($2);
 				ARG_OUT index = YY2ARG($4);
@@ -1876,7 +2023,23 @@ using namespace std;
 				update_pos(YY2ARG($$));
 			}
 
-    program : YY_PROGRAM _optional_name at_least_one_end_line suite YY_ENDPROGRAM _optional_name
+	_optional_endprogram : YY_ENDPROGRAM
+			{
+				$$ = $1;
+				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($1));
+			}
+		| YY_END
+			{
+				$$ = $1;
+				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($1));
+			}
+		| YY_END YY_PROGRAM
+			{
+				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($2));
+				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($2));
+			}
+
+       program : YY_PROGRAM _optional_name at_least_one_end_line suite _optional_endprogram _optional_name
 			{
 				ParseNode & suite = YY2ARG($4);
 				$$ = RETURN_NT(gen_token(Term{ TokenMeta::NT_PROGRAM_EXPLICIT, suite.get_what() }, suite));
@@ -1890,6 +2053,11 @@ using namespace std;
 				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($1));
 			}
 		| function_decl
+			{
+				$$ = $1;
+				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($1));
+			}
+		| type_decl
 			{
 				$$ = $1;
 				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($1));

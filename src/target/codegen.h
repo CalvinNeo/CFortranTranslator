@@ -58,6 +58,8 @@ std::string regen_vardef_scalar_initial_str(FunctionInfo * finfo, VariableInfo *
 void regen_function(FunctionInfo * finfo, ParseNode & functiondecl_node);
 void regen_function_1(FunctionInfo * finfo, ParseNode & functiondecl_node);
 void regen_function_2(FunctionInfo * finfo);
+void regen_derived_type_1(TypeInfo* finfo, ParseNode& functiondecl_node);
+void regen_derived_type_2(TypeInfo* tinfo);
 void regen_select(FunctionInfo * finfo, ParseNode & select_stmt);
 void regen_if(FunctionInfo * finfo, ParseNode & if_stmt);
 void regen_elseif(FunctionInfo * finfo, ParseNode & elseif_stmt);

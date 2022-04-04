@@ -129,7 +129,7 @@ namespace TokenMeta {
 		//ADD_ENUM(Delete, -132),
 		//ADD_ENUM(Is, -135),
 		//ADD_ENUM(Construct, -136),
-		//ADD_ENUM(TypeDef, -137),
+		ADD_ENUM(TypeDef, -137),
 		//ADD_ENUM(Define, -138),
 		//ADD_ENUM(Using, -139),
 		//ADD_ENUM(Duplicate, -140),
@@ -227,7 +227,7 @@ namespace TokenMeta {
 
 		// parsing tags
 		ADD_ENUM(CRLF, -1000),
-		ADD_ENUM(Label, -1003), //±êÇ©
+		ADD_ENUM(Label, -1003), //æ ‡ç­¾
 		ADD_ENUM(Sharp, -1004),
 		ADD_ENUM(EndOfScan, -1005),  // the end of the code
 		ADD_ENUM(QuitProgram, -1006), // quit the program
@@ -355,6 +355,7 @@ namespace TokenMeta {
 		ADD_ENUM(NT_CONTROL_STMT, -2049),
 		ADD_ENUM(NT_ALLOCATE_STMT, -2050),
 		ADD_ENUM(NT_DEFINED_OPERATOR, -2051),
+		ADD_ENUM(NT_DERIVED_TYPE, -2052),
 
 		ADD_ENUM(NT_DUMMY, -9999),
 		/***************************************
