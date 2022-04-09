@@ -102,8 +102,8 @@ $(OBJ_GRAMMAR_ROOT)/%.$(OBJ_EXT): $(SRC_ROOT)/src/grammar/%.cpp
 $(OBJ_GRAMMAR_ROOT)/for90.tab.$(OBJ_EXT): $(SRC_ROOT)/src/grammar/for90.tab.cpp 
 	# this is work around, for errors only in travis ci(build 21)
 	$(CXX) -c $(CFLAGS) $(CFLAGS_COV) $(SRC_ROOT)/src/grammar/for90.tab.cpp -o $(OBJ_GRAMMAR_ROOT)/for90.tab.$(OBJ_EXT)
-$(OBJ_PARSER_ROOT)/%.$(OBJ_EXT): $(SRC_ROOT)/src/parser/%.cpp 
-	$(CXX) -c $(CFLAGS) $(CFLAGS_COV) $< -o $@
+$(OBJ_PARSER_ROOT)/%.$(OBJ_EXT): $(SRC_ROOT)/src/parser/%.cpp
+	$(CXX) -c $(CFLAGS) $(CFLAGS_COV) $^ -o $@
 $(OBJ_TARGET_ROOT)/%.$(OBJ_EXT): $(SRC_ROOT)/src/target/%.cpp
 	$(CXX) -c $(CFLAGS) $(CFLAGS_COV) $< -o $@
 
