@@ -48,6 +48,35 @@ void regen_exp(FunctionInfo * finfo, ParseNode & exp) {
 			print_error("error expression: ", exp);
 		}
 	}
+	else if (exp.token_equals(TokenMeta::NT_DERIVED_TYPE)) {
+		std::string what = exp.get_what();
+		std::string local_name = finfo->local_name;
+		int pos = 0;
+		for each (ParseNode *var in exp.child)
+		{
+			std::string var_name = get_variable_name(*var);
+			VariableInfo* local_vinfo = get_variable(get_context().current_module, local_name, var_name);
+			if (local_vinfo->desc.pointer.isdirty()) {
+				int target_pos = pos + var->fs.parse_len;
+				std::string str = exp.get_what().replace(target_pos, 1, "->");
+				pos = target_pos + 2;
+			}
+			else {
+				pos+= var->fs.parse_len+1;
+			}
+			local_name = local_vinfo->type.get_what();
+		}
+
+		//ParseNode& var = exp.get(0);
+		//std::string var_name = get_variable_name(var);
+		//VariableInfo* local_vinfo = get_variable(get_context().current_module, finfo->local_name, var_name);
+		//if (local_vinfo->desc.pointer.isdirty()) {
+		//	std::string str = exp.get_what().replace(var.fs.parse_len, 1, "->");
+		//}
+
+		//std::map < std::string, VariableInfo* > variables = get_context().variables;
+
+	}
 	else if(is_literal(exp))
 	{
 		if (exp.token_equals(TokenMeta::String))
