@@ -44,6 +44,7 @@ vsbuild/Debug/
 vsbuild/Release/
 vsbuild/CFortranTranslator.vcxproj
 vsbuild/cpptest.vcxproj
+build/*
 *.opendb
 *.db
 *.lnk
