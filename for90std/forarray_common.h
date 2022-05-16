@@ -30,7 +30,6 @@
 #include "utils.h"
 
 #define USE_FORARRAY
-
 _NAMESPACE_FORTRAN_BEGIN
 typedef int fsize_t;
 

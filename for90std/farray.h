@@ -398,7 +398,9 @@ struct farray {
 			*(this->lb + i) = *(l + i);
 			*(this->sz + i) = *(s + i);
 		}
+#ifdef USE_FORARRAY
 		fa_layer_delta(this->sz, this->sz + dim, delta);
+#endif
 	}
 
 	void clear() {

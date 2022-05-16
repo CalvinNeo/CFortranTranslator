@@ -18,6 +18,7 @@
 */
 #include "gen_common.h"
 
+void parse_inner_variable(FunctionInfo* finfo, ParseNode& exp);
 void regen_exp(FunctionInfo * finfo, ParseNode & exp) {
 	if (exp.token_equals(TokenMeta::NT_EXPRESSION))
 	{
@@ -48,35 +49,6 @@ void regen_exp(FunctionInfo * finfo, ParseNode & exp) {
 			print_error("error expression: ", exp);
 		}
 	}
-	else if (exp.token_equals(TokenMeta::NT_DERIVED_TYPE)) {
-		std::string what = exp.get_what();
-		std::string local_name = finfo->local_name;
-		int pos = 0;
-		for each (ParseNode *var in exp.child)
-		{
-			std::string var_name = get_variable_name(*var);
-			VariableInfo* local_vinfo = get_variable(get_context().current_module, local_name, var_name);
-			if (local_vinfo->desc.pointer.isdirty()) {
-				int target_pos = pos + var->fs.parse_len;
-				std::string str = exp.get_what().replace(target_pos, 1, "->");
-				pos = target_pos + 2;
-			}
-			else {
-				pos+= var->fs.parse_len+1;
-			}
-			local_name = local_vinfo->type.get_what();
-		}
-
-		//ParseNode& var = exp.get(0);
-		//std::string var_name = get_variable_name(var);
-		//VariableInfo* local_vinfo = get_variable(get_context().current_module, finfo->local_name, var_name);
-		//if (local_vinfo->desc.pointer.isdirty()) {
-		//	std::string str = exp.get_what().replace(var.fs.parse_len, 1, "->");
-		//}
-
-		//std::map < std::string, VariableInfo* > variables = get_context().variables;
-
-	}
 	else if(is_literal(exp))
 	{
 		if (exp.token_equals(TokenMeta::String))
@@ -91,6 +63,9 @@ void regen_exp(FunctionInfo * finfo, ParseNode & exp) {
 	}
 	else if (exp.token_equals(TokenMeta::NT_FUCNTIONARRAY))
 	{
+		if (exp.get(0).token_equals(TokenMeta::NT_DERIVED_TYPE)) {
+			regen_exp(finfo, exp.get(0));
+		}
 		regen_function_array(finfo, exp);
 	}
 	else if (exp.token_equals(TokenMeta::NT_HIDDENDO))
@@ -107,7 +82,18 @@ void regen_exp(FunctionInfo * finfo, ParseNode & exp) {
 	}
 	else if (exp.token_equals(TokenMeta::NT_DERIVED_TYPE))
 	{
+		
+		parse_inner_variable(finfo, exp);
 		//regen_derived_type_1(finfo, exp);
+
+		//ParseNode& var = exp.get(0);
+		//std::string var_name = get_variable_name(var);
+		//VariableInfo* local_vinfo = get_variable(get_context().current_module, finfo->local_name, var_name);
+		//if (local_vinfo->desc.pointer.isdirty()) {
+		//	std::string str = exp.get_what().replace(var.fs.parse_len, 1, "->");
+		//}
+
+		//std::map < std::string, VariableInfo* > variables = get_context().variables;
 	}
 	else if (exp.token_equals(TokenMeta::NT_VARIABLEDEFINESET))
 	{
@@ -117,5 +103,46 @@ void regen_exp(FunctionInfo * finfo, ParseNode & exp) {
 	}
 	else {
 		print_error("error exp: ", exp);
+	}
+}
+
+VariableInfo* get_vinfo(FunctionInfo* finfo, ParseNode& exp) {
+	if (exp.token_equals(TokenMeta::NT_FUCNTIONARRAY)) {
+		return get_vinfo(finfo, exp.get(0));
+	}
+
+	if (exp.token_equals(TokenMeta::NT_DERIVED_TYPE)) {
+		VariableInfo* parent_vinfo = get_vinfo(finfo, exp.get(0));
+		std::string member = exp.get_what().substr(exp.get_what().rfind(".") + 1);
+		return get_variable(get_context().current_module, parent_vinfo->type.get_what(), member);
+	}
+
+	return get_variable(get_context().current_module, finfo->local_name, get_variable_name(exp));
+}
+
+void parse_inner_variable(FunctionInfo* finfo, ParseNode& exp) {
+	VariableInfo* overall_vinfo = get_vinfo(finfo, exp);
+	for each (ParseNode * var in exp.child)
+	{
+		bool is_array = (*var).token_equals(TokenMeta::NT_FUCNTIONARRAY);
+		if (is_array) {
+			std::string toReplace = var->get_what();
+			regen_exp(finfo, (*var));
+			exp.get_what().replace(exp.get_what().find(toReplace), toReplace.length(), var->get_what());
+			/*exp.father->get_what().replace(exp.father->get_what().find(toReplace), toReplace.length(), var->get_what());*/
+		}
+	}
+
+	//VariableInfo* overall_vinfo = get_vinfo(finfo, exp);
+	//std::map < std::string, VariableInfo* > variables = get_context().variables;
+	if (overall_vinfo->desc.pointer.isdirty()) {
+		if (exp.father->token_equals(TokenMeta::NT_EXPRESSION) && exp.father->get(2).get_what() == "%s =&(%s)") {
+			/*do not add '*' */
+		}
+		else {
+			std::string toReplace = exp.get_what();
+			exp.get_what() = "(*(" + exp.get_what() + "))";
+			//exp.father->get_what().replace(exp.father->get_what().find(toReplace), toReplace.length(), "(*" + toReplace + ")");
+		}
 	}
 }

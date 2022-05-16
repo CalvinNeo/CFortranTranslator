@@ -133,7 +133,7 @@ using namespace std;
 %left '+' '-' 
 %left '*' '/' 
 /******************* 
-* YY_POWER is right associative
+* YY_POWER is right associativekey
 * x**y**z -> x**(y**z) 
 *******************/
 %right YY_POWER 
@@ -441,6 +441,11 @@ using namespace std;
 				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($1));
 				CLEAN_DELETE($1);
 			}
+		| inner_variable
+			{
+				$$ = $1;
+				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($1));
+			}
 	/******************
 	*	R618 section - subscript is subscript
 			or subscript - triplet
@@ -503,6 +508,31 @@ using namespace std;
 				$$ = RETURN_NT(gen_keyvalue_from_exp(YY2ARG($1), YY2ARG($3)));
 				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($3));
 				CLEAN_DELETE($1, $2, $3);
+			}
+		|    exp YY_PLET exp
+			{
+				// initial value is required in parse tree because it can be an non-terminal `exp` 
+				// non-array initial values 
+				// array_builder is exp 
+				ARG_OUT exp2 = YY2ARG($3);
+				std:string str = exp2.get_what();
+				exp2.get_what()=std::string("&")+std::string("(")+exp2.get_what()+std::string(")");
+				$$ = RETURN_NT(gen_keyvalue_from_exp(YY2ARG($1), exp2));
+				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($3));
+				CLEAN_DELETE($1, $2, $3);
+
+				// initial value is required in parse tree because it can be an non-terminal `exp` 
+				// non-array initial values 
+				// array_builder is exp 
+				//ARG_OUT variable = YY2ARG($1);
+				//ARG_OUT exp2 = YY2ARG($3);
+				//std:string str = exp2.get_what();
+				//exp2.get_what()=std::string("&")+std::string("(")+exp2.get_what()+std::string(")");
+				//sprintf(exp2.get_what(),"%s%s%s%s","&","(",str,")");
+				printf("catchya");
+				//$$ = RETURN_NT(gen_token(Term{ TokenMeta::NT_VARIABLE_ENTITY, variable.get_what() }, variable, exp2));
+				//update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($3));
+				//CLEAN_DELETE($1, $2, $3);
 			}
 
 	argtable : exp
@@ -922,13 +952,9 @@ using namespace std;
 				$$ = $1;
 				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($1));
 			}
-		| inner_variable
-			{
-				$$ = $1;
-				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($1));
-			}
+
 			
-	inner_variable : YY_WORD '%' YY_WORD
+	inner_variable : variable '%' YY_WORD
 			{
 			
 				ARG_OUT t = YY2ARG($1);
@@ -938,7 +964,16 @@ using namespace std;
 				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($3));
 				CLEAN_DELETE($1, $2, $3);
 			}
-		| YY_WORD '%' inner_variable
+		| function_array_body '%' YY_WORD
+			{
+				ARG_OUT t = YY2ARG($1);
+				ARG_OUT v = YY2ARG($3);
+				ParseNode newnode = gen_flatten(t, v, "%s.%s", TokenMeta::NT_DERIVED_TYPE);
+				$$ = RETURN_NT(newnode);
+				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($3));
+				CLEAN_DELETE($1, $2, $3);
+			}
+		| inner_variable '%' YY_WORD
 			{
 				ARG_OUT t = YY2ARG($1);
 				ARG_OUT v = YY2ARG($3);
@@ -1146,7 +1181,8 @@ using namespace std;
 				ARG_OUT exp1 = YY2ARG($1);
 				ARG_OUT op = YY2ARG($2);
 				ARG_OUT exp2 = YY2ARG($3);
-				ParseNode opnew = gen_token(Term{ TokenMeta::Let, "%s =& %s" });
+				
+				ParseNode opnew = gen_token(Term{ TokenMeta::Let, "%s =&(%s)" });
 				$$ = RETURN_NT(gen_promote(opnew.get_what(), TokenMeta::NT_EXPRESSION, exp1, exp2, opnew));
 				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($3));
 				CLEAN_DELETE($1, $2, $3);

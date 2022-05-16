@@ -1,0 +1,12 @@
+program ex
+  type car
+    real::speed
+  end type car
+  !type way
+    !type(car)cars
+  !end type
+  !type(way),target::ways
+  type(car),pointer::car1
+  !ways%cars%speed=1.0
+  car1=>cars%speed
+end program
