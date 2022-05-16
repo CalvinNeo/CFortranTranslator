@@ -23,6 +23,7 @@
 #include "../parser/Type.h"
 
 
+
 struct TranslateContext {
 	std::string current_module;
 	std::map < std::string, CommonBlockInfo *> commonblocks;
