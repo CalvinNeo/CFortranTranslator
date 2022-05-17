@@ -18,7 +18,9 @@
 */
 #include "gen_common.h"
 
+VariableInfo* get_vinfo(FunctionInfo* finfo, ParseNode& exp);
 void parse_inner_variable(FunctionInfo* finfo, ParseNode& exp);
+void add_star(ParseNode& exp);
 void regen_exp(FunctionInfo * finfo, ParseNode & exp) {
 	if (exp.token_equals(TokenMeta::NT_EXPRESSION))
 	{
@@ -60,10 +62,13 @@ void regen_exp(FunctionInfo * finfo, ParseNode & exp) {
 	else if (exp.token_equals(TokenMeta::UnknownVariant))
 	{
 		check_implicit_variable(finfo, exp.to_string());
+		if (get_vinfo(finfo,exp)->desc.pointer.isdirty()) {
+			add_star(exp);
+		}
 	}
 	else if (exp.token_equals(TokenMeta::NT_FUCNTIONARRAY))
 	{
-		if (exp.get(0).token_equals(TokenMeta::NT_DERIVED_TYPE)) {
+		if (exp.get(0).token_equals(TokenMeta::NT_DERIVED_TYPE)|| exp.get(0).token_equals(TokenMeta::UnknownVariant)) {
 			regen_exp(finfo, exp.get(0));
 		}
 		regen_function_array(finfo, exp);
@@ -125,7 +130,7 @@ void parse_inner_variable(FunctionInfo* finfo, ParseNode& exp) {
 	for each (ParseNode * var in exp.child)
 	{
 		bool is_array = (*var).token_equals(TokenMeta::NT_FUCNTIONARRAY);
-		if (is_array) {
+		if (var->token_equals(TokenMeta::NT_FUCNTIONARRAY)||var->token_equals(TokenMeta::UnknownVariant)) {
 			std::string toReplace = var->get_what();
 			regen_exp(finfo, (*var));
 			exp.get_what().replace(exp.get_what().find(toReplace), toReplace.length(), var->get_what());
@@ -136,13 +141,17 @@ void parse_inner_variable(FunctionInfo* finfo, ParseNode& exp) {
 	//VariableInfo* overall_vinfo = get_vinfo(finfo, exp);
 	//std::map < std::string, VariableInfo* > variables = get_context().variables;
 	if (overall_vinfo->desc.pointer.isdirty()) {
-		if (exp.father->token_equals(TokenMeta::NT_EXPRESSION) && exp.father->get(2).get_what() == "%s =&(%s)") {
-			/*do not add '*' */
-		}
-		else {
-			std::string toReplace = exp.get_what();
-			exp.get_what() = "(*(" + exp.get_what() + "))";
-			//exp.father->get_what().replace(exp.father->get_what().find(toReplace), toReplace.length(), "(*" + toReplace + ")");
-		}
+		add_star(exp);
+	}
+}
+
+void add_star(ParseNode & exp) {
+	if (exp.father->token_equals(TokenMeta::NT_EXPRESSION) && exp.father->get(2).get_what() == "%s =&(%s)") {
+		/*do not add '*' */
+	}
+	else {
+		std::string toReplace = exp.get_what();
+		exp.get_what() = "(*(" + exp.get_what() + "))";
+		//exp.father->get_what().replace(exp.father->get_what().find(toReplace), toReplace.length(), "(*" + toReplace + ")");
 	}
 }

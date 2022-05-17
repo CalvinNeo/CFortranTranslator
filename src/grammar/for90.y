@@ -133,7 +133,7 @@ using namespace std;
 %left '+' '-' 
 %left '*' '/' 
 /******************* 
-* YY_POWER is right associativekey
+* YY_POWER is right associative
 * x**y**z -> x**(y**z) 
 *******************/
 %right YY_POWER 
