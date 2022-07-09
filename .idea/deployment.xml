@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="PublishConfigData" remoteFilesAllowedToDisappearOnAutoupload="false">
+    <serverData>
+      <paths name="p4 (733341a9-9a68-4649-a2f5-b21102ecf001)">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/root/OS/SimpleFS" local="$USER_HOME$/IdeaProjects/C:C++/OS Project/cse-30341-fa17-project06" />
+          </mappings>
+          <excludedPaths>
+            <excludedPath local="true" path="$PROJECT_DIR$/cmake-build-debug" />
+          </excludedPaths>
+        </serverdata>
+      </paths>
+    </serverData>
+  </component>
+</project>

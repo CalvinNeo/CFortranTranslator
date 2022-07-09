@@ -32,5 +32,4 @@ using namespace std;
 int simpler_yylex(void);
 
 void debug() {
-
 }

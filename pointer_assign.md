@@ -1,3 +1,15 @@
+> 加入=>的识别和转换规则(参考`docs/Develop.md`的Extend grammar章节)，需要修改的文件
+>
+> Intent.h
+>
+> IntentHelper.cpp
+>
+> tokenizer.cpp
+>
+> for90.y
+>
+> simple_lexer.cpp
+
 # step 1
 
 define the token value in `Intent.h`

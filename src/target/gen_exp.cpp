@@ -127,7 +127,7 @@ VariableInfo* get_vinfo(FunctionInfo* finfo, ParseNode& exp) {
 
 void parse_inner_variable(FunctionInfo* finfo, ParseNode& exp) {
 	VariableInfo* overall_vinfo = get_vinfo(finfo, exp);
-	for each (ParseNode * var in exp.child)
+	for (ParseNode * var : exp.child)
 	{
 		bool is_array = (*var).token_equals(TokenMeta::NT_FUCNTIONARRAY);
 		if (var->token_equals(TokenMeta::NT_FUCNTIONARRAY)||var->token_equals(TokenMeta::UnknownVariant)) {
