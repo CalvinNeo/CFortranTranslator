@@ -33,7 +33,7 @@ bison_target (for90 src/grammar/for90.y ${CMAKE_CURRENT_BINARY_DIR}/for90.cpp)
 include_directories (${CMAKE_SOURCE_DIR}/src/grammar/ /usr/local/include/)
 
 set (CPPS
-  src/main.cpp  
+  src/main.cpp
   for90std/farray.cpp  
   for90std/for90std.cpp  
   for90std/forfilesys.cpp  

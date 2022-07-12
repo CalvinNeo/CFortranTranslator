@@ -35,6 +35,7 @@ index 1584640..f2643f6 100644
    src/parser/Variable.cpp  
    src/target/gen_common.cpp  
 ```
+******
 
 modify src/getopt2.cpp to fix problem:goto crossing variable initialization
 ```
@@ -59,3 +60,79 @@ index b8956f9..ddc848a 100755
  		// ERROR finish processing
 ```
 
+
+modify src/target/gen_exp.cpp
+```
+121c121
+<       for each (ParseNode * var in exp.child)
+---
+>       for (ParseNode * var : exp.child)
+```
+
+comment out line 22-26 in src/parser/Intent.cpp
+```
+/*
+std::string get_intent_name(TokenMeta_T intent_id) {
+	return TokenMeta::get_enum_table().from_value(intent_id);
+}
+*/
+```
+
+delete line 41 in src/target/gen_config.h
+```
+       , { "null()", "null" }
+```
+
+append after line 100 in src/target/gen_exp.cpp
+```
+    else if (exp.token_equals(TokenMeta::PNULL))
+    {
+        exp.get_what() = "NULL";
+    }
+```
+
+******
+*Defect: the first line ending with '&' should not be preceeded by blank. The second line after, if beginning with '&', should not followed immediately by any blank*
+'&' continuation, modify src/grammer/simple_lexer.cpp
+1. add an `if` condition before original `if (new_line_p + FORTRAN_CONTINUATION_SPACE < s.size())` in line 84, the old `if` condition should become `else if`
+2. in function `static char get_complete_char()`, add a condition when `s[p]` is '&', right before the last `else` condition
+> Notice, the following is output by command `git diff src/grammar/simple_lexer.cpp`, `@@ -84,7 +84,19 @@ static bool check_continuation(char & return_char) {` means
+> in function `static bool check_continuation(char & return_char)` and content in old file from line 84 to line 84+7(denoted by -84,7) was changed to that in new file from line 84 to line 84+19(denoted by +84,19).
+```
+diff --git a/src/grammar/simple_lexer.cpp b/src/grammar/simple_lexer.cpp
+index 9d585f3..7df6ef2 100755
+--- a/src/grammar/simple_lexer.cpp
++++ b/src/grammar/simple_lexer.cpp
+@@ -84,7 +84,19 @@ static bool check_continuation(char & return_char) {
+ 	int new_line_p = p + 1;
+ 	int continuation_symbol_p = -1;
+ 	bool valid_continuation = false;
+-	if (new_line_p + FORTRAN_CONTINUATION_SPACE < s.size())
++    if(s[p-1] == '&')
++    {
++        while(s[new_line_p++]==' ');
++        continuation_symbol_p = new_line_p - 1;
++        if(s[continuation_symbol_p] == '&'){
++            p = new_line_p;
++        }else{
++            p = continuation_symbol_p;
++        }
++        return_char = s[p++];
++        return true;
++    }
++    else if (new_line_p + FORTRAN_CONTINUATION_SPACE < s.size())
+ 	{
+ 		// begin with 5 blanks(or numbers which are label, although useless)
+ 		bool valid_label = std::accumulate(s.begin() + new_line_p, s.begin() + new_line_p + FORTRAN_CONTINUATION_SPACE, true, [](bool r, char y) {
+@@ -220,6 +232,10 @@ static char get_complete_char() {
+ 		return_char = s[p++];
+ 		sc.newline_marker = false;
+ 	}
++    else if (s[p] == '&' && (s[p+1] == '\n' || s[p+1] == '\r')){
++        p++;
++        goto BEGINNING;
++    }
+ 	else {
+ 		if (!sc.in_format_stmt)
+ 		{
+```

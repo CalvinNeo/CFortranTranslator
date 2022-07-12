@@ -62,13 +62,13 @@ void regen_exp(FunctionInfo * finfo, ParseNode & exp) {
 	else if (exp.token_equals(TokenMeta::UnknownVariant))
 	{
 		check_implicit_variable(finfo, exp.to_string());
-		if (get_vinfo(finfo,exp)->desc.pointer.isdirty()) {
+		if (get_vinfo(finfo, exp)->desc.pointer.isdirty()) {
 			add_star(exp);
 		}
 	}
 	else if (exp.token_equals(TokenMeta::NT_FUCNTIONARRAY))
 	{
-		if (exp.get(0).token_equals(TokenMeta::NT_DERIVED_TYPE)|| exp.get(0).token_equals(TokenMeta::UnknownVariant)) {
+		if (exp.get(0).token_equals(TokenMeta::NT_DERIVED_TYPE) || exp.get(0).token_equals(TokenMeta::UnknownVariant)) {
 			regen_exp(finfo, exp.get(0));
 		}
 		regen_function_array(finfo, exp);
@@ -87,19 +87,11 @@ void regen_exp(FunctionInfo * finfo, ParseNode & exp) {
 	}
 	else if (exp.token_equals(TokenMeta::NT_DERIVED_TYPE))
 	{
-		
+
 		parse_inner_variable(finfo, exp);
-		//regen_derived_type_1(finfo, exp);
 
-		//ParseNode& var = exp.get(0);
-		//std::string var_name = get_variable_name(var);
-		//VariableInfo* local_vinfo = get_variable(get_context().current_module, finfo->local_name, var_name);
-		//if (local_vinfo->desc.pointer.isdirty()) {
-		//	std::string str = exp.get_what().replace(var.fs.parse_len, 1, "->");
-		//}
-
-		//std::map < std::string, VariableInfo* > variables = get_context().variables;
 	}
+
 	else if (exp.token_equals(TokenMeta::NT_VARIABLEDEFINESET))
 	{
 	}
@@ -110,7 +102,6 @@ void regen_exp(FunctionInfo * finfo, ParseNode & exp) {
 		print_error("error exp: ", exp);
 	}
 }
-
 VariableInfo* get_vinfo(FunctionInfo* finfo, ParseNode& exp) {
 	if (exp.token_equals(TokenMeta::NT_FUCNTIONARRAY)) {
 		return get_vinfo(finfo, exp.get(0));
@@ -130,7 +121,7 @@ void parse_inner_variable(FunctionInfo* finfo, ParseNode& exp) {
 	for (ParseNode * var : exp.child)
 	{
 		bool is_array = (*var).token_equals(TokenMeta::NT_FUCNTIONARRAY);
-		if (var->token_equals(TokenMeta::NT_FUCNTIONARRAY)||var->token_equals(TokenMeta::UnknownVariant)) {
+		if (var->token_equals(TokenMeta::NT_FUCNTIONARRAY) || var->token_equals(TokenMeta::UnknownVariant)) {
 			std::string toReplace = var->get_what();
 			regen_exp(finfo, (*var));
 			exp.get_what().replace(exp.get_what().find(toReplace), toReplace.length(), var->get_what());
@@ -145,7 +136,7 @@ void parse_inner_variable(FunctionInfo* finfo, ParseNode& exp) {
 	}
 }
 
-void add_star(ParseNode & exp) {
+void add_star(ParseNode& exp) {
 	if (exp.father->token_equals(TokenMeta::NT_EXPRESSION) && exp.father->get(2).get_what() == "%s =&(%s)") {
 		/*do not add '*' */
 	}

@@ -19,7 +19,6 @@
 
 #include "gen_common.h"
 #include <regex>
-
 // both function and array is callable
 
 std::string get_mapped_function_name(std::string origin_name) {
@@ -71,9 +70,8 @@ void regen_function_array(FunctionInfo * finfo, ParseNode & callable) {
 	}
 	else if(argtable.token_equals(TokenMeta::NT_ARGTABLE_PURE, TokenMeta::NT_PARAMTABLE_PURE) ){
 		// function call(with or without kwargs) OR array section
-
 		const std::regex pointer_regex("^\\(\\*\\(.*\\)\\)$");
-		if (is_fortran_function(finfo, head_name) || callable_head.token_equals(TokenMeta::NT_DERIVED_TYPE)|| std::regex_match(callable_head.get_what(), pointer_regex))
+		if (is_fortran_function(finfo, head_name) || callable_head.token_equals(TokenMeta::NT_DERIVED_TYPE) || std::regex_match(callable_head.get_what(), pointer_regex))
 		{
 
 		}

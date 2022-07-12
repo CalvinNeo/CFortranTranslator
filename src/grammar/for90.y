@@ -101,7 +101,7 @@ using namespace std;
 //%define api.value.type union
 
 %token /*_YY_VOID*/ YY_IGNORE_THIS YY_CRLF
-%token /*_YY_OP*/ YY_GT YY_GE YY_EQ YY_LE YY_LT YY_NEQ YY_NEQV YY_EQV YY_ANDAND YY_OROR YY_NOT YY_POWER YY_DOUBLECOLON YY_NEG YY_POS YY_EXPONENT YY_PLET
+%token /*_YY_OP*/ YY_GT YY_GE YY_EQ YY_LE YY_LT YY_NEQ YY_NEQV YY_EQV YY_ANDAND YY_OROR YY_NOT YY_POWER YY_DOUBLECOLON YY_NEG YY_POS YY_EXPONENT YY_PLET YY_PNULL
 %token /*_YY_TYPE*/ YY_INTEGER YY_FLOAT YY_WORD YY_OPERATOR /* Lead to error YY_OPERATOR_UNARY */ YY_STRING YY_ILLEGAL YY_COMPLEX YY_TRUE YY_FALSE YY_FORMAT_STMT YY_COMMENT
 %token /*_YY_CONTROL_FLOW*/ YY_LABEL YY_END YY_IF YY_THEN YY_ELSE YY_ELSEIF YY_ENDIF YY_DO YY_ENDDO YY_CONTINUE YY_BREAK YY_EXIT YY_CYCLE YY_WHILE YY_ENDWHILE YY_WHERE YY_ENDWHERE YY_CASE YY_ENDCASE YY_SELECT YY_ENDSELECT YY_GOTO YY_DOWHILE YY_DEFAULT 
 %token /*_YY_DELIM*/ YY_TYPE YY_ENDTYPE YY_PROGRAM YY_ENDPROGRAM YY_FUNCTION YY_ENDFUNCTION YY_RECURSIVE YY_RESULT YY_SUBROUTINE YY_ENDSUBROUTINE YY_MODULE YY_ENDMODULE YY_BLOCK YY_ENDBLOCK YY_INTERFACE YY_ENDINTERFACE YY_COMMON YY_DATA
@@ -354,6 +354,7 @@ using namespace std;
 				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($3));
 				CLEAN_DELETE($1, $2, $3);
 			}
+
 		| YY_LEN '=' exp
 			{
 				// though use std::string
@@ -433,19 +434,20 @@ using namespace std;
 				CLEAN_DELETE($2);
 			}
 
-	variable : YY_WORD
-			{
-				ARG_OUT lit = YY2ARG($1);
-				ParseNode newnode = gen_token(Term{ TokenMeta::UnknownVariant, lit.get_what() });
-				$$ = RETURN_NT(newnode);
-				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($1));
-				CLEAN_DELETE($1);
-			}
-		| inner_variable
-			{
-				$$ = $1;
-				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($1));
-			}
+    variable : YY_WORD
+            {
+                ARG_OUT lit = YY2ARG($1);
+                ParseNode newnode = gen_token(Term{ TokenMeta::UnknownVariant, lit.get_what() });
+                $$ = RETURN_NT(newnode);
+                update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($1));
+                CLEAN_DELETE($1);
+            }
+        | inner_variable
+            {
+                $$ = $1;
+                update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($1));
+            }
+
 	/******************
 	*	R618 section - subscript is subscript
 			or subscript - triplet
@@ -509,30 +511,24 @@ using namespace std;
 				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($3));
 				CLEAN_DELETE($1, $2, $3);
 			}
-		|    exp YY_PLET exp
+
+
+		|   exp YY_PLET YY_PNULL '(' ')'
 			{
-				// initial value is required in parse tree because it can be an non-terminal `exp` 
-				// non-array initial values 
-				// array_builder is exp 
+				ARG_OUT exp2 = YY2ARG($3);
+				$$ = RETURN_NT(gen_keyvalue_from_exp(YY2ARG($1), YY2ARG($3)));
+				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($3));
+				CLEAN_DELETE($1, $2, $3);
+			}
+
+		|	exp YY_PLET exp
+			{
 				ARG_OUT exp2 = YY2ARG($3);
 				std:string str = exp2.get_what();
 				exp2.get_what()=std::string("&")+std::string("(")+exp2.get_what()+std::string(")");
-				$$ = RETURN_NT(gen_keyvalue_from_exp(YY2ARG($1), exp2));
+				$$ = RETURN_NT(gen_keyvalue_from_exp( YY2ARG($1),exp2));
 				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($3));
 				CLEAN_DELETE($1, $2, $3);
-
-				// initial value is required in parse tree because it can be an non-terminal `exp` 
-				// non-array initial values 
-				// array_builder is exp 
-				//ARG_OUT variable = YY2ARG($1);
-				//ARG_OUT exp2 = YY2ARG($3);
-				//std:string str = exp2.get_what();
-				//exp2.get_what()=std::string("&")+std::string("(")+exp2.get_what()+std::string(")");
-				//sprintf(exp2.get_what(),"%s%s%s%s","&","(",str,")");
-				printf("catchya");
-				//$$ = RETURN_NT(gen_token(Term{ TokenMeta::NT_VARIABLE_ENTITY, variable.get_what() }, variable, exp2));
-				//update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($3));
-				//CLEAN_DELETE($1, $2, $3);
 			}
 
 	argtable : exp
@@ -952,36 +948,41 @@ using namespace std;
 				$$ = $1;
 				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($1));
 			}
+		| inner_variable
+			{
+				$$ = $1;
+				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($1));
+			}
+			
+    inner_variable : variable '%' YY_WORD
+            {
+            
+                ARG_OUT t = YY2ARG($1);
+                ARG_OUT v = YY2ARG($3);
+                ParseNode newnode = gen_flatten(t, v, "%s.%s", TokenMeta::NT_DERIVED_TYPE);
+                $$ = RETURN_NT(newnode);
+                update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($3));
+                CLEAN_DELETE($1, $2, $3);
+            }
+        | function_array_body '%' YY_WORD
+            {
+                ARG_OUT t = YY2ARG($1);
+                ARG_OUT v = YY2ARG($3);
+                ParseNode newnode = gen_flatten(t, v, "%s.%s", TokenMeta::NT_DERIVED_TYPE);
+                $$ = RETURN_NT(newnode);
+                update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($3));
+                CLEAN_DELETE($1, $2, $3);
+            }
+        | inner_variable '%' YY_WORD
+            {
+                ARG_OUT t = YY2ARG($1);
+                ARG_OUT v = YY2ARG($3);
+                ParseNode newnode = gen_flatten(t, v, "%s.%s", TokenMeta::NT_DERIVED_TYPE);
+                $$ = RETURN_NT(newnode);
+                update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($3));
+                CLEAN_DELETE($1, $2, $3);
+            }
 
-			
-	inner_variable : variable '%' YY_WORD
-			{
-			
-				ARG_OUT t = YY2ARG($1);
-				ARG_OUT v = YY2ARG($3);
-				ParseNode newnode = gen_flatten(t, v, "%s.%s", TokenMeta::NT_DERIVED_TYPE);
-				$$ = RETURN_NT(newnode);
-				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($3));
-				CLEAN_DELETE($1, $2, $3);
-			}
-		| function_array_body '%' YY_WORD
-			{
-				ARG_OUT t = YY2ARG($1);
-				ARG_OUT v = YY2ARG($3);
-				ParseNode newnode = gen_flatten(t, v, "%s.%s", TokenMeta::NT_DERIVED_TYPE);
-				$$ = RETURN_NT(newnode);
-				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($3));
-				CLEAN_DELETE($1, $2, $3);
-			}
-		| inner_variable '%' YY_WORD
-			{
-				ARG_OUT t = YY2ARG($1);
-				ARG_OUT v = YY2ARG($3);
-				ParseNode newnode = gen_flatten(t, v, "%s.%s", TokenMeta::NT_DERIVED_TYPE);
-				$$ = RETURN_NT(newnode);
-				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($3));
-				CLEAN_DELETE($1, $2, $3);
-			}
 
 	stmt : exp 
 			{
@@ -1175,18 +1176,30 @@ using namespace std;
 				CLEAN_DELETE($1);
 			}
 
-	let_stmt : exp YY_PLET exp
+	let_stmt : exp YY_PLET YY_PNULL '(' ')'
 			{
 			    //printf("in rule =>");
 				ARG_OUT exp1 = YY2ARG($1);
 				ARG_OUT op = YY2ARG($2);
 				ARG_OUT exp2 = YY2ARG($3);
-				
+				ParseNode opnew = gen_token(Term{ TokenMeta::Let, "%s = %s" });
+				$$ = RETURN_NT(gen_promote(opnew.get_what(), TokenMeta::NT_EXPRESSION, exp1, exp2, opnew));
+				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($5));
+				CLEAN_DELETE($1, $2, $3, $4, $5);
+			}
+
+		|	exp YY_PLET exp
+			{
+			    //printf("in rule =>");
+				ARG_OUT exp1 = YY2ARG($1);
+				ARG_OUT op = YY2ARG($2);
+				ARG_OUT exp2 = YY2ARG($3);
 				ParseNode opnew = gen_token(Term{ TokenMeta::Let, "%s =&(%s)" });
 				$$ = RETURN_NT(gen_promote(opnew.get_what(), TokenMeta::NT_EXPRESSION, exp1, exp2, opnew));
 				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($3));
 				CLEAN_DELETE($1, $2, $3);
 			}
+
 		| exp '=' exp
 			{
 			    //printf("in rule =");
@@ -1198,7 +1211,32 @@ using namespace std;
 				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($3));
 				CLEAN_DELETE($1, $2, $3);
 			}
-	     
+		| YY_DATA argtable '\\' argtable '\\'
+		    {
+				ARG_OUT exp1 = YY2ARG($2);
+				ARG_OUT exp2 = YY2ARG($4);
+				bool initialized = false;
+				ParseNode newGroup;
+				for(int i = 0; i < exp1.length(); i++)
+				{
+				    ParseNode opnew = gen_token(Term{ TokenMeta::Let, "%s = %s" });
+				    ParseNode newToken = gen_promote(opnew.get_what(), TokenMeta::NT_EXPRESSION, exp1.get(i), exp2.get(i), opnew);
+				    if(initialized)
+				    {
+				        ParseNode link = gen_token(Term{ TokenMeta::Let, "%s;%s" });
+				        newGroup = gen_promote(link.get_what(), TokenMeta::NT_EXPRESSION, newGroup, newToken, link);
+				    }else
+				    {
+				        newGroup = newToken;
+				        initialized = true;
+				    }
+				}
+				$$ = RETURN_NT(newGroup);
+				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($5));
+				CLEAN_DELETE($1, $2, $3, $4, $5);
+		    }
+
+
 	implicit_stmt : YY_IMPLICIT YY_NONE
 			{
 				// dummy stmt
@@ -1524,6 +1562,12 @@ using namespace std;
 				CLEAN_DELETE($1, $2, $3, $4);
 			}
 		| type_name '*' YY_INTEGER
+			{
+				$$ = $1;
+				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($3));
+				CLEAN_DELETE($2, $3);
+			}
+		| type_name '*' '(' '*' ')'
 			{
 				$$ = $1;
 				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($3));

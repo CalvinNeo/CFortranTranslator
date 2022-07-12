@@ -455,6 +455,11 @@ const vector<KeywordMeta> keywords = {
 			, TokenMeta::PLET
 			, YY_PLET
 	}
+
+	,KeywordMeta{ "null"
+		   , TokenMeta::PNULL
+		   , YY_PNULL
+	}
 	// 11 operators
 	, KeywordMeta{ "(/"
 		, TokenMeta::META_ANY

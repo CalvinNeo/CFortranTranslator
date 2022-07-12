@@ -38,6 +38,7 @@ const std::map<std::string, std::string> pre_map{
 	, { "complex", "forcomplex" }
 	, { "cycle", "continue" }
 	, { "exit", "break" }
+	, { "null()", "null" }
 };
 
 // NOTICE: `pre_map` has already do previous job for `funcname_map`

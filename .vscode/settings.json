@@ -22,5 +22,7 @@
         "vector": "cpp",
         "algorithm": "cpp",
         "type_traits": "cpp"
-    }
+    },
+    "makefile.makefilePath": "build/makefile",
+    "makefile.compileCommandsPath": ""
 }

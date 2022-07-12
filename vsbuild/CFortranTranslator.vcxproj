@@ -41,6 +41,7 @@
     <ClCompile Include="..\src\parser\Function.cpp" />
     <ClCompile Include="..\src\parser\Intent.cpp" />
     <ClCompile Include="..\src\parser\IntentHelper.cpp" />
+    <ClCompile Include="..\src\parser\IntentHelper.cpp" />
     <ClCompile Include="..\src\parser\parser.cpp" />
     <ClCompile Include="..\src\parser\scanner.cpp" />
     <ClCompile Include="..\src\parser\tokenizer.cpp" />

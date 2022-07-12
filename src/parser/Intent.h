@@ -29,6 +29,7 @@ namespace TokenMeta {
 		// Operator
 		// in priority order
 		ADD_ENUM(PLET, 460),
+		ADD_ENUM(PNULL, 461),
 		ADD_ENUM(Dereference, 260),
 		ADD_ENUM(Reference, 261),
 

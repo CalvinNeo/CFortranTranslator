@@ -1,6 +1,3 @@
 program ex
-  integer,dimension(3)
-111111::array
-  integer,pointer::ptr
-  ptr=>null()
+  data a,b\1,"FORTRAN"\
 end program

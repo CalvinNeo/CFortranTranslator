@@ -50,6 +50,7 @@ int main(int argc, char* argv[], char* env[])
 		{ "tree", no_argument, &print_tree, true },
 		{ 0, 0, 0, 0 } 
 	};
+
 	while ((opt = getopt_long(argc, argv, "df:F::p", opts, nullptr)) != -1) {
 		if (opt == 'f')
 		{
