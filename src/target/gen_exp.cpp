@@ -58,13 +58,13 @@ void regen_exp(FunctionInfo *finfo, ParseNode &exp) {
             add_star(exp);
         }
     } else if (exp.token_equals(TokenMeta::NT_FUCNTIONARRAY)) {
-        // derived type construction
+        // derived type construction, NOTICE: such approach will be exclusive with the original usage, i.e., variable or function followed by `(argtable)`
         if (get_type(get_context().current_module, exp.get(0).get_what().c_str()) != nullptr) {
             string array_str = "{";
             array_str.append(exp.get(1).get_what());
             array_str.append("}");
             exp.fs.CurrentTerm = Term{TokenMeta::NT_FUCNTIONARRAY, array_str};
-            return;
+            return;//immediate return
         }
         // END derived type construction
         if (exp.get(0).token_equals(TokenMeta::NT_DERIVED_TYPE)/*car%speed(2)*/
@@ -84,7 +84,7 @@ void regen_exp(FunctionInfo *finfo, ParseNode &exp) {
 
     } else if (exp.token_equals(TokenMeta::NT_VARIABLEDEFINESET)) {
     } else if (exp.token_equals(TokenMeta::NT_STATEMENT)) {
-    } else if (exp.token_equals(TokenMeta::NT_ARGTABLE_PURE)) {
+    } else if (exp.token_equals(TokenMeta::META_WORD)) {
     } else {
         print_error("error exp: ", exp);
     }

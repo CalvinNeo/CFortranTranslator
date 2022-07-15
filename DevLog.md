@@ -312,13 +312,13 @@ No need to change`for90.y`.
 Modify file `gen_exp.cpp`, add following code fragment in function `regen_exp()`, right after the `else if `condition: `else if (exp.token_equals(TokenMeta::NT_FUCNTIONARRAY))`
 
 ```cpp
-        // derived type construction
+        // derived type construction, NOTICE: such approach will be exclusive with the original usage, i.e., variable or function followed by `(argtable)`
         if (get_type(get_context().current_module, exp.get(0).get_what().c_str()) != nullptr) {
             string array_str = "{";
             array_str.append(exp.get(1).get_what());
             array_str.append("}");
             exp.fs.CurrentTerm = Term{TokenMeta::NT_FUCNTIONARRAY, array_str};
-            return;
+            return;//immediate return
         }
         // END derived type construction
 ```
@@ -469,3 +469,16 @@ int main()
 Process finished with exit code 0
 ```
 
+******
+
+continue 7.12 17:00
+implement `data a/1,2/`
+
+> grammar of data
+
+1. in `for90.y`
+
+   ```shell
+   ```
+
+   

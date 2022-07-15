@@ -962,11 +962,12 @@ using namespace std;
 				$$ = $1;
 				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($1));
 			}
-		| inner_variable
-			{
-				$$ = $1;
-				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($1));
-			}
+		// inner_variable is variable, omit the rule
+		//| inner_variable
+		//	{
+		//		$$ = $1;
+		//		update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($1));
+		//	}
 			
     inner_variable : variable '%' YY_WORD
             {
@@ -1225,7 +1226,7 @@ using namespace std;
 				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($3));
 				CLEAN_DELETE($1, $2, $3);
 			}
-		| YY_DATA argtable '/' argtable '/'
+		| YY_DATA nlists '/' clists '/'
 		    {
 				ARG_OUT exp1 = YY2ARG($2);
 				ARG_OUT exp2 = YY2ARG($4);
@@ -1241,8 +1242,8 @@ using namespace std;
 				    }
 				    else
 				    {
-				        lelem = exp1;
-				        lelem.get_what().append("[").append(std::to_string(i)).append("]");
+				        lelem = exp1.get(0);
+				        lelem.get_what().append("(").append("INOUT("+std::to_string(i+1)+")").append(")");
 				    }
 
 				    ParseNode newToken = gen_promote(opnew.get_what(), TokenMeta::NT_EXPRESSION, lelem, exp2.get(i), opnew);
@@ -1260,8 +1261,141 @@ using namespace std;
 				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($5));
 				CLEAN_DELETE($1, $2, $3, $4, $5);
 		    }
+    nlists_elem : variable
+            {
+                //printf("in nlists_elem:variable\n");
+                $$ = $1;
+                update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($1));
+            }
+        | function_array_body
+            {
+                //printf("in nlists_elem:function_array_body\n");
+                $$ = $1;
+                update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($1));
+            }
+        | hidden_do
+            {
+                //printf("in nlists_elem:hidden_do\n");
+                $$ = $1;
+                update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($1));
+            }
+
+    // nlists derived from argtable
+    nlists : nlists_elem
+            {
+                //printf("in nlists:nlists_elem\n");
+            	ARG_OUT exp = YY2ARG($1);
+            	ParseNode newnode = gen_token(Term{ TokenMeta::NT_ARGTABLE_PURE , exp.get_what()}, exp);
+            	$$ = RETURN_NT(newnode);
+            	update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($1));
+            	CLEAN_DELETE($1);
+            }
+        | nlists ',' nlists_elem
+            {
+                //printf("in nlists:nlists, nlists_elem\n");
+				ARG_OUT exp = YY2ARG($3);
+				ARG_OUT argtable = YY2ARG($1);
+#ifdef USE_REUSE
+				ParseNode * newnode = new ParseNode();
+				reuse_flatten(*newnode, exp, argtable, "%s, %s", TokenMeta::NT_ARGTABLE_PURE, true);
+				$$ = newnode;
+				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($3));
+				CLEAN_DELETE($2);
+				CLEAN_REUSE($1, $3);
+#else
+				$$ = RETURN_NT(gen_flatten(exp, argtable, "%s, %s", TokenMeta::NT_ARGTABLE_PURE, true));
+				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($3));
+				CLEAN_DELETE($1, $2, $3);
+#endif
+            }
+
+    c_in_clist : literal
+            {
+                //printf("in c_in_clist:literal\n");
+                $$ = $1;
+                update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($1));
+            }
+        | YY_WORD
+            {
+                //printf("in c_in_clist:YY_WORD\n");
+                $$ = $1;
+                update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($1));
+            }
+    r_in_clist : YY_INTEGER
+            {
+                //printf("in r_in_clist:YY_INTEGER\n");
+                $$ = $1;
+                update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($1));
+            }
 
 
+    clists_elem : c_in_clist
+            {
+                //printf("in clists_elem:c_in_clist\n");
+                $$ = $1;
+                update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($1));
+            }
+
+    clists : clists_elem
+            {
+                //printf("in clists:clists_elem\n");
+            	ARG_OUT exp = YY2ARG($1);
+            	ParseNode newnode = gen_token(Term{ TokenMeta::NT_ARGTABLE_PURE , exp.get_what()}, exp);
+            	$$ = RETURN_NT(newnode);
+            	update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($1));
+            	CLEAN_DELETE($1);
+            }
+        | clists ',' clists_elem
+            {
+                //printf("in clists:clists, clists_elem\n");
+				ARG_OUT exp = YY2ARG($3);
+				ARG_OUT argtable = YY2ARG($1);
+#ifdef USE_REUSE
+				ParseNode * newnode = new ParseNode();
+				reuse_flatten(*newnode, exp, argtable, "%s, %s", TokenMeta::NT_ARGTABLE_PURE, true);
+				$$ = newnode;
+				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($3));
+				CLEAN_DELETE($2);
+				CLEAN_REUSE($1, $3);
+#else
+				$$ = RETURN_NT(gen_flatten(exp, argtable, "%s, %s", TokenMeta::NT_ARGTABLE_PURE, true));
+				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($3));
+				CLEAN_DELETE($1, $2, $3);
+#endif
+            }
+        | r_in_clist '*' c_in_clist
+            {
+                //printf("in clists_elem:r_in_clist * c_in_clist\n");
+				ARG_OUT r = YY2ARG($1);
+				int times = std::stoi(r.get_what());
+				ARG_OUT c = YY2ARG($3);
+
+				ParseNode * newnode = new ParseNode();
+            	*newnode = gen_token(Term{ TokenMeta::NT_ARGTABLE_PURE , c.get_what()}, c);
+
+#ifdef USE_REUSE
+                for(int i = 1; i < times; i++)
+                {
+                  ParseNode * container = new ParseNode();
+                  ParseNode *exp = new ParseNode(c);
+				  reuse_flatten(*container, *exp, *newnode, "%s, %s", TokenMeta::NT_ARGTABLE_PURE, true);
+				  newnode = container;
+                }
+				$$ = newnode;
+				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($3));
+				CLEAN_DELETE($2);
+				CLEAN_REUSE($1, $3);
+#else
+                for(int i = 1; i < times; i++)
+                {
+                  ParseNode *exp = new ParseNode(c);
+				  *newnode = gen_flatten(*exp, *newnode, "%s, %s", TokenMeta::NT_ARGTABLE_PURE, true);
+                }
+				$$ = RETURN_NT(newnode);
+				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($3));
+				CLEAN_DELETE($1, $2, $3);
+#endif
+            }
 
 	implicit_stmt : YY_IMPLICIT YY_NONE
 			{
