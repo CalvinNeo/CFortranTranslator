@@ -1,3 +1,7 @@
 program ex
-  data a,b\1,"FORTRAN"\
+  type car
+    real speed
+    real size
+  end type car
+  type(car)::car1=car(1.0,4.23)
 end program

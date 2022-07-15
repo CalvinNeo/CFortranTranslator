@@ -370,7 +370,21 @@ using namespace std;
 				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($3));
 				CLEAN_DELETE($1, $2, $3);
 			}
+		| exp
+			{
+				// though use std::string
+				// still need to initialize the string to YY_LEN
+				int len;
+				ARG_OUT integer = YY2ARG($1);
+				sscanf(integer.get_what().c_str(), "%d", &len);
 
+				/* string length */
+				ParseNode newnode = gen_token(Term{ TokenMeta::NT_VARIABLEDESC, WHEN_DEBUG_OR_EMPTY("NT_VARIABLEDESC GENERATED IN") });
+				set_variabledesc_attr(newnode, boost::none, boost::none, boost::none, boost::none, len, boost::none, boost::none, boost::none, boost::none, boost::none);
+				$$ = RETURN_NT(newnode);
+				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($1));
+				CLEAN_DELETE($1);
+			}
 	literal : YY_FLOAT
 			{
 				// all arguments under `literal` rule is directly from tokenizer
@@ -642,7 +656,7 @@ using namespace std;
 	function_array_body : variable '(' paramtable ')'
 			{
 				// function call OR array index 
-				// NOTE that array index can be A(1:2, 3:4) 
+				// NOTE that array index can be A(1:2, 3:4)
 				ARG_OUT callable_head = YY2ARG($1);
 				ARG_OUT argtable = YY2ARG($3);
 				ParseNode newnode = gen_token(Term{TokenMeta::NT_FUCNTIONARRAY, WHEN_DEBUG_OR_EMPTY("FUNCTIONARRAY GENERATED IN REGEN_SUITE") }, callable_head, argtable);
@@ -1211,16 +1225,27 @@ using namespace std;
 				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($3));
 				CLEAN_DELETE($1, $2, $3);
 			}
-		| YY_DATA argtable '\\' argtable '\\'
+		| YY_DATA argtable '/' argtable '/'
 		    {
 				ARG_OUT exp1 = YY2ARG($2);
 				ARG_OUT exp2 = YY2ARG($4);
 				bool initialized = false;
 				ParseNode newGroup;
-				for(int i = 0; i < exp1.length(); i++)
+				for(int i = 0; i < exp2.length(); i++)
 				{
 				    ParseNode opnew = gen_token(Term{ TokenMeta::Let, "%s = %s" });
-				    ParseNode newToken = gen_promote(opnew.get_what(), TokenMeta::NT_EXPRESSION, exp1.get(i), exp2.get(i), opnew);
+				    ParseNode lelem;
+				    if(exp1.length() == exp2.length())
+				    {
+				        lelem = exp1.get(i);
+				    }
+				    else
+				    {
+				        lelem = exp1;
+				        lelem.get_what().append("[").append(std::to_string(i)).append("]");
+				    }
+
+				    ParseNode newToken = gen_promote(opnew.get_what(), TokenMeta::NT_EXPRESSION, lelem, exp2.get(i), opnew);
 				    if(initialized)
 				    {
 				        ParseNode link = gen_token(Term{ TokenMeta::Let, "%s;%s" });
@@ -1235,6 +1260,7 @@ using namespace std;
 				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($5));
 				CLEAN_DELETE($1, $2, $3, $4, $5);
 		    }
+
 
 
 	implicit_stmt : YY_IMPLICIT YY_NONE
