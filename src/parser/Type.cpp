@@ -27,6 +27,7 @@ TypeInfo * add_type(std::string module_name, std::string type_name, const TypeIn
 	}
 	else {
 		get_context().types[fullname] = tinfo;
+        get_context().types_vec.push_back(tinfo);
 	}
 	tinfo->local_name = type_name;
 	return tinfo;

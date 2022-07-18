@@ -29,12 +29,11 @@ R202 program-unit is main-program
 void gen_fortran_program(const ParseNode & wrappers) {
 	std::string codes;
 	std::string main_code;
-    std::vector<TypeInfo *> type_info_vector; /*used to maintain type definition order, i.e., order in generated code be consistent with order of `add_type()` call*/
 	get_context().program_tree = wrappers;
 
 	FunctionInfo * program_info = add_function("", "program", FunctionInfo());
 	ParseNode script_program = gen_token(Term{ TokenMeta::NT_SUITE , "" });
-		
+
 	for (ParseNode * wrapper_ptr : get_context().program_tree)
 	{
 		ParseNode & wrapper = *wrapper_ptr;
@@ -68,7 +67,6 @@ void gen_fortran_program(const ParseNode & wrappers) {
 			get_context().current_module = "";
 			ParseNode& variable_type = wrapper.get(0);
 			TypeInfo* tinfo = add_type(get_context().current_module, variable_type.get_what(), TypeInfo{});
-            type_info_vector.push_back(tinfo);
 		}
 		else if (wrapper.token_equals(TokenMeta::NT_DUMMY))
 		{
@@ -102,7 +100,7 @@ void gen_fortran_program(const ParseNode & wrappers) {
 	// main program code
 	regen_suite(program_info, script_program);
 
-	// regen common definition 
+	// regen common definition
 	// this MUST before generate subprogram's code(`regen_function_2`), ref `regen_function_2` for reason
 	// if you move this code block under the "regen all subprogram's step 2" block, errors will occur when processing file *For3d14.for*
 	std::string common_decls;
@@ -138,7 +136,7 @@ void gen_fortran_program(const ParseNode & wrappers) {
 		//}
 	}
 
-	for (TypeInfo * tinfo : type_info_vector)
+	for (TypeInfo * tinfo : get_context().types_vec)
 	{
 			regen_derived_type_2(tinfo);
 			codes += tinfo->node->get_what();
@@ -167,7 +165,7 @@ void gen_fortran_program(const ParseNode & wrappers) {
 
 	/************
 	* PROGRAM STRUCTURE
-	* 
+	*
 	* common blocks
 	* forward function decls
 	* function definitions

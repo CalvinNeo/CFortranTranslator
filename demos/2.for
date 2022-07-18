@@ -1,6 +1,6 @@
-type apple
-end type apple
+program ex
 type car
 end type car
-program ex
+type apple
+end type apple
 end program

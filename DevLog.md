@@ -879,9 +879,45 @@ index f80c4c8..4c65b85 100755
  	// main program code
 ```
 
+change `add_type()`, in file `Type.cpp`
+
+```shell
+diff --git a/src/parser/Type.cpp b/src/parser/Type.cpp
+index 1f08799..5f5ff4b 100755
+--- a/src/parser/Type.cpp
++++ b/src/parser/Type.cpp
+@@ -27,6 +27,7 @@ TypeInfo * add_type(std::string module_name, std::string type_name, const TypeIn
+ 	}
+ 	else {
+ 		get_context().types[fullname] = tinfo;
++        get_context().types_vec.push_back(tinfo);
+ 	}
+ 	tinfo->local_name = type_name;
+ 	return tinfo;
+```
+
+change `TranslateContext` definition in `context.h`
+
+```shell
+diff --git a/src/parser/context.h b/src/parser/context.h
+index e03544a..3f4068c 100755
+--- a/src/parser/context.h
++++ b/src/parser/context.h
+@@ -30,6 +30,7 @@ struct TranslateContext {
+ 	std::map < std::string, VariableInfo * > variables;
+ 	std::map < std::string, FunctionInfo * > functions;
+ 	std::map < std::string, TypeInfo* > types;
++    std::vector <TypeInfo* > types_vec;
+ 	std::map<std::string, std::vector<KeywordParamInfo>> func_kwargs;
+ 	ParseNode program_tree;
+ 	std::string global_code;
+```
+
+
+
 Rationale: 
 
-So that the for loop will traverse the elements of `get_context().types` in the order they were added. Because of the implementation of `add_type()` (in file `src/parser/Type.cpp` line 20), the map is filled but the adding order does not persist. For that reason, we need to define a vector variable to store the return value of `add_type()`, so traversing this new vector will promise the same order.
+After modification, the for loop will traverse the elements of `get_context().types_vec` in the order they were added. Because of the implementation of `add_type()` (in file `src/parser/Type.cpp` line 20), the map `get_context().types` is filled but the adding order does not persist. For that reason, we need to define a vector variable to keep that order of calling `add_type()`, so traversing this new vector will promise the same order.
 
 Test Case
 
