@@ -1336,6 +1336,7 @@ using namespace std;
                 update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($1));
             }
 
+    // clists derived from argtable
     clists : clists_elem
             {
                 //printf("in clists:clists_elem\n");
@@ -1365,7 +1366,7 @@ using namespace std;
             }
         | r_in_clist '*' c_in_clist
             {
-                //printf("in clists_elem:r_in_clist * c_in_clist\n");
+                //printf("in clists:r_in_clist * c_in_clist\n");
 				ARG_OUT r = YY2ARG($1);
 				int times = std::stoi(r.get_what());
 				ARG_OUT c = YY2ARG($3);
@@ -1394,6 +1395,39 @@ using namespace std;
 				$$ = RETURN_NT(newnode);
 				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($3));
 				CLEAN_DELETE($1, $2, $3);
+#endif
+            }
+        | clists ',' r_in_clist '*' c_in_clist
+            {
+                //printf("in clists:clists ',' r_in_clist '*' c_in_clist\n");
+				ARG_OUT argtable = YY2ARG($1);
+				ARG_OUT r = YY2ARG($3);
+				int times = std::stoi(r.get_what());
+				ARG_OUT c = YY2ARG($5);
+
+				ParseNode * newnode = new ParseNode();
+				*newnode = argtable;
+#ifdef USE_REUSE
+                for(int i = 0; i < times; i++)
+                {
+                  ParseNode * container = new ParseNode();
+                  ParseNode *exp = new ParseNode(c);
+				  reuse_flatten(*container, *exp, *newnode, "%s, %s", TokenMeta::NT_ARGTABLE_PURE, true);
+				  newnode = container;
+                }
+				$$ = newnode;
+				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($5));
+				CLEAN_DELETE($2, $4);
+				CLEAN_REUSE($1, $3, $5);
+#else
+                for(int i = 0; i < times; i++)
+                {
+                  ParseNode *exp = new ParseNode(c);
+				  *newnode = gen_flatten(*exp, *newnode, "%s, %s", TokenMeta::NT_ARGTABLE_PURE, true);
+                }
+				$$ = RETURN_NT(newnode);
+				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($5));
+				CLEAN_DELETE($1, $2, $3, $4, $5);
 #endif
             }
 

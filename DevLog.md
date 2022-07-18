@@ -471,14 +471,464 @@ Process finished with exit code 0
 
 ******
 
-continue 7.12 17:00
+**CONTINUE** 7.12 17:00
 implement `data a/1,2/`
 
-> grammar of data
+> grammar of data refer to [DATA](https://docs.oracle.com/cd/E19957-01/805-4939/6j4m0vn85/index.html), the `[[,] nlist / clist /] ...` part in syntax `DATA nlist / clist / [[,] nlist / clist /] ...` is not implemented here.
+>
+> to be specific about the implementation here:
+>
+> e.g., data a,b,c /1,2,3/
+>
+> a,b,c... can be replaced by variable like `a`, array element like `a(0)`, and implied DO lists
+>
+> 1,2,3 can be replaced by literal or symbolic name of a constant, optionally preceded by a nonzero, unsigned integer literal (usage of symbolic name of such constant is not implemented here, although it is part of the syntax in the doc), which denotes the repetition times of the literal, e.g., `4*5` is equivalent to `5,5,5,5`
 
-1. in `for90.y`
+1. in `for90.y`, append after rule `let_stmt: ...exp '=' exp`, the old rule `| YY_DATA argtable '\\' argtable '\\'`should be deleted now.
 
-   ```shell
+   ```yacc
+   		| YY_DATA nlists '/' clists '/'
+   		    {
+   				ARG_OUT exp1 = YY2ARG($2);
+   				ARG_OUT exp2 = YY2ARG($4);
+   				bool initialized = false;
+   				ParseNode newGroup;
+   				for(int i = 0; i < exp2.length(); i++)
+   				{
+   				    ParseNode opnew = gen_token(Term{ TokenMeta::Let, "%s = %s" });
+   				    ParseNode lelem;
+   				    if(exp1.length() == exp2.length())
+   				    {
+   				        lelem = exp1.get(i);
+   				    }
+   				    else
+   				    {
+   				        lelem = exp1.get(0);
+   				        lelem.get_what().append("(").append("INOUT("+std::to_string(i+1)+")").append(")");
+   				    }
+   
+   				    ParseNode newToken = gen_promote(opnew.get_what(), TokenMeta::NT_EXPRESSION, lelem, exp2.get(i), opnew);
+   				    if(initialized)
+   				    {
+   				        ParseNode link = gen_token(Term{ TokenMeta::Let, "%s;%s" });
+   				        newGroup = gen_promote(link.get_what(), TokenMeta::NT_EXPRESSION, newGroup, newToken, link);
+   				    }else
+   				    {
+   				        newGroup = newToken;
+   				        initialized = true;
+   				    }
+   				}
+   				$$ = RETURN_NT(newGroup);
+   				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($5));
+   				CLEAN_DELETE($1, $2, $3, $4, $5);
+   		    }
+       nlists_elem : variable
+               {
+                   //printf("in nlists_elem:variable\n");
+                   $$ = $1;
+                   update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($1));
+               }
+           | function_array_body
+               {
+                   //printf("in nlists_elem:function_array_body\n");
+                   $$ = $1;
+                   update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($1));
+               }
+           | hidden_do
+               {
+                   //printf("in nlists_elem:hidden_do\n");
+                   $$ = $1;
+                   update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($1));
+               }
+   
+       // nlists derived from argtable
+       nlists : nlists_elem
+               {
+                   //printf("in nlists:nlists_elem\n");
+               	ARG_OUT exp = YY2ARG($1);
+               	ParseNode newnode = gen_token(Term{ TokenMeta::NT_ARGTABLE_PURE , exp.get_what()}, exp);
+               	$$ = RETURN_NT(newnode);
+               	update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($1));
+               	CLEAN_DELETE($1);
+               }
+           | nlists ',' nlists_elem
+               {
+                   //printf("in nlists:nlists, nlists_elem\n");
+   				ARG_OUT exp = YY2ARG($3);
+   				ARG_OUT argtable = YY2ARG($1);
+   #ifdef USE_REUSE
+   				ParseNode * newnode = new ParseNode();
+   				reuse_flatten(*newnode, exp, argtable, "%s, %s", TokenMeta::NT_ARGTABLE_PURE, true);
+   				$$ = newnode;
+   				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($3));
+   				CLEAN_DELETE($2);
+   				CLEAN_REUSE($1, $3);
+   #else
+   				$$ = RETURN_NT(gen_flatten(exp, argtable, "%s, %s", TokenMeta::NT_ARGTABLE_PURE, true));
+   				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($3));
+   				CLEAN_DELETE($1, $2, $3);
+   #endif
+               }
+   
+       c_in_clist : literal
+               {
+                   //printf("in c_in_clist:literal\n");
+                   $$ = $1;
+                   update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($1));
+               }
+           | YY_WORD
+               {
+                   //printf("in c_in_clist:YY_WORD\n");
+                   $$ = $1;
+                   update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($1));
+               }
+       r_in_clist : YY_INTEGER
+               {
+                   //printf("in r_in_clist:YY_INTEGER\n");
+                   $$ = $1;
+                   update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($1));
+               }
+   
+   
+       clists_elem : c_in_clist
+               {
+                   //printf("in clists_elem:c_in_clist\n");
+                   $$ = $1;
+                   update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($1));
+               }
+   
+       // clists derived from argtable
+       clists : clists_elem
+               {
+                   //printf("in clists:clists_elem\n");
+               	ARG_OUT exp = YY2ARG($1);
+               	ParseNode newnode = gen_token(Term{ TokenMeta::NT_ARGTABLE_PURE , exp.get_what()}, exp);
+               	$$ = RETURN_NT(newnode);
+               	update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($1));
+               	CLEAN_DELETE($1);
+               }
+           | clists ',' clists_elem
+               {
+                   //printf("in clists:clists, clists_elem\n");
+   				ARG_OUT exp = YY2ARG($3);
+   				ARG_OUT argtable = YY2ARG($1);
+   #ifdef USE_REUSE
+   				ParseNode * newnode = new ParseNode();
+   				reuse_flatten(*newnode, exp, argtable, "%s, %s", TokenMeta::NT_ARGTABLE_PURE, true);
+   				$$ = newnode;
+   				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($3));
+   				CLEAN_DELETE($2);
+   				CLEAN_REUSE($1, $3);
+   #else
+   				$$ = RETURN_NT(gen_flatten(exp, argtable, "%s, %s", TokenMeta::NT_ARGTABLE_PURE, true));
+   				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($3));
+   				CLEAN_DELETE($1, $2, $3);
+   #endif
+               }
+           | r_in_clist '*' c_in_clist
+               {
+                   //printf("in clists:r_in_clist * c_in_clist\n");
+   				ARG_OUT r = YY2ARG($1);
+   				int times = std::stoi(r.get_what());
+   				ARG_OUT c = YY2ARG($3);
+   
+   				ParseNode * newnode = new ParseNode();
+               	*newnode = gen_token(Term{ TokenMeta::NT_ARGTABLE_PURE , c.get_what()}, c);
+   
+   #ifdef USE_REUSE
+                   for(int i = 1; i < times; i++)
+                   {
+                     ParseNode * container = new ParseNode();
+                     ParseNode *exp = new ParseNode(c);
+   				  reuse_flatten(*container, *exp, *newnode, "%s, %s", TokenMeta::NT_ARGTABLE_PURE, true);
+   				  newnode = container;
+                   }
+   				$$ = newnode;
+   				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($3));
+   				CLEAN_DELETE($2);
+   				CLEAN_REUSE($1, $3);
+   #else
+                   for(int i = 1; i < times; i++)
+                   {
+                     ParseNode *exp = new ParseNode(c);
+   				  *newnode = gen_flatten(*exp, *newnode, "%s, %s", TokenMeta::NT_ARGTABLE_PURE, true);
+                   }
+   				$$ = RETURN_NT(newnode);
+   				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($3));
+   				CLEAN_DELETE($1, $2, $3);
+   #endif
+               }
+           | clists ',' r_in_clist '*' c_in_clist
+               {
+                   //printf("in clists:clists ',' r_in_clist '*' c_in_clist\n");
+   				ARG_OUT argtable = YY2ARG($1);
+   				ARG_OUT r = YY2ARG($3);
+   				int times = std::stoi(r.get_what());
+   				ARG_OUT c = YY2ARG($5);
+   
+   				ParseNode * newnode = new ParseNode();
+   				*newnode = argtable;
+   #ifdef USE_REUSE
+                   for(int i = 0; i < times; i++)
+                   {
+                     ParseNode * container = new ParseNode();
+                     ParseNode *exp = new ParseNode(c);
+   				  reuse_flatten(*container, *exp, *newnode, "%s, %s", TokenMeta::NT_ARGTABLE_PURE, true);
+   				  newnode = container;
+                   }
+   				$$ = newnode;
+   				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($5));
+   				CLEAN_DELETE($2, $4);
+   				CLEAN_REUSE($1, $3, $5);
+   #else
+                   for(int i = 0; i < times; i++)
+                   {
+                     ParseNode *exp = new ParseNode(c);
+   				  *newnode = gen_flatten(*exp, *newnode, "%s, %s", TokenMeta::NT_ARGTABLE_PURE, true);
+                   }
+   				$$ = RETURN_NT(newnode);
+   				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($5));
+   				CLEAN_DELETE($1, $2, $3, $4, $5);
+   #endif
+               }
    ```
 
+2. in `gen_exp.cpp`, in function `regen_exp()`, right before the last `else` condition( the previous line `else if (exp.token_equals(TokenMeta::NT_ARGTABLE_PURE)){}` is not used and could be deleted now)
+
+   ```cpp
+   	else {
+   		print_error("error exp: ", exp);
+   	}
+   ```
+
+   Add an `else if`condition
+
+   ```cpp
+       else if (exp.token_equals(TokenMeta::META_WORD))
+       {
+       }
+   ```
+
+3. Test case
+
+   ```fortran
+   program ex
+     data b/3, 4*8/
+   end program
+   ```
+
+   output
+
+   ```shell
+   "~/CFortranTranslator/cmake-build-debug/CFortranTranslator" -Ff ../demos/2.for --tree
+   /**********************************************************************/
+   /* File:                                                              */
+   /* Author:                                                            */
+   /* This codes is generated by CFortranTranslator                      */
+   /* CFortranTranslator is published under GPL license                  */
+   /* refer to https://github.com/CalvinNeo/CFortranTranslator/ for more */
+   /**********************************************************************/
+   #include "../for90std/for90std.h" 
+   #define USE_FORARRAY 
+   int main()
+   {
+   	double b(INOUT(1)) = 0.0;
+   	double b(INOUT(2)) = 0.0;
+   	double b(INOUT(3)) = 0.0;
+   	double b(INOUT(4)) = 0.0;
+   	double b(INOUT(5)) = 0.0;
+   	b(INOUT(1)) = 3;b(INOUT(2)) = 8;b(INOUT(3)) = 8;b(INOUT(4)) = 8;b(INOUT(5)) = 8;
+   	
+   	return 0;
+   }
+   [NT](NT_WRAPPERS) /**********************************************************************/
+   /* File:                                                              */
+   /* Author:                                                            */
+   /* This codes is generated by CFortranTranslator                      */
+   /* CFortranTranslator is published under GPL license                  */
+   /* refer to https://github.com/CalvinNeo/CFortranTranslator/ for more */
+   /**********************************************************************/
+   #include "../for90std/for90std.h" 
+   #define USE_FORARRAY 
+   int main()
+   {
+   	double b(INOUT(1)) = 0.0;
+   	double b(INOUT(2)) = 0.0;
+   	double b(INOUT(3)) = 0.0;
+   	double b(INOUT(4)) = 0.0;
+   	double b(INOUT(5)) = 0.0;
+   	b(INOUT(1)) = 3;b(INOUT(2)) = 8;b(INOUT(3)) = 8;b(INOUT(4)) = 8;b(INOUT(5)) = 8;
+   	
+   	return 0;
+   }
+   	[NT](NT_PROGRAM_EXPLICIT) b(INOUT(1)) = 3;b(INOUT(2)) = 8;b(INOUT(3)) = 8;b(INOUT(4)) = 8;b(INOUT(5)) = 8;
    
+   
+   		[NT](NT_SUITE) b(INOUT(1)) = 3;b(INOUT(2)) = 8;b(INOUT(3)) = 8;b(INOUT(4)) = 8;b(INOUT(5)) = 8;
+   
+   
+   			[NT](NT_STATEMENT) b(INOUT(1)) = 3;b(INOUT(2)) = 8;b(INOUT(3)) = 8;b(INOUT(4)) = 8;b(INOUT(5)) = 8;
+   				[NT](NT_EXPRESSION) b(INOUT(1)) = 3;b(INOUT(2)) = 8;b(INOUT(3)) = 8;b(INOUT(4)) = 8;b(INOUT(5)) = 8
+   					[NT](NT_EXPRESSION) b(INOUT(1)) = 3;b(INOUT(2)) = 8;b(INOUT(3)) = 8;b(INOUT(4)) = 8
+   						[NT](NT_EXPRESSION) b(INOUT(1)) = 3;b(INOUT(2)) = 8;b(INOUT(3)) = 8
+   							[NT](NT_EXPRESSION) b(INOUT(1)) = 3;b(INOUT(2)) = 8
+   								[NT](NT_EXPRESSION) b(INOUT(1)) = 3
+   									[T](UnknownVariant) b(INOUT(1))
+   									[T](META_INTEGER or Int) 3
+   									[T](Let) %s = %s
+   								[NT](NT_EXPRESSION) b(INOUT(2)) = 8
+   									[T](UnknownVariant) b(INOUT(2))
+   									[T](META_INTEGER or Int) 8
+   									[T](Let) %s = %s
+   								[T](Let) %s;%s
+   							[NT](NT_EXPRESSION) b(INOUT(3)) = 8
+   								[T](UnknownVariant) b(INOUT(3))
+   								[T](META_INTEGER or Int) 8
+   								[T](Let) %s = %s
+   							[T](Let) %s;%s
+   						[NT](NT_EXPRESSION) b(INOUT(4)) = 8
+   							[T](UnknownVariant) b(INOUT(4))
+   							[T](META_INTEGER or Int) 8
+   							[T](Let) %s = %s
+   						[T](Let) %s;%s
+   					[NT](NT_EXPRESSION) b(INOUT(5)) = 8
+   						[T](UnknownVariant) b(INOUT(5))
+   						[T](META_INTEGER or Int) 8
+   						[T](Let) %s = %s
+   					[T](Let) %s;%s
+   			[T](NT_STATEMENT) 
+   Cost time:1
+   
+   Process finished with exit code 0
+   
+   ```
+
+   ********
+
+   remove unnecessary implicit variable check
+
+   change `gen_exp.cpp`
+
+   ```shell
+   diff --git a/src/target/gen_exp.cpp b/src/target/gen_exp.cpp
+   index e87f7bb..822f648 100755
+   --- a/src/target/gen_exp.cpp
+   +++ b/src/target/gen_exp.cpp
+   @@ -68,7 +68,7 @@ void regen_exp(FunctionInfo *finfo, ParseNode &exp) {
+            }
+            // END derived type construction
+            if (exp.get(0).token_equals(TokenMeta::NT_DERIVED_TYPE)/*car%speed(2)*/
+   -            || exp.get(0).token_equals(TokenMeta::UnknownVariant))/*car(2)%speed, car(2)*/ {
+   +            || (exp.get(0).token_equals(TokenMeta::UnknownVariant) && exp.father->token_equals(TokenMeta::NT_DERIVED_TYPE)))/*car(2)%speed, ~~car(2)~~*/ {
+                regen_exp(finfo, exp.get(0));
+            }
+            regen_function_array(finfo, exp);
+   
+   ```
+
+   the `if` condition was added when implementing `inner-variable` with array, but the condition`exp.get(0).token_equals(TokenMeta::UnknownVariant))`will affect all `function_array_body`, but we want only `car(2)%speed` to be affected, so here we add another condition `exp.father->token_equals(TokenMeta::NT_DERIVED_TYPE)` so that a function call like `xx(b)` will not enter `regen_exp(finfo, exp.get(0));` in the `if` body.
+
+******
+
+7.18, reverse traversing order when generating type definition codes
+
+change `gen_program.cpp`, in function`gen_fortran_program()`
+
+```shell
+diff --git a/src/target/gen_program.cpp b/src/target/gen_program.cpp
+index f80c4c8..4c65b85 100755
+--- a/src/target/gen_program.cpp
++++ b/src/target/gen_program.cpp
+@@ -29,6 +29,7 @@ R202 program-unit is main-program
+ void gen_fortran_program(const ParseNode & wrappers) {
+ 	std::string codes;
+ 	std::string main_code;
++    std::vector<TypeInfo *> type_info_vector; /*used to maintain type definition order, i.e., order in generated code be consistent with order of `add_type()` call*/
+ 	get_context().program_tree = wrappers;
+ 
+ 	FunctionInfo * program_info = add_function("", "program", FunctionInfo());
+@@ -67,6 +68,7 @@ void gen_fortran_program(const ParseNode & wrappers) {
+ 			get_context().current_module = "";
+ 			ParseNode& variable_type = wrapper.get(0);
+ 			TypeInfo* tinfo = add_type(get_context().current_module, variable_type.get_what(), TypeInfo{});
++            type_info_vector.push_back(tinfo);
+ 		}
+ 		else if (wrapper.token_equals(TokenMeta::NT_DUMMY))
+ 		{
+@@ -136,20 +138,11 @@ void gen_fortran_program(const ParseNode & wrappers) {
+ 		//}
+ 	}
+ 
+-	for (std::pair<std::string, TypeInfo *> pair : get_context().types)
++	for (TypeInfo * tinfo : type_info_vector)
+ 	{
+-		ParseNode& wrapper = *pair.second->node;
+-		if (wrapper.token_equals(TokenMeta::NT_DERIVED_TYPE))
+-		{
+-			ParseNode& variable_type = wrapper.get(0);
+-			//ParseNode& suite = wrapper.get(1);
+-			TypeInfo* tinfo = get_type(get_context().current_module, variable_type.get_what());
+ 			regen_derived_type_2(tinfo);
+ 			codes += tinfo->node->get_what();
+-			//codes += "struct " + variable_type.get_what() + "\n";
+-			//codes += suite.get_what();
+ 			codes += "\n";
+-		}
+ 	}
+ 
+ 	// main program code
+```
+
+Rationale: 
+
+So that the for loop will traverse the elements of `get_context().types` in the order they were added. Because of the implementation of `add_type()` (in file `src/parser/Type.cpp` line 20), the map is filled but the adding order does not persist. For that reason, we need to define a vector variable to store the return value of `add_type()`, so traversing this new vector will promise the same order.
+
+Test Case
+
+```fortran
+type apple
+end type apple
+type car
+end type car
+program ex
+end program
+```
+
+output
+
+```shell
+
+/**********************************************************************/
+/* File:                                                              */
+/* Author:                                                            */
+/* This codes is generated by CFortranTranslator                      */
+/* CFortranTranslator is published under GPL license                  */
+/* refer to https://github.com/CalvinNeo/CFortranTranslator/ for more */
+/**********************************************************************/
+#include "../for90std/for90std.h" 
+#define USE_FORARRAY 
+struct apple
+{
+	
+};
+
+struct car
+{
+	
+};
+
+int main()
+{
+	
+	return 0;
+}
+
+Cost time:0
+
+Process finished with exit code 0
+```
+
+
+
+
+

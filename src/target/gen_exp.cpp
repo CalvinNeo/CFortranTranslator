@@ -68,7 +68,7 @@ void regen_exp(FunctionInfo *finfo, ParseNode &exp) {
         }
         // END derived type construction
         if (exp.get(0).token_equals(TokenMeta::NT_DERIVED_TYPE)/*car%speed(2)*/
-            || exp.get(0).token_equals(TokenMeta::UnknownVariant))/*car(2)%speed, car(2)*/ {
+            || (exp.get(0).token_equals(TokenMeta::UnknownVariant) && exp.father->token_equals(TokenMeta::NT_DERIVED_TYPE)))/*car(2)%speed, ~~car(2)~~*/ {
             regen_exp(finfo, exp.get(0));
         }
         regen_function_array(finfo, exp);

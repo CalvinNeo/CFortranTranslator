@@ -1,3 +1,6 @@
+type apple
+end type apple
+type car
+end type car
 program ex
-  data b/8/
 end program
