@@ -155,7 +155,7 @@ void regen_function_array(FunctionInfo * finfo, ParseNode & callable) {
 		*	if exist kwargs, must add `,` delimer between arguments
 		*	if not exist, mustn't add `,`, use `)` enclose whole argument list directly
 		***************/
-		string tail = ", ";
+		string tail = argtable_str.empty()?"":", ";
 		// generated code of kwargs
 		if (map_func != get_context().func_kwargs.end()) {
 			std::vector<KeywordParamInfo> & params = map_func->second;
