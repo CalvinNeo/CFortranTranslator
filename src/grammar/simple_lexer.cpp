@@ -84,7 +84,19 @@ static bool check_continuation(char & return_char) {
 	int new_line_p = p + 1;
 	int continuation_symbol_p = -1;
 	bool valid_continuation = false;
-	if (new_line_p + FORTRAN_CONTINUATION_SPACE < s.size())
+    if(s[p-1] == '&')
+    {
+        while(s[new_line_p++]==' ');
+        continuation_symbol_p = new_line_p - 1;
+        if(s[continuation_symbol_p] == '&'){
+            p = new_line_p;
+        }else{
+            p = continuation_symbol_p;
+        }
+        return_char = s[p++];
+        return true;
+    }
+    else if (new_line_p + FORTRAN_CONTINUATION_SPACE < s.size())
 	{
 		// begin with 5 blanks(or numbers which are label, although useless)
 		bool valid_label = std::accumulate(s.begin() + new_line_p, s.begin() + new_line_p + FORTRAN_CONTINUATION_SPACE, true, [](bool r, char y) {
@@ -220,6 +232,10 @@ static char get_complete_char() {
 		return_char = s[p++];
 		sc.newline_marker = false;
 	}
+    else if (s[p] == '&' && (s[p+1] == '\n' || s[p+1] == '\r')){
+        p++;
+        goto BEGINNING;
+    }
 	else {
 		if (!sc.in_format_stmt)
 		{
