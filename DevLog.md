@@ -94,6 +94,7 @@ append after line 100 in src/target/gen_exp.cpp
 ******
 *Defect: the first line ending with '&' should not be preceeded by blank. The second line after, if beginning with '&', should not followed immediately by any blank*
 '&' continuation, modify src/grammer/simple_lexer.cpp
+
 1. add an `if` condition before original `if (new_line_p + FORTRAN_CONTINUATION_SPACE < s.size())` in line 84, the old `if` condition should become `else if`
 2. in function `static char get_complete_char()`, add a condition when `s[p]` is '&', right before the last `else` condition
 > Notice, the following is output by command `git diff src/grammar/simple_lexer.cpp`, `@@ -84,7 +84,19 @@ static bool check_continuation(char & return_char) {` means
@@ -309,7 +310,7 @@ Process finished with exit code 0
 
 No need to change`for90.y`.
 
-Modify file `gen_exp.cpp`, add following code fragment in function `regen_exp()`, right after the `else if `condition: `else if (exp.token_equals(TokenMeta::NT_FUCNTIONARRAY))`
+Modify file `gen_exp.cpp`, add following code fragment in function `regen_exp()`, right after the `else if `condition: `else if (exp.token_equals(TokenMeta::NT_FUCNTIONARRAY))`
 
 ```cpp
         // derived type construction, NOTICE: such approach will be exclusive with the original usage, i.e., variable or function followed by `(argtable)`
@@ -484,7 +485,7 @@ implement `data a/1,2/`
 >
 > 1,2,3 can be replaced by literal or symbolic name of a constant, optionally preceded by a nonzero, unsigned integer literal (usage of symbolic name of such constant is not implemented here, although it is part of the syntax in the doc), which denotes the repetition times of the literal, e.g., `4*5` is equivalent to `5,5,5,5`
 
-1. in `for90.y`, append after rule `let_stmt: ...exp '=' exp`, the old rule `| YY_DATA argtable '\\' argtable '\\'`should be deleted now.
+1. in `for90.y`, append after rule `let_stmt: ...exp '=' exp`, the old rule `| YY_DATA argtable '\\' argtable '\\'`should be deleted now.
 
    ```yacc
    		| YY_DATA nlists '/' clists '/'
@@ -693,7 +694,7 @@ implement `data a/1,2/`
                }
    ```
 
-2. in `gen_exp.cpp`, in function `regen_exp()`, right before the last `else` condition( the previous line `else if (exp.token_equals(TokenMeta::NT_ARGTABLE_PURE)){}` is not used and could be deleted now)
+2. in `gen_exp.cpp`, in function `regen_exp()`, right before the last `else` condition( the previous line `else if (exp.token_equals(TokenMeta::NT_ARGTABLE_PURE)){}` is not used and could be deleted now)
 
    ```cpp
    	else {
@@ -826,7 +827,7 @@ implement `data a/1,2/`
    
    ```
 
-   the `if` condition was added when implementing `inner-variable` with array, but the condition`exp.get(0).token_equals(TokenMeta::UnknownVariant))`will affect all `function_array_body`, but we want only `car(2)%speed` to be affected, so here we add another condition `exp.father->token_equals(TokenMeta::NT_DERIVED_TYPE)` so that a function call like `xx(b)` will not enter `regen_exp(finfo, exp.get(0));` in the `if` body.
+   the `if` condition was added when implementing `inner-variable` with array, but the condition`exp.get(0).token_equals(TokenMeta::UnknownVariant))`will affect all `function_array_body`, but we want only `car(2)%speed` to be affected, so here we add another condition `exp.father->token_equals(TokenMeta::NT_DERIVED_TYPE)` so that a function call like `xx(b)` will not enter `regen_exp(finfo, exp.get(0));` in the `if` body.
 
 ******
 
@@ -836,31 +837,15 @@ change `gen_program.cpp`, in function`gen_fortran_program()`
 
 ```shell
 diff --git a/src/target/gen_program.cpp b/src/target/gen_program.cpp
-index f80c4c8..4c65b85 100755
+index f80c4c8..dfceb05 100755
 --- a/src/target/gen_program.cpp
 +++ b/src/target/gen_program.cpp
-@@ -29,6 +29,7 @@ R202 program-unit is main-program
- void gen_fortran_program(const ParseNode & wrappers) {
- 	std::string codes;
- 	std::string main_code;
-+    std::vector<TypeInfo *> type_info_vector; /*used to maintain type definition order, i.e., order in generated code be consistent with order of `add_type()` call*/
- 	get_context().program_tree = wrappers;
- 
- 	FunctionInfo * program_info = add_function("", "program", FunctionInfo());
-@@ -67,6 +68,7 @@ void gen_fortran_program(const ParseNode & wrappers) {
- 			get_context().current_module = "";
- 			ParseNode& variable_type = wrapper.get(0);
- 			TypeInfo* tinfo = add_type(get_context().current_module, variable_type.get_what(), TypeInfo{});
-+            type_info_vector.push_back(tinfo);
- 		}
- 		else if (wrapper.token_equals(TokenMeta::NT_DUMMY))
- 		{
-@@ -136,20 +138,11 @@ void gen_fortran_program(const ParseNode & wrappers) {
+@@ -136,20 +136,11 @@ void gen_fortran_program(const ParseNode & wrappers) {
  		//}
  	}
  
 -	for (std::pair<std::string, TypeInfo *> pair : get_context().types)
-+	for (TypeInfo * tinfo : type_info_vector)
++	for (TypeInfo * tinfo : get_context().types_vec)
  	{
 -		ParseNode& wrapper = *pair.second->node;
 -		if (wrapper.token_equals(TokenMeta::NT_DERIVED_TYPE))
@@ -964,7 +949,123 @@ Cost time:0
 Process finished with exit code 0
 ```
 
+******
+
+7.21 open conversion
+
+Test case
+
+```fortran
+program main
+  open(unit=10, file="hello.txt")
+  write(10,*)"xx"
+end program
+```
+
+Because the argument able for `open()` does not contain any normal argument, so the normal argument list would be empty, this line in  function `regen_function_array()`
+
+```cpp
+		argtable_str += make_str_list(normal_args.begin(), normal_args.end(), [&](string p) {...}
+```
+
+would result in an empty string. In that case, the remaining part should not start with a tailing `", "` which is only necessary when there is something non-empty being preceding. For that reason, the assignment of variable `string tail` should be conditional by the emptiness of string `argtable_str`.
+
+Modification:
+
+```sh
+diff --git a/src/target/gen_callable.cpp b/src/target/gen_callable.cpp
+index a03438a..6f967ae 100755
+--- a/src/target/gen_callable.cpp
++++ b/src/target/gen_callable.cpp
+@@ -155,7 +155,7 @@ void regen_function_array(FunctionInfo * finfo, ParseNode & callable) {
+ 		*	if exist kwargs, must add `,` delimer between arguments
+ 		*	if not exist, mustn't add `,`, use `)` enclose whole argument list directly
+ 		***************/
+-		string tail = ", ";
++		string tail = argtable_str.empty()?"":", ";
+ 		// generated code of kwargs
+ 		if (map_func != get_context().func_kwargs.end()) {
+ 			std::vector<KeywordParamInfo> & params = map_func->second;
+```
+
+Output after modification
+
+```sh
+Cost time:0
+/**********************************************************************/
+/* File:                                                              */
+/* Author:                                                            */
+/* This codes is generated by CFortranTranslator                      */
+/* CFortranTranslator is published under GPL license                  */
+/* refer to https://github.com/CalvinNeo/CFortranTranslator/ for more */
+/**********************************************************************/
+#include "../for90std/for90std.h" 
+#define USE_FORARRAY 
+int main()
+{
+	foropenfile(10, None, None, SS("hello.txt"), SS("unkonwn"), SS("sequential"), None, None, None, SS("rewind"), SS("readwrite"), None, None);
+	forwritefree(get_file(10), SS("xx"));
+	
+	
+	return 0;
+}
+[NT](NT_WRAPPERS) /**********************************************************************/
+/* File:                                                              */
+/* Author:                                                            */
+/* This codes is generated by CFortranTranslator                      */
+/* CFortranTranslator is published under GPL license                  */
+/* refer to https://github.com/CalvinNeo/CFortranTranslator/ for more */
+/**********************************************************************/
+#include "../for90std/for90std.h" 
+#define USE_FORARRAY 
+int main()
+{
+	foropenfile(10, None, None, SS("hello.txt"), SS("unkonwn"), SS("sequential"), None, None, None, SS("rewind"), SS("readwrite"), None, None);
+	forwritefree(get_file(10), SS("xx"));
+	
+	
+	return 0;
+}
+	[NT](NT_PROGRAM_EXPLICIT) ;
 
 
 
+		[NT](NT_SUITE) ;
 
+
+
+			[NT](NT_STATEMENT) ;
+				[NT](NT_FUCNTIONARRAY) 
+					[T](UnknownVariant) open
+					[NT](NT_PARAMTABLE_PURE) unit, file
+						[NT](NT_VARIABLE_ENTITY or NT_KEYVALUE) unit
+							[T](UnknownVariant) unit
+							[T](META_INTEGER or Int) 10
+						[NT](NT_VARIABLE_ENTITY or NT_KEYVALUE) file
+							[T](UnknownVariant) file
+							[T](META_STRING or String) "hello.txt"
+			[NT](NT_WRITE_STMT) 
+				[NT](META_NONTERMINAL) 
+					[T](META_ANY) 10
+					[T](NT_AUTOFORMATTER) 
+				[NT](NT_ARGTABLE_PURE) "xx"
+					[T](META_STRING or String) "xx"
+			[T](NT_STATEMENT) 
+	[NT](NT_SUITE) 
+
+		[T](NT_STATEMENT) 
+
+Process finished with exit code 0
+
+```
+
+- [x] Compile && Run
+
+```sh
+▶ touch hello.txt
+▶ g++ ../for90std/* main.cpp -Wall -DPOSIX -g -O3 -fpermissive -fPIC -std=c++17 -v
+▶ ./a.out
+▶ cat hello.txt                                                                       
+xx
+
+```
