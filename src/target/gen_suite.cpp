@@ -295,6 +295,8 @@ ParseNode gen_suite(const ParseNode & item, const ParseNode & list) {
 	*	including normal stmt node
 	* 3) interface_decl
 	*	including NT_INTERFACE node
+	* 4) function_decl
+	*	including NT_FUNCTIONDECLARE node
 	********************/
 	ParseNode newnode;
 	if (list.token_equals(TokenMeta::NT_DUMMY))
@@ -304,6 +306,11 @@ ParseNode gen_suite(const ParseNode & item, const ParseNode & list) {
 			// case 3, interface_decl
 			newnode = gen_promote("", TokenMeta::NT_SUITE, item);
 		}
+        else if(item.token_equals(TokenMeta::NT_FUNCTIONDECLARE))
+        {
+            // case 4, function_decl
+            newnode = gen_promote("", TokenMeta::NT_SUITE, item);
+        }
 		else if (item.token_equals(TokenMeta::NT_SUITE)){
 			// case 1, labeled_stmts
 			newnode = item;
@@ -320,6 +327,11 @@ ParseNode gen_suite(const ParseNode & item, const ParseNode & list) {
 			// case 3, interface_decl
 			newnode = gen_flatten(item, list, "%s%s", TokenMeta::NT_SUITE);
 		}
+        else if(item.token_equals(TokenMeta::NT_FUNCTIONDECLARE))
+        {
+            // case 4, function_decl
+            newnode = gen_flatten(item, list, "%s%s", TokenMeta::NT_SUITE);
+        }
 		else if (item.token_equals(TokenMeta::NT_SUITE)) {
 			// case 1, labeled_stmts
 			newnode = gen_merge(item, list, "%s\n%s", TokenMeta::NT_SUITE);

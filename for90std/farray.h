@@ -157,9 +157,17 @@ struct farray {
 		auto it = begin();
 		for (size_type i = 0; i < X; i++)
 		{
-			size_type off = index[i] - lb[i];
-			assert(off >= 0);
-			it += (off) * delta[i];
+            static int j=0;
+            size_type off=0;
+            if(index[i]<lb[i]){
+                off = index[i]-1;
+                j=index[i];
+            }
+            else if(j!=0) off = index[i]-lb[i]+j;
+            else off = index[i]-lb[i];
+            //size_type off = index[i] - ((index[i]<lb[i])?1:lb[i]);
+            assert(off >= 0);
+            it += (off) * delta[i];
 		}
 		return *it;
 	}
@@ -219,6 +227,22 @@ struct farray {
 		size_type index[sizeof...(args)] = { args... };
 		return get(index);
 	}
+
+    T & operator=(const T b){
+        int x=*(this->sz);
+        int y=*(this->lb);
+        for(int j=1;j<y;j++){
+            size_type index[1]={j};
+            get(index)=0.0;
+        }
+        for(int i=y;i<=x;i++){
+
+            size_type index[1]={i};
+            get(index)=b;
+        }
+        return *this->parr;
+    }
+
 	template<int X>
 	T & operator[](const slice_type (&index)[X]) {
 		return get(index);
@@ -1040,7 +1064,7 @@ farray<T> formaxloc(const farray<T> & farr, foroptional<int> fordim, foroptional
 	*	has not specify actions for this overload version
 	*	conform to gfortran(fortran 95 standard)
 	*****************/
-	// 返回的是`[lb[dim], sz[dim]]`构成的`dim-1`维数组，令剩下来的维数取遍所有组合，对于每一种取组合，给出取得最大值时候对应原数组第dim维的下标
+	// 锟斤拷锟截碉拷锟斤拷`[lb[dim], sz[dim]]`锟斤拷锟缴碉拷`dim-1`维锟斤拷锟介，锟斤拷剩锟斤拷锟斤拷锟斤拷维锟斤拷取锟斤拷锟斤拷锟斤拷锟斤拷希锟斤拷锟斤拷锟矫恳伙拷锟饺★拷锟较ｏ拷锟斤拷锟斤拷取锟斤拷锟斤拷锟街凳憋拷锟斤拷应原锟斤拷锟斤拷锟絛im维锟斤拷锟铰憋拷
 	return _forloc_impl(std::greater<T>(), farr, fordim, mask);
 }
 template <typename T>

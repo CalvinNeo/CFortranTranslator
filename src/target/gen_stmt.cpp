@@ -332,6 +332,11 @@ std::string regen_stmt(FunctionInfo * finfo, ParseNode & stmt) {
 	else if (stmt.token_equals(TokenMeta::ConfigImplicit))
 	{
 		ParseNode & type_decl = stmt.get(0);
+        type_decl.get_token() += 100; /* from type decl to type */
+        promote_type(type_decl,get_variabledesc_attr(type_decl));
+        type_decl.get_token() -= 100; /* from type to type decl */
+
+
 		ParseNode & paramtable = stmt.get(1);
 		for (ParseNode * rangeptr : paramtable)
 		{

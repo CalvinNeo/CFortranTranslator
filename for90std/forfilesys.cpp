@@ -112,7 +112,7 @@ void foropenfile(int unit, foroptional<int> iostat, foroptional<forlabel> err, f
 	transform(s.begin(), s.end(), s.begin(), to_lower);
 	if (s == "new") {
 		docreate = true;
-		doreplace = false;
+		doreplace = true;
 	}else if(s == "replace"){
 		docreate = true;
 		doreplace = true;
@@ -128,7 +128,7 @@ void foropenfile(int unit, foroptional<int> iostat, foroptional<forlabel> err, f
 	else {
 		// unknown
 		docreate = true;
-		doreplace = false;
+		doreplace = true;
 	}
 
 	s = action.value_or("readwrite");

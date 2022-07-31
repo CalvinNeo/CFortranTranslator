@@ -235,6 +235,14 @@ const vector<KeywordMeta> keywords = {
 		, TokenMeta::META_ANY
 		, YY_MODULE
 	}
+    , KeywordMeta{"procedure"
+            , TokenMeta::META_ANY
+            , YY_PROCEDURE
+    }
+    , KeywordMeta{"contains"
+            , TokenMeta::META_ANY
+            , YY_CONTAINS
+    }
 	, KeywordMeta{"block"
 		, TokenMeta::META_ANY
 		, YY_BLOCK

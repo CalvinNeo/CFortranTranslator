@@ -93,7 +93,7 @@ const std::map<std::string, std::string> funcname_map{
 #define _WS(X) #X
 
 const std::map<std::string, std::vector<KeywordParamInfo>> sysfunc_args = {
-	{ "foropenfile", { { "unit", "int", "" }, { "iostat", "int", "" }, { "err", "forlabel", "" }, { "file", "string", "" }, { "status", "string", _WS("unkonwn") }
+	{ "foropenfile", { { "unit", "int", "" }, { "iostat", "int", "" }, { "err", "forlabel", "" }, { "file", "string", "" }, { "status", "string", _WS("unknown") }
 		, { "access", "string" , _WS("sequential") }, { "form", "string", "" }, { "recl", "int", "" }, { "blank", "string", "" }, { "position", "string", _WS("rewind") }
 		, { "action", "string" , _WS("readwrite") }, { "delim", "string" , "" }, { "pad", "string" , "" } } }
 	, { "forclosefile", { { "unit", "int", "" }, { "iostat", "int", "" }, { "err", "forlabel", "" } } }

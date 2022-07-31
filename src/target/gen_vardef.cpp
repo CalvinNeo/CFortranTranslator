@@ -78,7 +78,7 @@ SliceBoundInfo get_lbound_size_from_slice(FunctionInfo * finfo, ParseNode & dime
 						// we can do this computing at "compile" time
 						int u = std::atoi(x->get(1).get_what().c_str());
 						int l = std::atoi(x->get(0).get_what().c_str());
-						return to_string(u - l + 1);
+						return to_string(u);
 					}
 					else {
 						// if there's variables

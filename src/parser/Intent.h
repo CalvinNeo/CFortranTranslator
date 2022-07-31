@@ -204,7 +204,7 @@ namespace TokenMeta {
 		ADD_ENUM(Int16, -335), ADD_ENUM(Int16_Decl, Int16 - 100),
 		ADD_ENUM(Int32, -336), ADD_ENUM(Int32_Decl, Int32 - 100),
 		ADD_ENUM(Int64, -337), ADD_ENUM(Int64_Decl, Int64 - 100),
-		ADD_ENUM(LongDouble, -338), ADD_ENUM(LongDouble_Decl, Int64 - 100),
+		ADD_ENUM(LongDouble, -338), ADD_ENUM(LongDouble_Decl, LongDouble - 100),
 		ADD_ENUM(Implicit_Decl, -499),
 
 		// Flow-Control
@@ -359,6 +359,7 @@ namespace TokenMeta {
 		ADD_ENUM(NT_ALLOCATE_STMT, -2050),
 		ADD_ENUM(NT_DEFINED_OPERATOR, -2051),
 		ADD_ENUM(NT_DERIVED_TYPE, -2052),
+        ADD_ENUM(NT_MODULE, -2053),
 
 		ADD_ENUM(NT_DUMMY, -9999),
 		/***************************************
