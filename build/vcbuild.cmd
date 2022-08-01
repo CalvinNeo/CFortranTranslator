@@ -1,1 +1,0 @@
-msbuild.exe ./CFortranTranslator.vcxproj /t:Build /p:configuration=debug /p:platform=x64
