@@ -1,3 +1,0 @@
-program ex
-
-end program

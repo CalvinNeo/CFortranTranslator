@@ -71,6 +71,7 @@ out
 
 # vscode
 .vscode
+.history
 
 # idea
 .idea
