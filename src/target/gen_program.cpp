@@ -41,6 +41,7 @@ void gen_fortran_program(const ParseNode & wrappers) {
         FunctionInfo * outer_info = nullptr;
         ParseNode script_outer = gen_token(Term{ TokenMeta::NT_SUITE , "" });
         std::vector<ParseNode *> func_decls_in_module;
+        std::vector<ParseNode *> type_decls_in_module;
     }ModuleInfo;
 
     ModuleInfo minfo;
@@ -86,8 +87,15 @@ void gen_fortran_program(const ParseNode & wrappers) {
                 if (node.token_equals(TokenMeta::NT_FUNCTIONDECLARE))
                 {
                     minfo_alias.func_decls_in_module.push_back(&node);
-                    add_function("", node.get(1).get_what(),FunctionInfo{});
+                    add_function(minfo_alias.module_name, node.get(1).get_what(),FunctionInfo{});
                 }
+                else if (node.token_equals(TokenMeta::NT_DERIVED_TYPE))
+                {
+                    minfo_alias.type_decls_in_module.push_back(&node);
+                    add_type(minfo_alias.module_name, node.get(0).get_what(),TypeInfo{});
+                }
+                /* function and type definition individually processed in `minfo`,
+                 * code other than those goes to `script_outer` and will be `regen_suite`ed */
                 else
                     minfo_alias.script_outer.addchild(wrapper.get(0).get(j));
             }
@@ -127,9 +135,10 @@ void gen_fortran_program(const ParseNode & wrappers) {
 			//regen_function_1(tinfo, wrapper);
 		}
 	}
+
+    /* function and type collected from inside module is treated as normal outermost definition, but with assigned module name*/
     if(minfo.is_set)
     {
-
         std::vector<ParseNode *> &func_decls_in_module = minfo.func_decls_in_module;
         if (!func_decls_in_module.empty())
         {
@@ -137,8 +146,18 @@ void gen_fortran_program(const ParseNode & wrappers) {
             {
                 ParseNode &node = *nodeptr;
                 ParseNode & variable_function = node.get(1);
-                FunctionInfo * finfo = get_function(get_context().current_module, variable_function.get_what());
+                FunctionInfo * finfo = get_function(minfo.module_name, variable_function.get_what());
                 regen_function_1(finfo, node);
+            }
+        }
+        std::vector<ParseNode *> &type_decls_in_module = minfo.type_decls_in_module;
+        if(!type_decls_in_module.empty())
+        {
+            for(ParseNode *nodeptr:type_decls_in_module)
+            {
+                ParseNode & variable_type = nodeptr->get(0);
+                TypeInfo *tinfo = get_type(minfo.module_name,variable_type.get_what());
+                regen_derived_type_1(tinfo, *nodeptr);
             }
         }
     }
@@ -162,6 +181,7 @@ void gen_fortran_program(const ParseNode & wrappers) {
 
 	// regen all subprogram's step 2: generate subprogram's code
 	// generate function signature
+    assert( get_context().current_module == "");
 	for (ParseNode * wrapper_ptr : get_context().program_tree)
 	{
 		ParseNode & wrapper = *wrapper_ptr;
@@ -187,7 +207,6 @@ void gen_fortran_program(const ParseNode & wrappers) {
 	}
     if(minfo.is_set)
     {
-
         std::vector<ParseNode *> &func_decls_in_module = minfo.func_decls_in_module;
         if (!func_decls_in_module.empty())
         {
@@ -209,11 +228,21 @@ void gen_fortran_program(const ParseNode & wrappers) {
 	for (TypeInfo * tinfo : get_context().types_vec)
 	{
 			regen_derived_type_2(tinfo);
-			codes += tinfo->node->get_what();
-			codes += "\n";
-	}
+            if(minfo.is_set && std::find(minfo.type_decls_in_module.begin(), minfo.type_decls_in_module.end(),tinfo->node)!=minfo.type_decls_in_module.end())
+            {/**/
+                codes += "#ifndef "+minfo.module_name+"_"+tinfo->local_name+"\n";
+                codes += "#define "+minfo.module_name+"_"+tinfo->local_name+"\n";
+                codes += tinfo->node->get_what();
+                codes += "\n";
+                codes += "#endif\n";
+            }else
+            {
+                codes += tinfo->node->get_what();
+                codes += "\n";
+            }
+    }
 
-	// main program code
+    // main program code
 	regen_all_variables_decl_str(program_info, script_program);
 	main_code = tabber(script_program.get_what());
     sprintf(codegen_buf, "int main()\n{\n%s\treturn 0;\n}", main_code.c_str());

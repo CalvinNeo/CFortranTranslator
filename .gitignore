@@ -38,12 +38,7 @@
 
 .vs/
 out/
-vsbuild/.vs/
-vsbuild/x64/
-vsbuild/Debug/
-vsbuild/Release/
-vsbuild/CFortranTranslator.vcxproj
-vsbuild/cpptest.vcxproj
+vsbuild/*
 build/*
 *.opendb
 *.db
@@ -73,3 +68,13 @@ opencoveragecpp.cmd
 # vs
 .vs
 out
+
+# vscode
+.vscode
+
+# idea
+.idea
+cmake-build-debug
+
+# others
+cpptest
