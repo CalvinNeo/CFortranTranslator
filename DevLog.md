@@ -4887,3 +4887,614 @@ index 60a0dd3..4c5e474 100755
 
 
 
+****** 
+8.3 `use` statement and `module procedure` directive implemented
+1. `for90.y`: add rule `YY_USE YY_WORD` that constitutes `stmt`, i.e., `YY_USE YY_WORD` is parsed as a statement; add rule `YY_MODULE YY_PROCEDURE YY_WORD` to right side of `wrapper`; modify processing of `interface_decl`; 
+   ```shell
+   diff --git a/src/grammar/for90.y b/src/grammar/for90.y
+index 4e8cb67..7c24d4a 100755
+--- a/src/grammar/for90.y
++++ b/src/grammar/for90.y
+@@ -655,7 +655,7 @@ using namespace std;
+ 
+ 	function_array_body : variable '(' paramtable ')'
+ 			{
+-				// function call OR array index 
++				// function call OR array index
+ 				// NOTE that array index can be A(1:2, 3:4)
+ 				ARG_OUT callable_head = YY2ARG($1);
+ 				ARG_OUT argtable = YY2ARG($3);
+@@ -1011,7 +1011,14 @@ using namespace std;
+ 				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($1));
+ 				CLEAN_DELETE($1);
+ 			}
+-		| var_def 
++		| YY_USE YY_WORD
++
++			{
++				$$ = RETURN_NT(gen_promote("#include \"%s.h\"", TokenMeta::NT_USE, YY2ARG($2)));
++				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($2));
++				CLEAN_DELETE($1,$2);
++			}
++		| var_def
+ 			{
+ 				$$ = $1;
+ 				insert_comments(YY2ARG($$));
+@@ -2413,6 +2420,11 @@ using namespace std;
+ 				$$ = $1;
+ 				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($1));
+ 		    }
++		| YY_MODULE YY_PROCEDURE YY_WORD
++		    {
++				$$ = $3;
++				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($3));
++		    }
+ 		| function_decl
+ 			{
+ 				$$ = $1;
+@@ -2477,7 +2489,7 @@ using namespace std;
+ 	interface_decl : YY_INTERFACE _optional_name at_least_one_end_line wrappers crlf_or_not YY_ENDINTERFACE _optional_name
+ 			{
+ 				ARG_OUT wrappers = YY2ARG($4);
+-				$$ = RETURN_NT(gen_token(Term{ TokenMeta::NT_INTERFACE, wrappers.get_what()}, wrappers));
++				$$ = RETURN_NT(gen_token(Term{ TokenMeta::NT_INTERFACE, $2->get_what()}, wrappers));
+ 				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($7));
+ 				CLEAN_DELETE($1, $2, $3, $4, $5, $6, $7);
+ 			}
+   ```
+2. `Function.h`: add 2 member to `struct FunctionInfo`. `use_stmts` collects occurrence of use statement; `func_alias` records the alias function name, i.e., overloaded function.
+   ```shell
+   diff --git a/src/parser/Function.h b/src/parser/Function.h
+index c56463b..c631399 100755
+--- a/src/parser/Function.h
++++ b/src/parser/Function.h
+@@ -47,6 +47,8 @@ struct FunctionInfo {
+ 	ParseNode * suite;
+ 	ParseNode * node;
+ 	TokenMeta_T implicit_type_config[256];
++    std::vector<ParseNode *> use_stmts;
++    std::vector < std::string> func_alias;
+ 	FunctionInfo() {
+ 		std::fill_n(implicit_type_config, 256, TokenMeta::Double_Decl);
+ 		for (char i = 'i'; i <= 'n'; i++)
+   ```
+3. add enum in `Intent.h` for `NT_USE` statement
+   ```shell
+   diff --git a/src/parser/Intent.h b/src/parser/Intent.h
+index 12472d7..8d97029 100755
+--- a/src/parser/Intent.h
++++ b/src/parser/Intent.h
+@@ -360,6 +360,7 @@ namespace TokenMeta {
+ 		ADD_ENUM(NT_DEFINED_OPERATOR, -2051),
+ 		ADD_ENUM(NT_DERIVED_TYPE, -2052),
+         ADD_ENUM(NT_MODULE, -2053),
++        ADD_ENUM(NT_USE, -2054),
+ 
+ 		ADD_ENUM(NT_DUMMY, -9999),
+ 		/***************************************
+   ```
+4. `codegen.h`: add new function declaration
+   ```shell
+   diff --git a/src/target/codegen.h b/src/target/codegen.h
+index fe3f965..b320ce1 100755
+--- a/src/target/codegen.h
++++ b/src/target/codegen.h
+@@ -96,6 +96,7 @@ ParseNode gen_implicit_type(FunctionInfo * finfo, std::string name);
+ ParseNode require_format_index(FunctionInfo * finfo, std::string format_index);
+ void get_full_paramtable(FunctionInfo * finfo);
+ std::string gen_function_signature(FunctionInfo * finfo, int style = 0);
++std::vector<std::string> gen_func_alias_signature(FunctionInfo * finfo);
+ std::string gen_paramtable_str(FunctionInfo * finfo, const std::vector<std::string> & paramtable_info, bool with_name = true);
+ 
+ // var def
+   ```
+
+5. now it is allowed to refer to function defined somewhere else (probably in other file) via `use module_name` statement, so the condition of function existence in `regen_function_array()` should be loosened, which now regard any new function name as defined as long as `use_stmts` of current procedure unit is non empty. As a result, `check_implicit_variable()` will not be called for that function name. **The coarse decision may lead to future bug or crash.**
+   modify `gen_callable.cpp`:
+   ```shell
+   diff --git a/src/target/gen_callable.cpp b/src/target/gen_callable.cpp
+index 6f967ae..9e55606 100755
+--- a/src/target/gen_callable.cpp
++++ b/src/target/gen_callable.cpp
+@@ -76,8 +76,18 @@ void regen_function_array(FunctionInfo * finfo, ParseNode & callable) {
+ 
+ 		}
+ 		else {
+-			// variable
+-			check_implicit_variable(finfo, head_name);
++            /*TODO: Finer granularity to decide whether function was defined in a module of other file.
++             * Need information cross files and/or conversions.
++             * Current policy is loose, i.e., if `use *` is present, then function of whatever name is
++             * regarded presented/defined somewhere else.
++             * The sequela is that `check_implicit_variable(finfo, head_name);` here
++             * will be called only if no `use *` statement
++             * is encountered.*/
++            if(finfo->use_stmts.empty())
++            {
++                // variable
++                check_implicit_variable(finfo, head_name);
++            }
+ 		}
+ 		string argtable_str;
+ 		/**************
+   ```
+6. `gen_function.cpp`:
+   modification 6.1: function `get_full_paramtable()` will be called at the end of `regen_suite()` indirectly through `regen_all_variables()`, in the case of subroutine, function declaration in interface block is also a variable in parameter table, which will be processed in  `get_full_paramtable()` and generate function declaration for the function inside interface block, as an example:
+   ```fortran
+   subroutine proc(a, b, fun)
+	interface
+		function fun(x,y) result (fun_result)
+			integer,intent(in)::x, y
+			integer::fun_result
+		end function
+	end interface
+	integer,intent(in)::a, b
+	print *, fun(a, b) 
+   end subroutine
+   ```
+   but when the function declaration in interface block is not a variable in outer code unit, the function will not be generated, which is specific to module structure with no paramtable syntactically.
+   
+   modification 6.2: due to `module procedure`, a function may have more than one name, so we should generate all definitions with each alias name in `regen_function_2()`. For that purpose, a new function that generates signature of each alias name and returns a vector of various signatures is defined. In coordination with that, we iterate the returned vector in `regen_function_2()` and augment the original function body with new bodies of overloaded functions.
+   
+   ```shell
+   diff --git a/src/target/gen_function.cpp b/src/target/gen_function.cpp
+index 0141d85..014f37e 100755
+--- a/src/target/gen_function.cpp
++++ b/src/target/gen_function.cpp
+@@ -104,6 +104,58 @@ void get_full_paramtable(FunctionInfo * finfo) {
+ 			print_error("parameter is not defined: " + param_name);
+ 		}
+ 	}
++    /**
++     * the code above helps generate function_decl inside another subroutine
++     * (nested function, which is a variable in another outer function), e.g.,
++     * ```fortran
++     * subroutine proc(a, b, fun)
++     *   interface
++	 *     function fun(x,y) result (fun_result)
++	 *	     integer,intent(in)::x, y
++	 *	     integer::fun_result
++	 *     end function
++	 *   end interface
++	 *   integer,intent(in)::a, b
++	 *   print *, fun(a, b)
++     * end subroutine
++     * ```
++     * the `fun` will be traversed as a variable in paramtable.
++     *
++     * following code helps generate function_decl in interface but not in the subprogram/code unit paramtable,
++     * the scenario is specific to interface inside module. A module cannot have paramtable, so the function
++     * cannot be generated through `regen_function()` call as before.
++     * e.g.,
++     * ```fortrean
++     * module ma
++     *   interface
++     *     function fun(x,y) result(fun_result)
++     *       integer, intent(in)::x,y
++     *       integer::fun_result
++     *     end function
++     *   end interface
++     * end module
++     * ```
++     * here we capture the inner function_decl and call `regen_function()` for it, mimicking the behavior above.
++     */
++    if(!get_context().current_module.empty())
++    {
++        for(VariableInfo *vinfo: finfo->funcdesc.declared_variables)
++        {
++            if (vinfo->type.token_equals(TokenMeta::Function)) {
++                // function declared in an interface block
++                ParseNode *funcdef_node = vinfo->vardef_node;
++                FunctionInfo *interface_finfo = add_function(get_context().current_module,
++                                                             vinfo->local_name,
++                                                             FunctionInfo{});
++                regen_function(interface_finfo, *funcdef_node); // regen interface function
++                if (funcdef_node->attr != nullptr) {
++                    vinfo->type = gen_type(Term{TokenMeta::Function, gen_function_signature(interface_finfo, 1)});
++                } else {
++                    print_error("Invalid interface: " + funcdef_node->get_what());
++                }
++            }
++        }
++    }
+ 	return;
+ }
+ 
+@@ -189,6 +241,8 @@ void regen_function_2(FunctionInfo * finfo) {
+ 
+ 	// gen signature
+ 	std::string signature = gen_function_signature(finfo);
++    std::vector<std::string> signatures_for_alias = gen_func_alias_signature(finfo);
++
+ 
+ 	// generate function code 
+ 	sprintf(codegen_buf, "%s\n{\n%s\treturn %s;\n}\n"
+@@ -196,6 +250,15 @@ void regen_function_2(FunctionInfo * finfo) {
+ 		, tabber(oldsuite.to_string()).c_str() // code
+ 		, (finfo->is_subroutine() ? "" : finfo->result_name.c_str()) // add return stmt if not function
+ 	);
++    for(std::string sig:signatures_for_alias)
++    {
++        sprintf(codegen_buf, "%s\n%s\n{\n%s\treturn %s;\n}\n"
++                , codegen_buf
++                , sig.c_str()
++                , tabber(oldsuite.to_string()).c_str() // code
++                , (finfo->is_subroutine() ? "" : finfo->result_name.c_str()) // add return stmt if not function
++        );
++    }
+ 	decl_node.get_what() = string(codegen_buf);
+ }
+ 
+@@ -208,6 +271,32 @@ void regen_function(FunctionInfo * finfo, ParseNode & functiondecl_node) {
+ 	return;
+ }
+ 
++std::vector<std::string> gen_func_alias_signature(FunctionInfo * finfo) {
++    bool is_subroutine = finfo->result_name.empty();
++    std::string result_type_str;
++    VariableInfo * result_vinfo = get_variable(get_context().current_module, finfo->local_name, finfo->result_name);
++    if (is_subroutine)
++    {
++        // subroutine
++        result_type_str = "void";
++    }
++    else {
++        result_type_str = gen_qualified_typestr(result_vinfo->type, result_vinfo->desc, false);
++    }
++
++    std::vector<std::string> res = std::vector<std::string>();
++    for(const std::string& func_alias:finfo->func_alias){
++        // forward declaration
++        std::string paramtblstr = gen_paramtable_str(finfo, finfo->funcdesc.paramtable_info, true);
++        sprintf(codegen_buf, "%s %s(%s)"
++                , result_type_str.c_str() // return value type, "void" if subroutine
++                , func_alias.c_str() // function name
++                , paramtblstr.c_str() // parameter list
++        );
++        res.emplace_back(codegen_buf);
++    }
++    return res;
++}
+ std::string gen_function_signature(FunctionInfo * finfo, int style) {
+ 	bool is_subroutine = finfo->result_name == "";
+ 	std::string result_type_str;
+   ```
+7. `gen_program.cpp`:
+   modification 7.1: change `FunctionInfo` structure, module name becomes "<module_name after MODULE keyword>", function local name becomes `""` (empty string). Besides, whenever processing code for module, the `get_context().current_module` is set to module name, and reset to empty string on leaving procesing. In that way, `minfo.module_name` is never explicitly used when calling `get_variable()` or `get_function()`. In the meantime, the conditionnal in forward declarations generation should be omitted (`name!="module"`, since `"module"` is substituted by empty string). 
+   
+   modification 7.2: if it is empty in `int main(){}`, there is no need to generate the function, which is often the case when a module file is encountered. So only if `!script_program.get_what().empty()` after trimming, the part of code will be appended to `codes`.
+   
+   modification 7.3: when generating forward declarations, check finction alias names, generate them together with the original one.
+   
+   modification 7.4: traverse the collected `use_stmts` and generate corresponding `#include *` directives.
+   ```shell
+   diff --git a/src/target/gen_program.cpp b/src/target/gen_program.cpp
+index 60a0dd3..9e1a46d 100755
+--- a/src/target/gen_program.cpp
++++ b/src/target/gen_program.cpp
+@@ -18,6 +18,7 @@
+ */
+ 
+ #include "gen_common.h"
++#include <boost/algorithm/string.hpp>
+ 
+ /*
+ R202 program-unit is main-program
+@@ -78,21 +79,22 @@ void gen_fortran_program(const ParseNode & wrappers) {
+         else if (wrapper.token_equals(TokenMeta::NT_MODULE))
+         {
+             minfo.is_set=true;
+-            minfo.outer_info = add_function("","module",FunctionInfo{});
++            minfo.outer_info = add_function(wrapper.get_what(),"",FunctionInfo{});
+             minfo.module_name = wrapper.get_what();
+             ModuleInfo &minfo_alias = minfo;
++            get_context().current_module = minfo.module_name;
+             for (int j = 0; j < wrapper.get(0).length(); j++)
+             {
+                 ParseNode &node = wrapper.get(0).get(j);
+                 if (node.token_equals(TokenMeta::NT_FUNCTIONDECLARE))
+                 {
+                     minfo_alias.func_decls_in_module.push_back(&node);
+-                    add_function(minfo_alias.module_name, node.get(1).get_what(),FunctionInfo{});
++                    add_function(get_context().current_module, node.get(1).get_what(),FunctionInfo{});
+                 }
+                 else if (node.token_equals(TokenMeta::NT_DERIVED_TYPE))
+                 {
+                     minfo_alias.type_decls_in_module.push_back(&node);
+-                    add_type(minfo_alias.module_name, node.get(0).get_what(),TypeInfo{});
++                    add_type(get_context().current_module, node.get(0).get_what(),TypeInfo{});
+                 }
+                 /* function and type definition individually processed in `minfo`,
+                  * code other than those goes to `script_outer` and will be `regen_suite`ed */
+@@ -139,6 +141,7 @@ void gen_fortran_program(const ParseNode & wrappers) {
+     /* function and type collected from inside module is treated as normal outermost definition, but with assigned module name*/
+     if(minfo.is_set)
+     {
++        get_context().current_module = minfo.module_name;
+         std::vector<ParseNode *> &func_decls_in_module = minfo.func_decls_in_module;
+         if (!func_decls_in_module.empty())
+         {
+@@ -146,7 +149,7 @@ void gen_fortran_program(const ParseNode & wrappers) {
+             {
+                 ParseNode &node = *nodeptr;
+                 ParseNode & variable_function = node.get(1);
+-                FunctionInfo * finfo = get_function(minfo.module_name, variable_function.get_what());
++                FunctionInfo * finfo = get_function(get_context().current_module, variable_function.get_what());
+                 regen_function_1(finfo, node);
+             }
+         }
+@@ -156,18 +159,21 @@ void gen_fortran_program(const ParseNode & wrappers) {
+             for(ParseNode *nodeptr:type_decls_in_module)
+             {
+                 ParseNode & variable_type = nodeptr->get(0);
+-                TypeInfo *tinfo = get_type(minfo.module_name,variable_type.get_what());
++                TypeInfo *tinfo = get_type(get_context().current_module,variable_type.get_what());
+                 regen_derived_type_1(tinfo, *nodeptr);
+             }
+         }
+     }
+ 
+     // main program code
++    get_context().current_module = "";
+     regen_suite(program_info, script_program);
+     if(minfo.is_set)
+     {
++        get_context().current_module = minfo.module_name;
+         regen_suite(minfo.outer_info,minfo.script_outer);
+     }
++    get_context().current_module = "";
+ 
+ 	// regen common definition
+ 	// this MUST before generate subprogram's code(`regen_function_2`), ref `regen_function_2` for reason
+@@ -207,6 +213,7 @@ void gen_fortran_program(const ParseNode & wrappers) {
+ 	}
+     if(minfo.is_set)
+     {
++        get_context().current_module = minfo.module_name;
+         std::vector<ParseNode *> &func_decls_in_module = minfo.func_decls_in_module;
+         if (!func_decls_in_module.empty())
+         {
+@@ -225,6 +232,7 @@ void gen_fortran_program(const ParseNode & wrappers) {
+         }
+     }
+ 
++    get_context().current_module = "";
+ 	for (TypeInfo * tinfo : get_context().types_vec)
+ 	{
+ 			regen_derived_type_2(tinfo);
+@@ -246,27 +254,75 @@ void gen_fortran_program(const ParseNode & wrappers) {
+ 	regen_all_variables_decl_str(program_info, script_program);
+ 	main_code = tabber(script_program.get_what());
+     sprintf(codegen_buf, "int main()\n{\n%s\treturn 0;\n}", main_code.c_str());
++    main_code = codegen_buf;
++    boost::trim(script_program.get_what());
++    if(!script_program.get_what().empty())
++        codes+=main_code;
+     if(minfo.is_set)
+     {
++        get_context().current_module = minfo.module_name;
+         regen_all_variables_decl_str(minfo.outer_info,minfo.script_outer);
+         minfo.module_code = minfo.script_outer.get_what();
+-        sprintf(codegen_buf, "#ifndef %s\n#define %s\n%s\n#endif\n%s", minfo.module_name.c_str(),minfo.module_name.c_str(),minfo.module_code.c_str(), main_code.c_str());
++        sprintf(codegen_buf, "#ifndef %s\n#define %s\n%s\n#endif\n", minfo.module_name.c_str(),minfo.module_name.c_str(),minfo.module_code.c_str());
+     }
+ 	codes += string(codegen_buf);
+ 
+ 	// forward declarations
++    get_context().current_module = "";
+ 	std::string forward_decls;
+ 	forall_function_in_module("", [&](std::pair<std::string , FunctionInfo * > pr) {
+ 		FunctionInfo * finfo;
+ 		std::tie(std::ignore, finfo) = pr;
+ 		std::string name = finfo->local_name;
+-		if (name != "program" && name != "" && name!="module")
++		if (name != "program" && name != "")
+ 		{
+ 			forward_decls += gen_function_signature(finfo);
+ 			forward_decls += ";\n";
+ 		}
+-	});
++        if(!finfo->func_alias.empty())
++        {
++            for(std::string sig: gen_func_alias_signature(finfo))
++            {
++                forward_decls += sig;
++                forward_decls += ";\n";
++            }
++        }
++    });
++
++    get_context().current_module = minfo.module_name;
++    forall_function_in_module(get_context().current_module, [&](std::pair<std::string , FunctionInfo * > pr) {
++        FunctionInfo * finfo;
++        std::tie(std::ignore, finfo) = pr;
++        std::string name = finfo->local_name;
++        if (name != "program" && name != "")
++        {
++            forward_decls += gen_function_signature(finfo);
++            forward_decls += ";\n";
++            if(!finfo->func_alias.empty())
++            {
++                for(std::string sig: gen_func_alias_signature(finfo))
++                {
++                    forward_decls += sig;
++                    forward_decls += ";\n";
++                }
++            }
++        }
++    });
++    get_context().current_module = "";
+ 
++    /*construct use statements, i.e., `#include "module name"` after conversion*/
++    std::string use_statements;
++    for(ParseNode* incl:program_info->use_stmts){
++        use_statements += incl->get_what();
++        use_statements += "\n";
++    }
++    for(ParseNode* incl:minfo.outer_info->use_stmts){
++        use_statements += "#ifndef " + minfo.module_name + "\n";
++        use_statements += "#define " + minfo.module_name + "\n";
++        use_statements += incl->get_what();
++        use_statements += "\n";
++        use_statements += "#endif\n";
++    }
+ 
+ 	/************
+ 	* PROGRAM STRUCTURE
+@@ -276,6 +332,7 @@ void gen_fortran_program(const ParseNode & wrappers) {
+ 	* function definitions
+ 	* the `main` program
+ 	*************/
++    codes = use_statements + codes;
+ 	codes = forward_decls + codes;
+ 	codes = common_decls + codes;
+ 
+   ```
+8. `gen_stmt.cpp`:
+   8.1: in function `regen_stmt()` add rule for processing `YY_WORD` in `stmt` (the new rule added in `for90.y`), the time `regen_stmt()`is called (by `regen_suite()`), the function declarations (whether outside program or inside module structure) have been collected and registered, which means we can find then through appropriate `get_function()`. After the target function (e.g., `show_int`) is found, the alias name is recorded in `func_alias` (see modification 2) and will be referred in `gen_func_alias_signature(FunctionInfo * finfo)` (see modification 6.2).
+   8.2: in function `regen_stmt()`, when `NT_USE` is encountered, record it in `use_stmts` (see modification 2) for future use (see modification 7.4). 
+   ```shell
+   diff --git a/src/target/gen_stmt.cpp b/src/target/gen_stmt.cpp
+index e5beb43..d6fe4cd 100755
+--- a/src/target/gen_stmt.cpp
++++ b/src/target/gen_stmt.cpp
+@@ -274,6 +274,14 @@ std::string regen_stmt(FunctionInfo * finfo, ParseNode & stmt) {
+ 				vinfo->entity_variable = gen_vardef_from_default(vinfo->type, "");
+ 				vinfo->vardef_node = &wrapper;
+ 			}
++            else if(wrapper.token_equals(TokenMeta::META_WORD))
++            {
++                FunctionInfo *target_finfo =  get_function(get_context().current_module, wrapper.get_what());
++                if(target_finfo!= nullptr)
++                {
++                    target_finfo->func_alias.push_back(stmt.get_what());
++                }
++            }
+ 		}
+ 	}
+ 	else if (stmt.token_equals(TokenMeta::NT_DERIVED_TYPE)) {
+@@ -329,6 +337,10 @@ std::string regen_stmt(FunctionInfo * finfo, ParseNode & stmt) {
+ 		newsuitestr += stmt.get_what();
+ 		newsuitestr += '\n';
+ 	}
++    else if (stmt.token_equals(TokenMeta::NT_USE)) {
++        if(std::find(finfo->use_stmts.begin(), finfo->use_stmts.end(),&stmt)==finfo->use_stmts.end())
++            finfo->use_stmts.push_back(&stmt);
++    }
+ 	else if (stmt.token_equals(TokenMeta::ConfigImplicit))
+ 	{
+ 		ParseNode & type_decl = stmt.get(0);
+
+   ```
+9. `gen_type.cpp`
+   modification (see comment):
+    ```shell
+    diff --git a/src/target/gen_type.cpp b/src/target/gen_type.cpp
+index cd6ebca..36616ac 100755
+--- a/src/target/gen_type.cpp
++++ b/src/target/gen_type.cpp
+@@ -197,7 +197,15 @@ void regen_type(ParseNode & type_decl, FunctionInfo * finfo, VariableInfo * vinf
+ 	else if (type_decl.token_equals(TokenMeta::Function_Decl))
+ 	{
+ 		// generate `std::function`
+-		type_decl.get_what() = gen_function_signature(finfo, 1);
++
++        /* the assignment will be rewritten later in `gen_full_paramtble()`.
++         * In addition, the `FunctionInfo` struct of the function type is
++         * introduced later, the `finfo` here is of the function to which the
++         * variable in question belongs.
++         * Might be a bug. So we comment out this line here, hoping that
++         * the signature will be effectively generated in `gen_full_paramtble()`*/
++		//type_decl.get_what() = gen_function_signature(finfo, 1);
++
+ 		type_decl.get_token() = TokenMeta::Function;
+ 	}
+ 	else {
+
+    ```
+    
+
+test case
+```fortran 
+    module ma
+    implicit none
+    interface show
+    module procedure  show_int
+    module procedure  show_character
+    end interface
+
+    contains
+    subroutine show_int(n)
+    implicit none
+    integer,intent(in)::n
+    write(*,"('n=',i3)")n
+    end subroutine show_int
+
+    subroutine show_character(str)
+    implicit none
+    character(len=4),intent(in)::str
+    write(*,"('str=',A)")str
+    end subroutine show_character
+
+    end module
+```
+
+output
+```cpp
+/**********************************************************************/
+/* File:                                                              */
+/* Author:                                                            */
+/* This codes is generated by CFortranTranslator                      */
+/* CFortranTranslator is published under GPL license                  */
+/* refer to https://github.com/CalvinNeo/CFortranTranslator/ for more */
+/**********************************************************************/
+#include "../for90std/for90std.h" 
+#define USE_FORARRAY 
+void show_character(const string & str);
+void show(const string & str);
+void show_int(const int & n);
+void show(const int & n);
+#ifndef ma_show_character
+#define ma_show_character
+void show_character(const string & str)
+{
+	forwrite(stdout, IOFormat{"str=%s\n", 0}, str);
+	
+	return ;
+}
+
+void show(const string & str)
+{
+	forwrite(stdout, IOFormat{"str=%s\n", 0}, str);
+	
+	return ;
+}
+
+#endif
+#ifndef ma_show_int
+#define ma_show_int
+void show_int(const int & n)
+{
+	forwrite(stdout, IOFormat{"n=%3d\n", 0}, n);
+	
+	return ;
+}
+
+void show(const int & n)
+{
+	forwrite(stdout, IOFormat{"n=%3d\n", 0}, n);
+	
+	return ;
+}
+
+#endif
+#ifndef ma
+#define ma
+
+
+#endif
+
+```
+
+source code is available on `https://github.com/YHN-ice/CFortranTranslator`, the modifications is much more precise in github's commit history detail (side by side diff).
+
