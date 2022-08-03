@@ -197,7 +197,15 @@ void regen_type(ParseNode & type_decl, FunctionInfo * finfo, VariableInfo * vinf
 	else if (type_decl.token_equals(TokenMeta::Function_Decl))
 	{
 		// generate `std::function`
-		type_decl.get_what() = gen_function_signature(finfo, 1);
+
+        /* the assignment will be rewritten later in `gen_full_paramtble()`.
+         * In addition, the `FunctionInfo` struct of the function type is
+         * introduced later, the `finfo` here is of the function to which the
+         * variable in question belongs.
+         * Might be a bug. So we comment out this line here, hoping that
+         * the signature will be effectively generated in `gen_full_paramtble()`*/
+		//type_decl.get_what() = gen_function_signature(finfo, 1);
+
 		type_decl.get_token() = TokenMeta::Function;
 	}
 	else {

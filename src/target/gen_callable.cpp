@@ -76,8 +76,18 @@ void regen_function_array(FunctionInfo * finfo, ParseNode & callable) {
 
 		}
 		else {
-			// variable
-			check_implicit_variable(finfo, head_name);
+            /*TODO: Finer granularity to decide whether function was defined in a module of other file.
+             * Need information cross files and/or conversions.
+             * Current policy is loose, i.e., if `use *` is present, then function of whatever name is
+             * regarded presented/defined somewhere else.
+             * The sequela is that `check_implicit_variable(finfo, head_name);` here
+             * will be called only if no `use *` statement
+             * is encountered.*/
+            if(finfo->use_stmts.empty())
+            {
+                // variable
+                check_implicit_variable(finfo, head_name);
+            }
 		}
 		string argtable_str;
 		/**************

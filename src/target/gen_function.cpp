@@ -104,6 +104,58 @@ void get_full_paramtable(FunctionInfo * finfo) {
 			print_error("parameter is not defined: " + param_name);
 		}
 	}
+    /**
+     * the code above helps generate function_decl inside another subroutine
+     * (nested function, which is a variable in another outer function), e.g.,
+     * ```fortran
+     * subroutine proc(a, b, fun)
+     *   interface
+	 *     function fun(x,y) result (fun_result)
+	 *	     integer,intent(in)::x, y
+	 *	     integer::fun_result
+	 *     end function
+	 *   end interface
+	 *   integer,intent(in)::a, b
+	 *   print *, fun(a, b)
+     * end subroutine
+     * ```
+     * the `fun` will be traversed as a variable in paramtable.
+     *
+     * following code helps generate function_decl in interface but not in the subprogram/code unit paramtable,
+     * the scenario is specific to interface inside module. A module cannot have paramtable, so the function
+     * cannot be generated through `regen_function()` call as before.
+     * e.g.,
+     * ```fortrean
+     * module ma
+     *   interface
+     *     function fun(x,y) result(fun_result)
+     *       integer, intent(in)::x,y
+     *       integer::fun_result
+     *     end function
+     *   end interface
+     * end module
+     * ```
+     * here we capture the inner function_decl and call `regen_function()` for it, mimicking the behavior above.
+     */
+    if(!get_context().current_module.empty())
+    {
+        for(VariableInfo *vinfo: finfo->funcdesc.declared_variables)
+        {
+            if (vinfo->type.token_equals(TokenMeta::Function)) {
+                // function declared in an interface block
+                ParseNode *funcdef_node = vinfo->vardef_node;
+                FunctionInfo *interface_finfo = add_function(get_context().current_module,
+                                                             vinfo->local_name,
+                                                             FunctionInfo{});
+                regen_function(interface_finfo, *funcdef_node); // regen interface function
+                if (funcdef_node->attr != nullptr) {
+                    vinfo->type = gen_type(Term{TokenMeta::Function, gen_function_signature(interface_finfo, 1)});
+                } else {
+                    print_error("Invalid interface: " + funcdef_node->get_what());
+                }
+            }
+        }
+    }
 	return;
 }
 
@@ -189,6 +241,8 @@ void regen_function_2(FunctionInfo * finfo) {
 
 	// gen signature
 	std::string signature = gen_function_signature(finfo);
+    std::vector<std::string> signatures_for_alias = gen_func_alias_signature(finfo);
+
 
 	// generate function code 
 	sprintf(codegen_buf, "%s\n{\n%s\treturn %s;\n}\n"
@@ -196,6 +250,15 @@ void regen_function_2(FunctionInfo * finfo) {
 		, tabber(oldsuite.to_string()).c_str() // code
 		, (finfo->is_subroutine() ? "" : finfo->result_name.c_str()) // add return stmt if not function
 	);
+    for(std::string sig:signatures_for_alias)
+    {
+        sprintf(codegen_buf, "%s\n%s\n{\n%s\treturn %s;\n}\n"
+                , codegen_buf
+                , sig.c_str()
+                , tabber(oldsuite.to_string()).c_str() // code
+                , (finfo->is_subroutine() ? "" : finfo->result_name.c_str()) // add return stmt if not function
+        );
+    }
 	decl_node.get_what() = string(codegen_buf);
 }
 
@@ -208,6 +271,32 @@ void regen_function(FunctionInfo * finfo, ParseNode & functiondecl_node) {
 	return;
 }
 
+std::vector<std::string> gen_func_alias_signature(FunctionInfo * finfo) {
+    bool is_subroutine = finfo->result_name.empty();
+    std::string result_type_str;
+    VariableInfo * result_vinfo = get_variable(get_context().current_module, finfo->local_name, finfo->result_name);
+    if (is_subroutine)
+    {
+        // subroutine
+        result_type_str = "void";
+    }
+    else {
+        result_type_str = gen_qualified_typestr(result_vinfo->type, result_vinfo->desc, false);
+    }
+
+    std::vector<std::string> res = std::vector<std::string>();
+    for(const std::string& func_alias:finfo->func_alias){
+        // forward declaration
+        std::string paramtblstr = gen_paramtable_str(finfo, finfo->funcdesc.paramtable_info, true);
+        sprintf(codegen_buf, "%s %s(%s)"
+                , result_type_str.c_str() // return value type, "void" if subroutine
+                , func_alias.c_str() // function name
+                , paramtblstr.c_str() // parameter list
+        );
+        res.emplace_back(codegen_buf);
+    }
+    return res;
+}
 std::string gen_function_signature(FunctionInfo * finfo, int style) {
 	bool is_subroutine = finfo->result_name == "";
 	std::string result_type_str;

@@ -96,6 +96,7 @@ ParseNode gen_implicit_type(FunctionInfo * finfo, std::string name);
 ParseNode require_format_index(FunctionInfo * finfo, std::string format_index);
 void get_full_paramtable(FunctionInfo * finfo);
 std::string gen_function_signature(FunctionInfo * finfo, int style = 0);
+std::vector<std::string> gen_func_alias_signature(FunctionInfo * finfo);
 std::string gen_paramtable_str(FunctionInfo * finfo, const std::vector<std::string> & paramtable_info, bool with_name = true);
 
 // var def

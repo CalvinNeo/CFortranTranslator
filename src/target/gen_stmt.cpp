@@ -274,6 +274,14 @@ std::string regen_stmt(FunctionInfo * finfo, ParseNode & stmt) {
 				vinfo->entity_variable = gen_vardef_from_default(vinfo->type, "");
 				vinfo->vardef_node = &wrapper;
 			}
+            else if(wrapper.token_equals(TokenMeta::META_WORD))
+            {
+                FunctionInfo *target_finfo =  get_function(get_context().current_module, wrapper.get_what());
+                if(target_finfo!= nullptr)
+                {
+                    target_finfo->func_alias.push_back(stmt.get_what());
+                }
+            }
 		}
 	}
 	else if (stmt.token_equals(TokenMeta::NT_DERIVED_TYPE)) {
@@ -329,6 +337,10 @@ std::string regen_stmt(FunctionInfo * finfo, ParseNode & stmt) {
 		newsuitestr += stmt.get_what();
 		newsuitestr += '\n';
 	}
+    else if (stmt.token_equals(TokenMeta::NT_USE)) {
+        if(std::find(finfo->use_stmts.begin(), finfo->use_stmts.end(),&stmt)==finfo->use_stmts.end())
+            finfo->use_stmts.push_back(&stmt);
+    }
 	else if (stmt.token_equals(TokenMeta::ConfigImplicit))
 	{
 		ParseNode & type_decl = stmt.get(0);

@@ -655,7 +655,7 @@ using namespace std;
 
 	function_array_body : variable '(' paramtable ')'
 			{
-				// function call OR array index 
+				// function call OR array index
 				// NOTE that array index can be A(1:2, 3:4)
 				ARG_OUT callable_head = YY2ARG($1);
 				ARG_OUT argtable = YY2ARG($3);
@@ -1011,7 +1011,14 @@ using namespace std;
 				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($1));
 				CLEAN_DELETE($1);
 			}
-		| var_def 
+		| YY_USE YY_WORD
+
+			{
+				$$ = RETURN_NT(gen_promote("#include \"%s.h\"", TokenMeta::NT_USE, YY2ARG($2)));
+				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($2));
+				CLEAN_DELETE($1,$2);
+			}
+		| var_def
 			{
 				$$ = $1;
 				insert_comments(YY2ARG($$));
@@ -2413,6 +2420,11 @@ using namespace std;
 				$$ = $1;
 				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($1));
 		    }
+		| YY_MODULE YY_PROCEDURE YY_WORD
+		    {
+				$$ = $3;
+				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($3));
+		    }
 		| function_decl
 			{
 				$$ = $1;
@@ -2477,7 +2489,7 @@ using namespace std;
 	interface_decl : YY_INTERFACE _optional_name at_least_one_end_line wrappers crlf_or_not YY_ENDINTERFACE _optional_name
 			{
 				ARG_OUT wrappers = YY2ARG($4);
-				$$ = RETURN_NT(gen_token(Term{ TokenMeta::NT_INTERFACE, wrappers.get_what()}, wrappers));
+				$$ = RETURN_NT(gen_token(Term{ TokenMeta::NT_INTERFACE, $2->get_what()}, wrappers));
 				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($7));
 				CLEAN_DELETE($1, $2, $3, $4, $5, $6, $7);
 			}

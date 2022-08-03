@@ -47,6 +47,8 @@ struct FunctionInfo {
 	ParseNode * suite;
 	ParseNode * node;
 	TokenMeta_T implicit_type_config[256];
+    std::vector<ParseNode *> use_stmts;
+    std::vector < std::string> func_alias;
 	FunctionInfo() {
 		std::fill_n(implicit_type_config, 256, TokenMeta::Double_Decl);
 		for (char i = 'i'; i <= 'n'; i++)

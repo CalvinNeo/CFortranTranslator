@@ -4795,7 +4795,7 @@ void gen_fortran_program(const ParseNode & wrappers) {
             {
                 ParseNode &node = *nodeptr;
                 ParseNode & variable_function = node.get(1);
-                FunctionInfo * finfo = get_function(get_context().current_module, variable_function.get_what());
+                FunctionInfo * finfo = get_function(minfo.module_name, variable_function.get_what());
                 regen_function_2(finfo);
                 codes += "#ifndef "+minfo.module_name+"_"+finfo->local_name+"\n";
                 codes += "#define "+minfo.module_name+"_"+finfo->local_name+"\n";
@@ -4863,3 +4863,27 @@ void gen_fortran_program(const ParseNode & wrappers) {
 	get_context().program_tree.get_what() = codes;
 }
 ```
+
+**patch**: an extra modification
+
+```shell
+diff --git a/src/target/gen_program.cpp b/src/target/gen_program.cpp
+index 60a0dd3..4c5e474 100755
+--- a/src/target/gen_program.cpp
++++ b/src/target/gen_program.cpp
+@@ -214,7 +214,7 @@ void gen_fortran_program(const ParseNode & wrappers) {
+             {
+                 ParseNode &node = *nodeptr;
+                 ParseNode & variable_function = node.get(1);
+-                FunctionInfo * finfo = get_function(get_context().current_module, variable_function.get_what());
++                FunctionInfo * finfo = get_function(minfo.module_name, variable_function.get_what());
+                 regen_function_2(finfo);
+                 codes += "#ifndef "+minfo.module_name+"_"+finfo->local_name+"\n";
+                 codes += "#define "+minfo.module_name+"_"+finfo->local_name+"\n";
+
+```
+
+> Now `add_function()` is called with `module_name` of word after module keyword, so `get_function() ` for function decl nodes in module should be called with (explicitly) the module name, i.e., `minfo.module_name`
+
+
+

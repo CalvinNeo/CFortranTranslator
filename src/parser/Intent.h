@@ -360,6 +360,7 @@ namespace TokenMeta {
 		ADD_ENUM(NT_DEFINED_OPERATOR, -2051),
 		ADD_ENUM(NT_DERIVED_TYPE, -2052),
         ADD_ENUM(NT_MODULE, -2053),
+        ADD_ENUM(NT_USE, -2054),
 
 		ADD_ENUM(NT_DUMMY, -9999),
 		/***************************************

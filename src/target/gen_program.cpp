@@ -18,6 +18,7 @@
 */
 
 #include "gen_common.h"
+#include <boost/algorithm/string.hpp>
 
 /*
 R202 program-unit is main-program
@@ -78,21 +79,22 @@ void gen_fortran_program(const ParseNode & wrappers) {
         else if (wrapper.token_equals(TokenMeta::NT_MODULE))
         {
             minfo.is_set=true;
-            minfo.outer_info = add_function("","module",FunctionInfo{});
+            minfo.outer_info = add_function(wrapper.get_what(),"",FunctionInfo{});
             minfo.module_name = wrapper.get_what();
             ModuleInfo &minfo_alias = minfo;
+            get_context().current_module = minfo.module_name;
             for (int j = 0; j < wrapper.get(0).length(); j++)
             {
                 ParseNode &node = wrapper.get(0).get(j);
                 if (node.token_equals(TokenMeta::NT_FUNCTIONDECLARE))
                 {
                     minfo_alias.func_decls_in_module.push_back(&node);
-                    add_function(minfo_alias.module_name, node.get(1).get_what(),FunctionInfo{});
+                    add_function(get_context().current_module, node.get(1).get_what(),FunctionInfo{});
                 }
                 else if (node.token_equals(TokenMeta::NT_DERIVED_TYPE))
                 {
                     minfo_alias.type_decls_in_module.push_back(&node);
-                    add_type(minfo_alias.module_name, node.get(0).get_what(),TypeInfo{});
+                    add_type(get_context().current_module, node.get(0).get_what(),TypeInfo{});
                 }
                 /* function and type definition individually processed in `minfo`,
                  * code other than those goes to `script_outer` and will be `regen_suite`ed */
@@ -139,6 +141,7 @@ void gen_fortran_program(const ParseNode & wrappers) {
     /* function and type collected from inside module is treated as normal outermost definition, but with assigned module name*/
     if(minfo.is_set)
     {
+        get_context().current_module = minfo.module_name;
         std::vector<ParseNode *> &func_decls_in_module = minfo.func_decls_in_module;
         if (!func_decls_in_module.empty())
         {
@@ -146,7 +149,7 @@ void gen_fortran_program(const ParseNode & wrappers) {
             {
                 ParseNode &node = *nodeptr;
                 ParseNode & variable_function = node.get(1);
-                FunctionInfo * finfo = get_function(minfo.module_name, variable_function.get_what());
+                FunctionInfo * finfo = get_function(get_context().current_module, variable_function.get_what());
                 regen_function_1(finfo, node);
             }
         }
@@ -156,18 +159,21 @@ void gen_fortran_program(const ParseNode & wrappers) {
             for(ParseNode *nodeptr:type_decls_in_module)
             {
                 ParseNode & variable_type = nodeptr->get(0);
-                TypeInfo *tinfo = get_type(minfo.module_name,variable_type.get_what());
+                TypeInfo *tinfo = get_type(get_context().current_module,variable_type.get_what());
                 regen_derived_type_1(tinfo, *nodeptr);
             }
         }
     }
 
     // main program code
+    get_context().current_module = "";
     regen_suite(program_info, script_program);
     if(minfo.is_set)
     {
+        get_context().current_module = minfo.module_name;
         regen_suite(minfo.outer_info,minfo.script_outer);
     }
+    get_context().current_module = "";
 
 	// regen common definition
 	// this MUST before generate subprogram's code(`regen_function_2`), ref `regen_function_2` for reason
@@ -207,6 +213,7 @@ void gen_fortran_program(const ParseNode & wrappers) {
 	}
     if(minfo.is_set)
     {
+        get_context().current_module = minfo.module_name;
         std::vector<ParseNode *> &func_decls_in_module = minfo.func_decls_in_module;
         if (!func_decls_in_module.empty())
         {
@@ -225,6 +232,7 @@ void gen_fortran_program(const ParseNode & wrappers) {
         }
     }
 
+    get_context().current_module = "";
 	for (TypeInfo * tinfo : get_context().types_vec)
 	{
 			regen_derived_type_2(tinfo);
@@ -246,27 +254,75 @@ void gen_fortran_program(const ParseNode & wrappers) {
 	regen_all_variables_decl_str(program_info, script_program);
 	main_code = tabber(script_program.get_what());
     sprintf(codegen_buf, "int main()\n{\n%s\treturn 0;\n}", main_code.c_str());
+    main_code = codegen_buf;
+    boost::trim(script_program.get_what());
+    if(!script_program.get_what().empty())
+        codes+=main_code;
     if(minfo.is_set)
     {
+        get_context().current_module = minfo.module_name;
         regen_all_variables_decl_str(minfo.outer_info,minfo.script_outer);
         minfo.module_code = minfo.script_outer.get_what();
-        sprintf(codegen_buf, "#ifndef %s\n#define %s\n%s\n#endif\n%s", minfo.module_name.c_str(),minfo.module_name.c_str(),minfo.module_code.c_str(), main_code.c_str());
+        sprintf(codegen_buf, "#ifndef %s\n#define %s\n%s\n#endif\n", minfo.module_name.c_str(),minfo.module_name.c_str(),minfo.module_code.c_str());
     }
 	codes += string(codegen_buf);
 
 	// forward declarations
+    get_context().current_module = "";
 	std::string forward_decls;
 	forall_function_in_module("", [&](std::pair<std::string , FunctionInfo * > pr) {
 		FunctionInfo * finfo;
 		std::tie(std::ignore, finfo) = pr;
 		std::string name = finfo->local_name;
-		if (name != "program" && name != "" && name!="module")
+		if (name != "program" && name != "")
 		{
 			forward_decls += gen_function_signature(finfo);
 			forward_decls += ";\n";
 		}
-	});
+        if(!finfo->func_alias.empty())
+        {
+            for(std::string sig: gen_func_alias_signature(finfo))
+            {
+                forward_decls += sig;
+                forward_decls += ";\n";
+            }
+        }
+    });
 
+    get_context().current_module = minfo.module_name;
+    forall_function_in_module(get_context().current_module, [&](std::pair<std::string , FunctionInfo * > pr) {
+        FunctionInfo * finfo;
+        std::tie(std::ignore, finfo) = pr;
+        std::string name = finfo->local_name;
+        if (name != "program" && name != "")
+        {
+            forward_decls += gen_function_signature(finfo);
+            forward_decls += ";\n";
+            if(!finfo->func_alias.empty())
+            {
+                for(std::string sig: gen_func_alias_signature(finfo))
+                {
+                    forward_decls += sig;
+                    forward_decls += ";\n";
+                }
+            }
+        }
+    });
+    get_context().current_module = "";
+
+    /*construct use statements, i.e., `#include "module name"` after conversion*/
+    std::string use_statements;
+    for(ParseNode* incl:program_info->use_stmts){
+        use_statements += incl->get_what();
+        use_statements += "\n";
+    }
+    for(ParseNode* incl:minfo.outer_info->use_stmts){
+        use_statements += "#ifndef " + minfo.module_name + "\n";
+        use_statements += "#define " + minfo.module_name + "\n";
+        use_statements += incl->get_what();
+        use_statements += "\n";
+        use_statements += "#endif\n";
+    }
 
 	/************
 	* PROGRAM STRUCTURE
@@ -276,6 +332,7 @@ void gen_fortran_program(const ParseNode & wrappers) {
 	* function definitions
 	* the `main` program
 	*************/
+    codes = use_statements + codes;
 	codes = forward_decls + codes;
 	codes = common_decls + codes;
 
