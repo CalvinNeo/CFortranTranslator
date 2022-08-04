@@ -5498,7 +5498,7 @@ void show(const int & n)
 
 source code is available on `https://github.com/YHN-ice/CFortranTranslator`, the modifications is much more precise in github's commit history detail (side by side diff).
 
-*patch*, `use` statement in `function_decl` (both outer most definition and inside module/after `contains` statement) should also be collected
+**patch**, `use` statement in `function_decl` (both outer most definition and inside module/after `contains` statement) should also be collected
 10. modify `gen_program.cpp`:
    ```shell
    diff --git a/src/target/gen_program.cpp b/src/target/gen_program.cpp
