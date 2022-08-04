@@ -324,6 +324,45 @@ void gen_fortran_program(const ParseNode & wrappers) {
         use_statements += "#endif\n";
     }
 
+    /* collect `use statement` inside function (outermost and after contains stmt in module) */
+    /* outermost */
+    for (ParseNode * wrapper_ptr : get_context().program_tree) {
+        ParseNode &wrapper = *wrapper_ptr;
+        if (wrapper.token_equals(TokenMeta::NT_FUNCTIONDECLARE)) {
+            ParseNode &variable_function = wrapper.get(1);
+            FunctionInfo *finfo = get_function(get_context().current_module, variable_function.get_what());
+            for(ParseNode* incl: finfo->use_stmts)
+            {
+                use_statements+=incl->get_what();
+                use_statements+="\n";
+            }
+        }
+    }
+    /* function declared inside module */
+    if(minfo.is_set)
+    {
+        get_context().current_module = minfo.module_name;
+        std::vector<ParseNode *> &func_decls_in_module = minfo.func_decls_in_module;
+        if (!func_decls_in_module.empty())
+        {
+            for (ParseNode *nodeptr:func_decls_in_module)
+            {
+                ParseNode &node = *nodeptr;
+                ParseNode & variable_function = node.get(1);
+                FunctionInfo * finfo = get_function(get_context().current_module, variable_function.get_what());
+                for(ParseNode* incl: finfo->use_stmts)
+                {
+                    use_statements += "#ifndef "+minfo.module_name+"_"+finfo->local_name+"\n";
+                    use_statements += "#define "+minfo.module_name+"_"+finfo->local_name+"\n";
+                    use_statements += incl->get_what();
+                    use_statements += "\n";
+                    use_statements += "#endif\n";
+                }
+            }
+        }
+        get_context().current_module = "";
+    }
+
 	/************
 	* PROGRAM STRUCTURE
 	*
