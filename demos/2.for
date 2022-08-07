@@ -1,13 +1,8 @@
-    module ma
-    use bee
-    implicit none
-    interface show
-      subroutine fun
-      end subroutine
-    end interface
-    contains
-    function fff
-    use ccc
-    end function
-
-    end module
+  module p
+  type pipe
+    real diameter
+    real flowrate
+    integer length
+    character(len=10)::flowtype
+  end type pipe
+  end

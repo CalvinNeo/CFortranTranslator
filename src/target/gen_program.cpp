@@ -235,16 +235,19 @@ void gen_fortran_program(const ParseNode & wrappers) {
     get_context().current_module = "";
 	for (TypeInfo * tinfo : get_context().types_vec)
 	{
-			regen_derived_type_2(tinfo);
             if(minfo.is_set && std::find(minfo.type_decls_in_module.begin(), minfo.type_decls_in_module.end(),tinfo->node)!=minfo.type_decls_in_module.end())
-            {/**/
+            {
+                get_context().current_module = minfo.module_name;
+                regen_derived_type_2(tinfo);
                 codes += "#ifndef "+minfo.module_name+"_"+tinfo->local_name+"\n";
                 codes += "#define "+minfo.module_name+"_"+tinfo->local_name+"\n";
                 codes += tinfo->node->get_what();
                 codes += "\n";
                 codes += "#endif\n";
+                get_context().current_module = "";
             }else
             {
+                regen_derived_type_2(tinfo);
                 codes += tinfo->node->get_what();
                 codes += "\n";
             }
