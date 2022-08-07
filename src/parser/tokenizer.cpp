@@ -404,6 +404,26 @@ const vector<KeywordMeta> keywords = {
 		, TokenMeta::META_ANY
 		, YY_KIND
 	}
+    , KeywordMeta{ "singr"
+            , TokenMeta::META_ANY
+            , YY_SINGR
+    }
+    , KeywordMeta{ "fullr"
+            , TokenMeta::META_ANY
+            , YY_FULLR
+    }
+    , KeywordMeta{ "singi"
+            , TokenMeta::META_ANY
+            , YY_SINGI
+    }
+    , KeywordMeta{ "fulli"
+            , TokenMeta::META_ANY
+            , YY_FULLI
+    }
+    , KeywordMeta{ "singl"
+            , TokenMeta::META_ANY
+            , YY_SINGL
+    }
 	, KeywordMeta{ "call"
 		, TokenMeta::META_ANY
 		, YY_CALL
