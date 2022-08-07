@@ -395,6 +395,9 @@ inline void forwrite(FILE * f, const std::string & format) {
 
 // free format
 // write free step 2
+inline void _forwritefree_one(FILE* f, float x) {
+    fprintf(f, "%f", x);
+};
 inline void _forwritefree_one(FILE * f, int x) {
 	fprintf(f, "%d", x);
 };
