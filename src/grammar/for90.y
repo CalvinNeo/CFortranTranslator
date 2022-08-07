@@ -105,7 +105,7 @@ using namespace std;
 %token /*_YY_TYPE*/ YY_INTEGER YY_FLOAT YY_WORD YY_OPERATOR /* Lead to error YY_OPERATOR_UNARY */ YY_STRING YY_ILLEGAL YY_COMPLEX YY_TRUE YY_FALSE YY_FORMAT_STMT YY_COMMENT
 %token /*_YY_CONTROL_FLOW*/ YY_LABEL YY_END YY_IF YY_THEN YY_ELSE YY_ELSEIF YY_ENDIF YY_DO YY_ENDDO YY_CONTINUE YY_BREAK YY_EXIT YY_CYCLE YY_WHILE YY_ENDWHILE YY_WHERE YY_ENDWHERE YY_CASE YY_ENDCASE YY_SELECT YY_ENDSELECT YY_GOTO YY_DOWHILE YY_DEFAULT 
 %token /*_YY_DELIM*/ YY_TYPE YY_ENDTYPE YY_PROGRAM YY_ENDPROGRAM YY_FUNCTION YY_ENDFUNCTION YY_RECURSIVE YY_RESULT YY_SUBROUTINE YY_ENDSUBROUTINE YY_MODULE YY_ENDMODULE YY_BLOCK YY_ENDBLOCK YY_INTERFACE YY_ENDINTERFACE YY_COMMON YY_DATA YY_PROCEDURE, YY_CONTAINS
-%token /*_YY_DESCRIBER*/ YY_IMPLICIT YY_NONE YY_USE YY_PARAMETER YY_ENTRY YY_DIMENSION YY_ARRAYBUILDER_START YY_ARRAYBUILDER_END YY_INTENT YY_IN YY_OUT YY_INOUT YY_OPTIONAL YY_LEN YY_KIND YY_SAVE YY_ALLOCATABLE YY_TARGET YY_POINTER
+%token /*_YY_DESCRIBER*/ YY_IMPLICIT YY_NONE YY_USE YY_PARAMETER YY_ENTRY YY_DIMENSION YY_ARRAYBUILDER_START YY_ARRAYBUILDER_END YY_INTENT YY_IN YY_OUT YY_INOUT YY_OPTIONAL YY_LEN YY_KIND YY_SINGR YY_FULLR YY_SINGI YY_FULLI YY_SINGL YY_SAVE YY_ALLOCATABLE YY_TARGET YY_POINTER
 %token /*_YY_TYPEDEF*/ YY_INTEGER_T YY_FLOAT_T YY_STRING_T YY_COMPLEX_T YY_BOOL_T YY_CHARACTER_T YY_DOUBLE_T
 %token /*_YY_COMMAND*/ YY_WRITE YY_READ YY_PRINT YY_CALL  YY_STOP YY_PAUSE YY_RETURN
 %token /*_YY_CONFIG*/ YY_CONFIG_IMPLICIT
@@ -367,50 +367,93 @@ using namespace std;
 	*			(4) When reference is made to a type parameter, including the surrounding parentheses, the term
 	*		“selector” is used.See, for example, “length - selector”(R507) and “kind - selector”(R505).
 	*/
-	type_selector : YY_KIND '=' YY_INTEGER
-			{
-				int kind;
-				ARG_OUT integer = YY2ARG($3);
-				sscanf(integer.get_what().c_str(), "%d", &kind);
+    type_selector : YY_KIND '=' YY_INTEGER
+            {
+                int kind;
+                ARG_OUT integer = YY2ARG($3);
+                sscanf(integer.get_what().c_str(), "%d", &kind);
 
-				/* type size */
-				ParseNode newnode = gen_token(Term{ TokenMeta::NT_VARIABLEDESC, "NT_VARIABLEDESC" });
-				set_variabledesc_attr(newnode, boost::none, boost::none, boost::none, boost::none, kind, boost::none, boost::none, boost::none, boost::none, boost::none);
-				$$ = RETURN_NT(newnode);
-				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($3));
-				CLEAN_DELETE($1, $2, $3);
-			}
+                /* type size */
+                ParseNode newnode = gen_token(Term{ TokenMeta::NT_VARIABLEDESC, "NT_VARIABLEDESC" });
+                set_variabledesc_attr(newnode, boost::none, boost::none, boost::none, boost::none, kind, boost::none, boost::none, boost::none, boost::none, boost::none);
+                $$ = RETURN_NT(newnode);
+                update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($3));
+                CLEAN_DELETE($1, $2, $3);
+            }
+        | YY_LEN '=' exp
+            {
+                // though use std::string
+                // still need to initialize the string to YY_LEN
+                int len;
+                ARG_OUT integer = YY2ARG($3);
+                sscanf(integer.get_what().c_str(), "%d", &len);
 
-		| YY_LEN '=' exp
-			{
-				// though use std::string
-				// still need to initialize the string to YY_LEN
-				int len;
-				ARG_OUT integer = YY2ARG($3);
-				sscanf(integer.get_what().c_str(), "%d", &len);
-
-				/* string length */
-				ParseNode newnode = gen_token(Term{ TokenMeta::NT_VARIABLEDESC, WHEN_DEBUG_OR_EMPTY("NT_VARIABLEDESC GENERATED IN") });
-				set_variabledesc_attr(newnode, boost::none, boost::none, boost::none, boost::none, len, boost::none, boost::none, boost::none, boost::none, boost::none);
-				$$ = RETURN_NT(newnode);
-				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($3));
-				CLEAN_DELETE($1, $2, $3);
-			}
-		| exp
-			{
-				// though use std::string
-				// still need to initialize the string to YY_LEN
-				int len;
-				ARG_OUT integer = YY2ARG($1);
-				sscanf(integer.get_what().c_str(), "%d", &len);
-
-				/* string length */
-				ParseNode newnode = gen_token(Term{ TokenMeta::NT_VARIABLEDESC, WHEN_DEBUG_OR_EMPTY("NT_VARIABLEDESC GENERATED IN") });
-				set_variabledesc_attr(newnode, boost::none, boost::none, boost::none, boost::none, len, boost::none, boost::none, boost::none, boost::none, boost::none);
-				$$ = RETURN_NT(newnode);
-				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($1));
-				CLEAN_DELETE($1);
-			}
+                /* string length */
+                ParseNode newnode = gen_token(Term{ TokenMeta::NT_VARIABLEDESC, WHEN_DEBUG_OR_EMPTY("NT_VARIABLEDESC GENERATED IN") });
+                set_variabledesc_attr(newnode, boost::none, boost::none, boost::none, boost::none, len, boost::none, boost::none, boost::none, boost::none, boost::none);
+                $$ = RETURN_NT(newnode);
+                update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($3));
+                CLEAN_DELETE($1, $2, $3);
+    	    }
+        | YY_SINGR
+            {
+    	        int kind = 4;
+                ParseNode newnode = gen_token(Term{ TokenMeta::NT_VARIABLEDESC, "NT_VARIABLEDESC" });
+    	        set_variabledesc_attr(newnode, boost::none, boost::none, boost::none, boost::none, kind, boost::none, boost::none, boost::none, boost::none, boost::none);
+    	        $$ = RETURN_NT(newnode);
+    	        update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($1));
+    	        CLEAN_DELETE($1);
+    	    }
+        | YY_FULLR
+            {
+    	        int kind = 8;
+    	        ParseNode newnode = gen_token(Term{ TokenMeta::NT_VARIABLEDESC, "NT_VARIABLEDESC" });
+    	        set_variabledesc_attr(newnode, boost::none, boost::none, boost::none, boost::none, kind, boost::none, boost::none, boost::none, boost::none, boost::none);
+    	        $$ = RETURN_NT(newnode);
+    	        update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($1));
+    	        CLEAN_DELETE($1);
+    	    }
+        | YY_SINGI
+            {
+    	        int kind = 4;
+                ParseNode newnode = gen_token(Term{ TokenMeta::NT_VARIABLEDESC, "NT_VARIABLEDESC" });
+    	        set_variabledesc_attr(newnode, boost::none, boost::none, boost::none, boost::none, kind, boost::none, boost::none, boost::none, boost::none, boost::none);
+    	        $$ = RETURN_NT(newnode);
+    	        update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($1));
+    	        CLEAN_DELETE($1);
+    	    }
+        | YY_FULLI
+            {
+    	        int kind = 8;
+    	        ParseNode newnode = gen_token(Term{ TokenMeta::NT_VARIABLEDESC, "NT_VARIABLEDESC" });
+    	        set_variabledesc_attr(newnode, boost::none, boost::none, boost::none, boost::none, kind, boost::none, boost::none, boost::none, boost::none, boost::none);
+    	        $$ = RETURN_NT(newnode);
+    	        update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($1));
+    	        CLEAN_DELETE($1);
+    	    }
+        | YY_SINGL
+            {
+    	        int kind = 4;
+                ParseNode newnode = gen_token(Term{ TokenMeta::NT_VARIABLEDESC, "NT_VARIABLEDESC" });
+    	        set_variabledesc_attr(newnode, boost::none, boost::none, boost::none, boost::none, kind, boost::none, boost::none, boost::none, boost::none, boost::none);
+    	        $$ = RETURN_NT(newnode);
+    	        update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($1));
+    	        CLEAN_DELETE($1);
+    	    }
+        | YY_INTEGER
+    	    {
+    	        // though use std::string
+    	        // still need to initialize the string to YY_LEN
+    	        int len;
+    	        ARG_OUT integer = YY2ARG($1);
+    	        sscanf(integer.get_what().c_str(), "%d", &len);
+                /* string length */
+                ParseNode newnode = gen_token(Term{ TokenMeta::NT_VARIABLEDESC, WHEN_DEBUG_OR_EMPTY("NT_VARIABLEDESC GENERATED IN") });
+                set_variabledesc_attr(newnode, boost::none, boost::none, boost::none, boost::none, len, boost::none, boost::none, boost::none, boost::none, boost::none);
+                $$ = RETURN_NT(newnode);
+                update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($1));
+                CLEAN_DELETE($1);
+            }
 	literal : YY_FLOAT
 			{
 				// all arguments under `literal` rule is directly from tokenizer
@@ -1800,29 +1843,42 @@ using namespace std;
 			}*/
 
     type_spec : type_name '(' type_selector ')'
-			{
-				// now translated in pre_map
-				$$ = RETURN_NT(gen_type(YY2ARG($1), YY2ARG($3)));
-				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($4));
-				CLEAN_DELETE($1, $2, $3, $4);
-			}
-		| type_name '*' YY_INTEGER
-			{
-				$$ = $1;
-				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($3));
-				CLEAN_DELETE($2, $3);
-			}
-		| type_name '*' '(' '*' ')'
-			{
-				$$ = $1;
-				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($3));
-				CLEAN_DELETE($2, $3);
-			}
-		| type_name
-			{
-				$$ = $1;
-				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($1));
-			}
+    		{
+    		    // now translated in pre_map
+            	$$ = RETURN_NT(gen_type(YY2ARG($1), YY2ARG($3)));
+            	update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($4));
+            	CLEAN_DELETE($1, $2, $3, $4);
+            }
+        | type_name '*' '(' type_selector ')'
+        	{
+        	    // now translated in pre_map
+            	$$ = RETURN_NT(gen_type(YY2ARG($1), YY2ARG($4)));
+            	update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($5));
+            	CLEAN_DELETE($1, $2, $3, $4, $5);
+            }
+        | type_name '*' YY_INTEGER
+        	{
+        		$$ = $1;
+            	update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($3));
+            	CLEAN_DELETE($2, $3);
+            }
+
+        | type_name '*' '(' '*' ')'
+        	{
+        		$$ = $1;
+            	update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($3));
+            	CLEAN_DELETE($2, $3);
+            }
+        | type_name
+        	{
+        		$$ = $1;
+            	update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($1));
+            }
+        | type_name  '(' YY_LEN '=' '*' ')'
+           	{
+            	$$ = $1;
+            	update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($6));
+            }
 
 	_blockname_or_none : '/' YY_WORD '/'
 			{
