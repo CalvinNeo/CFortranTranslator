@@ -79,6 +79,7 @@ const std::map<std::string, std::string> funcname_map{
 	// file
 	, { "open", "foropenfile" }
 	, { "close", "forclosefile" }
+    , {"inquire", "forinquire"}
 
 	// io
 	// read, write, print is specially handled in `gen_io.cpp`
@@ -104,6 +105,7 @@ const std::map<std::string, std::vector<KeywordParamInfo>> sysfunc_args = {
 	, { "forbackspace", { { "unit", "int" , "" }, { "iostat", "int", "" }, { "err", "forlabel", "" } } }
 
 	,{ "forreshape",{ } }
+    , { "forinquire", { { "unit", "int", "" }, { "file", "string", "" }, { "iostat", "int", "" }, { "err", "forlabel", "" }, { "exist", "bool", ""} } }
 	, { "forsum", { { "dim", "int", "" }, { "mask", "mask_wrapper_t", "" } } }
 	, { "forproduct", { { "dim", "int", "" }, { "mask", "mask_wrapper_t", "" } } }
 	, { "forsize", { { "dim", "int", "" } } }

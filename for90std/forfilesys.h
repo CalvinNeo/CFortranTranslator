@@ -21,6 +21,7 @@
 #include <string>
 #include "fordefs.h"
 #include "forlang.h"
+#include <unistd.h>
 
 _NAMESPACE_FORTRAN_BEGIN
 void foropenfile(int unit, foroptional<int> iostat, foroptional<forlabel> err, foroptional<std::string> file, foroptional<std::string> status = None, foroptional<std::string> access = None
@@ -29,4 +30,5 @@ void foropenfile(int unit, foroptional<int> iostat, foroptional<forlabel> err, f
 void forclosefile(foroptional<int> unit, foroptional<int> iostat, foroptional<forlabel> err = None, foroptional<std::string> status = None);
 FILE * get_file(int unit);
 void flush_fileno();
+void forinquire(foroptional<int> unit, foroptional<std::string> file, foroptional<int> iostat, foroptional<forlabel> err, bool &exist);
 _NAMESPACE_FORTRAN_END

@@ -1,7 +1,8 @@
-program ma
-  character(len=*)::aa='aa'
-  character(len=10)::a='a'
-  character(10)::b='b'
-  character*(10)::c='c'
-  character*10::d='d'
+program main
+ implicit none
+ logical alive
+          inquire(file="xx",exist=alive)
+          if(.not.alive) then
+            write(*,*) "no"
+           endif
 end program
