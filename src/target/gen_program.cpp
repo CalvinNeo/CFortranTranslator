@@ -264,8 +264,8 @@ void gen_fortran_program(const ParseNode & wrappers) {
         regen_all_variables_decl_str(minfo.outer_info,minfo.script_outer);
         minfo.module_code = minfo.script_outer.get_what();
         sprintf(codegen_buf, "#ifndef %s\n#define %s\n%s\n#endif\n", minfo.module_name.c_str(),minfo.module_name.c_str(),minfo.module_code.c_str());
+	    codes += string(codegen_buf);
     }
-	codes += string(codegen_buf);
 
 	// forward declarations
     get_context().current_module = "";
@@ -289,6 +289,7 @@ void gen_fortran_program(const ParseNode & wrappers) {
         }
     });
 
+    if(minfo.is_set){
     get_context().current_module = minfo.module_name;
     forall_function_in_module(get_context().current_module, [&](std::pair<std::string , FunctionInfo * > pr) {
         FunctionInfo * finfo;
@@ -309,6 +310,7 @@ void gen_fortran_program(const ParseNode & wrappers) {
         }
     });
     get_context().current_module = "";
+}
 
     /*construct use statements, i.e., `#include "module name"` after conversion*/
     std::string use_statements;
@@ -316,13 +318,15 @@ void gen_fortran_program(const ParseNode & wrappers) {
         use_statements += incl->get_what();
         use_statements += "\n";
     }
+if(minfo.is_set){
     for(ParseNode* incl:minfo.outer_info->use_stmts){
-        use_statements += "#ifndef " + minfo.module_name + "\n";
-        use_statements += "#define " + minfo.module_name + "\n";
+        use_statements += "#ifndef " + minfo.module_name + "_"+incl->get(0).get_what()+ "\n";
+        use_statements += "#define " + minfo.module_name + "_"+incl->get(0).get_what()+ "\n";
         use_statements += incl->get_what();
         use_statements += "\n";
         use_statements += "#endif\n";
     }
+}
 
     /* collect `use statement` inside function (outermost and after contains stmt in module) */
     /* outermost */
@@ -352,8 +356,8 @@ void gen_fortran_program(const ParseNode & wrappers) {
                 FunctionInfo * finfo = get_function(get_context().current_module, variable_function.get_what());
                 for(ParseNode* incl: finfo->use_stmts)
                 {
-                    use_statements += "#ifndef "+minfo.module_name+"_"+finfo->local_name+"\n";
-                    use_statements += "#define "+minfo.module_name+"_"+finfo->local_name+"\n";
+                    use_statements += "#ifndef "+minfo.module_name+"_"+finfo->local_name+"_"+incl->get(0).get_what()+"\n";
+                    use_statements += "#define "+minfo.module_name+"_"+finfo->local_name+"_"+incl->get(0).get_what()+"\n";
                     use_statements += incl->get_what();
                     use_statements += "\n";
                     use_statements += "#endif\n";
