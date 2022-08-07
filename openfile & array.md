@@ -113,7 +113,6 @@ int main()
         farray<double> a {{3}, {5}};
         a = 1.0;
         forwritefree(stdout, a);
-
         return 0;
 }
 

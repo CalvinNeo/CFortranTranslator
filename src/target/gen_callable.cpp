@@ -82,8 +82,12 @@ void regen_function_array(FunctionInfo * finfo, ParseNode & callable) {
              * regarded presented/defined somewhere else.
              * The sequela is that `check_implicit_variable(finfo, head_name);` here
              * will be called only if no `use *` statement
-             * is encountered.*/
-            if(finfo->use_stmts.empty())
+             * is encountered.
+             *
+             * For CALL variable | CALL functionarray
+             * CALL is appended on tail, the node NT_FUNCTIONARRAY
+             * will be larger by one in child size */
+            if(finfo->use_stmts.empty()&&callable.child.size()<3)
             {
                 // variable
                 check_implicit_variable(finfo, head_name);

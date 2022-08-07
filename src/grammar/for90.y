@@ -726,6 +726,7 @@ using namespace std;
 			}
 		| YY_CALL function_array_body
 			{
+			    $2->addlist(*$1);
 				$$ = $2;
 				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($1));
 				CLEAN_DELETE($1);
@@ -744,7 +745,7 @@ using namespace std;
 				*******************/
 				ARG_OUT callable_head = YY2ARG($2);
 				ParseNode newnode = gen_token(Term{TokenMeta::NT_FUCNTIONARRAY, WHEN_DEBUG_OR_EMPTY("FUNCTIONARRAY GENERATED IN REGEN_SUITE") }
-					, callable_head, gen_token(Term{TokenMeta::NT_ARGTABLE_PURE, ""}) );
+					, callable_head, gen_token(Term{TokenMeta::NT_ARGTABLE_PURE, ""}), *($1));
 				$$ = RETURN_NT(newnode);
 				update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($2));
 				CLEAN_DELETE($1, $2);
