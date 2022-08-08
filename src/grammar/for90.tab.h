@@ -134,26 +134,31 @@
      YY_SINGI = 350,
      YY_FULLI = 351,
      YY_SINGL = 352,
-     YY_SAVE = 353,
-     YY_ALLOCATABLE = 354,
-     YY_TARGET = 355,
-     YY_POINTER = 356,
-     YY_INTEGER_T = 357,
-     YY_FLOAT_T = 358,
-     YY_STRING_T = 359,
-     YY_COMPLEX_T = 360,
-     YY_BOOL_T = 361,
-     YY_CHARACTER_T = 362,
-     YY_DOUBLE_T = 363,
-     YY_WRITE = 364,
-     YY_READ = 365,
-     YY_PRINT = 366,
-     YY_CALL = 367,
-     YY_STOP = 368,
-     YY_PAUSE = 369,
-     YY_RETURN = 370,
-     YY_CONFIG_IMPLICIT = 371,
-     YY_ALLOCATE = 372
+     YY__SINGR = 353,
+     YY__FULLR = 354,
+     YY__SINGI = 355,
+     YY__FULLI = 356,
+     YY__SINGL = 357,
+     YY_SAVE = 358,
+     YY_ALLOCATABLE = 359,
+     YY_TARGET = 360,
+     YY_POINTER = 361,
+     YY_INTEGER_T = 362,
+     YY_FLOAT_T = 363,
+     YY_STRING_T = 364,
+     YY_COMPLEX_T = 365,
+     YY_BOOL_T = 366,
+     YY_CHARACTER_T = 367,
+     YY_DOUBLE_T = 368,
+     YY_WRITE = 369,
+     YY_READ = 370,
+     YY_PRINT = 371,
+     YY_CALL = 372,
+     YY_STOP = 373,
+     YY_PAUSE = 374,
+     YY_RETURN = 375,
+     YY_CONFIG_IMPLICIT = 376,
+     YY_ALLOCATE = 377
    };
 #endif
 /* Tokens.  */
@@ -252,26 +257,31 @@
 #define YY_SINGI 350
 #define YY_FULLI 351
 #define YY_SINGL 352
-#define YY_SAVE 353
-#define YY_ALLOCATABLE 354
-#define YY_TARGET 355
-#define YY_POINTER 356
-#define YY_INTEGER_T 357
-#define YY_FLOAT_T 358
-#define YY_STRING_T 359
-#define YY_COMPLEX_T 360
-#define YY_BOOL_T 361
-#define YY_CHARACTER_T 362
-#define YY_DOUBLE_T 363
-#define YY_WRITE 364
-#define YY_READ 365
-#define YY_PRINT 366
-#define YY_CALL 367
-#define YY_STOP 368
-#define YY_PAUSE 369
-#define YY_RETURN 370
-#define YY_CONFIG_IMPLICIT 371
-#define YY_ALLOCATE 372
+#define YY__SINGR 353
+#define YY__FULLR 354
+#define YY__SINGI 355
+#define YY__FULLI 356
+#define YY__SINGL 357
+#define YY_SAVE 358
+#define YY_ALLOCATABLE 359
+#define YY_TARGET 360
+#define YY_POINTER 361
+#define YY_INTEGER_T 362
+#define YY_FLOAT_T 363
+#define YY_STRING_T 364
+#define YY_COMPLEX_T 365
+#define YY_BOOL_T 366
+#define YY_CHARACTER_T 367
+#define YY_DOUBLE_T 368
+#define YY_WRITE 369
+#define YY_READ 370
+#define YY_PRINT 371
+#define YY_CALL 372
+#define YY_STOP 373
+#define YY_PAUSE 374
+#define YY_RETURN 375
+#define YY_CONFIG_IMPLICIT 376
+#define YY_ALLOCATE 377
 
 
 

@@ -144,6 +144,19 @@ std::string regen_stmt(FunctionInfo * finfo, ParseNode & stmt) {
 			ParseNode & vardescattr = vardef_node.get(1);
 			ParseNode & entity_variable = vardef_node.get(2);
 			std::string name = get_variable_name(entity_variable);
+            if(!entity_variable.get(1).child.empty())
+            {
+                ParseNode & var_desc_tail = entity_variable.get(1).get(0);
+                if(var_desc_tail.get_what()=="_fullr" || var_desc_tail.get_what()=="_fulli")
+                {
+                    get_variabledesc_attr(vardescattr).kind = 8;
+                }
+                else if(var_desc_tail.get_what()=="_singr" || var_desc_tail.get_what()=="_singi" || var_desc_tail.get_what()=="_singl")
+                {
+                    get_variabledesc_attr(vardescattr).kind = 4;
+                }
+
+            }
 			if (get_function("", name) != nullptr) {
 				// declared function
 			}

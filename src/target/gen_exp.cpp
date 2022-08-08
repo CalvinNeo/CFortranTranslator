@@ -54,8 +54,44 @@ void regen_exp(FunctionInfo *finfo, ParseNode &exp) {
         }
     } else if (exp.token_equals(TokenMeta::UnknownVariant)) {
         check_implicit_variable(finfo, exp.to_string());
-        if (get_vinfo(finfo, exp)->desc.pointer.isdirty()) {
+        VariableInfo *vinfo = get_vinfo(finfo, exp);
+        if (vinfo->desc.pointer.isdirty()) {
             add_star(exp);
+        }
+        if(vinfo->implicit_defined && !exp.father->get(1).child.empty())
+        {
+            ParseNode & literal_tail = exp.father->get(1).get(0);
+            if(literal_tail.get_what()=="_fullr")
+            {
+                vinfo->type.fs.CurrentTerm = Term{ TokenMeta::LongDouble, "long double" };
+                vinfo->desc.kind = 8;
+                get_variabledesc_attr(*vinfo->vardef_node).kind = 8;
+
+            }
+            else if(literal_tail.get_what()=="_singr")
+            {
+                vinfo->type.fs.CurrentTerm = Term{ TokenMeta::Double, "double" };
+                vinfo->desc.kind = 4;
+                get_variabledesc_attr(*vinfo->vardef_node).kind = 4;
+            }
+            else if(literal_tail.get_what()=="_singi")
+            {
+                vinfo->type.fs.CurrentTerm = Term{ TokenMeta::Int32, "int32_t" };
+                vinfo->desc.kind = 4;
+                get_variabledesc_attr(*vinfo->vardef_node).kind = 4;
+            }
+            else if(literal_tail.get_what()=="_fulli")
+            {
+                vinfo->type.fs.CurrentTerm = Term{ TokenMeta::Int64, "int64_t" };
+                vinfo->desc.kind = 8;
+                get_variabledesc_attr(*vinfo->vardef_node).kind = 8;
+            }
+            else if(literal_tail.get_what()=="_singl")
+            {
+                vinfo->type.fs.CurrentTerm = Term{ TokenMeta::Int32, "int32_t" };
+                vinfo->desc.kind = 4;
+                get_variabledesc_attr(*vinfo->vardef_node).kind = 4;
+            }
         }
     } else if (exp.token_equals(TokenMeta::NT_FUCNTIONARRAY)) {
         // derived type construction, NOTICE: such approach will be exclusive with the original usage, i.e., variable or function followed by `(argtable)`
