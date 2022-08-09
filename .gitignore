@@ -39,7 +39,6 @@
 .vs/
 out/
 vsbuild/*
-build/*
 *.opendb
 *.db
 *.lnk
@@ -53,13 +52,9 @@ presentation/
 ~m4*
 *.diagsession
 *.vspx
-demos/test_workplace/
-bin/
 bin/CFortranTranslator.exe
 *.7z
-/demos/1.txt
 /src/grammar/useless
-*.test
 opencoveragecpp.cmd
 
 # macOS
@@ -76,6 +71,3 @@ out
 # idea
 .idea
 cmake-build-debug
-
-# others
-cpptest

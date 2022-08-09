@@ -1,0 +1,21 @@
+EXE=cpptest.exe
+OBJS=main.obj
+CC=cl
+CFLAG=/EHsc
+LINK_FLAG= /nologo /subsystem:console /DEBUG /MACHINE:X64 /OPT:REF
+
+MSVC_MACROS = /D "NDEBUG" /D "_CONSOLE" /D "_CRT_SECURE_NO_WARNINGS" /D "_SCL_SECURE_NO_WARNINGS" /D "_UNICODE" /D "UNICODE" 
+MSVC_ERROR = /errorReport:prompt /Ehsc /W3 /Gm-
+MSVC_PERFORMANCE = /O2 /Oi /fp:precise /GS /GL /Gy
+MSVC_DEBUG = /Zi 
+CFLAGS = /nologo  /Zc:inline /Gd /MT $(MSVC_MACROS) $(MSVC_PERFORMANCE)
+
+$(EXE): $(OBJS) 
+  Link $(LINK_FLAG) /out:$(EXE) $(OBJS)
+  
+main.obj: main.cpp ../for90std/for90std.h
+  $(CC) $(CFLAGS) -c main.cpp 
+
+.PHONY : clean
+clean:
+  @rm -f *.obj
