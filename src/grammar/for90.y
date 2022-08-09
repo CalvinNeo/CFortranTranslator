@@ -440,6 +440,11 @@ using namespace std;
     	        update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($1));
     	        CLEAN_DELETE($1);
     	    }
+        | variable
+            {
+    	        $$ = $1;
+    	        update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($1));
+    	    }
         | YY_INTEGER
     	    {
     	        // though use std::string
@@ -1872,9 +1877,16 @@ using namespace std;
             }
         | type_name '*' YY_INTEGER
         	{
-        		$$ = $1;
+    	        // though use std::string
+    	        // still need to initialize the string to YY_LEN
+    	        int len;
+    	        ARG_OUT integer = YY2ARG($3);
+    	        sscanf(integer.get_what().c_str(), "%d", &len);
+                ParseNode newnode = gen_token(Term{ TokenMeta::NT_VARIABLEDESC, WHEN_DEBUG_OR_EMPTY("NT_VARIABLEDESC GENERATED IN") });
+                set_variabledesc_attr(newnode, boost::none, boost::none, boost::none, boost::none, len, boost::none, boost::none, boost::none, boost::none, boost::none);
+        		$$ = RETURN_NT(gen_type(YY2ARG($1),newnode));
             	update_pos(YY2ARG($$), YY2ARG($1), YY2ARG($3));
-            	CLEAN_DELETE($2, $3);
+            	CLEAN_DELETE($1, $2, $3);
             }
 
         | type_name '*' '(' '*' ')'

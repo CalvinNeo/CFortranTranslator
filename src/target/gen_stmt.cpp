@@ -144,6 +144,17 @@ std::string regen_stmt(FunctionInfo * finfo, ParseNode & stmt) {
 			ParseNode & vardescattr = vardef_node.get(1);
 			ParseNode & entity_variable = vardef_node.get(2);
 			std::string name = get_variable_name(entity_variable);
+            if(!type_nospec.child.empty()&&type_nospec.get(0).token_equals(TokenMeta::UnknownVariant))
+            {
+                /* `real(a)`, using constant as type selector */
+                ParseNode &var = type_nospec.get(0);
+                VariableInfo* varInfo = get_variable(get_context().current_module,finfo->local_name,var.get_what());
+                if(varInfo->desc.constant.get())
+                {
+                    int kind = std::stoi(varInfo->vardef_node->get(2).get(1).get_what().c_str());
+                    get_variabledesc_attr(vardescattr).kind = kind;
+                }
+            }
             if(!entity_variable.get(1).child.empty())
             {
                 ParseNode & var_desc_tail = entity_variable.get(1).get(0);

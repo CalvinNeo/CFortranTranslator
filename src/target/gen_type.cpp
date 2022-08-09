@@ -23,7 +23,13 @@ ParseNode gen_type(const ParseNode & type_nospec, const ParseNode & _type_kind) 
 	// attach _type_kind to type_nospec nonterminal
 	ParseNode newnode = type_nospec;
 	// now base_typename translated in pre_map
-	newnode.setattr(_type_kind.attr->clone());
+    if(_type_kind.attr!= nullptr)
+	    newnode.setattr(_type_kind.attr->clone());
+    else if(_type_kind.token_equals(TokenMeta::UnknownVariant))
+    {
+        /* the variable in `real(a)` should be stored in `type_nospec` and be accessed later in `regen_stmt()`*/
+        newnode.addchild(_type_kind);
+    }
 	return newnode;
 }
 
