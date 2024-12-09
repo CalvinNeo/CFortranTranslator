@@ -85,7 +85,7 @@ int main(int argc, char* argv[], char* env[])
 		uint64_t start_time = get_current_ms();
 		do_trans(code);
 		uint64_t end_time = get_current_ms();
-		fprintf(stderr, "Cost time:%lld\n", end_time - start_time);
+		fprintf(stderr, "Cost time:%ld\n", end_time - start_time);
 		cout << get_context().program_tree.get_what() << endl;
 		// preorder(&program_tree);
 	}

@@ -28,11 +28,11 @@ lib: $(OBJ_FOR90)
 
 out: CFLAGS_COV = 
 out: make_dir gen_bison $(OBJS) 
-	$(CXX) $(CFLAGS) -o $(EXE) $(OBJS) -L/usr/lib/ -lboost_system -lboost_exception
+	$(CXX) $(CFLAGS) -o $(EXE) $(OBJS) -L/usr/lib/ -lboost_system
 
 build_cov: CFLAGS_COV = -fprofile-arcs -ftest-coverage 
 build_cov: make_dir gen_bison $(OBJS) 
-	$(CXX) $(CFLAGS) $(CFLAGS_COV) --coverage -o $(EXE) $(OBJS) -L/usr/lib/ -lboost_system -lboost_exception
+	$(CXX) $(CFLAGS) $(CFLAGS_COV) --coverage -o $(EXE) $(OBJS) -L/usr/lib/ -lboost_system
 
 lib_cov: CFLAGS_COV = -fprofile-arcs -ftest-coverage 
 lib_cov: $(OBJ_FOR90)
@@ -108,8 +108,7 @@ $(OBJ_TARGET_ROOT)/%.$(OBJ_EXT): $(SRC_ROOT)/src/target/%.cpp
 	$(CXX) -c $(CFLAGS) $(CFLAGS_COV) $< -o $@
 
 gen_bison: $(SRC_ROOT)/src/grammar/for90.y
-	bison -d -v $(SRC_ROOT)/src/grammar/for90.y -o $(SRC_ROOT)/src/grammar/for90.tab.cpp
-	mv $(SRC_ROOT)/src/grammar/for90.tab.hpp $(SRC_ROOT)/src/grammar/for90.tab.h
+	bison -d -v $(SRC_ROOT)/src/grammar/for90.y -o $(SRC_ROOT)/src/grammar/for90.tab.cpp --defines=$(SRC_ROOT)/src/grammar/for90.tab.h
 
 make_dir:
 	mkdir -p $(EXE_ROOT)

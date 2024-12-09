@@ -21,7 +21,7 @@
 
 
 struct option {
-	char * name;
+	const char * name;
 	int has_arg;
 	// flag == NULL: `getopt_long` returns val. val is usually a short option character
 	// flag != NULL: Fill val to *flag, `getopt_long` returns 0
